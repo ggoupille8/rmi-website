@@ -1,6 +1,9 @@
 import type { APIRoute } from "astro";
 import { sql } from "@vercel/postgres";
 
+// Prevent prerendering - API routes must be server-side only
+export const prerender = false;
+
 // Simple admin authentication check
 function isAuthorized(request: Request): boolean {
   const authHeader = request.headers.get("authorization");

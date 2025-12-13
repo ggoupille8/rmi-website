@@ -2,6 +2,9 @@ import type { APIRoute } from "astro";
 import sgMail from "@sendgrid/mail";
 import { sql } from "@vercel/postgres";
 
+// Prevent prerendering - API routes must be server-side only
+export const prerender = false;
+
 // Simple in-memory rate limiting store
 // In production, consider using Redis or a database
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();

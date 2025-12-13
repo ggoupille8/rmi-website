@@ -14,7 +14,9 @@ const site = process.env.VERCEL_URL
 export default defineConfig({
   site,
   output: "hybrid",
-  adapter: vercel(),
+  adapter: vercel({
+    runtime: "nodejs20.x",
+  }),
   integrations: [
     react(),
     tailwind({
