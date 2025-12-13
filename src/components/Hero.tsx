@@ -1,3 +1,5 @@
+import { phoneTel, phoneDisplay, companyName } from "../config/site";
+
 interface CredibilityItem {
   label: string;
   icon: string;
@@ -18,23 +20,32 @@ interface HeroProps {
 }
 
 const defaultCredibilityItems: CredibilityItem[] = [
-  { label: 'Safety-first', icon: '🛡️' },
-  { label: 'On-time delivery', icon: '⏱️' },
-  { label: 'Quality workmanship', icon: '✨' },
+  { label: "Safety-first", icon: "🛡️" },
+  { label: "On-time delivery", icon: "⏱️" },
+  { label: "Quality workmanship", icon: "✨" },
 ];
 
 export default function Hero({
-  headline = 'Expert Mechanical Insulation Solutions',
-  subheadline = 'Professional insulation services that protect your systems, reduce energy costs, and ensure optimal performance for industrial and commercial facilities.',
-  ctaPrimary = { text: 'Request a Quote', href: '#contact' },
-  ctaSecondary = { text: 'Call Now', href: 'tel:+1234567890' },
+  headline = "Expert Mechanical Insulation Solutions",
+  subheadline = "Professional insulation services that protect your systems, reduce energy costs, and ensure optimal performance for industrial and commercial facilities.",
+  ctaPrimary = { text: "Request a Quote", href: "#contact" },
+  ctaSecondary = { text: phoneDisplay, href: phoneTel },
   credibilityItems = defaultCredibilityItems,
 }: HeroProps) {
   // Industrial icon grid for visual area
   const visualIcons = [
-    '🔧', '⚙️', '🏭', '🔩',
-    '⚡', '🌡️', '🛠️', '📐',
-    '🔨', '💼', '🏗️', '📊',
+    "🔧",
+    "⚙️",
+    "🏭",
+    "🔩",
+    "⚡",
+    "🌡️",
+    "🛠️",
+    "📐",
+    "🔨",
+    "💼",
+    "🏗️",
+    "📊",
   ];
 
   return (
@@ -54,7 +65,10 @@ export default function Hero({
             </p>
 
             {/* Credibility List */}
-            <ul className="mt-8 flex flex-col sm:flex-row lg:flex-col gap-4 justify-center lg:justify-start" role="list">
+            <ul
+              className="mt-8 flex flex-col sm:flex-row lg:flex-col gap-4 justify-center lg:justify-start"
+              role="list"
+            >
               {credibilityItems.map((item, index) => (
                 <li
                   key={index}
@@ -83,7 +97,7 @@ export default function Hero({
                 <a
                   href={ctaSecondary.href}
                   className="btn-secondary"
-                  aria-label={ctaSecondary.text}
+                  aria-label={`Call ${companyName} at ${phoneDisplay}`}
                 >
                   {ctaSecondary.text}
                 </a>
@@ -103,7 +117,7 @@ export default function Hero({
                 className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-accent-400/20 via-transparent to-primary-400/20"
                 aria-hidden="true"
               />
-              
+
               {/* Geometric Pattern Overlay */}
               <div
                 className="absolute inset-0 rounded-3xl"
@@ -112,7 +126,7 @@ export default function Hero({
                     linear-gradient(45deg, transparent 40%, rgba(30, 58, 95, 0.03) 50%, transparent 60%),
                     linear-gradient(-45deg, transparent 40%, rgba(249, 115, 22, 0.03) 50%, transparent 60%)
                   `,
-                  backgroundSize: '40px 40px',
+                  backgroundSize: "40px 40px",
                 }}
                 aria-hidden="true"
               />
@@ -153,19 +167,14 @@ export default function Hero({
         className="absolute inset-x-0 top-0 -z-10 transform-gpu overflow-hidden blur-3xl"
         aria-hidden="true"
       >
-        <div
-          className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-primary-200 to-primary-600 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"
-        />
+        <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-primary-200 to-primary-600 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" />
       </div>
       <div
         className="absolute inset-x-0 bottom-0 -z-10 transform-gpu overflow-hidden blur-3xl"
         aria-hidden="true"
       >
-        <div
-          className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[-30deg] bg-gradient-to-tr from-accent-200 to-accent-600 opacity-15 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]"
-        />
+        <div className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[-30deg] bg-gradient-to-tr from-accent-200 to-accent-600 opacity-15 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]" />
       </div>
     </section>
   );
 }
-

@@ -10,8 +10,10 @@
     --color-primary-200: 179 207 230;
     --color-primary-300: 130 172 210;
     --color-primary-400: 79 130 180;
-    --color-primary-500: 45 74 107;   /* Main primary */
-    --color-primary-600: 30 58 95;   /* DEFAULT - Deep steel */
+    --color-primary-500: 45 74 107;
+    /* Main primary */
+    --color-primary-600: 30 58 95;
+    /* DEFAULT - Deep steel */
     --color-primary-700: 23 45 74;
     --color-primary-800: 18 35 58;
     --color-primary-900: 13 26 42;
@@ -22,7 +24,8 @@
     --color-accent-200: 254 215 170;
     --color-accent-300: 253 186 116;
     --color-accent-400: 251 146 60;
-    --color-accent-500: 249 115 22;  /* Main accent */
+    --color-accent-500: 249 115 22;
+    /* Main accent */
     --color-accent-600: 234 88 12;
     --color-accent-700: 194 65 12;
     --color-accent-800: 154 52 18;
@@ -37,48 +40,73 @@
     --color-neutral-500: 115 115 115;
     --color-neutral-600: 82 82 82;
     --color-neutral-700: 64 64 64;
-    --color-neutral-800: 38 38 38;   /* Strong dark text */
-    --color-neutral-900: 23 23 23;   /* Maximum contrast */
+    --color-neutral-800: 38 38 38;
+    /* Strong dark text */
+    --color-neutral-900: 23 23 23;
+    /* Maximum contrast */
 
     /* Semantic Colors - High Contrast */
-    --color-success: 22 163 74;       /* Green-600 */
+    --color-success: 22 163 74;
+    /* Green-600 */
     --color-success-light: 240 253 244;
     --color-success-dark: 20 83 45;
 
-    --color-error: 220 38 38;         /* Red-600 */
+    --color-error: 220 38 38;
+    /* Red-600 */
     --color-error-light: 254 242 242;
     --color-error-dark: 153 27 27;
 
-    --color-warning: 217 119 6;       /* Amber-600 */
+    --color-warning: 217 119 6;
+    /* Amber-600 */
     --color-warning-light: 255 251 235;
     --color-warning-dark: 146 64 14;
 
     /* Border Radius - Industrial Premium */
     --radius-none: 0;
-    --radius-sm: 0.25rem;      /* 4px */
-    --radius-base: 0.375rem;   /* 6px */
-    --radius-md: 0.5rem;       /* 8px */
-    --radius-lg: 0.75rem;      /* 12px */
-    --radius-xl: 1rem;         /* 16px */
-    --radius-2xl: 1.25rem;     /* 20px */
-    --radius-3xl: 1.5rem;      /* 24px */
+    --radius-sm: 0.25rem;
+    /* 4px */
+    --radius-base: 0.375rem;
+    /* 6px */
+    --radius-md: 0.5rem;
+    /* 8px */
+    --radius-lg: 0.75rem;
+    /* 12px */
+    --radius-xl: 1rem;
+    /* 16px */
+    --radius-2xl: 1.25rem;
+    /* 20px */
+    --radius-3xl: 1.5rem;
+    /* 24px */
     --radius-full: 9999px;
 
     /* Spacing Scale - 8px base unit */
     --spacing-0: 0;
-    --spacing-1: 0.25rem;      /* 4px */
-    --spacing-2: 0.5rem;       /* 8px */
-    --spacing-3: 0.75rem;      /* 12px */
-    --spacing-4: 1rem;         /* 16px */
-    --spacing-5: 1.25rem;      /* 20px */
-    --spacing-6: 1.5rem;       /* 24px */
-    --spacing-8: 2rem;         /* 32px */
-    --spacing-10: 2.5rem;      /* 40px */
-    --spacing-12: 3rem;        /* 48px */
-    --spacing-16: 4rem;        /* 64px */
-    --spacing-20: 5rem;        /* 80px */
-    --spacing-24: 6rem;        /* 96px */
-    --spacing-32: 8rem;        /* 128px */
+    --spacing-1: 0.25rem;
+    /* 4px */
+    --spacing-2: 0.5rem;
+    /* 8px */
+    --spacing-3: 0.75rem;
+    /* 12px */
+    --spacing-4: 1rem;
+    /* 16px */
+    --spacing-5: 1.25rem;
+    /* 20px */
+    --spacing-6: 1.5rem;
+    /* 24px */
+    --spacing-8: 2rem;
+    /* 32px */
+    --spacing-10: 2.5rem;
+    /* 40px */
+    --spacing-12: 3rem;
+    /* 48px */
+    --spacing-16: 4rem;
+    /* 64px */
+    --spacing-20: 5rem;
+    /* 80px */
+    --spacing-24: 6rem;
+    /* 96px */
+    --spacing-32: 8rem;
+    /* 128px */
 
     /* Shadow System - Industrial Depth */
     --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -92,19 +120,32 @@
     --shadow-none: none;
 
     /* Typography Scale */
-    --font-size-xs: 0.75rem;      /* 12px */
-    --font-size-sm: 0.875rem;      /* 14px */
-    --font-size-base: 1rem;        /* 16px */
-    --font-size-lg: 1.125rem;      /* 18px */
-    --font-size-xl: 1.25rem;       /* 20px */
-    --font-size-2xl: 1.5rem;       /* 24px */
-    --font-size-3xl: 1.875rem;     /* 30px */
-    --font-size-4xl: 2.25rem;      /* 36px */
-    --font-size-5xl: 3rem;         /* 48px */
-    --font-size-6xl: 3.75rem;      /* 60px */
-    --font-size-7xl: 4.5rem;       /* 72px */
-    --font-size-8xl: 6rem;         /* 96px */
-    --font-size-9xl: 8rem;          /* 128px */
+    --font-size-xs: 0.75rem;
+    /* 12px */
+    --font-size-sm: 0.875rem;
+    /* 14px */
+    --font-size-base: 1rem;
+    /* 16px */
+    --font-size-lg: 1.125rem;
+    /* 18px */
+    --font-size-xl: 1.25rem;
+    /* 20px */
+    --font-size-2xl: 1.5rem;
+    /* 24px */
+    --font-size-3xl: 1.875rem;
+    /* 30px */
+    --font-size-4xl: 2.25rem;
+    /* 36px */
+    --font-size-5xl: 3rem;
+    /* 48px */
+    --font-size-6xl: 3.75rem;
+    /* 60px */
+    --font-size-7xl: 4.5rem;
+    /* 72px */
+    --font-size-8xl: 6rem;
+    /* 96px */
+    --font-size-9xl: 8rem;
+    /* 128px */
 
     --line-height-tight: 1.1;
     --line-height-snug: 1.2;
@@ -133,16 +174,24 @@
   }
 
   /* Strong contrast for all text elements */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply text-neutral-900 font-bold;
   }
 
-  p, li, span {
+  p,
+  li,
+  span {
     @apply text-neutral-800;
   }
 }
 
 @layer components {
+
   /* Container System - Consistent widths */
   .container-custom {
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
@@ -158,31 +207,31 @@
 
   /* Spacing System - Consistent vertical rhythm */
   .section-padding {
-    @apply py-16 sm:py-20 lg:py-24 xl:py-28;
+    @apply py-20 sm:py-24 lg:py-28 xl:py-32;
   }
 
   .section-padding-sm {
-    @apply py-12 sm:py-16 lg:py-20;
+    @apply py-16 sm:py-20 lg:py-24;
   }
 
   .section-padding-lg {
-    @apply py-20 sm:py-24 lg:py-32 xl:py-36;
+    @apply py-24 sm:py-28 lg:py-36 xl:py-40;
   }
 
   /* Type Scale - Industrial Hierarchy */
   .heading-1 {
     @apply text-4xl font-extrabold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl xl:text-7xl;
-    line-height: 1.1;
+    line-height: 1.15;
   }
 
   .heading-2 {
     @apply text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl xl:text-6xl;
-    line-height: 1.2;
+    line-height: 1.25;
   }
 
   .heading-3 {
     @apply text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl lg:text-4xl;
-    line-height: 1.3;
+    line-height: 1.35;
   }
 
   .heading-4 {
@@ -192,54 +241,59 @@
 
   .text-body {
     @apply text-base text-neutral-800 sm:text-lg;
-    line-height: 1.6;
+    line-height: 1.75;
   }
 
   .text-body-lg {
     @apply text-lg text-neutral-800 sm:text-xl;
-    line-height: 1.6;
+    line-height: 1.75;
   }
 
   .text-body-sm {
     @apply text-sm text-neutral-700 sm:text-base;
-    line-height: 1.5;
+    line-height: 1.7;
   }
 
   /* Button System - Industrial, Strong Contrast */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-all duration-200;
-    @apply hover:bg-primary-700 hover:shadow-lg hover:-translate-y-0.5;
+    line-height: 1.5;
+    @apply hover:bg-primary-700 hover:shadow-lg;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
-    @apply active:translate-y-0 active:shadow-md;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-primary-600;
+    @apply active:bg-primary-800 active:shadow-md;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-600 disabled:hover:shadow-md;
     /* Strong contrast: white on primary-600 meets WCAG AAA */
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-neutral-300 bg-white px-6 py-3 text-base font-semibold text-neutral-900 shadow-sm transition-all duration-200;
-    @apply hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-md hover:-translate-y-0.5;
+    line-height: 1.5;
+    @apply hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-md;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
-    @apply active:translate-y-0 active:shadow-sm;
+    @apply active:bg-neutral-100 active:shadow-sm;
     /* Strong contrast: neutral-900 on white meets WCAG AAA */
   }
 
   .btn-accent {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-500 px-6 py-3 text-base font-semibold text-white shadow-md transition-all duration-200;
-    @apply hover:bg-accent-600 hover:shadow-lg hover:-translate-y-0.5;
+    line-height: 1.5;
+    @apply hover:bg-accent-600 hover:shadow-lg;
     @apply focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
-    @apply active:translate-y-0 active:shadow-md;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-accent-500;
+    @apply active:bg-accent-700 active:shadow-md;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent-500 disabled:hover:shadow-md;
   }
 
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-primary-600 bg-transparent px-6 py-3 text-base font-semibold text-primary-600 transition-all duration-200;
-    @apply hover:bg-primary-600 hover:text-white hover:shadow-md hover:-translate-y-0.5;
+    line-height: 1.5;
+    @apply hover:bg-primary-600 hover:text-white hover:shadow-md;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
-    @apply active:translate-y-0 active:shadow-sm;
+    @apply active:bg-primary-700 active:shadow-sm;
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-transparent px-6 py-3 text-base font-semibold text-neutral-900 transition-all duration-200;
+    line-height: 1.5;
     @apply hover:bg-neutral-100 hover:shadow-sm;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
     @apply active:bg-neutral-200;
@@ -302,7 +356,7 @@
     position: absolute;
     inset: 0;
     opacity: 0.4;
-    background-image: 
+    background-image:
       linear-gradient(rgba(var(--color-primary-600), 0.02) 1px, transparent 1px),
       linear-gradient(90deg, rgba(var(--color-primary-600), 0.02) 1px, transparent 1px);
     background-size: 40px 40px;
@@ -441,7 +495,7 @@
 
   /* Background Pattern Utilities */
   .bg-pattern-grid {
-    background-image: 
+    background-image:
       linear-gradient(rgba(var(--color-primary-600), 0.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(var(--color-primary-600), 0.03) 1px, transparent 1px);
     background-size: 40px 40px;
@@ -453,17 +507,15 @@
   }
 
   .bg-pattern-diagonal {
-    background-image: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      rgba(var(--color-primary-600), 0.02) 10px,
-      rgba(var(--color-primary-600), 0.02) 20px
-    );
+    background-image: repeating-linear-gradient(45deg,
+        transparent,
+        transparent 10px,
+        rgba(var(--color-primary-600), 0.02) 10px,
+        rgba(var(--color-primary-600), 0.02) 20px);
   }
 
   .bg-pattern-cross {
-    background-image: 
+    background-image:
       linear-gradient(rgba(var(--color-primary-600), 0.05) 1px, transparent 1px),
       linear-gradient(90deg, rgba(var(--color-primary-600), 0.05) 1px, transparent 1px),
       linear-gradient(rgba(var(--color-accent-500), 0.02) 1px, transparent 1px),
@@ -495,4 +547,3 @@
     background-clip: text;
   }
 }
-

@@ -12,52 +12,59 @@ interface ProcessProps {
 
 const defaultSteps: Step[] = [
   {
-    number: '01',
-    title: 'Consultation',
-    description: 'We assess your insulation needs, review specifications, and discuss project requirements.',
+    number: "01",
+    title: "Consultation",
+    description:
+      "We assess your insulation needs, review specifications, and discuss project requirements.",
   },
   {
-    number: '02',
-    title: 'Estimate & Quote',
-    description: 'Detailed estimate with material specifications, labor costs, and project timeline.',
+    number: "02",
+    title: "Estimate & Quote",
+    description:
+      "Detailed estimate with material specifications, labor costs, and project timeline.",
   },
   {
-    number: '03',
-    title: 'Planning & Scheduling',
-    description: 'Coordinate with your team to minimize disruption and ensure efficient installation.',
+    number: "03",
+    title: "Planning & Scheduling",
+    description:
+      "Coordinate with your team to minimize disruption and ensure efficient installation.",
   },
   {
-    number: '04',
-    title: 'Material Procurement',
-    description: 'Source quality materials and ensure everything is on-site when needed.',
+    number: "04",
+    title: "Material Procurement",
+    description:
+      "Source quality materials and ensure everything is on-site when needed.",
   },
   {
-    number: '05',
-    title: 'Installation',
-    description: 'Professional installation by union-certified Local 25 craftspeople following industry standards.',
+    number: "05",
+    title: "Installation",
+    description:
+      "Professional installation by union-certified Local 25 craftspeople following industry standards.",
   },
   {
-    number: '06',
-    title: 'Inspection & Follow-up',
-    description: 'Quality inspection and ongoing support to ensure optimal performance.',
+    number: "06",
+    title: "Inspection & Follow-up",
+    description:
+      "Quality inspection and ongoing support to ensure optimal performance.",
   },
 ];
 
 export default function Process({
-  title = 'Our Process',
-  subtitle = 'A proven approach to delivering quality insulation solutions',
+  title = "Our Process",
+  subtitle = "A proven approach to delivering quality insulation solutions",
   steps = defaultSteps,
 }: ProcessProps) {
   return (
-    <section className="section-padding bg-white" aria-labelledby="process-heading">
+    <section
+      className="section-padding bg-white"
+      aria-labelledby="process-heading"
+    >
       <div className="container-custom">
         <div className="mx-auto max-w-2xl text-center">
           <h2 id="process-heading" className="heading-2 text-neutral-900">
             {title}
           </h2>
-          <p className="mt-4 text-body text-neutral-800">
-            {subtitle}
-          </p>
+          <p className="mt-4 text-body text-neutral-800">{subtitle}</p>
         </div>
         <div className="mx-auto mt-16 max-w-5xl">
           <ol className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -68,7 +75,9 @@ export default function Process({
                     <span className="text-lg font-bold">{step.number}</span>
                   </div>
                   <h3 className="heading-3 text-neutral-900">{step.title}</h3>
-                  <p className="mt-2 text-base text-neutral-700">{step.description}</p>
+                  <p className="mt-2 text-body text-neutral-700">
+                    {step.description}
+                  </p>
                 </div>
                 {index < steps.length - 1 && (
                   <div
@@ -90,4 +99,3 @@ export default function Process({
     </section>
   );
 }
-

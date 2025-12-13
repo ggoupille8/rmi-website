@@ -22,3 +22,10 @@ pnpm-debug.log*
 .vscode/
 .idea/
 
+
+# Local build/system folders
+.astro/
+.vercel/
+dist/
+node_modules/
+

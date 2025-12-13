@@ -2,6 +2,7 @@ import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import tailwind from "@astrojs/tailwind";
 import sitemap from "@astrojs/sitemap";
+import vercel from "@astrojs/vercel/serverless";
 
 // https://astro.build/config
 // Use Vercel preview URL when available, otherwise default to production domain
@@ -12,6 +13,8 @@ const site = process.env.VERCEL_URL
 
 export default defineConfig({
   site,
+  output: "hybrid",
+  adapter: vercel(),
   integrations: [
     react(),
     tailwind({
