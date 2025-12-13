@@ -5,7 +5,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://resourcemechanicalinsulation.com', // Update with your actual domain
+  site: 'https://rmi-llc.net',
   integrations: [
     react(),
     tailwind({
