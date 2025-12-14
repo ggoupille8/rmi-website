@@ -4,6 +4,8 @@ dist/
 
 # dependencies
 node_modules/
+playwright-report/
+test-results/
 
 # logs
 npm-debug.log*
@@ -14,6 +16,7 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+.env.local
 
 # macOS-specific files
 .DS_Store
