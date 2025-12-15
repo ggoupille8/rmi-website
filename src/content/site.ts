@@ -26,9 +26,12 @@ export const address = {
 export const serviceArea = "Michigan and surrounding areas.";
 
 // Hero Content
-export const heroHeadline = "Mechanical insulation done right.";
+export const heroEyebrow = undefined; // Optional eyebrow text
+export const heroHeadline = "Union mechanical insulation. Executed right.";
 export const heroSubheadline =
-  "Professional mechanical insulation services for industrial and commercial facilities.";
+  "Resource Mechanical Insulation, LLC delivers professional insulation services for industrial and commercial facilities across Michigan and surrounding areas.";
+export const heroCtaPrimary = "Request a Quote";
+export const heroCtaSecondary = phoneDisplay;
 
 // Services Data
 export interface ServiceData {

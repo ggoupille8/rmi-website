@@ -11,7 +11,11 @@
     "build": "astro build",
     "postbuild": "node scripts/fix-runtime.js",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check-secrets": "node scripts/check-secrets.js",
+    "test:runtime": "node scripts/test-runtime-config.js",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots"
   },
   "dependencies": {
     "@astrojs/react": "^3.3.1",
