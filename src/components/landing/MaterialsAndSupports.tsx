@@ -6,7 +6,7 @@ interface MaterialsAndSupportsProps {
 
 export default function MaterialsAndSupports({
   title = "Materials & Pipe Supports",
-  subtitle = "Quality insulation materials and pipe supports with nationwide shipping",
+  subtitle = "Material resale and pipe support fabrication to support your project needs.",
   onCtaClick,
 }: MaterialsAndSupportsProps) {
   const handleCtaClick = () => {
@@ -44,16 +44,11 @@ export default function MaterialsAndSupports({
             {title}
           </h2>
           <p className="mt-4 text-body text-neutral-800">{subtitle}</p>
-          <div className="mt-8 text-body text-neutral-700 space-y-4">
+          <div className="mt-8 text-body text-neutral-700">
             <p>
-              We supply high-quality insulation materials and pipe supports for
-              your projects. From fiberglass and mineral wool to foam insulation
-              and custom pipe hangers, we stock the materials you need.
-            </p>
-            <p>
-              Available for nationwide shipping, we can get your materials to
-              any job site quickly and efficiently. Contact us for pricing and
-              availability.
+              We can help source and supply insulation materials and related
+              accessories, and provide pipe support fabrication as needed.
+              Contact us for availability and pricing.
             </p>
           </div>
           <div className="mt-10">

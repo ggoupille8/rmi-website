@@ -18,56 +18,58 @@ interface DualTrackProps {
 
 const defaultServicesFeatures: TrackFeature[] = [
   {
-    title: "Installation Services",
+    title: "Professional Installs",
     description:
-      "Professional installation by union-certified Local 25 craftspeople",
+      "Expert installation services for piping, ductwork, and equipment insulation",
   },
   {
-    title: "Custom Fabrication",
+    title: "Remediation",
     description:
-      "Removable blankets, custom covers, and specialized insulation solutions",
+      "Repair and replacement of damaged or deteriorated insulation systems",
+  },
+  {
+    title: "Jacketing",
+    description:
+      "Protective jacketing systems for insulation in commercial and industrial environments",
+  },
+  {
+    title: "Removable Blankets",
+    description:
+      "Custom removable insulation blankets for equipment requiring regular access",
   },
   {
     title: "Maintenance Contracts",
     description:
       "Ongoing maintenance and repair services to keep systems operating efficiently",
   },
-  {
-    title: "Project Management",
-    description:
-      "Full-service project management from planning through completion",
-  },
 ];
 
 const defaultSupplyFeatures: TrackFeature[] = [
   {
-    title: "Materials & Supplies",
+    title: "Material Resale",
     description:
-      "Complete line of insulation materials, adhesives, and accessories",
+      "Source and supply insulation materials, adhesives, and related accessories",
   },
   {
-    title: "Pipe Supports",
-    description: "Comprehensive selection of pipe supports and hangers",
-  },
-  {
-    title: "National Shipping",
-    description: "We sell and ship materials and pipe supports nationwide",
-  },
-  {
-    title: "Expert Consultation",
+    title: "Pipe Support Fabrication",
     description:
-      "Technical support to help you select the right materials for your project",
+      "Custom pipe support fabrication to meet your project specifications",
+  },
+  {
+    title: "Availability & Pricing",
+    description:
+      "Contact us for current availability and competitive pricing on materials and supports",
   },
 ];
 
 export default function DualTrack({
-  title = "Services & Supply",
-  subtitle = "Two ways we serve your insulation needs",
+  title = "Installation & Support",
+  subtitle = "Two ways we support your insulation needs.",
   servicesTitle = "Installation Services",
-  servicesSubtitle = "Professional installation and maintenance by union-certified craftspeople",
+  servicesSubtitle = "Professional installs, remediation, jacketing, removable blankets, and maintenance contracts",
   servicesFeatures = defaultServicesFeatures,
-  supplyTitle = "Materials & Supply",
-  supplySubtitle = "Quality insulation materials and pipe supports shipped nationwide",
+  supplyTitle = "Materials & Pipe Supports",
+  supplySubtitle = "Material resale, pipe support fabrication, and availability/pricing",
   supplyFeatures = defaultSupplyFeatures,
 }: DualTrackProps) {
   return (

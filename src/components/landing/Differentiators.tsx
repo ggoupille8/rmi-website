@@ -12,46 +12,40 @@ interface DifferentiatorsProps {
 
 const defaultDifferentiators: Differentiator[] = [
   {
-    title: "Union Contractor Local 25",
+    title: "Safety-driven practices on active job sites",
     description:
-      "Certified union craftspeople with extensive training and experience in mechanical insulation.",
+      "Comprehensive safety protocols and training ensure secure operations in commercial and industrial environments.",
     icon: "",
   },
   {
-    title: "Southeast Michigan Based",
+    title: "Professional installs with detail-driven workmanship",
     description:
-      "Based in Romulus, MI with deep knowledge of local projects and requirements.",
+      "Precision installation techniques and quality craftsmanship that meet industry standards and exceed expectations.",
     icon: "",
   },
   {
-    title: "Midwest Travel",
+    title: "Clear scope, assumptions, and next steps",
     description:
-      "We travel throughout the Midwest for the right projects, bringing expertise where you need it.",
+      "Transparent project planning with defined parameters, documented assumptions, and actionable next steps from start to finish.",
     icon: "",
   },
   {
-    title: "Full Service Capability",
+    title: "Responsive communication and reliable scheduling",
     description:
-      "From installation to materials supply, we handle every aspect of your insulation needs.",
+      "Consistent updates, timely responses, and dependable scheduling to keep your project on track.",
     icon: "",
   },
   {
-    title: "Hot, Cold & Cryogenic",
+    title: "Commercial and industrial environments",
     description:
-      "Expertise in all temperature ranges from high-heat applications to cryogenic systems.",
-    icon: "",
-  },
-  {
-    title: "Custom Solutions",
-    description:
-      "Specialized fabrication for unique applications including removable blankets and custom covers.",
+      "Expertise in both commercial and industrial settings, delivering tailored solutions for diverse project requirements.",
     icon: "",
   },
 ];
 
 export default function Differentiators({
-  title = "Why Choose Resource Mechanical Insulation",
-  subtitle = "What sets us apart in the mechanical insulation industry",
+  title = "Why Choose RMI",
+  subtitle = "Professional installs backed by safety-driven practices—with clear scope and consistent communication.",
   items = defaultDifferentiators,
 }: DifferentiatorsProps) {
   return (

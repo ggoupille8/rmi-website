@@ -1,4 +1,9 @@
-import { phoneTel, phoneDisplay, companyName } from "../../config/site";
+import {
+  phoneTel,
+  phoneDisplay,
+  companyName,
+  quoteToEmail,
+} from "../../config/site";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -16,19 +21,13 @@ export default function Footer() {
               Resource Mechanical Insulation
             </h3>
             <p className="text-sm text-neutral-400 mb-4">
-              Union contractor Local 25 serving Southeast Michigan and the
-              Midwest with professional mechanical insulation services.
+              Professional mechanical insulation services for commercial and
+              industrial environments.
             </p>
             <div className="space-y-2 text-sm">
               <p className="text-neutral-300">
-                <span className="font-semibold">Location:</span> Romulus, MI
-              </p>
-              <p className="text-neutral-300">
-                <span className="font-semibold">Service Area:</span> Southeast
-                Michigan & Midwest
-              </p>
-              <p className="text-neutral-300">
-                <span className="font-semibold">Union:</span> Local 25
+                <span className="font-semibold">Service Area:</span> Michigan
+                and surrounding areas
               </p>
             </div>
           </div>
@@ -44,7 +43,7 @@ export default function Footer() {
                   href="#services"
                   className="hover:text-white transition-colors"
                 >
-                  Piping Insulation
+                  Plumbing & HVAC
                 </a>
               </li>
               <li>
@@ -52,7 +51,7 @@ export default function Footer() {
                   href="#services"
                   className="hover:text-white transition-colors"
                 >
-                  Ductwork Insulation
+                  Process Piping
                 </a>
               </li>
               <li>
@@ -60,7 +59,7 @@ export default function Footer() {
                   href="#services"
                   className="hover:text-white transition-colors"
                 >
-                  Tank & Equipment
+                  Ductwork
                 </a>
               </li>
               <li>
@@ -68,7 +67,7 @@ export default function Footer() {
                   href="#services"
                   className="hover:text-white transition-colors"
                 >
-                  Custom Fabrication
+                  Tanks/Vessels/Specialty Equipment
                 </a>
               </li>
               <li>
@@ -112,14 +111,6 @@ export default function Footer() {
                   Adhesives & Accessories
                 </a>
               </li>
-              <li>
-                <a
-                  href="#supply"
-                  className="hover:text-white transition-colors"
-                >
-                  National Shipping
-                </a>
-              </li>
             </ul>
           </div>
 
@@ -140,6 +131,19 @@ export default function Footer() {
                     aria-hidden="true"
                   />
                   <span>{phoneDisplay}</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href={`mailto:${quoteToEmail}`}
+                  className="flex items-center gap-2 hover:text-white transition-colors"
+                  aria-label={`Email ${companyName} at ${quoteToEmail}`}
+                >
+                  <span
+                    className="w-1 h-1 rounded-full bg-neutral-400"
+                    aria-hidden="true"
+                  />
+                  <span>{quoteToEmail}</span>
                 </a>
               </li>
               <li>
@@ -173,9 +177,6 @@ export default function Footer() {
             <div className="flex gap-6">
               <a href="#contact" className="hover:text-white transition-colors">
                 Contact
-              </a>
-              <a href="#faq" className="hover:text-white transition-colors">
-                FAQ
               </a>
             </div>
           </div>

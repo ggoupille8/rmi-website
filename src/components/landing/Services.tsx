@@ -2,7 +2,7 @@ import Card from "./Card";
 
 interface Service {
   title: string;
-  description: string;
+  description?: string;
   icon: string;
 }
 
@@ -14,46 +14,96 @@ interface ServicesProps {
 
 const defaultServices: Service[] = [
   {
-    title: "Piping Insulation",
-    description:
-      "Hot, cold, and cryogenic pipe insulation. HVAC piping, refrigeration lines, and process piping.",
+    title: "Plumbing & HVAC",
+    description: "",
     icon: "",
   },
   {
-    title: "Ductwork Insulation",
-    description:
-      "Duct wrap, Fyre Wrap, and lagging for HVAC and industrial duct systems.",
+    title: "Process Piping",
+    description: "",
     icon: "",
   },
   {
-    title: "Tank & Equipment",
-    description:
-      "Insulation for tanks, vessels, and equipment. Removable covers for valves and flanges.",
+    title: "Steam/Condensate (Hot & Cold Condensate)",
+    description: "",
     icon: "",
   },
   {
-    title: "Outage & Turnaround",
-    description:
-      "Scheduled shutdown support. Insulation removal, replacement, and repair during plant outages.",
+    title: "Thermal/Cryogenic/Refrigerant Systems",
+    description: "",
     icon: "",
   },
   {
-    title: "Boiler & Turbine",
-    description:
-      "Boiler wall insulation and turbine rebuild support. High-temperature applications.",
+    title: "Outdoor/Underground Piping",
+    description: "",
     icon: "",
   },
   {
-    title: "Maintenance Support",
-    description:
-      "Repair and replacement of damaged insulation. Inspection and preventive maintenance.",
+    title: "Ductwork",
+    description: "",
+    icon: "",
+  },
+  {
+    title: "Grease Duct/Fume Hood/Generator Exhaust",
+    description: "",
+    icon: "",
+  },
+  {
+    title: "Boiler Breeching",
+    description: "",
+    icon: "",
+  },
+  {
+    title: "Tanks/Vessels/Specialty Equipment",
+    description: "",
+    icon: "",
+  },
+  {
+    title: "Personnel Protection",
+    description: "",
+    icon: "",
+  },
+  {
+    title: "Lagging/Jacketing Systems for Outdoor Duct and Piping Systems",
+    description: "",
+    icon: "",
+  },
+  {
+    title:
+      "Removable Blankets/Cans (Pumps, Valves, Strainers, Expansion Joints)",
+    description: "",
+    icon: "",
+  },
+  {
+    title: "Acoustical/Sound Prevention",
+    description: "",
+    icon: "",
+  },
+  {
+    title: "Pipe Support Fabrication",
+    description: "",
+    icon: "",
+  },
+  {
+    title: "Energy Evaluation/Budgeting/Value Engineering",
+    description: "",
+    icon: "",
+  },
+  {
+    title: "Industrial Maintenance Contracts",
+    description: "",
+    icon: "",
+  },
+  {
+    title: "Material Resale",
+    description: "",
     icon: "",
   },
 ];
 
 export default function Services({
-  title = "Our Services",
-  subtitle = "Mechanical insulation installation and maintenance",
+  title = "Services We Offer",
+  subtitle = "From new installs to renovations: piping, ductwork, equipment, and specialty applications for commercial and industrial environments.",
   services = defaultServices,
 }: ServicesProps) {
   return (
@@ -68,19 +118,36 @@ export default function Services({
           </h2>
           <p className="mt-4 text-body text-neutral-800">{subtitle}</p>
         </div>
-        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-          {services.map((service, index) => (
-            <Card key={index} variant="hover" className="flex flex-col">
-              <div
-                className="w-12 h-0.5 bg-primary-600 mb-6"
-                aria-hidden="true"
-              />
-              <h3 className="heading-3 text-neutral-900">{service.title}</h3>
-              <p className="mt-4 text-body text-neutral-700">
-                {service.description}
-              </p>
-            </Card>
-          ))}
+        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 sm:mt-20 md:grid-cols-2 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+          {services.map((service, index) => {
+            // Runtime assertion to prevent undefined crashes
+            if (!service || !service.title) {
+              console.error(
+                `Service at index ${index} is missing required title`
+              );
+              return null;
+            }
+            return (
+              <Card
+                key={index}
+                variant="hover"
+                className="flex flex-col h-full"
+              >
+                <div
+                  className="w-12 h-0.5 bg-primary-600 mb-6"
+                  aria-hidden="true"
+                />
+                <h3 className="heading-3 text-neutral-900 break-words">
+                  {service.title}
+                </h3>
+                {service.description && (
+                  <p className="mt-4 text-body text-neutral-700">
+                    {service.description}
+                  </p>
+                )}
+              </Card>
+            );
+          })}
         </div>
       </div>
     </section>

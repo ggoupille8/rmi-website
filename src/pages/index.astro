@@ -5,12 +5,11 @@ import Services from '../components/landing/Services';
 import MaterialsAndSupports from '../components/landing/MaterialsAndSupports';
 import WhoWeServe from '../components/landing/WhoWeServe';
 import DualTrack from '../components/landing/DualTrack';
-import Process from '../components/landing/Process';
 import Differentiators from '../components/landing/Differentiators';
-import FAQ from '../components/landing/FAQ';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
 import { phoneTel, phoneDisplay } from '../config/site';
+import { heroHeadline, heroSubheadline, heroTrustLine, heroCtaPrimary, heroCtaSecondary } from '../content/site';
 ---
 
 <BaseLayout 
@@ -20,9 +19,10 @@ import { phoneTel, phoneDisplay } from '../config/site';
 >
   <main>
     <Hero
-      headline="Expert mechanical insulation. Union labor. Reliable execution."
-      subheadline="Based in Romulus, MI. Union contractor Local 25 Heat & Frost Insulators serving Southeast Michigan, traveling the Midwest for the right projects. Mechanical insulation for piping, ductwork, tanks, and equipment. HVAC piping and duct, cryogenic systems, refrigeration, maintenance support, outage/turnaround capabilities."
-      ctaPrimary={{ text: 'Request a Quote', href: '#contact' }}
+      headline={heroHeadline}
+      subheadline={heroSubheadline}
+      trustLine={heroTrustLine}
+      ctaPrimary={{ text: heroCtaPrimary, href: '#contact' }}
       ctaSecondary={{ text: phoneDisplay, href: phoneTel }}
       images={['/images/hero/hero-1.jpg']}
     />
@@ -32,11 +32,7 @@ import { phoneTel, phoneDisplay } from '../config/site';
     <MaterialsAndSupports />
     <WhoWeServe />
     <DualTrack />
-    <Process />
     <Differentiators />
-    <div id="faq">
-      <FAQ />
-    </div>
     <div id="contact">
       <ContactForm />
     </div>
