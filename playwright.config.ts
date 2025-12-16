@@ -31,9 +31,9 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local preview server before starting the tests */
+  /* Run your local dev server before starting the tests */
   webServer: {
-    command: "npm run preview -- --port 4321",
+    command: "npm run dev -- --port 4321",
     port: 4321,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

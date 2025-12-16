@@ -8,8 +8,8 @@ export const companyNameFull = "Resource Mechanical Insulation, LLC";
 
 // Contact Information
 export const email = "ggoupille@rmi-llc.net";
-export const phone = "248-379-5156";
-export const phoneE164 = "+12483795156";
+export const phone = "419-705-6153";
+export const phoneE164 = "+14197056153";
 export const phoneTel = `tel:${phoneE164}`;
 export const phoneDisplay = phone; // Display format same as phone
 
@@ -27,9 +27,11 @@ export const serviceArea = "Michigan and surrounding areas.";
 
 // Hero Content
 export const heroEyebrow = undefined; // Optional eyebrow text
-export const heroHeadline = "Union mechanical insulation. Executed right.";
+export const heroHeadline = "Mechanical Insulation Contractor";
 export const heroSubheadline =
-  "Resource Mechanical Insulation, LLC delivers professional insulation services for industrial and commercial facilities across Michigan and surrounding areas.";
+  "Serving Michigan and surrounding areas with mechanical insulation for piping, ductwork, equipment, and specialty applications across commercial and industrial environments—focused on professional installs and safety-driven practices.";
+export const heroTrustLine =
+  "Professional installs backed by safety-driven practices.";
 export const heroCtaPrimary = "Request a Quote";
 export const heroCtaSecondary = phoneDisplay;
 

@@ -1,13 +1,10 @@
 import { phoneTel, phoneDisplay, companyName } from "../../config/site";
-
-interface CredibilityItem {
-  label: string;
-  icon: string;
-}
+import { email } from "../../content/site";
 
 interface HeroProps {
   headline?: string;
   subheadline?: string;
+  trustLine?: string;
   ctaPrimary?: {
     text: string;
     href: string;
@@ -16,22 +13,19 @@ interface HeroProps {
     text: string;
     href: string;
   };
-  credibilityItems?: CredibilityItem[];
+  ctaEmail?: {
+    href: string;
+  };
   images?: string[]; // Array of 1-3 image paths from /images/hero/
 }
-
-const defaultCredibilityItems: CredibilityItem[] = [
-  { label: "Safety-first", icon: "" },
-  { label: "On-time delivery", icon: "" },
-  { label: "Quality workmanship", icon: "" },
-];
 
 export default function Hero({
   headline = "Expert mechanical insulation. Union labor. Reliable execution.",
   subheadline = "Based in Romulus, MI. Union contractor Local 25 Heat & Frost Insulators serving Southeast Michigan, traveling the Midwest for the right projects. Mechanical insulation for piping, ductwork, tanks, and equipment. HVAC piping and duct, cryogenic systems, refrigeration, maintenance support, outage/turnaround capabilities.",
+  trustLine,
   ctaPrimary = { text: "Request a Quote", href: "#contact" },
   ctaSecondary = { text: phoneDisplay, href: phoneTel },
-  credibilityItems = defaultCredibilityItems,
+  ctaEmail = { href: `mailto:${email}` },
   images = ["/images/hero/hero-1.jpg"], // Default to single image
 }: HeroProps) {
   // Use first image for both mobile and desktop (one large image)
@@ -53,27 +47,15 @@ export default function Hero({
               {subheadline}
             </p>
 
-            {/* Credibility List */}
-            <ul
-              className="mt-8 flex flex-col sm:flex-row lg:flex-col gap-4 justify-center lg:justify-start"
-              role="list"
-            >
-              {credibilityItems.map((item, index) => (
-                <li
-                  key={index}
-                  className="flex items-center gap-3 text-body font-medium text-neutral-800"
-                >
-                  <span
-                    className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary-600"
-                    aria-hidden="true"
-                  />
-                  <span>{item.label}</span>
-                </li>
-              ))}
-            </ul>
+            {/* Trust Line */}
+            {trustLine && (
+              <p className="mt-8 text-body font-medium text-neutral-800 max-w-2xl lg:max-w-none mx-auto lg:mx-0">
+                {trustLine}
+              </p>
+            )}
 
             {/* CTA Buttons */}
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
               {ctaPrimary && (
                 <a
                   href={ctaPrimary.href}
@@ -92,11 +74,35 @@ export default function Hero({
                   {ctaSecondary.text}
                 </a>
               )}
+              {ctaEmail && (
+                <a
+                  href={ctaEmail.href}
+                  className="flex items-center justify-center w-12 h-12 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 hover:text-neutral-900 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  aria-label={`Email ${companyName} at ${email}`}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </a>
+              )}
             </div>
           </div>
 
           {/* Right Column: Visual Area */}
           <div className="relative lg:order-last">
+            {/* Stable aspect-ratio container to prevent CLS */}
             <div className="relative aspect-square max-w-lg mx-auto lg:max-w-full">
               {/* Responsive Image: Single large image on both mobile and desktop */}
               <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl bg-neutral-200">
@@ -104,7 +110,10 @@ export default function Hero({
                   src={heroImage}
                   alt="Mechanical insulation work"
                   className="relative w-full h-full object-cover z-0"
+                  width={1600}
+                  height={1600}
                   loading="eager"
+                  fetchPriority="high"
                   onError={(e) => {
                     console.error("Hero image failed to load:", heroImage);
                     // Fallback: hide image on error
