@@ -25,6 +25,7 @@
     "@sendgrid/mail": "^8.1.6",
     "@vercel/postgres": "^0.10.0",
     "astro": "^4.0.0",
+    "lucide-react": "^0.561.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
