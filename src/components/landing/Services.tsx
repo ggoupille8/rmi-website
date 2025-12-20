@@ -256,30 +256,45 @@ export default function Services({
         </div>
 
         {/* Two-column layout: Image left, Services list right */}
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-          {/* Left Column: Services Image */}
-          <div className="hidden lg:block relative">
-            <div className="relative w-full h-full min-h-[600px] rounded-2xl overflow-hidden border-2 border-neutral-300 dark:border-neutral-700 shadow-xl bg-neutral-200 dark:bg-neutral-800">
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch relative z-10">
+          {/* Background Image - Full bleed left, aligned with services grid top, extends to bottom of section */}
+          <div
+            className="hidden lg:block absolute top-0 left-0 z-0"
+            style={{
+              left: "calc(-50vw + 50% - 2rem)",
+              bottom: "-3.5rem",
+              width: "90%",
+            }}
+          >
+            <div className="relative w-full h-full overflow-hidden bg-neutral-200 dark:bg-neutral-800">
+              {/* Background color that shows through where image fades - matches section background */}
+              <div
+                className="absolute inset-0 bg-gradient-to-b from-neutral-50 via-white to-neutral-50 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-950"
+                aria-hidden="true"
+              />
               <img
                 src="/images/hero/hero-1.jpg"
                 alt="Mechanical insulation services"
                 className="w-full h-full object-cover object-center"
+                style={{
+                  maskImage:
+                    "linear-gradient(to right, black 0%, black 15%, rgba(0, 0, 0, 0.98) 25%, rgba(0, 0, 0, 0.95) 35%, rgba(0, 0, 0, 0.9) 45%, rgba(0, 0, 0, 0.8) 52%, rgba(0, 0, 0, 0.65) 60%, rgba(0, 0, 0, 0.45) 68%, rgba(0, 0, 0, 0.25) 75%, rgba(0, 0, 0, 0.1) 82%, rgba(0, 0, 0, 0.03) 88%, transparent 95%, transparent 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to right, black 0%, black 15%, rgba(0, 0, 0, 0.98) 25%, rgba(0, 0, 0, 0.95) 35%, rgba(0, 0, 0, 0.9) 45%, rgba(0, 0, 0, 0.8) 52%, rgba(0, 0, 0, 0.65) 60%, rgba(0, 0, 0, 0.45) 68%, rgba(0, 0, 0, 0.25) 75%, rgba(0, 0, 0, 0.1) 82%, rgba(0, 0, 0, 0.03) 88%, transparent 95%, transparent 100%)",
+                }}
                 loading="lazy"
                 onError={(e) => {
                   console.error("Services image failed to load");
                   (e.target as HTMLImageElement).style.display = "none";
                 }}
               />
-              {/* Subtle gradient overlay for better text contrast if needed */}
-              <div
-                className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neutral-900/10 dark:to-neutral-900/20 pointer-events-none"
-                aria-hidden="true"
-              />
             </div>
           </div>
+          {/* Left Column: Spacer for image */}
+          <div className="hidden lg:block"></div>
 
           {/* Right Column: Services List */}
-          <div className="lg:pl-4">
+          <div className="lg:pl-4 relative z-10">
             <ul className="space-y-2.5">
               {services.map((service, index) => {
                 // Runtime assertion to prevent undefined crashes
@@ -291,13 +306,18 @@ export default function Services({
                 }
                 const IconComponent = getServiceIcon(service.title);
                 return (
-                  <li key={index} className="group flex items-start gap-4">
-                    <div className="flex-shrink-0 mt-0.5">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/50 dark:to-primary-800/40 text-primary-600 dark:text-primary-400">
-                        <IconComponent className="h-7 w-7" aria-hidden="true" />
-                      </div>
+                  <li
+                    key={index}
+                    className="group flex items-center gap-4 whitespace-nowrap"
+                  >
+                    <div className="flex-shrink-0">
+                      <IconComponent
+                        className="h-6 w-6 text-primary-600 dark:text-primary-400"
+                        aria-hidden="true"
+                        style={{ strokeWidth: 2.5 }}
+                      />
                     </div>
-                    <span className="flex-1 text-xl font-medium leading-relaxed text-neutral-800 dark:text-neutral-200">
+                    <span className="flex-1 text-xl font-medium leading-relaxed text-neutral-800 dark:text-neutral-200 truncate">
                       {service.title}
                     </span>
                   </li>
