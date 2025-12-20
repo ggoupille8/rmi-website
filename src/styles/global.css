@@ -205,58 +205,58 @@
     @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8;
   }
 
-  /* Spacing System - Consistent vertical rhythm */
+  /* Spacing System - Consistent vertical rhythm - Tightened */
   .section-padding {
-    @apply py-20 sm:py-24 lg:py-28 xl:py-32;
+    @apply py-8 sm:py-10 lg:py-12 xl:py-14;
   }
 
   .section-padding-sm {
-    @apply py-16 sm:py-20 lg:py-24;
+    @apply py-6 sm:py-8 lg:py-10;
   }
 
   .section-padding-lg {
-    @apply py-24 sm:py-28 lg:py-36 xl:py-40;
+    @apply py-10 sm:py-12 lg:py-14 xl:py-16;
   }
 
-  /* Type Scale - Industrial Hierarchy */
+  /* Type Scale - Industrial Hierarchy - Increased sizes */
   .heading-1 {
-    @apply text-4xl font-extrabold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl xl:text-7xl;
+    @apply text-5xl font-extrabold tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl xl:text-8xl;
     line-height: 1.15;
   }
 
   .heading-2 {
-    @apply text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl xl:text-6xl;
+    @apply text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl xl:text-7xl;
     line-height: 1.25;
   }
 
   .heading-3 {
-    @apply text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl lg:text-4xl;
+    @apply text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl;
     line-height: 1.35;
   }
 
   .heading-4 {
-    @apply text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl;
+    @apply text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl;
     line-height: 1.4;
   }
 
   .text-body {
-    @apply text-base text-neutral-800 sm:text-lg;
-    line-height: 1.75;
-  }
-
-  .text-body-lg {
     @apply text-lg text-neutral-800 sm:text-xl;
     line-height: 1.75;
   }
 
+  .text-body-lg {
+    @apply text-xl text-neutral-800 sm:text-2xl;
+    line-height: 1.75;
+  }
+
   .text-body-sm {
-    @apply text-sm text-neutral-700 sm:text-base;
+    @apply text-base text-neutral-700 sm:text-lg;
     line-height: 1.7;
   }
 
   /* Button System - Industrial, Strong Contrast */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-6 py-3 text-base font-semibold text-white shadow-md transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-200;
     line-height: 1.5;
     @apply hover:bg-primary-700 hover:shadow-lg;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
@@ -266,7 +266,7 @@
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-neutral-300 bg-white px-6 py-3 text-base font-semibold text-neutral-900 shadow-sm transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-neutral-300 bg-white px-6 py-3 text-lg font-semibold text-neutral-900 shadow-sm transition-all duration-200;
     line-height: 1.5;
     @apply hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-md;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
@@ -275,7 +275,7 @@
   }
 
   .btn-accent {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-500 px-6 py-3 text-base font-semibold text-white shadow-md transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-500 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-200;
     line-height: 1.5;
     @apply hover:bg-accent-600 hover:shadow-lg;
     @apply focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
@@ -284,7 +284,7 @@
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-primary-600 bg-transparent px-6 py-3 text-base font-semibold text-primary-600 transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-primary-600 bg-transparent px-6 py-3 text-lg font-semibold text-primary-600 transition-all duration-200;
     line-height: 1.5;
     @apply hover:bg-primary-600 hover:text-white hover:shadow-md;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
@@ -292,7 +292,7 @@
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-transparent px-6 py-3 text-base font-semibold text-neutral-900 transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-transparent px-6 py-3 text-lg font-semibold text-neutral-900 transition-all duration-200;
     line-height: 1.5;
     @apply hover:bg-neutral-100 hover:shadow-sm;
     @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
@@ -300,11 +300,11 @@
   }
 
   .btn-sm {
-    @apply px-4 py-2 text-sm;
+    @apply px-4 py-2 text-base;
   }
 
   .btn-lg {
-    @apply px-8 py-4 text-lg;
+    @apply px-8 py-4 text-xl;
   }
 
   /* Card Components - Industrial Premium */

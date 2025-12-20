@@ -2,19 +2,15 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/landing/Hero';
 import Services from '../components/landing/Services';
-import MaterialsAndSupports from '../components/landing/MaterialsAndSupports';
-import WhoWeServe from '../components/landing/WhoWeServe';
-import DualTrack from '../components/landing/DualTrack';
-import Differentiators from '../components/landing/Differentiators';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
 import { phoneTel, phoneDisplay } from '../config/site';
-import { heroHeadline, heroSubheadline, heroTrustLine, heroCtaPrimary, heroCtaSecondary } from '../content/site';
+import { heroHeadline, heroSubheadline, heroTrustLine, heroCtaPrimary, heroCtaSecondary, email } from '../content/site';
 ---
 
 <BaseLayout 
   title="Resource Mechanical Insulation - Expert Insulation Services | Romulus, MI" 
-  description="Union contractor Local 25 serving Southeast Michigan and the Midwest. Professional mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Based in Romulus, MI."
+  description="Professional mechanical insulation contractor serving Michigan and surrounding areas. Mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Based in Romulus, MI."
   canonical="https://resourcemechanicalinsulation.com/"
 >
   <main>
@@ -24,15 +20,12 @@ import { heroHeadline, heroSubheadline, heroTrustLine, heroCtaPrimary, heroCtaSe
       trustLine={heroTrustLine}
       ctaPrimary={{ text: heroCtaPrimary, href: '#contact' }}
       ctaSecondary={{ text: phoneDisplay, href: phoneTel }}
-      images={['/images/hero/hero-1.jpg']}
+      ctaEmail={{ href: `mailto:${email}` }}
+      images={['/images/services/services-image.jpg']}
     />
     <div id="services">
       <Services />
     </div>
-    <MaterialsAndSupports />
-    <WhoWeServe />
-    <DualTrack />
-    <Differentiators />
     <div id="contact">
       <ContactForm />
     </div>

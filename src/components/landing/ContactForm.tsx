@@ -78,8 +78,8 @@ export default function ContactForm({
       return;
     }
 
-    // Validate that company is provided
-    if (!formData.company.trim()) {
+    // Validate that at least name or company is provided
+    if (!formData.name.trim() && !formData.company.trim()) {
       setSubmitStatus("error");
       setIsSubmitting(false);
       return;
@@ -148,14 +148,14 @@ export default function ContactForm({
           <h2 id="contact-heading" className="heading-2 text-neutral-900">
             {title}
           </h2>
-          <p className="mt-4 text-body text-neutral-800">{subtitle}</p>
+          <p className="mt-2 text-body text-neutral-800">{subtitle}</p>
         </div>
-        <div className="mx-auto mt-16 max-w-2xl">
-          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+        <div className="mx-auto mt-5 max-w-2xl">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-neutral-800 leading-relaxed"
+                className="block text-base font-medium text-neutral-800 leading-relaxed"
               >
                 Name <span className="text-error">*</span>
               </label>
@@ -166,7 +166,7 @@ export default function ContactForm({
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
+                className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-base px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
                 aria-required="true"
                 aria-invalid={submitStatus === "error" ? "true" : "false"}
               />
@@ -175,27 +175,26 @@ export default function ContactForm({
             <div>
               <label
                 htmlFor="company"
-                className="block text-sm font-medium text-neutral-800 leading-relaxed"
+                className="block text-base font-medium text-neutral-800 leading-relaxed"
               >
-                Company <span className="text-error">*</span>
+                Company
               </label>
               <input
                 type="text"
                 id="company"
                 name="company"
-                required
                 value={formData.company}
                 onChange={handleChange}
-                className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
-                aria-required="true"
+                className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-base px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
+                aria-invalid={submitStatus === "error" ? "true" : "false"}
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-neutral-800 leading-relaxed"
+                  className="block text-base font-medium text-neutral-800 leading-relaxed"
                 >
                   Email
                 </label>
@@ -205,10 +204,10 @@ export default function ContactForm({
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
+                  className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-base px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
                   aria-invalid={submitStatus === "error" ? "true" : "false"}
                 />
-                <p className="mt-1 text-xs text-neutral-600">
+                <p className="mt-1 text-sm text-neutral-600">
                   Email or phone required
                 </p>
               </div>
@@ -216,7 +215,7 @@ export default function ContactForm({
               <div>
                 <label
                   htmlFor="phone"
-                  className="block text-sm font-medium text-neutral-800 leading-relaxed"
+                  className="block text-base font-medium text-neutral-800 leading-relaxed"
                 >
                   Phone
                 </label>
@@ -226,7 +225,7 @@ export default function ContactForm({
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
+                  className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-base px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
                 />
               </div>
             </div>
@@ -234,7 +233,7 @@ export default function ContactForm({
             <div>
               <label
                 htmlFor="projectType"
-                className="block text-sm font-medium text-neutral-800 leading-relaxed"
+                className="block text-base font-medium text-neutral-800 leading-relaxed"
               >
                 Project Type <span className="text-error">*</span>
               </label>
@@ -244,7 +243,7 @@ export default function ContactForm({
                 required
                 value={formData.projectType}
                 onChange={handleChange}
-                className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
+                className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-base px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
                 aria-required="true"
               >
                 <option value="">Select a project type...</option>
@@ -254,7 +253,6 @@ export default function ContactForm({
                   Materials/Pipe Supports Pricing
                 </option>
                 <option value="maintenance">Maintenance Contract</option>
-                <option value="custom">Custom Fabrication</option>
                 <option value="other">Other</option>
               </select>
             </div>
@@ -262,7 +260,7 @@ export default function ContactForm({
             <div>
               <label
                 htmlFor="message"
-                className="block text-sm font-medium text-neutral-800 leading-relaxed"
+                className="block text-base font-medium text-neutral-800 leading-relaxed"
               >
                 Project Details <span className="text-error">*</span>
               </label>
@@ -274,7 +272,7 @@ export default function ContactForm({
                 value={formData.message}
                 onChange={handleChange}
                 placeholder="Please describe your project, timeline, and any specific requirements..."
-                className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
+                className="mt-2 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-base px-4 py-3 border bg-white text-neutral-900 leading-relaxed"
                 aria-required="true"
                 aria-invalid={submitStatus === "error" ? "true" : "false"}
               />

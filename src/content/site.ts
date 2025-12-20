@@ -27,7 +27,7 @@ export const serviceArea = "Michigan and surrounding areas.";
 
 // Hero Content
 export const heroEyebrow = undefined; // Optional eyebrow text
-export const heroHeadline = "Mechanical Insulation Contractor";
+export const heroHeadline = "Resource Mechanical Insulation";
 export const heroSubheadline =
   "Serving Michigan and surrounding areas with mechanical insulation for piping, ductwork, equipment, and specialty applications across commercial and industrial environments—focused on professional installs and safety-driven practices.";
 export const heroTrustLine =
