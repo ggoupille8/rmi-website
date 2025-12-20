@@ -39,7 +39,7 @@ const defaultSteps: Step[] = [
     number: "05",
     title: "Installation",
     description:
-      "Professional installation by union-certified Local 25 craftspeople following industry standards.",
+      "Professional installation by experienced craftspeople following industry standards.",
   },
   {
     number: "06",

@@ -20,7 +20,6 @@ export const RMI_STATS: Stat[] = [
 ];
 
 export const RMI_SERVICE_CHIPS: string[] = [
-  "Union labor (Local 25)",
   serviceArea.replace(/\.$/, ""), // Use centralized serviceArea
   "24/7 response",
   "Fire-rated assemblies",
