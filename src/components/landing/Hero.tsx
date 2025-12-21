@@ -5,7 +5,6 @@ import { Phone, Mail } from "lucide-react";
 interface HeroProps {
   headline?: string;
   subheadline?: string;
-  trustLine?: string;
   ctaPrimary?: {
     text: string;
     href: string;
@@ -23,7 +22,6 @@ interface HeroProps {
 export default function Hero({
   headline,
   subheadline,
-  trustLine,
   ctaPrimary,
   ctaSecondary = { text: phoneDisplay, href: phoneTel },
   ctaEmail = { href: `mailto:${email}` },
@@ -34,60 +32,47 @@ export default function Hero({
 
   return (
     <section
-      className="relative overflow-hidden section-padding min-h-[600px] lg:min-h-[700px] flex items-center"
+      className="relative overflow-hidden section-padding min-h-[700px] lg:min-h-[800px] flex items-center bg-neutral-50 dark:bg-neutral-900"
       aria-labelledby="hero-heading"
     >
-      {/* Background image layer */}
+      {/* Left side background - matches Services section */}
       <div
-        className="absolute inset-0 -z-10"
+        className="absolute left-0 top-0 bottom-0 w-1/2 bg-neutral-50 dark:bg-neutral-900 z-10"
+        aria-hidden="true"
+      />
+
+      {/* Background image layer with gradient overlay */}
+      <div
+        className="absolute inset-0 z-20"
         style={{
           backgroundImage: `url(${heroImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center 50%",
+          backgroundSize: "contain",
+          backgroundPosition: "right center",
           backgroundRepeat: "no-repeat",
         }}
         aria-hidden="true"
-      />
+      >
+        {/* Gradient overlay matching image size using CSS mask */}
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-transparent to-neutral-900"
+          style={{
+            maskImage: `url(${heroImage})`,
+            maskSize: "contain",
+            maskPosition: "right center",
+            maskRepeat: "no-repeat",
+            WebkitMaskImage: `url(${heroImage})`,
+            WebkitMaskSize: "contain",
+            WebkitMaskPosition: "right center",
+            WebkitMaskRepeat: "no-repeat",
+          }}
+          aria-hidden="true"
+        />
+      </div>
 
-      {/* Lightening overlay to brighten the image - increased */}
-      <div className="absolute inset-0 bg-white/30 -z-10" aria-hidden="true" />
-
-      {/* Dark overlay for text readability - further reduced opacity for brighter image */}
-      <div
-        className="absolute inset-0 bg-gradient-to-r from-neutral-900/55 via-neutral-900/40 to-neutral-900/20 lg:from-neutral-900/60 lg:via-neutral-900/45 lg:to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Additional left-side overlay for better text contrast - further reduced opacity */}
-      <div
-        className="absolute inset-0 bg-gradient-to-r from-neutral-900/60 via-neutral-900/40 to-transparent lg:from-neutral-900/55 lg:via-neutral-900/35 lg:to-transparent"
-        aria-hidden="true"
-      />
-
-      {/* Bottom gradient fade to next section - affects bottom 95% */}
-      <div
-        className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neutral-900"
-        style={{
-          background:
-            "linear-gradient(to bottom, transparent 0%, transparent 5%, rgba(23, 23, 23, 0.3) 50%, rgba(23, 23, 23, 0.7) 85%, rgb(23, 23, 23) 100%)",
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Subtle pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        aria-hidden="true"
-        style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgb(255 255 255) 1px, transparent 0)`,
-          backgroundSize: "40px 40px",
-        }}
-      />
-
-      <div className="container-custom relative z-10 w-full">
+      <div className="relative z-10 w-full pl-8 sm:pl-10 lg:pl-12">
         <div className="max-w-2xl lg:max-w-3xl">
           {/* Content */}
-          <div className="text-center lg:text-left relative">
+          <div className="text-left relative">
             {/* Accent line decoration */}
             <div
               className="hidden lg:block absolute -left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 via-primary-500 to-transparent rounded-full"
@@ -96,29 +81,17 @@ export default function Hero({
 
             <h1
               id="hero-heading"
-              className="heading-1 text-white drop-shadow-lg"
+              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-neutral-900 dark:text-white drop-shadow-lg"
+              style={{ lineHeight: 1.15 }}
             >
               {headline}
             </h1>
-            <p className="mt-4 text-body-lg text-neutral-100 max-w-2xl lg:max-w-none mx-auto lg:mx-0 leading-relaxed drop-shadow-md">
+            <p className="mt-4 text-lg sm:text-xl text-neutral-800 dark:text-neutral-100 max-w-2xl lg:max-w-none leading-relaxed drop-shadow-md">
               {subheadline}
             </p>
 
-            {/* Trust Line */}
-            {trustLine && (
-              <div className="mt-5 relative">
-                <p className="text-body font-medium text-neutral-200 max-w-2xl lg:max-w-none mx-auto lg:mx-0 inline-block relative drop-shadow-sm">
-                  <span
-                    className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary-400 hidden lg:block"
-                    aria-hidden="true"
-                  />
-                  {trustLine}
-                </p>
-              </div>
-            )}
-
             {/* CTA Buttons */}
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
+            <div className="mt-16 flex flex-col sm:flex-row gap-4 justify-start items-start">
               {ctaPrimary && (
                 <a
                   href={ctaPrimary.href}

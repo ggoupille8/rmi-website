@@ -5,7 +5,7 @@ import Services from '../components/landing/Services';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
 import { phoneTel, phoneDisplay } from '../config/site';
-import { heroHeadline, heroSubheadline, heroTrustLine, heroCtaPrimary, heroCtaSecondary, email } from '../content/site';
+import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary, email } from '../content/site';
 ---
 
 <BaseLayout 
@@ -17,7 +17,6 @@ import { heroHeadline, heroSubheadline, heroTrustLine, heroCtaPrimary, heroCtaSe
     <Hero
       headline={heroHeadline}
       subheadline={heroSubheadline}
-      trustLine={heroTrustLine}
       ctaPrimary={{ text: heroCtaPrimary, href: '#contact' }}
       ctaSecondary={{ text: phoneDisplay, href: phoneTel }}
       ctaEmail={{ href: `mailto:${email}` }}

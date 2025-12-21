@@ -221,109 +221,112 @@ export default function Services({
 }: ServicesProps) {
   return (
     <section
-      className="section-padding bg-gradient-to-b from-neutral-50 via-white to-neutral-50 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-950 relative overflow-hidden"
+      className="relative overflow-hidden"
       aria-labelledby="services-heading"
     >
-      {/* Background decorative elements */}
-      <div
-        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
-        aria-hidden="true"
-        style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgb(0 0 0) 1px, transparent 0)`,
-          backgroundSize: "50px 50px",
-        }}
-      />
-      <div
-        className="absolute top-0 right-0 w-96 h-96 bg-primary-200/10 dark:bg-primary-400/5 rounded-full blur-3xl -z-10"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute bottom-0 left-0 w-96 h-96 bg-accent-200/10 dark:bg-accent-400/5 rounded-full blur-3xl -z-10"
-        aria-hidden="true"
-      />
+      {/* Header section with black background */}
+      <div className="section-padding-sm bg-neutral-900 dark:bg-neutral-900 relative z-10">
+        <div className="container-custom relative z-10">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 id="services-heading" className="heading-2 text-white">
+              {title}
+            </h2>
+            <p className="mt-2 text-body text-neutral-100">{subtitle}</p>
+          </div>
+        </div>
+      </div>
 
-      <div className="container-custom relative z-10">
-        <div className="mx-auto max-w-2xl text-center mb-6">
-          <h2
-            id="services-heading"
-            className="heading-2 text-neutral-900 dark:text-neutral-50"
-          >
-            {title}
-          </h2>
-          <p className="mt-2 text-body text-neutral-800 dark:text-neutral-300">
-            {subtitle}
-          </p>
+      {/* Content section with white background */}
+      <div className="pt-0 pb-8 sm:pb-10 lg:pb-12 xl:pb-14 bg-white relative overflow-hidden">
+        {/* Background Image - positioned in white section, starts at top */}
+        <div
+          className="hidden lg:block absolute top-0 left-0 z-0"
+          style={{
+            left: "calc(-50vw + 50% - 2rem)",
+            bottom: "-3.5rem",
+            width: "90%",
+          }}
+        >
+          <div className="relative w-full h-full overflow-hidden bg-neutral-200 dark:bg-neutral-800">
+            {/* Background color that shows through where image fades - matches section background (white) */}
+            <div className="absolute inset-0 bg-white" aria-hidden="true" />
+            <img
+              src="/images/hero/hero-1.jpg"
+              alt="Mechanical insulation services"
+              className="w-full h-full object-cover object-center"
+              style={{
+                maskImage:
+                  "linear-gradient(to right, black 0%, black 15%, rgba(0, 0, 0, 0.98) 25%, rgba(0, 0, 0, 0.95) 35%, rgba(0, 0, 0, 0.9) 45%, rgba(0, 0, 0, 0.8) 52%, rgba(0, 0, 0, 0.65) 60%, rgba(0, 0, 0, 0.45) 68%, rgba(0, 0, 0, 0.25) 75%, rgba(0, 0, 0, 0.1) 82%, rgba(0, 0, 0, 0.03) 88%, transparent 95%, transparent 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(to right, black 0%, black 15%, rgba(0, 0, 0, 0.98) 25%, rgba(0, 0, 0, 0.95) 35%, rgba(0, 0, 0, 0.9) 45%, rgba(0, 0, 0, 0.8) 52%, rgba(0, 0, 0, 0.65) 60%, rgba(0, 0, 0, 0.45) 68%, rgba(0, 0, 0, 0.25) 75%, rgba(0, 0, 0, 0.1) 82%, rgba(0, 0, 0, 0.03) 88%, transparent 95%, transparent 100%)",
+              }}
+              loading="lazy"
+              onError={(e) => {
+                console.error("Services image failed to load");
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          </div>
         </div>
 
-        {/* Two-column layout: Image left, Services list right */}
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch relative z-10">
-          {/* Background Image - Full bleed left, aligned with services grid top, extends to bottom of section */}
-          <div
-            className="hidden lg:block absolute top-0 left-0 z-0"
-            style={{
-              left: "calc(-50vw + 50% - 2rem)",
-              bottom: "-3.5rem",
-              width: "90%",
-            }}
-          >
-            <div className="relative w-full h-full overflow-hidden bg-neutral-200 dark:bg-neutral-800">
-              {/* Background color that shows through where image fades - matches section background */}
-              <div
-                className="absolute inset-0 bg-gradient-to-b from-neutral-50 via-white to-neutral-50 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-950"
-                aria-hidden="true"
-              />
-              <img
-                src="/images/hero/hero-1.jpg"
-                alt="Mechanical insulation services"
-                className="w-full h-full object-cover object-center"
-                style={{
-                  maskImage:
-                    "linear-gradient(to right, black 0%, black 15%, rgba(0, 0, 0, 0.98) 25%, rgba(0, 0, 0, 0.95) 35%, rgba(0, 0, 0, 0.9) 45%, rgba(0, 0, 0, 0.8) 52%, rgba(0, 0, 0, 0.65) 60%, rgba(0, 0, 0, 0.45) 68%, rgba(0, 0, 0, 0.25) 75%, rgba(0, 0, 0, 0.1) 82%, rgba(0, 0, 0, 0.03) 88%, transparent 95%, transparent 100%)",
-                  WebkitMaskImage:
-                    "linear-gradient(to right, black 0%, black 15%, rgba(0, 0, 0, 0.98) 25%, rgba(0, 0, 0, 0.95) 35%, rgba(0, 0, 0, 0.9) 45%, rgba(0, 0, 0, 0.8) 52%, rgba(0, 0, 0, 0.65) 60%, rgba(0, 0, 0, 0.45) 68%, rgba(0, 0, 0, 0.25) 75%, rgba(0, 0, 0, 0.1) 82%, rgba(0, 0, 0, 0.03) 88%, transparent 95%, transparent 100%)",
-                }}
-                loading="lazy"
-                onError={(e) => {
-                  console.error("Services image failed to load");
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
-            </div>
-          </div>
-          {/* Left Column: Spacer for image */}
-          <div className="hidden lg:block"></div>
+        {/* Background decorative elements */}
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
+          aria-hidden="true"
+          style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, rgb(0 0 0) 1px, transparent 0)`,
+            backgroundSize: "50px 50px",
+          }}
+        />
+        <div
+          className="absolute top-0 right-0 w-96 h-96 bg-primary-200/10 dark:bg-primary-400/5 rounded-full blur-3xl -z-10"
+          aria-hidden="true"
+        />
+        <div
+          className="absolute bottom-0 left-0 w-96 h-96 bg-accent-200/10 dark:bg-accent-400/5 rounded-full blur-3xl -z-10"
+          aria-hidden="true"
+        />
 
-          {/* Right Column: Services List */}
-          <div className="lg:pl-4 relative z-10">
-            <ul className="space-y-2.5">
-              {services.map((service, index) => {
-                // Runtime assertion to prevent undefined crashes
-                if (!service || !service.title) {
-                  console.error(
-                    `Service at index ${index} is missing required title`
-                  );
-                  return null;
-                }
-                const IconComponent = getServiceIcon(service.title);
-                return (
-                  <li
-                    key={index}
-                    className="group flex items-center gap-4 whitespace-nowrap"
-                  >
-                    <div className="flex-shrink-0">
-                      <IconComponent
-                        className="h-6 w-6 text-primary-600 dark:text-primary-400"
-                        aria-hidden="true"
-                        style={{ strokeWidth: 2.5 }}
-                      />
-                    </div>
-                    <span className="flex-1 text-xl font-medium leading-relaxed text-neutral-800 dark:text-neutral-200 truncate">
-                      {service.title}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+        <div className="container-custom relative z-10 pt-8 sm:pt-10 lg:pt-12 xl:pt-14">
+          {/* Two-column layout: Image left, Services list right */}
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch relative z-10">
+            {/* Left Column: Spacer for image */}
+            <div className="hidden lg:block"></div>
+
+            {/* Right Column: Services List */}
+            <div className="lg:pl-8 lg:ml-8 relative z-10">
+              <div className="bg-white/95 backdrop-blur-sm rounded-lg p-6 lg:p-8 shadow-lg border border-neutral-200/50">
+                <ul className="space-y-1.5">
+                  {services.map((service, index) => {
+                    // Runtime assertion to prevent undefined crashes
+                    if (!service || !service.title) {
+                      console.error(
+                        `Service at index ${index} is missing required title`
+                      );
+                      return null;
+                    }
+                    const IconComponent = getServiceIcon(service.title);
+                    return (
+                      <li
+                        key={index}
+                        className="group flex items-center gap-4 whitespace-nowrap hover:bg-neutral-50/50 rounded-md px-2 py-1.5 -mx-2 -my-1.5 transition-colors"
+                      >
+                        <div className="flex-shrink-0">
+                          <IconComponent
+                            className="h-6 w-6 text-primary-600 dark:text-primary-500"
+                            aria-hidden="true"
+                            style={{ strokeWidth: 2.5 }}
+                          />
+                        </div>
+                        <span className="flex-1 text-xl font-medium leading-relaxed text-neutral-900 truncate">
+                          {service.title}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>

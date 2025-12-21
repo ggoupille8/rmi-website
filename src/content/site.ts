@@ -30,8 +30,6 @@ export const heroEyebrow = undefined; // Optional eyebrow text
 export const heroHeadline = "Resource Mechanical Insulation";
 export const heroSubheadline =
   "Serving Michigan and surrounding areas with mechanical insulation for piping, ductwork, equipment, and specialty applications across commercial and industrial environments—focused on professional installs and safety-driven practices.";
-export const heroTrustLine =
-  "Professional installs backed by safety-driven practices.";
 export const heroCtaPrimary = "Request a Quote";
 export const heroCtaSecondary = phoneDisplay;
 
