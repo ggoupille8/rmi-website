@@ -4,6 +4,7 @@ import Hero from '../components/landing/Hero';
 import Services from '../components/landing/Services';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
+import FloatingMobileCTA from '../components/landing/FloatingMobileCTA';
 import { phoneTel, phoneDisplay } from '../config/site';
 import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary, email } from '../content/site';
 ---
@@ -26,9 +27,10 @@ import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary, email 
       <Services />
     </div>
     <div id="contact">
-      <ContactForm />
+      <ContactForm client:load />
     </div>
     <Footer />
+    <FloatingMobileCTA client:load />
   </main>
 </BaseLayout>
 
