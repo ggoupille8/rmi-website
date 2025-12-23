@@ -65,6 +65,8 @@ npm run dev
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
+- `npm run test:visual` - Run visual regression tests
+- `npm run test:visual:update` - Update visual test snapshots
 
 ## Design System
 

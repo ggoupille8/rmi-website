@@ -71,7 +71,7 @@ export default function Process({
             {steps.map((step, index) => (
               <li key={index} className="relative">
                 <div className="flex flex-col items-start">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary-600">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary-500">
                     <span className="text-lg font-bold">{step.number}</span>
                   </div>
                   <h3 className="heading-3 text-neutral-900">{step.title}</h3>

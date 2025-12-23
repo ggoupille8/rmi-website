@@ -13,11 +13,25 @@ test.describe("Homepage Visual Regression", () => {
     for (const colorScheme of colorSchemes) {
       test(`${deviceName} - ${colorScheme} mode`, async ({ page }) => {
         await page.setViewportSize(viewport);
-        await page.emulateMedia({ colorScheme });
+        // Disable animations for deterministic screenshots
+        await page.emulateMedia({ 
+          colorScheme,
+          reducedMotion: "reduce"
+        });
         await page.goto("/");
 
-        // Wait for page to be fully loaded
+        // Wait for network to be idle
         await page.waitForLoadState("networkidle");
+        
+        // Wait for fonts to be loaded (ensures consistent text rendering)
+        await page.evaluate(() => document.fonts.ready);
+        
+        // Ensure page has fully rendered
+        await page.waitForLoadState("load");
+        
+        // Small deterministic delay to ensure all rendering is complete
+        // This accounts for any remaining paint/composite work
+        await page.waitForTimeout(200);
 
         // Take a full page screenshot
         await expect(page).toHaveScreenshot(

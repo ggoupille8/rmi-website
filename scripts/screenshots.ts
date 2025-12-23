@@ -38,14 +38,23 @@ async function generateScreenshots() {
       // Set viewport
       await page.setViewportSize(viewport);
 
-      // Set color scheme
-      await page.emulateMedia({ colorScheme });
+      // Set color scheme and disable animations for deterministic screenshots
+      await page.emulateMedia({ 
+        colorScheme,
+        reducedMotion: "reduce"
+      });
 
       // Navigate to homepage
       await page.goto(baseURL);
 
-      // Wait for page to be fully loaded
+      // Wait for network to be idle
       await page.waitForLoadState("networkidle");
+      
+      // Wait for fonts to be loaded (ensures consistent text rendering)
+      await page.evaluate(() => document.fonts.ready);
+      
+      // Small deterministic delay to ensure all rendering is complete
+      await page.waitForTimeout(100);
 
       // Generate filename with timestamp
       const filename = `${deviceName}-${colorScheme}-${timestamp}.png`;
