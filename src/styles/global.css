@@ -1,23 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   :root {
-    /* Primary - Deep Steel Blue (Industrial, Professional) */
-    --color-primary-50: 240 247 252;
-    --color-primary-100: 219 232 245;
-    --color-primary-200: 179 207 230;
-    --color-primary-300: 130 172 210;
-    --color-primary-400: 79 130 180;
-    --color-primary-500: 45 74 107;
-    /* Main primary */
-    --color-primary-600: 30 58 95;
-    /* DEFAULT - Deep steel */
-    --color-primary-700: 23 45 74;
-    --color-primary-800: 18 35 58;
-    --color-primary-900: 13 26 42;
-
+    /* Primary - Great Lakes Blue (Medium-dark, Professional) */
+    --color-primary-50: 239 246 255;
+    --color-primary-100: 219 234 254;
+    --color-primary-200: 191 219 254;
+    --color-primary-300: 147 197 253;
+    /* Lighter blue for accents */
+    --color-primary-400: 96 165 250;
+    /* Medium blue for hover states */
+    --color-primary-500: 59 130 246;
+    /* Main primary - Great Lakes blue */
+    --color-primary-600: 37 99 235;
+    /* DEFAULT - Great Lakes blue */
+    --color-primary-700: 29 78 216;
+    /* Darker hover state */
+    --color-primary-800: 30 64 175;
+    --color-primary-900: 30 58 138;
     /* Accent - Safety Orange (Industrial, Attention) */
     --color-accent-50: 255 247 237;
     --color-accent-100: 255 237 213;
@@ -30,7 +31,6 @@
     --color-accent-700: 194 65 12;
     --color-accent-800: 154 52 18;
     --color-accent-900: 124 45 18;
-
     /* Neutral - Charcoal & Steel Grays (Strong Contrast) */
     --color-neutral-50: 250 250 250;
     --color-neutral-100: 245 245 245;
@@ -44,23 +44,19 @@
     /* Strong dark text */
     --color-neutral-900: 23 23 23;
     /* Maximum contrast */
-
     /* Semantic Colors - High Contrast */
     --color-success: 22 163 74;
     /* Green-600 */
     --color-success-light: 240 253 244;
     --color-success-dark: 20 83 45;
-
     --color-error: 220 38 38;
     /* Red-600 */
     --color-error-light: 254 242 242;
     --color-error-dark: 153 27 27;
-
     --color-warning: 217 119 6;
     /* Amber-600 */
     --color-warning-light: 255 251 235;
     --color-warning-dark: 146 64 14;
-
     /* Border Radius - Industrial Premium */
     --radius-none: 0;
     --radius-sm: 0.25rem;
@@ -78,7 +74,6 @@
     --radius-3xl: 1.5rem;
     /* 24px */
     --radius-full: 9999px;
-
     /* Spacing Scale - 8px base unit */
     --spacing-0: 0;
     --spacing-1: 0.25rem;
@@ -107,7 +102,6 @@
     /* 96px */
     --spacing-32: 8rem;
     /* 128px */
-
     /* Shadow System - Industrial Depth */
     --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.08);
@@ -118,7 +112,6 @@
     --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.15);
     --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.08);
     --shadow-none: none;
-
     /* Typography Scale */
     --font-size-xs: 0.75rem;
     /* 12px */
@@ -146,33 +139,38 @@
     /* 96px */
     --font-size-9xl: 8rem;
     /* 128px */
-
     --line-height-tight: 1.1;
     --line-height-snug: 1.2;
     --line-height-normal: 1.5;
     --line-height-relaxed: 1.6;
-
     --letter-spacing-tight: -0.03em;
     --letter-spacing-normal: 0em;
     --letter-spacing-wide: 0.01em;
     --letter-spacing-wider: 0.025em;
   }
-
   html {
     @apply scroll-smooth;
   }
-
+  /* Disable animations/transitions for test stability and accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
   body {
     @apply bg-neutral-50 text-neutral-900 antialiased;
     font-feature-settings: 'rlig' 1, 'calt' 1;
     /* Strong contrast: WCAG AAA for normal text */
     color: rgb(var(--color-neutral-900));
   }
-
   * {
     @apply border-neutral-200;
   }
-
   /* Strong contrast for all text elements */
   h1,
   h2,
@@ -182,175 +180,143 @@
   h6 {
     @apply text-neutral-900 font-bold;
   }
-
   p,
   li,
   span {
     @apply text-neutral-800;
   }
 }
-
 @layer components {
-
   /* Container System - Consistent widths */
   .container-custom {
-    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8;
   }
-
   .container-narrow {
     @apply mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8;
   }
-
   .container-wide {
     @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8;
   }
-
   /* Spacing System - Consistent vertical rhythm - Tightened */
   .section-padding {
     @apply py-8 sm:py-10 lg:py-12 xl:py-14;
   }
-
   .section-padding-sm {
     @apply py-6 sm:py-8 lg:py-10;
   }
-
   .section-padding-lg {
     @apply py-10 sm:py-12 lg:py-14 xl:py-16;
   }
-
   /* Type Scale - Industrial Hierarchy - Increased sizes */
   .heading-1 {
     @apply text-5xl font-extrabold tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl xl:text-8xl;
     line-height: 1.15;
   }
-
   .heading-2 {
     @apply text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl xl:text-7xl;
     line-height: 1.25;
   }
-
   .heading-3 {
     @apply text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl;
     line-height: 1.35;
   }
-
   .heading-4 {
     @apply text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl;
     line-height: 1.4;
   }
-
   .text-body {
     @apply text-lg text-neutral-800 sm:text-xl;
     line-height: 1.75;
   }
-
   .text-body-lg {
     @apply text-xl text-neutral-800 sm:text-2xl;
     line-height: 1.75;
   }
-
   .text-body-sm {
     @apply text-base text-neutral-700 sm:text-lg;
     line-height: 1.7;
   }
-
   /* Button System - Industrial, Strong Contrast */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-500 ease-in-out;
     line-height: 1.5;
-    @apply hover:bg-primary-700 hover:shadow-lg;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
-    @apply active:bg-primary-800 active:shadow-md;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-600 disabled:hover:shadow-md;
+    @apply hover:bg-primary-500 hover:shadow-lg hover:scale-110 hover:-translate-y-1;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
+    @apply active:bg-primary-700 active:shadow-md active:scale-105;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-600 disabled:hover:shadow-md disabled:hover:scale-100 disabled:hover:translate-y-0;
     /* Strong contrast: white on primary-600 meets WCAG AAA */
   }
-
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-neutral-300 bg-white px-6 py-3 text-lg font-semibold text-neutral-900 shadow-sm transition-all duration-200;
     line-height: 1.5;
     @apply hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-md;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
     @apply active:bg-neutral-100 active:shadow-sm;
     /* Strong contrast: neutral-900 on white meets WCAG AAA */
   }
-
   .btn-accent {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-500 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-200;
     line-height: 1.5;
     @apply hover:bg-accent-600 hover:shadow-lg;
-    @apply focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
     @apply active:bg-accent-700 active:shadow-md;
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent-500 disabled:hover:shadow-md;
   }
-
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-primary-600 bg-transparent px-6 py-3 text-lg font-semibold text-primary-600 transition-all duration-200;
     line-height: 1.5;
     @apply hover:bg-primary-600 hover:text-white hover:shadow-md;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
-    @apply active:bg-primary-700 active:shadow-sm;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
+    @apply active:bg-primary-500 active:shadow-sm;
   }
-
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-transparent px-6 py-3 text-lg font-semibold text-neutral-900 transition-all duration-200;
     line-height: 1.5;
     @apply hover:bg-neutral-100 hover:shadow-sm;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-50;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
     @apply active:bg-neutral-200;
   }
-
   .btn-sm {
     @apply px-4 py-2 text-base;
   }
-
   .btn-lg {
     @apply px-8 py-4 text-xl;
   }
-
   /* Card Components - Industrial Premium */
   .card {
     @apply rounded-xl bg-white p-6 shadow-md transition-all duration-200;
     @apply border border-neutral-200;
   }
-
   .card-hover {
     @apply card hover:shadow-lg hover:-translate-y-1;
   }
-
   .card-elevated {
     @apply rounded-xl bg-white p-8 shadow-lg border border-neutral-200;
   }
-
   .card-interactive {
     @apply card-hover cursor-pointer focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2;
   }
-
   .card-gradient {
     @apply rounded-xl p-6 shadow-lg;
     background: linear-gradient(135deg, rgb(var(--color-primary-50)) 0%, rgb(var(--color-neutral-50)) 100%);
     border: 1px solid rgb(var(--color-primary-100));
   }
-
   .card-accent {
     @apply rounded-xl p-6 shadow-lg;
     background: linear-gradient(135deg, rgb(var(--color-accent-50)) 0%, rgb(var(--color-neutral-50)) 100%);
     border: 1px solid rgb(var(--color-accent-100));
   }
-
   .card-bordered {
     @apply rounded-xl bg-white p-6 border-2 border-primary-200 shadow-sm;
   }
-
   .card-minimal {
     @apply rounded-lg bg-neutral-50 p-6 border border-neutral-200;
   }
-
   /* Section Backgrounds with Patterns */
   .section-bg-pattern {
     position: relative;
     background-color: rgb(var(--color-neutral-50));
   }
-
   .section-bg-pattern::before {
     content: '';
     position: absolute;
@@ -362,20 +328,16 @@
     background-size: 40px 40px;
     pointer-events: none;
   }
-
   .section-bg-gradient {
     background: linear-gradient(135deg, rgb(var(--color-primary-50)) 0%, rgb(var(--color-neutral-50)) 50%, rgb(var(--color-accent-50)) 100%);
   }
-
   .section-bg-soft {
     background: linear-gradient(180deg, rgb(var(--color-neutral-50)) 0%, rgb(255 255 255) 100%);
   }
-
   /* Gradient Overlays */
   .gradient-overlay-primary {
     position: relative;
   }
-
   .gradient-overlay-primary::after {
     content: '';
     position: absolute;
@@ -383,11 +345,9 @@
     background: linear-gradient(135deg, rgba(var(--color-primary-600), 0.05) 0%, transparent 50%);
     pointer-events: none;
   }
-
   .gradient-overlay-accent {
     position: relative;
   }
-
   .gradient-overlay-accent::after {
     content: '';
     position: absolute;
@@ -395,47 +355,66 @@
     background: linear-gradient(135deg, rgba(var(--color-accent-500), 0.05) 0%, transparent 50%);
     pointer-events: none;
   }
-
   /* Premium Divider */
   .divider {
     @apply border-t border-neutral-200;
   }
-
   .divider-accent {
     @apply border-t-2 border-accent-300;
   }
-
   .divider-primary {
     @apply border-t-2 border-primary-300;
   }
-
   /* Badge/Pill Components */
   .badge {
     @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
   }
-
   .badge-primary {
     @apply badge bg-primary-100 text-primary-800;
   }
-
   .badge-accent {
     @apply badge bg-accent-100 text-accent-800;
   }
-
   .badge-neutral {
     @apply badge bg-neutral-100 text-neutral-800;
   }
-
   .badge-success {
     @apply badge bg-success-light text-success-dark;
   }
+  /* Form element improvements for mobile/iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  textarea,
+  select {
+    /* Prevent iOS zoom on focus - ensure 16px minimum font size */
+    font-size: 16px;
+    /* Ensure consistent appearance across browsers */
+    -webkit-appearance: none;
+    appearance: none;
+    /* Prevent text selection issues on iOS */
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Ensure textarea is resizable on iOS */
+  textarea {
+    resize: vertical;
+  }
+  /* Prevent input clipping on very small screens */
+  @media (max-width: 320px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea,
+    select {
+      padding-left: 0.875rem;
+      padding-right: 0.875rem;
+    }
+  }
 }
-
 @layer utilities {
   .focus-visible-ring {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50;
   }
-
   /* Skip link for accessibility */
   .sr-only {
     position: absolute;
@@ -448,7 +427,6 @@
     white-space: nowrap;
     border-width: 0;
   }
-
   .sr-only:focus {
     position: absolute;
     width: auto;
@@ -459,7 +437,6 @@
     clip: auto;
     white-space: normal;
   }
-
   .focus\:not-sr-only:focus {
     position: static;
     width: auto;
@@ -470,29 +447,23 @@
     clip: auto;
     white-space: normal;
   }
-
   /* Text contrast utilities */
   .text-high-contrast {
     @apply text-neutral-900;
   }
-
   .text-medium-contrast {
     @apply text-neutral-800;
   }
-
   .text-low-contrast {
     @apply text-neutral-600;
   }
-
   /* Industrial spacing utilities */
   .spacing-section {
     @apply space-y-8 sm:space-y-12 lg:space-y-16;
   }
-
   .spacing-component {
     @apply space-y-4 sm:space-y-6;
   }
-
   /* Background Pattern Utilities */
   .bg-pattern-grid {
     background-image:
@@ -500,12 +471,10 @@
       linear-gradient(90deg, rgba(var(--color-primary-600), 0.03) 1px, transparent 1px);
     background-size: 40px 40px;
   }
-
   .bg-pattern-dots {
     background-image: radial-gradient(circle, rgba(var(--color-primary-600), 0.1) 1px, transparent 1px);
     background-size: 20px 20px;
   }
-
   .bg-pattern-diagonal {
     background-image: repeating-linear-gradient(45deg,
         transparent,
@@ -513,7 +482,6 @@
         rgba(var(--color-primary-600), 0.02) 10px,
         rgba(var(--color-primary-600), 0.02) 20px);
   }
-
   .bg-pattern-cross {
     background-image:
       linear-gradient(rgba(var(--color-primary-600), 0.05) 1px, transparent 1px),
@@ -522,16 +490,13 @@
       linear-gradient(90deg, rgba(var(--color-accent-500), 0.02) 1px, transparent 1px);
     background-size: 40px 40px, 40px 40px, 20px 20px, 20px 20px;
   }
-
   /* Gradient Utilities */
   .bg-gradient-industrial {
     background: linear-gradient(135deg, rgb(var(--color-primary-600)) 0%, rgb(var(--color-primary-800)) 50%, rgb(var(--color-accent-600)) 100%);
   }
-
   .bg-gradient-soft {
     background: linear-gradient(135deg, rgb(var(--color-primary-50)) 0%, rgb(var(--color-neutral-50)) 50%, rgb(var(--color-accent-50)) 100%);
   }
-
   /* Text Gradient */
   .text-gradient-primary {
     background: linear-gradient(135deg, rgb(var(--color-primary-600)) 0%, rgb(var(--color-primary-800)) 100%);
@@ -539,7 +504,6 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-
   .text-gradient-accent {
     background: linear-gradient(135deg, rgb(var(--color-accent-500)) 0%, rgb(var(--color-accent-700)) 100%);
     -webkit-background-clip: text;
@@ -547,3 +511,4 @@
     background-clip: text;
   }
 }
+

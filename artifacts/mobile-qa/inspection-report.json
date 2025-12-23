@@ -1,0 +1,68 @@
+[
+  {
+    "priority": "P0",
+    "section": "Footer",
+    "symptom": "Footer CTA button tap target too small: 343x26px",
+    "viewport": "iphone-se (375x667)",
+    "reproSteps": "Viewport: 375x667, scroll to bottom",
+    "suspectedCause": "Footer button padding insufficient for 44px minimum",
+    "candidateFix": "Ensure footer buttons have py-2.5 or min-height: 44px",
+    "fileReference": "src/components/landing/Footer.tsx",
+    "lineReference": "84-106"
+  },
+  {
+    "priority": "P0",
+    "section": "Footer",
+    "symptom": "Footer CTA button tap target too small: 343x26px",
+    "viewport": "iphone-se (375x667)",
+    "reproSteps": "Viewport: 375x667, scroll to bottom",
+    "suspectedCause": "Footer button padding insufficient for 44px minimum",
+    "candidateFix": "Ensure footer buttons have py-2.5 or min-height: 44px",
+    "fileReference": "src/components/landing/Footer.tsx",
+    "lineReference": "84-106"
+  },
+  {
+    "priority": "P0",
+    "section": "Footer",
+    "symptom": "Footer CTA button tap target too small: 56x26px",
+    "viewport": "iphone-se (375x667)",
+    "reproSteps": "Viewport: 375x667, scroll to bottom",
+    "suspectedCause": "Footer button padding insufficient for 44px minimum",
+    "candidateFix": "Ensure footer buttons have py-2.5 or min-height: 44px",
+    "fileReference": "src/components/landing/Footer.tsx",
+    "lineReference": "84-106"
+  },
+  {
+    "priority": "P0",
+    "section": "Footer",
+    "symptom": "Footer CTA button tap target too small: 328x26px",
+    "viewport": "android-small (360x640)",
+    "reproSteps": "Viewport: 360x640, scroll to bottom",
+    "suspectedCause": "Footer button padding insufficient for 44px minimum",
+    "candidateFix": "Ensure footer buttons have py-2.5 or min-height: 44px",
+    "fileReference": "src/components/landing/Footer.tsx",
+    "lineReference": "84-106"
+  },
+  {
+    "priority": "P0",
+    "section": "Footer",
+    "symptom": "Footer CTA button tap target too small: 328x26px",
+    "viewport": "android-small (360x640)",
+    "reproSteps": "Viewport: 360x640, scroll to bottom",
+    "suspectedCause": "Footer button padding insufficient for 44px minimum",
+    "candidateFix": "Ensure footer buttons have py-2.5 or min-height: 44px",
+    "fileReference": "src/components/landing/Footer.tsx",
+    "lineReference": "84-106"
+  },
+  {
+    "priority": "P0",
+    "section": "Footer",
+    "symptom": "Footer CTA button tap target too small: 56x26px",
+    "viewport": "android-small (360x640)",
+    "reproSteps": "Viewport: 360x640, scroll to bottom",
+    "suspectedCause": "Footer button padding insufficient for 44px minimum",
+    "candidateFix": "Ensure footer buttons have py-2.5 or min-height: 44px",
+    "fileReference": "src/components/landing/Footer.tsx",
+    "lineReference": "84-106"
+  }
+]

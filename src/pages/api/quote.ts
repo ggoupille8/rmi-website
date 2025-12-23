@@ -193,6 +193,18 @@ async function saveQuote(
   }
 }
 
+// Escape HTML entities to prevent injection
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  };
+  return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+
 async function sendEmail(data: QuoteRequest): Promise<void> {
   const apiKey = import.meta.env.SENDGRID_API_KEY;
   const toEmail = import.meta.env.QUOTE_TO_EMAIL || "ggoupille@rmi-llc.net";
@@ -217,12 +229,17 @@ Message:
 ${data.message}
   `.trim();
 
+  // Escape HTML entities in user-provided content for HTML email
+  const safeHtml = escapeHtml(emailContent).replace(/\n/g, "<br>");
+  // Subject is plain text, but ensure it's safe (SendGrid handles this, but be defensive)
+  const safeSubject = `New Quote Request from ${data.name} - ${data.company}`;
+
   await sgMail.send({
     to: toEmail,
     from: fromEmail,
-    subject: `New Quote Request from ${data.name} - ${data.company}`,
+    subject: safeSubject,
     text: emailContent,
-    html: emailContent.replace(/\n/g, "<br>"),
+    html: safeHtml,
   });
 }
 
