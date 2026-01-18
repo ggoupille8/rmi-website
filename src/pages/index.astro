@@ -5,8 +5,8 @@ import Services from '../components/landing/Services';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
 import FloatingMobileCTA from '../components/landing/FloatingMobileCTA';
-import { phoneTel, phoneDisplay } from '../config/site';
-import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary, email } from '../content/site';
+import { phoneTel, phoneDisplay, email } from '../config/site';
+import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary } from '../content/site';
 ---
 
 <BaseLayout 
@@ -14,7 +14,7 @@ import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary, email 
   description="Professional mechanical insulation contractor serving Michigan and surrounding areas. Mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Based in Romulus, MI."
   canonical="https://resourcemechanicalinsulation.com/"
 >
-  <main>
+  <div>
     <Hero
       headline={heroHeadline}
       subheadline={heroSubheadline}
@@ -31,6 +31,6 @@ import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary, email 
     </div>
     <Footer />
     <FloatingMobileCTA client:load />
-  </main>
+  </div>
 </BaseLayout>
 

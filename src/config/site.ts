@@ -6,3 +6,5 @@ export const phoneE164 = "+14197056153";
 export const phoneTel = "tel:+14197056153";
 
 export const quoteToEmail = "ggoupille@rmi-llc.net";
+export const email = "ggoupille@rmi-llc.net";
+export const emailMailto = `mailto:${email}`;

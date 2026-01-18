@@ -1,5 +1,5 @@
-import { phoneTel, phoneDisplay, companyName } from "../../config/site";
-import { companyNameFull, email, address } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email } from "../../config/site";
+import { companyNameFull, address } from "../../content/site";
 import { Phone, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
@@ -9,15 +9,15 @@ export default function Footer() {
     <footer className="bg-neutral-900 text-white" aria-label="Site footer">
       <div className="container-custom">
         {/* Modern Divider Above Footer */}
-        <div className="pt-8 sm:pt-12 lg:pt-16">
+        <div style={{ paddingTop: 'clamp(2rem, 0.4vw + 1.5rem, 4rem)' }}>
           <div className="relative h-px overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-400 to-transparent opacity-50"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-600 to-transparent"></div>
           </div>
         </div>
         {/* Main Footer Content */}
-        <div className="pt-4 sm:pt-6 lg:pt-8 pb-0">
-          <div className="grid grid-cols-1 gap-12 lg:gap-16 lg:grid-cols-3 items-start">
+        <div style={{ paddingTop: 'clamp(1rem, 0.25vw + 0.75rem, 2rem)' }} className="pb-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 items-start" style={{ gap: 'clamp(3rem, 0.5vw + 2.5rem, 4rem)' }}>
             {/* Company Info - Left Column */}
             <div>
               <h3 className="text-xl font-bold text-white mb-3 leading-tight whitespace-nowrap underline">
