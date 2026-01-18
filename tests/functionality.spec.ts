@@ -2,6 +2,14 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Functionality Tests", () => {
   test.beforeEach(async ({ page }) => {
+    await page.route("**/api/contact", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true }),
+      });
+    });
     await page.goto("/");
     await page.waitForLoadState("networkidle");
   });
@@ -59,7 +67,9 @@ test.describe("Functionality Tests", () => {
     // Wait for success message
     await page.waitForSelector('[role="alert"]', { timeout: 5000 });
 
-    const successMessage = page.locator("text=Thank you for your message");
+    const successMessage = page.locator(
+      "text=Thank you for your inquiry!"
+    );
     await expect(successMessage).toBeVisible();
 
     // Check that form is cleared
@@ -115,6 +125,7 @@ test.describe("Functionality Tests", () => {
 
   test("should have proper button states", async ({ page }) => {
     const submitButton = page.locator('button[type="submit"]');
+    const contactForm = page.locator("#contact form");
     await expect(submitButton).toBeVisible();
     await expect(submitButton).toHaveText("Send Message");
 
@@ -125,8 +136,8 @@ test.describe("Functionality Tests", () => {
 
     await submitButton.click();
 
-    // Button should show aria-busy during submission
-    const ariaBusy = await submitButton.getAttribute("aria-busy");
+    // Form should show aria-busy during submission
+    const ariaBusy = await contactForm.getAttribute("aria-busy");
     expect(ariaBusy).toBe("true");
   });
 
