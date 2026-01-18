@@ -208,9 +208,16 @@ export default function Services({
   subtitle = "From new installs to renovations: piping, ductwork, equipment, and specialty applications for commercial and industrial environments.",
   services = defaultServices,
 }: ServicesProps) {
+  // DOM PARITY: This component renders identical DOM structure at all breakpoints (375px, 430px, 768px, 1024px, 1440px)
+  // - All elements (H2, subtitle, service list, image, borders) always present
+  // - No conditional rendering based on screen size
+  // - Layout changes handled via CSS only (Grid + clamp())
+  // - Visual order swap handled via CSS Grid column positioning (.services-grid utility)
+  // - Verify DOM parity: Run scripts/verify-dom-parity.js in browser console
   return (
     <section
-      className="relative overflow-hidden pt-0 pb-4 sm:pb-6 lg:pb-8 bg-white dark:bg-neutral-900"
+      className="relative overflow-hidden pt-0 bg-neutral-50 dark:bg-neutral-900 min-h-[66.667vh]"
+      style={{ paddingBottom: 'clamp(1rem, 0.25vw + 0.75rem, 2rem)' }}
       aria-labelledby="services-heading"
     >
       {/* Top border - extends almost all the way across screen */}
@@ -220,26 +227,9 @@ export default function Services({
       </div>
       
       <div className="container-custom pl-0 lg:pl-8">
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 lg:items-stretch">
-          {/* Left column - Image (50% of screen, tight to border lines, extends to left edge) */}
-          <div className="relative order-2 lg:order-1 -ml-4 sm:-ml-6 lg:-ml-16 xl:-ml-24 2xl:-ml-32 w-[50vw] -mt-4 sm:-mt-6 lg:-mt-8 -mb-4 sm:-mb-6 lg:-mb-8">
-            <img
-              src="/images/hero/hero-1.jpg"
-              alt="Mechanical insulation services"
-              className="w-full h-full rounded-lg lg:rounded-l-none shadow-2xl object-cover opacity-95"
-              style={{ filter: 'grayscale(5%) contrast(1.02)' }}
-              loading="lazy"
-              width="1920"
-              height="1080"
-            />
-            {/* White overlay for two-tone effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-white/5 to-transparent dark:from-neutral-900/15 dark:via-neutral-900/5 rounded-lg lg:rounded-l-none pointer-events-none mix-blend-soft-light" aria-hidden="true"></div>
-            {/* Gradient overlay to blend image with content */}
-            <GradientBlendOverlay direction="right" />
-          </div>
-
-          {/* Right column - Content */}
-          <div className="text-left relative order-1 lg:order-2 lg:ml-4 xl:ml-6">
+        <div className="services-grid grid lg:grid-cols-2 lg:items-stretch" style={{ gap: 'clamp(1.5rem, 0.25vw + 1.25rem, 2rem)' }}>
+          {/* Content column - appears first on mobile, second on desktop */}
+          <div className="text-left relative lg:ml-4 xl:ml-6">
             {/* Accent line decoration */}
             <div
               className="hidden lg:block absolute -right-8 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 via-primary-500 to-transparent rounded-full"
@@ -247,15 +237,32 @@ export default function Services({
             />
             <h2
               id="services-heading"
-              className="heading-2 text-neutral-900 dark:text-white text-left"
+              className="font-bold tracking-tight text-neutral-900 dark:text-white text-left"
+              style={{ 
+                fontSize: 'clamp(1.5rem, 0.5vw + 1.25rem, 4.5rem)',
+                lineHeight: '1.25'
+              }}
             >
               {title}
             </h2>
-            <p className="mt-2 text-body text-neutral-800 dark:text-neutral-100 text-left">
+            <p 
+              className="text-neutral-800 dark:text-neutral-100 text-left"
+              style={{ 
+                marginTop: 'clamp(0.5rem, 0.1vw + 0.4rem, 0.75rem)',
+                fontSize: 'clamp(1rem, 0.2vw + 0.8rem, 1.25rem)',
+                lineHeight: '1.75'
+              }}
+            >
               {subtitle}
             </p>
 
-            <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+            <ul 
+              className="grid grid-cols-1 sm:grid-cols-2 gap-x-8"
+              style={{ 
+                marginTop: 'clamp(1rem, 0.2vw + 0.8rem, 1.5rem)',
+                gap: '0.75rem 2rem'
+              }}
+            >
               {services.map((service, index) => {
                 // Runtime assertion to prevent undefined crashes
                 if (!service || !service.title) {
@@ -265,10 +272,8 @@ export default function Services({
                   return null;
                 }
                 const IconComponent = getServiceIcon(service.title);
-                // Right column items (odd indices in 2-column grid)
-                const isRightColumn = index % 2 === 1;
                 return (
-                  <li key={index} className={`group ${isRightColumn ? 'sm:ml-8 lg:ml-12' : ''}`}>
+                  <li key={index} className="group sm:[&:nth-child(odd)]:ml-0 sm:[&:nth-child(even)]:ml-8 lg:[&:nth-child(even)]:ml-12">
                     <div className="flex items-center gap-3">
                       <div className="flex-shrink-0">
                         <IconComponent
@@ -285,6 +290,23 @@ export default function Services({
                 );
               })}
             </ul>
+          </div>
+
+          {/* Image column - appears second on mobile, first on desktop */}
+          <div className="relative -ml-4 sm:-ml-6 lg:-ml-16 xl:-ml-24 2xl:-ml-32 w-full h-full lg:self-stretch">
+            <img
+              src="/images/hero/hero-1.jpg"
+              alt="Mechanical insulation services"
+              className="w-full h-full rounded-tr-none rounded-br-none lg:rounded-l-none shadow-2xl object-cover opacity-95"
+              style={{ filter: 'grayscale(5%) contrast(1.02)' }}
+              loading="lazy"
+              width="1920"
+              height="1080"
+            />
+            {/* White overlay for two-tone effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-white/5 to-transparent dark:from-neutral-900/15 dark:via-neutral-900/5 rounded-tr-none rounded-br-none lg:rounded-l-none pointer-events-none mix-blend-soft-light" aria-hidden="true"></div>
+            {/* Gradient overlay to blend image with content */}
+            <GradientBlendOverlay direction="right" />
           </div>
         </div>
       </div>

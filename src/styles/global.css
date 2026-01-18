@@ -447,6 +447,23 @@
     clip: auto;
     white-space: normal;
   }
+  /* Services section grid: content first on mobile, image first on desktop */
+  /* On mobile (single column), both stack in DOM order */
+  .services-grid > :first-child {
+    grid-column: 1;
+  }
+  .services-grid > :last-child {
+    grid-column: 1;
+  }
+  /* On desktop (2 columns), swap visual order */
+  @media (min-width: 1024px) {
+    .services-grid > :first-child {
+      grid-column: 2;
+    }
+    .services-grid > :last-child {
+      grid-column: 1;
+    }
+  }
   /* Text contrast utilities */
   .text-high-contrast {
     @apply text-neutral-900;
