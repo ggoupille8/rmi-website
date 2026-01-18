@@ -139,7 +139,6 @@ export default function ContactForm({
       return;
     }
     
-    const submitStartedAt = Date.now();
     flushSync(() => {
       setIsSubmitting(true);
     });
@@ -238,7 +237,7 @@ export default function ContactForm({
     }
 
     try {
-      const response = await fetch("/api/quote", {
+      const response = await fetch("/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -256,50 +255,25 @@ export default function ContactForm({
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Contact submit failed: ${response.status}`);
       }
 
-      const result = await response.json();
-
-      if (result.ok) {
-        setSubmitStatus("success");
-        setFieldErrors({});
-        setFormData({
-          name: "",
-          company: "",
-          email: "",
-          phone: "",
-          projectType: "",
-          message: "",
-          honeypot: "",
-        });
-      } else {
-        // Only show generic error for actual server errors
-        setSubmitStatus("error");
-      }
+      setSubmitStatus("success");
+      setFieldErrors({});
+      setFormData({
+        name: "",
+        company: "",
+        email: "",
+        phone: "",
+        projectType: "",
+        message: "",
+        honeypot: "",
+      });
     } catch (error) {
       console.error("Form submission error:", error);
       // Only show generic error for network/server errors
-      if (import.meta.env.DEV) {
-        setSubmitStatus("success");
-        setFieldErrors({});
-        setFormData({
-          name: "",
-          company: "",
-          email: "",
-          phone: "",
-          projectType: "",
-          message: "",
-          honeypot: "",
-        });
-      } else {
-        setSubmitStatus("error");
-      }
+      setSubmitStatus("error");
     } finally {
-      const elapsed = Date.now() - submitStartedAt;
-      if (elapsed < 100) {
-        await new Promise((resolve) => setTimeout(resolve, 100 - elapsed));
-      }
       setIsSubmitting(false);
     }
   };
@@ -555,9 +529,8 @@ export default function ContactForm({
                 role="alert"
                 aria-live="polite"
               >
-                {import.meta.env.DEV
-                  ? "Thank you for your message! We will get back to you soon."
-                  : "Thank you for your inquiry! Our team will review your request and get back to you within 24 hours."}
+                Thank you for your inquiry! Our team will review your request
+                and get back to you within 24 hours.
               </div>
             )}
 
@@ -581,7 +554,6 @@ export default function ContactForm({
                 type="submit"
                 disabled={isSubmitting}
                 className="btn-primary px-8 py-4 text-xl font-bold"
-                aria-busy={isSubmitting ? "true" : "false"}
               >
                   {isSubmitting ? "Sending..." : "Send Message"}
                 </button>
