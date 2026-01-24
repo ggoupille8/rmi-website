@@ -25,7 +25,7 @@ All company constants must come from `src/content/site.ts` (or the designated co
 Never hardcode duplicates anywhere (components/pages/config):
 
 - Company name: Resource Mechanical Insulation, LLC
-- Email: ggoupille@rmi-llc.net
+- Email: fab@rmi-llc.net
 - Phone: 419-705-6153
 - Service area phrasing: "Michigan and surrounding areas."
 - Address: 11677 Wayne Road, Suite 112, Romulus, MI 48174

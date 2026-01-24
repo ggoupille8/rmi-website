@@ -132,7 +132,7 @@ curl -X POST http://localhost:4321/api/quote \
 **Note:** The endpoint requires environment variables:
 
 - `SENDGRID_API_KEY` (required)
-- `QUOTE_TO_EMAIL` (optional, defaults to ggoupille@rmi-llc.net)
+- `QUOTE_TO_EMAIL` (optional, defaults to fab@rmi-llc.net)
 - `QUOTE_FROM_EMAIL` (optional, defaults to no-reply@rmi-llc.net)
 - Database connection via Vercel Postgres (configured in Vercel dashboard)
 
