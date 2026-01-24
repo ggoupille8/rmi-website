@@ -41,6 +41,7 @@ export const GET: APIRoute = async ({ request }) => {
         "Content-Type": "application/json",
         "WWW-Authenticate": 'Bearer realm="admin"',
         "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   }
@@ -49,46 +50,68 @@ export const GET: APIRoute = async ({ request }) => {
   if (!postgresUrl) {
     return new Response(JSON.stringify({ error: "Database not configured" }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
     });
   }
 
   try {
     // Parse query parameters
     const url = new URL(request.url);
-    const limit = Math.min(
-      parseInt(url.searchParams.get("limit") || "50", 10),
-      100
-    );
-    const offset = parseInt(url.searchParams.get("offset") || "0", 10);
-    const serviceType = url.searchParams.get("serviceType");
+    const limitParam = parseInt(url.searchParams.get("limit") || "50", 10);
+    const offsetParam = parseInt(url.searchParams.get("offset") || "0", 10);
+    const limit = Number.isFinite(limitParam)
+      ? Math.min(Math.max(limitParam, 1), 100)
+      : 50;
+    const offset = Number.isFinite(offsetParam)
+      ? Math.min(Math.max(offsetParam, 0), 10000)
+      : 0;
+    const sourceParam = url.searchParams.get("source");
+    const source =
+      sourceParam === "contact" || sourceParam === null
+        ? sourceParam
+        : null;
+
+    if (sourceParam !== null && source === null) {
+      return new Response(JSON.stringify({ error: "Invalid input" }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff",
+        },
+      });
+    }
 
     // Build query
     let result;
     let countResult;
 
-    if (serviceType) {
+    if (source) {
       result = await sql`
-        SELECT id, created_at, name, company, email, phone, service_type, message, metadata
-        FROM quotes
-        WHERE service_type = ${serviceType}
+        SELECT id, created_at, name, email, message, source, metadata
+        FROM contacts
+        WHERE source = ${source}
         ORDER BY created_at DESC
         LIMIT ${limit}
         OFFSET ${offset}
       `;
       countResult = await sql`
-        SELECT COUNT(*) as total FROM quotes WHERE service_type = ${serviceType}
+        SELECT COUNT(*) as total FROM contacts WHERE source = ${source}
       `;
     } else {
       result = await sql`
-        SELECT id, created_at, name, company, email, phone, service_type, message, metadata
-        FROM quotes
+        SELECT id, created_at, name, email, message, source, metadata
+        FROM contacts
         ORDER BY created_at DESC
         LIMIT ${limit}
         OFFSET ${offset}
       `;
       countResult = await sql`
-        SELECT COUNT(*) as total FROM quotes
+        SELECT COUNT(*) as total FROM contacts
       `;
     }
 
@@ -96,7 +119,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     return new Response(
       JSON.stringify({
-        quotes: result.rows,
+        contacts: result.rows,
         pagination: {
           total,
           limit,
@@ -106,17 +129,25 @@ export const GET: APIRoute = async ({ request }) => {
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff",
+        },
       }
     );
   } catch (error) {
     console.error(
-      "Admin quotes fetch error:",
+      "Admin contacts fetch error:",
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
     });
   }
 };

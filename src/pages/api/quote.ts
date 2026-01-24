@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import sgMail from "@sendgrid/mail";
 import { sql } from "@vercel/postgres";
+import { getPostgresEnv } from "../../lib/db-env";
 
 // Prevent prerendering - API routes must be server-side only
 export const prerender = false;
@@ -207,7 +208,7 @@ function escapeHtml(text: string): string {
 
 async function sendEmail(data: QuoteRequest): Promise<void> {
   const apiKey = import.meta.env.SENDGRID_API_KEY;
-  const toEmail = import.meta.env.QUOTE_TO_EMAIL || "ggoupille@rmi-llc.net";
+  const toEmail = import.meta.env.QUOTE_TO_EMAIL || "fab@rmi-llc.net";
   const fromEmail = import.meta.env.QUOTE_FROM_EMAIL || "no-reply@rmi-llc.net";
 
   if (!apiKey) {
@@ -247,6 +248,11 @@ export const POST: APIRoute = async ({ request }) => {
   const requestId = crypto.randomUUID();
 
   try {
+    const { url: postgresUrl } = getPostgresEnv();
+    if (!postgresUrl) {
+      console.warn(`[${requestId}] Database not configured; skipping save.`);
+    }
+
     // Check rate limit
     const clientIP = getClientIP(request);
     const rateLimitCheck = checkRateLimit(clientIP);
@@ -258,6 +264,7 @@ export const POST: APIRoute = async ({ request }) => {
         JSON.stringify({
           ok: false,
           error: "Too many requests",
+          requestId,
         }),
         {
           status: 429,
@@ -281,6 +288,7 @@ export const POST: APIRoute = async ({ request }) => {
         JSON.stringify({
           ok: false,
           error: "Invalid JSON",
+          requestId,
         }),
         {
           status: 400,
@@ -297,6 +305,7 @@ export const POST: APIRoute = async ({ request }) => {
         JSON.stringify({
           ok: false,
           error: validation.error,
+          requestId,
         }),
         {
           status: 400,
@@ -308,49 +317,62 @@ export const POST: APIRoute = async ({ request }) => {
     const quoteData = data as QuoteRequest;
     const userAgent = request.headers.get("user-agent");
 
-    // Save to database first
+    let saved = false;
+    let emailed = false;
     let quoteId: string | null = null;
+
+    // Save to database (best effort)
+    if (postgresUrl) {
+      try {
+        quoteId = await saveQuote(quoteData, clientIP, userAgent);
+        saved = !!quoteId;
+      } catch (error) {
+        // Log but continue - email is still important
+        console.error(
+          `[${requestId}] Database save failed:`,
+          error instanceof Error ? error.message : "Unknown error"
+        );
+      }
+    }
+
+    // Send email (best effort)
     try {
-      quoteId = await saveQuote(quoteData, clientIP, userAgent);
+      await sendEmail(quoteData);
+      emailed = true;
     } catch (error) {
-      // Log but continue - email is still important
       console.error(
-        `[${requestId}] Database save failed:`,
+        `[${requestId}] Email send failed:`,
         error instanceof Error ? error.message : "Unknown error"
       );
     }
 
-    // Send email
-    try {
-      await sendEmail(quoteData);
+    if (saved || emailed) {
       console.log(
         `[${requestId}] Success${quoteId ? ` (saved: ${quoteId})` : ""}`
       );
       return new Response(
         JSON.stringify({
           ok: true,
+          requestId,
         }),
         {
           status: 200,
           headers: { "Content-Type": "application/json" },
         }
       );
-    } catch (error) {
-      console.error(
-        `[${requestId}] Email send failed:`,
-        error instanceof Error ? error.message : "Unknown error"
-      );
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          error: "Server error",
-        }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
     }
+
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        error: "Server error",
+        requestId,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error(
       `[${requestId}] Unexpected error:`,
@@ -360,6 +382,7 @@ export const POST: APIRoute = async ({ request }) => {
       JSON.stringify({
         ok: false,
         error: "Server error",
+        requestId,
       }),
       {
         status: 500,
