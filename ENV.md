@@ -4,6 +4,25 @@ This document describes the required environment variables for the quote API end
 
 ## Required Variables
 
+### `POSTGRES_URL`
+
+- **Description**: Vercel Postgres connection string used by `@vercel/postgres`
+- **Required**: Yes (provided automatically by Vercel when Postgres is attached)
+- **Example**: `<POSTGRES_CONNECTION_STRING>`
+- **Note**: Vercel also provides `POSTGRES_URL_NON_POOLING`, `POSTGRES_USER`, `POSTGRES_HOST`, and other related variables.
+
+### `DATABASE_URL`
+
+- **Description**: Fallback connection string if `POSTGRES_URL` is not set
+- **Required**: No
+- **Example**: `<POSTGRES_CONNECTION_STRING>`
+
+### `POSTGRES_PRISMA_URL`
+
+- **Description**: Additional fallback for local tooling (e.g. db init script)
+- **Required**: No
+- **Example**: `<POSTGRES_CONNECTION_STRING>`
+
 ### `SENDGRID_API_KEY`
 
 - **Description**: SendGrid API key for sending emails
@@ -17,8 +36,8 @@ This document describes the required environment variables for the quote API end
 ### `QUOTE_TO_EMAIL`
 
 - **Description**: Email address where quote submissions will be sent
-- **Required**: No (defaults to `ggoupille@rmi-llc.net`)
-- **Example**: `ggoupille@rmi-llc.net`
+- **Required**: No (defaults to `fab@rmi-llc.net`)
+- **Example**: `fab@rmi-llc.net`
 
 ### `QUOTE_FROM_EMAIL`
 
@@ -26,6 +45,12 @@ This document describes the required environment variables for the quote API end
 - **Required**: No (defaults to `no-reply@rmi-llc.net`)
 - **Example**: `no-reply@rmi-llc.net` or `quotes@rmi-llc.net`
 - **Note**: This email must be verified in your SendGrid account
+
+### `ADMIN_API_KEY`
+
+- **Description**: Secret key for accessing admin endpoints (e.g. `/api/admin/quotes`, `/api/admin/contacts`)
+- **Required**: No (but required for admin API access)
+- **Example**: `your_long_random_admin_key`
 
 ## Setting Environment Variables in Vercel
 
@@ -40,15 +65,30 @@ This document describes the required environment variables for the quote API end
 
 ## Setting Environment Variables Locally
 
-Create a `.env` file in the project root (this file is already in `.gitignore`):
+Create a `.env.local` file in the project root (this file is already in `.gitignore`):
 
 ```env
 SENDGRID_API_KEY=your_sendgrid_api_key_here
-QUOTE_TO_EMAIL=ggoupille@rmi-llc.net
+QUOTE_TO_EMAIL=fab@rmi-llc.net
 QUOTE_FROM_EMAIL=no-reply@rmi-llc.net
+POSTGRES_URL=<POSTGRES_CONNECTION_STRING>
 ```
 
-**Note**: Never commit `.env` files to version control. The `.gitignore` file already excludes `.env` files.
+**Note**: Never commit `.env.local` files to version control. The `.gitignore` file already excludes `.env.local`.
+
+## Local verification quickstart
+
+Copy `ENV.example` to `.env.local` and fill `POSTGRES_URL` and `ADMIN_API_KEY`.
+Start the dev server with `npm run dev`.
+Run a verification script:
+Windows PowerShell: `scripts/verify-contact-api.ps1`
+POSIX: `bash scripts/verify-contact-api.sh`
+
+### `BASE_URL`
+
+- **Description**: Optional base URL used by verification scripts
+- **Required**: No
+- **Example**: `http://localhost:4321`
 
 ## Verification
 
