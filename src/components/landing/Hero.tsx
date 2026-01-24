@@ -38,23 +38,17 @@ export default function Hero({
 
   return (
     <section
-      className="relative overflow-hidden pt-0 pb-0 bg-neutral-50 dark:bg-neutral-900 min-h-[66.667vh]"
+      className="relative overflow-hidden pt-0 pb-0 bg-neutral-50 dark:bg-neutral-900 min-h-[50vh]"
       aria-labelledby="hero-heading"
     >
-      <div className="container-custom pr-0 lg:pr-8">
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+      <div className="relative z-10 container-custom pr-0 lg:pr-8">
+        <div className="grid min-h-[50vh] lg:grid-cols-3 gap-8 lg:gap-12 items-stretch">
           {/* Left column - Content */}
-          <div className="text-center relative flex flex-col items-center" style={{ paddingTop: 'clamp(1.5rem, 0.3vw + 1.2rem, 3.5rem)' }}>
-            {/* Accent line decoration */}
-            <div
-              className="hidden lg:block absolute -left-8 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 via-primary-500 to-transparent rounded-full"
-              aria-hidden="true"
-            />
-
+          <div className="text-left relative flex flex-col items-start lg:col-span-1 h-full max-w-[26rem] lg:max-w-[24rem]" style={{ paddingTop: 'clamp(2rem, 0.35vw + 1.5rem, 4rem)' }}>
             <h1
               id="hero-heading"
-              className="font-extrabold tracking-tight text-neutral-900 dark:text-white leading-[1.15]"
-              style={{ fontSize: 'clamp(1.875rem, 0.63vw + 1.5rem, 4.5rem)' }}
+              className="font-stencil font-extrabold tracking-tight text-neutral-900 dark:text-white leading-[1.1] drop-shadow-sm"
+              style={{ fontSize: 'clamp(2.75rem, 1.2vw + 2rem, 6rem)' }}
             >
               {headline}
             </h1>
@@ -76,7 +70,7 @@ export default function Hero({
               {/* Primary CTA Button */}
               <a
                 href={ctaPrimary?.href || '#contact'}
-                className="btn-primary h-16 px-6 flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-500 ease-in-out"
+                className="btn-primary h-14 px-5 flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-500 ease-in-out"
                 aria-label={ctaPrimary?.text || 'Request a Quote'}
               >
                 {ctaPrimary?.text || 'Request a Quote'}
@@ -84,22 +78,22 @@ export default function Hero({
               {/* Phone Icon Button */}
               <a
                 href={ctaSecondary?.href || phoneTel}
-                className="flex items-center justify-center w-16 h-16 rounded-full bg-white/95 backdrop-blur-sm border-2 border-white hover:bg-white hover:border-primary-400 shadow-xl hover:shadow-2xl hover:scale-110 hover:-translate-y-1 hover:rotate-6 transition-all duration-500 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900"
+                className="flex items-center justify-center w-14 h-14 rounded-full bg-white/95 backdrop-blur-sm border-2 border-white hover:bg-white hover:border-primary-400 shadow-xl hover:shadow-2xl hover:scale-110 hover:-translate-y-1 hover:rotate-6 transition-all duration-500 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900"
                 aria-label={`Call ${companyName} at ${ctaSecondary?.text || phoneDisplay}`}
               >
                 <Phone
-                  className="w-7 h-7 text-neutral-900 transition-transform duration-500 ease-in-out hover:scale-125"
+                  className="w-6 h-6 text-neutral-900 transition-transform duration-500 ease-in-out hover:scale-125"
                   aria-hidden="true"
                 />
               </a>
               {/* Email Icon Button */}
               <a
                 href={ctaEmail?.href || `mailto:${email}`}
-                className="flex items-center justify-center w-16 h-16 rounded-full bg-white/95 backdrop-blur-sm border-2 border-white hover:bg-white hover:border-primary-400 shadow-xl hover:shadow-2xl hover:scale-110 hover:-translate-y-1 hover:-rotate-6 transition-all duration-500 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900"
+                className="flex items-center justify-center w-14 h-14 rounded-full bg-white/95 backdrop-blur-sm border-2 border-white hover:bg-white hover:border-primary-400 shadow-xl hover:shadow-2xl hover:scale-110 hover:-translate-y-1 hover:-rotate-6 transition-all duration-500 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900"
                 aria-label={`Email ${companyName} at ${email}`}
               >
                 <Mail
-                  className="w-7 h-7 text-neutral-900 transition-transform duration-500 ease-in-out hover:scale-125"
+                  className="w-6 h-6 text-neutral-900 transition-transform duration-500 ease-in-out hover:scale-125"
                   aria-hidden="true"
                 />
               </a>
@@ -107,28 +101,22 @@ export default function Hero({
           </div>
 
           {/* Right column - Image placeholder (spacer for grid) */}
-          <div className="hidden lg:block"></div>
+          <div className="hidden lg:block lg:col-span-2"></div>
         </div>
       </div>
       
-      {/* Image positioned absolutely relative to section, extends to right edge */}
-      <div className="relative lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:w-[50vw]">
+      <div className="absolute inset-y-0 left-0 w-full lg:w-1/2 bg-neutral-50 dark:bg-neutral-900 z-0" aria-hidden="true"></div>
+
+      {/* Hero image across entire section with subtle fade */}
+      <div className="absolute inset-y-0 right-0 w-2/3 z-[1]">
         <img
           src={heroImage}
           alt="Mechanical insulation work"
-          className="w-full h-full rounded-tl-none rounded-bl-none rounded-tr-none rounded-br-none shadow-2xl object-cover opacity-95"
-          style={{ filter: 'grayscale(5%) contrast(1.02)' }}
+          className="w-full h-full rounded-none shadow-2xl object-cover object-[right_top] opacity-90"
           loading="eager"
           width="1920"
           height="1080"
         />
-        {/* White overlay for two-tone effect */}
-        <div
-          className="pointer-events-none absolute inset-0 bg-gradient-to-bl from-white/10 via-white/0 to-transparent dark:from-black/35 dark:via-black/10 dark:to-transparent rounded-tl-none rounded-bl-none rounded-tr-none rounded-br-none"
-          aria-hidden="true"
-        ></div>
-        {/* Gradient overlay to blend image with content */}
-        <GradientBlendOverlay direction="left" />
       </div>
     </section>
   );
