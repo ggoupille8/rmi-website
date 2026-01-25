@@ -26,5 +26,22 @@ export default defineConfig({
       applyBaseStyles: false,
     }),
     sitemap(),
+    {
+      name: "db-env-log",
+      hooks: {
+        "astro:config:setup": ({ command, logger }) => {
+          if (command !== "dev") return;
+          const source = process.env.POSTGRES_URL
+            ? "POSTGRES_URL"
+            : process.env.DATABASE_URL
+            ? "DATABASE_URL"
+            : null;
+          const configured = source ? "yes" : "no";
+          const key = source ?? "none";
+          const message = `Postgres configured: ${configured} (${key})`;
+          logger.info(message);
+        },
+      },
+    },
   ],
 });
