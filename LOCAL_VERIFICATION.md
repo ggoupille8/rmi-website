@@ -34,6 +34,16 @@ npm install
 
 Expected: All dependencies from `package.json` installed without errors.
 
+## Port Cleanup (Dev)
+
+If dev ports are already in use, free them before starting Astro:
+
+```powershell
+npm run ports:free
+```
+
+Expected: `PASS` output and dev server starts on `http://localhost:4321/` by default.
+
 ## Build
 
 ```powershell

@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "dev:all": "astro dev",
+    "dev:all": "npm run ports:free && astro dev",
     "start": "astro dev",
     "build": "astro build",
     "postbuild": "node scripts/fix-runtime.js",
@@ -15,6 +15,7 @@
     "astro": "astro",
     "check-secrets": "node scripts/check-secrets.js",
     "db:init": "node scripts/db-init.mjs",
+    "ports:free": "powershell -ExecutionPolicy Bypass -File scripts/ports-free.ps1",
     "smoke": "powershell -ExecutionPolicy Bypass -File scripts/smoke.ps1",
     "shots": "tsx scripts/screenshots.ts",
     "test:runtime": "node scripts/test-runtime-config.js",
