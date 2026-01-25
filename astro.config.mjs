@@ -13,6 +13,9 @@ const site = process.env.VERCEL_URL
 
 export default defineConfig({
   site,
+  devToolbar: {
+    enabled: false,
+  },
   output: "hybrid",
   adapter: vercel({
     runtime: "nodejs20.x",

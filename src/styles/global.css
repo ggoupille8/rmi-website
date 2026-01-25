@@ -1,3 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Allerta+Stencil&display=swap');
+
+@keyframes service-ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -196,6 +207,19 @@
   }
   .container-wide {
     @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8;
+  }
+  .font-stencil {
+    font-family: 'Allerta Stencil', 'Arial Black', 'Impact', sans-serif;
+    letter-spacing: 0.02em;
+  }
+  .service-ticker {
+    @apply relative w-full;
+  }
+  .service-ticker__track {
+    display: inline-flex;
+    width: max-content;
+    animation: service-ticker-scroll 36s linear infinite;
+    will-change: transform;
   }
   /* Spacing System - Consistent vertical rhythm - Tightened */
   .section-padding {
@@ -409,6 +433,13 @@
       padding-left: 0.875rem;
       padding-right: 0.875rem;
     }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .service-ticker__track {
+    animation-duration: 60s !important;
+    animation-iteration-count: infinite !important;
   }
 }
 @layer utilities {

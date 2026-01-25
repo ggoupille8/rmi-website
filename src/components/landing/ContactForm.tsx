@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { flushSync } from "react-dom";
 
 interface ContactFormProps {
   title?: string;
@@ -18,8 +19,9 @@ export default function ContactForm({
     phone: "",
     projectType: preselectedProjectType || "",
     message: "",
-    honeypot: "", // Spam protection field
+    website: "", // Honeypot field (should stay empty)
   });
+  const mountedAtRef = useRef(Date.now());
 
   // Update projectType when preselectedProjectType prop changes or URL param is present
   useEffect(() => {
@@ -138,7 +140,11 @@ export default function ContactForm({
       return;
     }
     
-    setIsSubmitting(true);
+    flushSync(() => {
+      setIsSubmitting(true);
+    });
+    // Yield a microtask so submitting state is observable in the DOM.
+    await Promise.resolve();
     setSubmitStatus("idle");
     setFieldErrors({});
 
@@ -191,8 +197,13 @@ export default function ContactForm({
       }
     }
 
+    // Normalize project type so submissions always include a value
+    const resolvedProjectType = formData.projectType.trim() || "other";
+    if (!formData.projectType.trim()) {
+      setFormData((prev) => ({ ...prev, projectType: "other" }));
+    }
     // Validate that projectType is provided
-    const projectTypeError = !formData.projectType.trim();
+    const projectTypeError = !resolvedProjectType;
     if (projectTypeError) {
       setFieldErrors((prev) => ({
         ...prev,
@@ -226,8 +237,11 @@ export default function ContactForm({
       return;
     }
 
+    const elapsedMs = Date.now() - mountedAtRef.current;
+    const fastSubmit = elapsedMs < 800;
+
     try {
-      const response = await fetch("/api/quote", {
+      const response = await fetch("/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -238,34 +252,31 @@ export default function ContactForm({
           email: formData.email.trim() || undefined,
           phone: formData.phone.trim() || undefined,
           message: formData.message.trim(),
-          serviceType: formData.projectType.trim(),
-          honeypot: formData.honeypot, // Should be empty
+          serviceType: resolvedProjectType,
+          website: formData.website, // Should be empty
           timestamp: Date.now(), // Client timestamp at submission time
+          metadata: {
+            elapsedMs,
+            fastSubmit,
+          },
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`Contact submit failed: ${response.status}`);
       }
 
-      const result = await response.json();
-
-      if (result.ok) {
-        setSubmitStatus("success");
-        setFieldErrors({});
-        setFormData({
-          name: "",
-          company: "",
-          email: "",
-          phone: "",
-          projectType: "",
-          message: "",
-          honeypot: "",
-        });
-      } else {
-        // Only show generic error for actual server errors
-        setSubmitStatus("error");
-      }
+      setSubmitStatus("success");
+      setFieldErrors({});
+      setFormData({
+        name: "",
+        company: "",
+        email: "",
+        phone: "",
+        projectType: "",
+        message: "",
+        website: "",
+      });
     } catch (error) {
       console.error("Form submission error:", error);
       // Only show generic error for network/server errors
@@ -275,23 +286,44 @@ export default function ContactForm({
     }
   };
 
+  const emailErrorMessage = fieldErrors.email
+    ? formData.email.trim()
+      ? "Please enter a valid email address."
+      : isValidPhone(formData.phone)
+        ? ""
+        : "Email or phone is required."
+    : "";
+
+  const phoneErrorMessage = fieldErrors.phone
+    ? formData.phone.trim()
+      ? "Please enter a valid phone number (10 digits)."
+      : isValidEmail(formData.email)
+        ? ""
+        : "Email or phone is required."
+    : "";
+
   return (
     <section
-      className="pt-2 sm:pt-3 pb-2 sm:pb-3 bg-white dark:bg-neutral-900"
+      className="bg-white dark:bg-neutral-900"
       aria-labelledby="contact-heading"
     >
-      <div className="container-custom">
+      <div className="container-custom py-2 sm:py-3">
         <div className="mx-auto max-w-3xl">
           <div className="text-center">
             <h2 id="contact-heading" className="heading-2 text-neutral-900 dark:text-neutral-50">
               {title}
             </h2>
-            <p className="mt-2 text-body text-neutral-900 dark:text-neutral-200">{subtitle}</p>
+            <p className="mt-1 text-body text-neutral-900 dark:text-neutral-200">{subtitle}</p>
           </div>
         </div>
-        <div className="mx-auto mt-4 sm:mt-6 max-w-3xl">
-          <div className="card-elevated dark:bg-neutral-800 dark:border-neutral-700">
-            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4" noValidate>
+        <div className="mx-auto mt-2 sm:mt-3 max-w-3xl">
+          <div className="card-elevated p-4 sm:p-5 dark:bg-neutral-800 dark:border-neutral-700">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-3 sm:space-y-4"
+              noValidate
+              aria-busy={isSubmitting ? "true" : "false"}
+            >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 -mt-3 sm:-mt-4">
               <div>
                 <label
@@ -317,13 +349,11 @@ export default function ContactForm({
                   aria-invalid={fieldErrors.name ? "true" : "false"}
                   aria-describedby={fieldErrors.name ? "name-error" : undefined}
                 />
-                <div className="min-h-[1.25rem] mt-1">
-                  {fieldErrors.name && (
-                    <div id="name-error" className="text-xs text-error-dark dark:text-error-light" role="alert">
-                      Name or company is required.
-                    </div>
-                  )}
-                </div>
+                {fieldErrors.name && (
+                  <div id="name-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                    Name or company is required.
+                  </div>
+                )}
               </div>
 
               <div>
@@ -348,13 +378,11 @@ export default function ContactForm({
                   aria-invalid={fieldErrors.company ? "true" : "false"}
                   aria-describedby={fieldErrors.company ? "company-error" : undefined}
                 />
-                <div className="min-h-[1.25rem] mt-1">
-                  {fieldErrors.company && (
-                    <div id="company-error" className="text-xs text-error-dark dark:text-error-light" role="alert">
-                      Name or company is required.
-                    </div>
-                  )}
-                </div>
+                {fieldErrors.company && (
+                  <div id="company-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                    Name or company is required.
+                  </div>
+                )}
               </div>
               </div>
 
@@ -371,8 +399,10 @@ export default function ContactForm({
                   type="email"
                   id="email"
                   name="email"
+                  required
                   value={formData.email}
                   onChange={handleChange}
+                  aria-required="true"
                   className={`block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-800 text-sm px-3 py-2.5 border bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 leading-relaxed min-w-0 ${
                     fieldErrors.email
                       ? "border-error focus-visible:border-error focus-visible:ring-error"
@@ -381,20 +411,14 @@ export default function ContactForm({
                   aria-invalid={fieldErrors.email ? "true" : "false"}
                   aria-describedby={fieldErrors.email ? "email-hint email-error" : "email-hint"}
                 />
-                <div className="min-h-[2rem] mt-1">
-                  <p id="email-hint" className="sr-only">
-                    Email or phone required
-                  </p>
-                  {fieldErrors.email && (
-                    <div id="email-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert">
-                      {formData.email.trim() 
-                        ? "Please enter a valid email address." 
-                        : isValidPhone(formData.phone)
-                          ? "" 
-                          : "Email or phone is required."}
-                    </div>
-                  )}
-                </div>
+                <p id="email-hint" className="sr-only">
+                  Email or phone required
+                </p>
+                {emailErrorMessage && (
+                  <div id="email-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                    {emailErrorMessage}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -419,17 +443,11 @@ export default function ContactForm({
                   aria-invalid={fieldErrors.phone ? "true" : "false"}
                   aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
                 />
-                <div className="min-h-[1.25rem] mt-1">
-                  {fieldErrors.phone && (
-                    <div id="phone-error" className="text-xs text-error-dark dark:text-error-light" role="alert">
-                      {formData.phone.trim() 
-                        ? "Please enter a valid phone number (10 digits)." 
-                        : isValidEmail(formData.email)
-                          ? "" 
-                          : "Email or phone is required."}
-                    </div>
-                  )}
-                </div>
+                {phoneErrorMessage && (
+                  <div id="phone-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                    {phoneErrorMessage}
+                  </div>
+                )}
               </div>
               </div>
 
@@ -462,13 +480,11 @@ export default function ContactForm({
                 <option value="pipe-supports">Pipe Supports Pricing</option>
                 <option value="other">Other</option>
               </select>
-              <div className="min-h-[1.25rem] mt-1">
-                {fieldErrors.projectType && (
-                  <div id="projectType-error" className="text-xs text-error-dark dark:text-error-light" role="alert">
-                    Project type is required.
-                  </div>
-                )}
-              </div>
+              {fieldErrors.projectType && (
+                <div id="projectType-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                  Project type is required.
+                </div>
+              )}
               </div>
 
               <div>
@@ -482,12 +498,12 @@ export default function ContactForm({
                 ref={messageRef}
                 id="message"
                 name="message"
-                rows={5}
+                rows={3}
                 required
                 value={formData.message}
                 onChange={handleChange}
                 placeholder="Please describe your project, timeline, and any specific requirements..."
-                className={`block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-800 text-sm px-3 py-2.5 border bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 leading-relaxed min-w-0 resize-y min-h-[6rem] ${
+                className={`block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-800 text-sm px-3 py-2.5 border bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 leading-relaxed min-w-0 resize-y min-h-[4rem] ${
                   fieldErrors.message
                     ? "border-error focus-visible:border-error focus-visible:ring-error"
                     : "border-neutral-300 dark:border-neutral-600 focus-visible:border-primary-500"
@@ -496,13 +512,11 @@ export default function ContactForm({
                 aria-invalid={fieldErrors.message ? "true" : "false"}
                 aria-describedby={fieldErrors.message ? "message-error" : undefined}
               />
-              <div className="min-h-[1.25rem] mt-1">
-                {fieldErrors.message && (
-                  <div id="message-error" className="text-xs text-error-dark dark:text-error-light" role="alert">
-                    Project details are required.
-                  </div>
-                )}
-              </div>
+              {fieldErrors.message && (
+                <div id="message-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                  Project details are required.
+                </div>
+              )}
               </div>
 
               {submitStatus === "success" && (
@@ -518,25 +532,27 @@ export default function ContactForm({
 
 
               {/* Honeypot field - hidden from users */}
-              <div style={{ display: "none" }} aria-hidden="true">
-              <label htmlFor="website">Website</label>
-              <input
-                type="text"
-                id="website"
-                name="honeypot"
-                tabIndex={-1}
-                autoComplete="off"
-                value={formData.honeypot}
-                onChange={handleChange}
-              />
+              <div
+                className="absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0 pointer-events-none"
+                aria-hidden="true"
+              >
+                <label htmlFor="website">Website</label>
+                <input
+                  type="text"
+                  id="website"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={formData.website}
+                  onChange={handleChange}
+                />
               </div>
 
               <div className="pt-1 flex justify-center">
                 <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-primary px-8 py-4 text-xl font-bold"
-                aria-busy={isSubmitting}
+                  className="btn-primary px-12 py-3.5 text-xl font-bold"
               >
                   {isSubmitting ? "Sending..." : "Send Message"}
                 </button>

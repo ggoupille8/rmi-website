@@ -20,7 +20,6 @@ import {
   type LucideProps,
 } from "lucide-react";
 import type { ComponentType } from "react";
-import GradientBlendOverlay from "./GradientBlendOverlay";
 
 interface Service {
   title: string;
@@ -208,91 +207,105 @@ export default function Services({
   subtitle = "From new installs to renovations: piping, ductwork, equipment, and specialty applications for commercial and industrial environments.",
   services = defaultServices,
 }: ServicesProps) {
+  // DOM PARITY: This component renders identical DOM structure at all breakpoints (375px, 430px, 768px, 1024px, 1440px)
+  // - All elements (H2, subtitle, service list, image, borders) always present
+  // - No conditional rendering based on screen size
+  // - Layout changes handled via CSS only (Grid + clamp())
+  // - Visual order swap handled via CSS Grid column positioning (.services-grid utility)
+  // - Verify DOM parity: Run scripts/verify-dom-parity.js in browser console
+  const normalizedServices = services.reduce<Service[]>((acc, service, index) => {
+    if (!service || !service.title) {
+      console.error(`Service at index ${index} is missing required title`);
+      return acc;
+    }
+    acc.push(service);
+    return acc;
+  }, []);
+  const columns = 3;
+  const columnedServices = Array.from({ length: columns }, (_, columnIndex) =>
+    normalizedServices.filter((_, index) => index % columns === columnIndex)
+  );
+
   return (
     <section
-      className="relative overflow-hidden pt-0 pb-4 sm:pb-6 lg:pb-8 bg-white dark:bg-neutral-900"
+      className="relative overflow-hidden pt-0 bg-neutral-50 dark:bg-neutral-900 min-h-[50vh]"
+      style={{ paddingBottom: 'clamp(0.5rem, 0.15vw + 0.4rem, 1rem)' }}
       aria-labelledby="services-heading"
     >
-      {/* Top border - extends almost all the way across screen */}
-      <div className="absolute top-0 left-[2.5%] right-[2.5%] h-0.5 overflow-hidden z-50">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-400 to-transparent opacity-50"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-600 to-transparent"></div>
-      </div>
-      
-      <div className="container-custom pl-0 lg:pl-8">
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 lg:items-stretch">
-          {/* Left column - Image (50% of screen, tight to border lines, extends to left edge) */}
-          <div className="relative order-2 lg:order-1 -ml-4 sm:-ml-6 lg:-ml-16 xl:-ml-24 2xl:-ml-32 w-[50vw] -mt-4 sm:-mt-6 lg:-mt-8 -mb-4 sm:-mb-6 lg:-mb-8">
+      <div className="relative z-10 container-custom w-full max-w-none px-0 sm:px-0 lg:px-0">
+        <div className="services-grid grid w-full min-h-[50vh] lg:grid-cols-3 lg:items-stretch" style={{ gap: 'clamp(1.5rem, 0.25vw + 1.25rem, 2rem)' }}>
+          {/* Content column - appears first on mobile, second on desktop */}
+          <div className="text-left relative min-w-0 px-4 sm:px-6 lg:pl-8 lg:pr-0 lg:col-span-1 lg:col-start-3 lg:row-start-1 h-full flex flex-col">
+            <h2
+              id="services-heading"
+              className="font-bold tracking-tight text-neutral-900 dark:text-white text-left"
+              style={{ 
+                fontSize: 'clamp(2.25rem, 0.8vw + 1.75rem, 5rem)',
+                lineHeight: '1.25'
+              }}
+            >
+              {title}
+            </h2>
+            <p 
+              className="text-neutral-800 dark:text-neutral-100 text-left"
+              style={{ 
+                marginTop: 'clamp(0.5rem, 0.1vw + 0.4rem, 0.75rem)',
+                fontSize: 'clamp(1rem, 0.2vw + 0.8rem, 1.25rem)',
+                lineHeight: '1.75'
+              }}
+            >
+              {subtitle}
+            </p>
+
+            <div
+              className="min-w-0"
+              style={{ marginTop: 'clamp(1rem, 0.2vw + 0.8rem, 1.5rem)' }}
+              aria-label="Services list"
+            >
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {columnedServices.map((column, columnIndex) => (
+                  <ul
+                    key={`services-column-${columnIndex}`}
+                    className="space-y-3"
+                  >
+                    {column.map((service) => {
+                      const IconComponent = getServiceIcon(service.title);
+                      return (
+                        <li key={service.title} className="flex items-start gap-3">
+                          <IconComponent
+                            className="h-5 w-5 text-primary-600 dark:text-primary-400 flex-shrink-0"
+                            aria-hidden="true"
+                            style={{ strokeWidth: 2.5 }}
+                          />
+                          <span className="text-sm sm:text-base font-medium leading-tight text-neutral-900 dark:text-neutral-100">
+                            {service.title}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ))}
+              </div>
+              <ul className="sr-only">
+                {normalizedServices.map((service, index) => (
+                  <li key={`service-${index}`}>{service.title}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Services image column - left on desktop, below on mobile */}
+          <div className="relative w-full h-48 sm:h-64 lg:h-full lg:min-h-[50vh] lg:col-span-2 lg:col-start-1 lg:row-start-1">
             <img
-              src="/images/hero/hero-1.jpg"
-              alt="Mechanical insulation services"
-              className="w-full h-full rounded-lg lg:rounded-l-none shadow-2xl object-cover opacity-95"
-              style={{ filter: 'grayscale(5%) contrast(1.02)' }}
+              src="/images/services/services-image.jpg"
+              alt="Mechanical insulation work"
+              className="w-full h-full rounded-none shadow-2xl object-cover object-[left_top] opacity-90"
               loading="lazy"
               width="1920"
               height="1080"
             />
-            {/* White overlay for two-tone effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/15 via-white/5 to-transparent dark:from-neutral-900/15 dark:via-neutral-900/5 rounded-lg lg:rounded-l-none pointer-events-none mix-blend-soft-light" aria-hidden="true"></div>
-            {/* Gradient overlay to blend image with content */}
-            <GradientBlendOverlay direction="right" />
-          </div>
-
-          {/* Right column - Content */}
-          <div className="text-left relative order-1 lg:order-2 lg:ml-4 xl:ml-6">
-            {/* Accent line decoration */}
-            <div
-              className="hidden lg:block absolute -right-8 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 via-primary-500 to-transparent rounded-full"
-              aria-hidden="true"
-            />
-            <h2
-              id="services-heading"
-              className="heading-2 text-neutral-900 dark:text-white text-left"
-            >
-              {title}
-            </h2>
-            <p className="mt-2 text-body text-neutral-800 dark:text-neutral-100 text-left">
-              {subtitle}
-            </p>
-
-            <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-              {services.map((service, index) => {
-                // Runtime assertion to prevent undefined crashes
-                if (!service || !service.title) {
-                  console.error(
-                    `Service at index ${index} is missing required title`
-                  );
-                  return null;
-                }
-                const IconComponent = getServiceIcon(service.title);
-                // Right column items (odd indices in 2-column grid)
-                const isRightColumn = index % 2 === 1;
-                return (
-                  <li key={index} className={`group ${isRightColumn ? 'sm:ml-8 lg:ml-12' : ''}`}>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-shrink-0">
-                        <IconComponent
-                          className="h-6 w-6 sm:h-7 sm:w-7 text-primary-600 dark:text-primary-400"
-                          aria-hidden="true"
-                          style={{ strokeWidth: 2.5 }}
-                        />
-                      </div>
-                      <span className="text-sm sm:text-base font-medium leading-tight text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
-                        {service.title}
-                      </span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
           </div>
         </div>
-      </div>
-      
-      {/* Bottom border - extends almost all the way across screen */}
-      <div className="absolute bottom-0 left-[2.5%] right-[2.5%] h-0.5 overflow-hidden z-50">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-400 to-transparent opacity-50"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-600 to-transparent"></div>
       </div>
     </section>
   );
