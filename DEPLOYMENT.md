@@ -23,7 +23,7 @@ Configure the following environment variables in Vercel Dashboard â†’ Settings â
 #### Required
 
 - `SENDGRID_API_KEY` - Your SendGrid API key for sending quote request emails
-- `QUOTE_TO_EMAIL` - Email address to receive quote submissions (defaults to `ggoupille@rmi-llc.net`)
+- `QUOTE_TO_EMAIL` - Email address to receive quote submissions (defaults to `fab@rmi-llc.net`)
 - `QUOTE_FROM_EMAIL` - Email address to send from (defaults to `no-reply@rmi-llc.net`)
 
 #### Optional (for admin access)
@@ -84,6 +84,10 @@ These are automatically injected at runtime. The `@vercel/postgres` package uses
 
 ## Database Schema
 
+The `schema.sql` file creates both `quotes` and `contacts` tables.
+
+### Quotes
+
 The `quotes` table stores all quote submissions with the following structure:
 
 - `id` (UUID) - Primary key, auto-generated
@@ -96,6 +100,18 @@ The `quotes` table stores all quote submissions with the following structure:
 - `message` (TEXT) - Project details message
 - `metadata` (JSONB) - Additional metadata (IP address, user agent, etc.)
 
+### Contacts
+
+The `contacts` table stores contact form submissions with the following structure:
+
+- `id` (UUID) - Primary key, auto-generated
+- `created_at` (TIMESTAMP) - Submission timestamp
+- `name` (VARCHAR) - Contact name
+- `email` (VARCHAR) - Email address
+- `message` (TEXT) - Message content
+- `source` (VARCHAR) - Submission source (default: `contact`)
+- `metadata` (JSONB) - Additional metadata (IP address, user agent, etc.)
+
 ## Admin API
 
 A simple admin API endpoint is available for reading quote submissions. **No UI is provided** - use API clients like `curl`, Postman, or similar tools.
@@ -104,6 +120,10 @@ A simple admin API endpoint is available for reading quote submissions. **No UI 
 
 ```
 GET /api/admin/quotes
+```
+
+```
+GET /api/admin/contacts
 ```
 
 ### Authentication
@@ -131,6 +151,7 @@ Set `ADMIN_API_KEY` environment variable in Vercel to enable access.
 - `limit` (optional) - Number of results to return (default: 50, max: 100)
 - `offset` (optional) - Pagination offset (default: 0)
 - `serviceType` (optional) - Filter by service type
+- `source` (optional, contacts only) - Filter by source (default: `contact`)
 
 ### Example Requests
 
@@ -146,6 +167,14 @@ curl -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
 # Filter by service type
 curl -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
   "https://your-domain.vercel.app/api/admin/quotes?serviceType=installation"
+
+# Get first 50 contacts
+curl -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
+  https://your-domain.vercel.app/api/admin/contacts
+
+# Filter contacts by source
+curl -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
+  "https://your-domain.vercel.app/api/admin/contacts?source=contact"
 ```
 
 ### Response Format

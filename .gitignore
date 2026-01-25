@@ -33,3 +33,12 @@ pnpm-debug.log*
 dist/
 node_modules/
 
+.env*.local
+.vercel
+
+# Cursor local metadata (keep only what you intentionally commit)
+.playwright-mcp/
+.cursor/skills/
+
+# Generated artifacts
+artifacts/screenshots/
