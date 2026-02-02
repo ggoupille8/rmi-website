@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/landing/Hero';
+import StatsBar from '../components/landing/StatsBar';
 import Services from '../components/landing/Services';
+import MaterialsMarquee from '../components/landing/MaterialsMarquee';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
 import FloatingMobileCTA from '../components/landing/FloatingMobileCTA';
@@ -9,8 +11,8 @@ import { phoneTel, phoneDisplay, email } from '../config/site';
 import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary } from '../content/site';
 ---
 
-<BaseLayout 
-  title="Resource Mechanical Insulation - Expert Insulation Services | Romulus, MI" 
+<BaseLayout
+  title="Resource Mechanical Insulation - Expert Insulation Services | Romulus, MI"
   description="Professional mechanical insulation contractor serving Michigan and surrounding areas. Mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Based in Romulus, MI."
   canonical="https://resourcemechanicalinsulation.com/"
 >
@@ -23,9 +25,11 @@ import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary } from 
       ctaEmail={{ href: `mailto:${email}` }}
       images={['/images/hero/hero-1.jpg']}
     />
+    <StatsBar />
     <div id="services">
       <Services />
     </div>
+    <MaterialsMarquee />
     <div id="contact">
       <ContactForm client:load />
     </div>
@@ -33,4 +37,3 @@ import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary } from 
     <FloatingMobileCTA client:load />
   </div>
 </BaseLayout>
-

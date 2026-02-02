@@ -1,13 +1,14 @@
 import { test, expect } from "@playwright/test";
+import { EXPECTED } from "./fixtures";
 
-// Expected content from single source of truth
-const EXPECTED_COMPANY_NAME = "Resource Mechanical Insulation";
-const EXPECTED_COMPANY_NAME_FULL = "Resource Mechanical Insulation, LLC";
-const EXPECTED_EMAIL = "ggoupille@rmi-llc.net";
-const EXPECTED_PHONE = "419-705-6153";
-const EXPECTED_PHONE_E164 = "+14197056153";
-const EXPECTED_ADDRESS = "11677 Wayne Road, Suite 112, Romulus, MI 48174";
-const EXPECTED_SERVICE_AREA = "Michigan and surrounding areas";
+// Alias for backward compatibility with existing tests
+const EXPECTED_COMPANY_NAME = EXPECTED.companyName;
+const EXPECTED_COMPANY_NAME_FULL = EXPECTED.companyNameFull;
+const EXPECTED_EMAIL = EXPECTED.email;
+const EXPECTED_PHONE = EXPECTED.phone;
+const EXPECTED_PHONE_E164 = EXPECTED.phoneE164;
+const EXPECTED_ADDRESS = EXPECTED.address.full;
+const EXPECTED_SERVICE_AREA = EXPECTED.serviceArea;
 
 test.describe("Content Validation Tests", () => {
   test.beforeEach(async ({ page }) => {
