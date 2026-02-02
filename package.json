@@ -19,8 +19,14 @@
     "smoke": "powershell -ExecutionPolicy Bypass -File scripts/smoke.ps1",
     "shots": "tsx scripts/screenshots.ts",
     "test:runtime": "node scripts/test-runtime-config.js",
-    "test:visual": "playwright test",
-    "test:visual:update": "playwright test --update-snapshots"
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:unit:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test --project=chromium",
+    "test:e2e:all": "playwright test",
+    "test:visual": "playwright test tests/visual/",
+    "test:visual:update": "playwright test tests/visual/ --update-snapshots",
+    "test": "npm run test:unit && npm run test:e2e"
   },
   "dependencies": {
     "@astrojs/react": "^3.3.1",
@@ -38,9 +44,11 @@
     "@playwright/test": "^1.57.0",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
+    "@vitest/coverage-v8": "^4.0.18",
     "playwright": "^1.57.0",
     "tailwindcss": "^3.3.6",
     "tsx": "^4.21.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^4.0.18"
   }
 }

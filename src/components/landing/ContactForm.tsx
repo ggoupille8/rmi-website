@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { flushSync } from "react-dom";
+import { Phone, Mail, MapPin } from "lucide-react";
+import { phoneTel, phoneDisplay, email } from "../../config/site";
+import { companyNameFull, address } from "../../content/site";
 
 interface ContactFormProps {
   title?: string;
@@ -304,33 +307,68 @@ export default function ContactForm({
 
   return (
     <section
-      className="bg-white dark:bg-neutral-900"
+      className="relative bg-neutral-900 py-16 sm:py-20 lg:py-24 overflow-hidden"
       aria-labelledby="contact-heading"
     >
-      <div className="container-custom py-2 sm:py-3">
-        <div className="mx-auto max-w-3xl">
-          <div className="text-center">
-            <h2 id="contact-heading" className="heading-2 text-neutral-900 dark:text-neutral-50">
+      <div className="relative container-custom">
+        <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-start">
+          {/* Left side - Contact info */}
+          <div className="lg:col-span-2">
+            <h2
+              id="contact-heading"
+              className="font-bold text-white"
+              style={{
+                fontSize: 'clamp(1.75rem, 3vw + 0.5rem, 2.5rem)',
+                lineHeight: '1.2'
+              }}
+            >
               {title}
             </h2>
-            <p className="mt-1 text-body text-neutral-900 dark:text-neutral-200">{subtitle}</p>
+            <p className="mt-3 text-neutral-400" style={{ fontSize: 'clamp(0.95rem, 1vw + 0.5rem, 1.05rem)' }}>
+              {subtitle}
+            </p>
+
+            {/* Contact details */}
+            <div className="mt-6 space-y-3">
+              <a
+                href={phoneTel}
+                className="flex items-center gap-3 text-white hover:text-primary-300 transition-colors"
+              >
+                <Phone className="w-4 h-4 text-primary-400" />
+                <span className="text-sm font-medium">{phoneDisplay}</span>
+              </a>
+
+              <a
+                href={`mailto:${email}`}
+                className="flex items-center gap-3 text-white hover:text-primary-300 transition-colors"
+              >
+                <Mail className="w-4 h-4 text-primary-400" />
+                <span className="text-sm font-medium">{email}</span>
+              </a>
+
+              <div className="flex items-center gap-3 text-neutral-200">
+                <MapPin className="w-4 h-4 text-primary-400 flex-shrink-0" />
+                <span className="text-sm">{address.full}</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="mx-auto mt-2 sm:mt-3 max-w-3xl">
-          <div className="card-elevated p-4 sm:p-5 dark:bg-neutral-800 dark:border-neutral-700">
+
+          {/* Right side - Form */}
+          <div className="lg:col-span-3">
+            <div className="rounded-xl bg-neutral-800/40 border border-neutral-700/40 p-5 sm:p-6">
             <form
               onSubmit={handleSubmit}
               className="space-y-3 sm:space-y-4"
               noValidate
               aria-busy={isSubmitting ? "true" : "false"}
             >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 -mt-3 sm:-mt-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4">
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed mb-1.5"
+                  className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
                 >
-                  Name <span className="text-error">*</span>
+                  Name <span className="text-red-400">*</span>
                 </label>
                 <input
                   ref={nameInputRef}
@@ -340,17 +378,17 @@ export default function ContactForm({
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className={`block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-800 text-sm px-3 py-2.5 border bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 leading-relaxed min-w-0 ${
+                  className={`block w-full rounded-lg shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800 text-sm px-4 py-3 border bg-neutral-900/50 text-neutral-100 leading-relaxed min-w-0 placeholder-neutral-500 ${
                     fieldErrors.name
-                      ? "border-error focus-visible:border-error focus-visible:ring-error"
-                      : "border-neutral-300 dark:border-neutral-600 focus-visible:border-primary-400"
+                      ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500"
+                      : "border-neutral-600 focus-visible:border-primary-400"
                   }`}
                   aria-required="true"
                   aria-invalid={fieldErrors.name ? "true" : "false"}
                   aria-describedby={fieldErrors.name ? "name-error" : undefined}
                 />
                 {fieldErrors.name && (
-                  <div id="name-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                  <div id="name-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
                     Name or company is required.
                   </div>
                 )}
@@ -359,7 +397,7 @@ export default function ContactForm({
               <div>
                 <label
                   htmlFor="company"
-                  className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed mb-1.5"
+                  className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
                 >
                   Company
                 </label>
@@ -370,16 +408,16 @@ export default function ContactForm({
                   name="company"
                   value={formData.company}
                   onChange={handleChange}
-                  className={`block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-800 text-sm px-3 py-2.5 border bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 leading-relaxed min-w-0 ${
+                  className={`block w-full rounded-lg shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800 text-sm px-4 py-3 border bg-neutral-900/50 text-neutral-100 leading-relaxed min-w-0 placeholder-neutral-500 ${
                     fieldErrors.company
-                      ? "border-error focus-visible:border-error focus-visible:ring-error"
-                      : "border-neutral-300 dark:border-neutral-600 focus-visible:border-primary-400"
+                      ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500"
+                      : "border-neutral-600 focus-visible:border-primary-400"
                   }`}
                   aria-invalid={fieldErrors.company ? "true" : "false"}
                   aria-describedby={fieldErrors.company ? "company-error" : undefined}
                 />
                 {fieldErrors.company && (
-                  <div id="company-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                  <div id="company-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
                     Name or company is required.
                   </div>
                 )}
@@ -390,7 +428,7 @@ export default function ContactForm({
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed mb-1.5"
+                  className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
                 >
                   Email
                 </label>
@@ -403,10 +441,10 @@ export default function ContactForm({
                   value={formData.email}
                   onChange={handleChange}
                   aria-required="true"
-                  className={`block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-800 text-sm px-3 py-2.5 border bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 leading-relaxed min-w-0 ${
+                  className={`block w-full rounded-lg shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800 text-sm px-4 py-3 border bg-neutral-900/50 text-neutral-100 leading-relaxed min-w-0 placeholder-neutral-500 ${
                     fieldErrors.email
-                      ? "border-error focus-visible:border-error focus-visible:ring-error"
-                      : "border-neutral-300 dark:border-neutral-600 focus-visible:border-primary-400"
+                      ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500"
+                      : "border-neutral-600 focus-visible:border-primary-400"
                   }`}
                   aria-invalid={fieldErrors.email ? "true" : "false"}
                   aria-describedby={fieldErrors.email ? "email-hint email-error" : "email-hint"}
@@ -415,7 +453,7 @@ export default function ContactForm({
                   Email or phone required
                 </p>
                 {emailErrorMessage && (
-                  <div id="email-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                  <div id="email-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
                     {emailErrorMessage}
                   </div>
                 )}
@@ -424,7 +462,7 @@ export default function ContactForm({
               <div>
                 <label
                   htmlFor="phone"
-                  className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed mb-1.5"
+                  className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
                 >
                   Phone
                 </label>
@@ -435,16 +473,16 @@ export default function ContactForm({
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={`block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-800 text-sm px-3 py-2.5 border bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 leading-relaxed min-w-0 ${
+                  className={`block w-full rounded-lg shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800 text-sm px-4 py-3 border bg-neutral-900/50 text-neutral-100 leading-relaxed min-w-0 placeholder-neutral-500 ${
                     fieldErrors.phone
-                      ? "border-error focus-visible:border-error focus-visible:ring-error"
-                      : "border-neutral-300 dark:border-neutral-600 focus-visible:border-primary-400"
+                      ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500"
+                      : "border-neutral-600 focus-visible:border-primary-400"
                   }`}
                   aria-invalid={fieldErrors.phone ? "true" : "false"}
                   aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
                 />
                 {phoneErrorMessage && (
-                  <div id="phone-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                  <div id="phone-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
                     {phoneErrorMessage}
                   </div>
                 )}
@@ -454,9 +492,9 @@ export default function ContactForm({
               <div>
                 <label
                   htmlFor="projectType"
-                className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed mb-1.5"
+                className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
               >
-                Project Type <span className="text-error">*</span>
+                Project Type <span className="text-red-400">*</span>
               </label>
               <select
                 ref={projectTypeRef}
@@ -465,10 +503,10 @@ export default function ContactForm({
                 required
                 value={formData.projectType}
                 onChange={handleChange}
-                className={`block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-800 text-sm px-3 py-2.5 border bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 leading-relaxed min-w-0 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3E%3C/svg%3E')] dark:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%239ca3af%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3E%3C/svg%3E')] bg-[length:1.25em_1.25em] bg-[right_0.5rem_center] bg-no-repeat pr-8 ${
+                className={`block w-full rounded-lg shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800 text-sm px-4 py-3 border bg-neutral-900/50 text-neutral-100 leading-relaxed min-w-0 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%239ca3af%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3E%3C/svg%3E')] bg-[length:1.25em_1.25em] bg-[right_0.75rem_center] bg-no-repeat pr-10 ${
                   fieldErrors.projectType
-                    ? "border-error focus-visible:border-error focus-visible:ring-error"
-                    : "border-neutral-300 dark:border-neutral-600 focus-visible:border-primary-500"
+                    ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500"
+                    : "border-neutral-600 focus-visible:border-primary-500"
                 }`}
                 aria-required="true"
                 aria-invalid={fieldErrors.projectType ? "true" : "false"}
@@ -481,7 +519,7 @@ export default function ContactForm({
                 <option value="other">Other</option>
               </select>
               {fieldErrors.projectType && (
-                <div id="projectType-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                <div id="projectType-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
                   Project type is required.
                 </div>
               )}
@@ -490,45 +528,55 @@ export default function ContactForm({
               <div>
                 <label
                   htmlFor="message"
-                className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed mb-1.5"
+                className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
               >
-                Project Details <span className="text-error">*</span>
+                Project Details <span className="text-red-400">*</span>
               </label>
               <textarea
                 ref={messageRef}
                 id="message"
                 name="message"
-                rows={3}
+                rows={4}
                 required
                 value={formData.message}
                 onChange={handleChange}
                 placeholder="Please describe your project, timeline, and any specific requirements..."
-                className={`block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-800 text-sm px-3 py-2.5 border bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 leading-relaxed min-w-0 resize-y min-h-[4rem] ${
+                className={`block w-full rounded-lg shadow-sm focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800 text-sm px-4 py-3 border bg-neutral-900/50 text-neutral-100 leading-relaxed min-w-0 resize-y min-h-[6rem] placeholder-neutral-500 ${
                   fieldErrors.message
-                    ? "border-error focus-visible:border-error focus-visible:ring-error"
-                    : "border-neutral-300 dark:border-neutral-600 focus-visible:border-primary-500"
+                    ? "border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500"
+                    : "border-neutral-600 focus-visible:border-primary-500"
                 }`}
                 aria-required="true"
                 aria-invalid={fieldErrors.message ? "true" : "false"}
                 aria-describedby={fieldErrors.message ? "message-error" : undefined}
               />
               {fieldErrors.message && (
-                <div id="message-error" className="mt-1 text-xs text-error-dark dark:text-error-light" role="alert" aria-live="polite">
+                <div id="message-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
                   Project details are required.
                 </div>
               )}
               </div>
 
               {submitStatus === "success" && (
-              <div
-                className="rounded-md bg-success-light dark:bg-success-dark/20 p-3 text-success-dark dark:text-success-light border border-success/20 text-sm"
-                role="alert"
-                aria-live="polite"
-              >
-                Thank you for your inquiry! Our team will review your request
-                and get back to you within 24 hours.
-              </div>
-            )}
+                <div
+                  className="rounded-lg bg-green-500/10 border border-green-500/30 p-4 text-green-400 text-sm"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  Thank you for your inquiry! Our team will review your request
+                  and get back to you within 24 hours.
+                </div>
+              )}
+
+              {submitStatus === "error" && (
+                <div
+                  className="rounded-lg bg-red-500/10 border border-red-500/30 p-4 text-red-400 text-sm"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  Something went wrong. Please try again or contact us directly.
+                </div>
+              )}
 
 
               {/* Honeypot field - hidden from users */}
@@ -548,16 +596,17 @@ export default function ContactForm({
                 />
               </div>
 
-              <div className="pt-1 flex justify-center">
+              <div className="pt-2">
                 <button
-                type="submit"
-                disabled={isSubmitting}
-                  className="btn-primary px-12 py-3.5 text-xl font-bold"
-              >
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full btn-primary px-6 py-3 text-base font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   {isSubmitting ? "Sending..." : "Send Message"}
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       </div>
