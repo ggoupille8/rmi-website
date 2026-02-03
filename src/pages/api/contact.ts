@@ -2,21 +2,16 @@ import type { APIRoute } from "astro";
 import sgMail from "@sendgrid/mail";
 import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../lib/db-env";
+import {
+  isNonEmptyString,
+  isValidEmail,
+  FIELD_LIMITS,
+} from "../../lib/validation";
+import { contactRateLimiter, getClientIP } from "../../lib/rate-limiter";
 
 // src/pages/api/contact.ts
 export const prerender = false;
 
-// Simple in-memory rate limiting store
-// In production, consider using Redis or a database
-const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-
-// Rate limit: 5 requests per minute per IP
-const RATE_LIMIT_MAX = 5;
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-
-const MAX_NAME_LENGTH = 100;
-const MAX_EMAIL_LENGTH = 254;
-const MAX_MESSAGE_LENGTH = 5000;
 let hasLoggedMissingContacts = false;
 
 interface ContactRequest {
@@ -29,66 +24,6 @@ interface ContactRequest {
     elapsedMs?: number;
     fastSubmit?: boolean;
   };
-}
-
-function isNonEmptyString(v: unknown): v is string {
-  return typeof v === "string" && v.trim().length > 0;
-}
-
-function isEmailLike(v: string): boolean {
-  // pragmatic validation; avoids dependencies
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
-
-function checkRateLimit(ip: string | null): {
-  allowed: boolean;
-  retryAfter?: number;
-} {
-  if (!ip) {
-    // If we can't determine IP, allow (best-effort in serverless)
-    return { allowed: true };
-  }
-
-  const now = Date.now();
-  const record = rateLimitStore.get(ip);
-
-  if (!record || now > record.resetAt) {
-    // Create new record or reset expired one
-    rateLimitStore.set(ip, {
-      count: 1,
-      resetAt: now + RATE_LIMIT_WINDOW,
-    });
-    return { allowed: true };
-  }
-
-  if (record.count >= RATE_LIMIT_MAX) {
-    const retryAfter = Math.ceil((record.resetAt - now) / 1000);
-    return { allowed: false, retryAfter };
-  }
-
-  // Increment count
-  record.count++;
-  rateLimitStore.set(ip, record);
-  return { allowed: true };
-}
-
-function getClientIP(request: Request): string | null {
-  // Try Vercel headers first
-  const vercelIP = request.headers
-    .get("x-forwarded-for")
-    ?.split(",")[0]
-    ?.trim();
-  if (vercelIP) return vercelIP;
-
-  // Fallback to other common headers
-  const realIP = request.headers.get("x-real-ip");
-  if (realIP) return realIP;
-
-  // Last resort: use CF-Connecting-IP (Cloudflare) or similar
-  const cfIP = request.headers.get("cf-connecting-ip");
-  if (cfIP) return cfIP;
-
-  return null;
 }
 
 async function saveContact(
@@ -239,7 +174,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const clientIP = getClientIP(request);
-  const rateLimitCheck = checkRateLimit(clientIP);
+  const rateLimitCheck = contactRateLimiter.check(clientIP);
   if (!rateLimitCheck.allowed) {
     console.warn(
       `Rate limit exceeded for /api/contact (ip: ${clientIP || "unknown"})`
@@ -294,10 +229,10 @@ export const POST: APIRoute = async ({ request }) => {
   if (
     !isNonEmptyString(name) ||
     !isNonEmptyString(message) ||
-    !isEmailLike(email) ||
-    name.length > MAX_NAME_LENGTH ||
-    email.length > MAX_EMAIL_LENGTH ||
-    message.length > MAX_MESSAGE_LENGTH
+    !isValidEmail(email) ||
+    name.length > FIELD_LIMITS.MAX_NAME_LENGTH ||
+    email.length > FIELD_LIMITS.MAX_EMAIL_LENGTH ||
+    message.length > FIELD_LIMITS.MAX_MESSAGE_LENGTH
   ) {
     return new Response(JSON.stringify({ ok: false, error: "Invalid input" }), {
       status: 400,
