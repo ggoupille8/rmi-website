@@ -2,20 +2,17 @@ import type { APIRoute } from "astro";
 import sgMail from "@sendgrid/mail";
 import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../lib/db-env";
+import {
+  isNonEmptyString,
+  isValidEmail,
+  isValidPhone,
+  escapeHtml,
+  MIN_SUBMISSION_TIME_MS,
+} from "../../lib/validation";
+import { quoteRateLimiter, getClientIP } from "../../lib/rate-limiter";
 
 // Prevent prerendering - API routes must be server-side only
 export const prerender = false;
-
-// Simple in-memory rate limiting store
-// In production, consider using Redis or a database
-const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
-
-// Rate limit: 5 requests per 15 minutes per IP
-const RATE_LIMIT_MAX = 5;
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
-
-// Minimum time between page load and submission (2 seconds)
-const MIN_SUBMISSION_TIME = 2000;
 
 interface QuoteRequest {
   name: string;
@@ -28,58 +25,6 @@ interface QuoteRequest {
   timestamp?: string;
 }
 
-function getClientIP(request: Request): string | null {
-  // Try Vercel headers first
-  const vercelIP = request.headers
-    .get("x-forwarded-for")
-    ?.split(",")[0]
-    ?.trim();
-  if (vercelIP) return vercelIP;
-
-  // Fallback to other common headers
-  const realIP = request.headers.get("x-real-ip");
-  if (realIP) return realIP;
-
-  // Last resort: use CF-Connecting-IP (Cloudflare) or similar
-  const cfIP = request.headers.get("cf-connecting-ip");
-  if (cfIP) return cfIP;
-
-  return null;
-}
-
-function checkRateLimit(ip: string | null): {
-  allowed: boolean;
-  retryAfter?: number;
-} {
-  if (!ip) {
-    // If we can't determine IP, allow but log
-    console.warn("Rate limit check: Could not determine client IP");
-    return { allowed: true };
-  }
-
-  const now = Date.now();
-  const record = rateLimitStore.get(ip);
-
-  if (!record || now > record.resetAt) {
-    // Create new record or reset expired one
-    rateLimitStore.set(ip, {
-      count: 1,
-      resetAt: now + RATE_LIMIT_WINDOW,
-    });
-    return { allowed: true };
-  }
-
-  if (record.count >= RATE_LIMIT_MAX) {
-    const retryAfter = Math.ceil((record.resetAt - now) / 1000);
-    return { allowed: false, retryAfter };
-  }
-
-  // Increment count
-  record.count++;
-  rateLimitStore.set(ip, record);
-  return { allowed: true };
-}
-
 function validateRequest(data: unknown): { valid: boolean; error?: string } {
   if (!data || typeof data !== "object") {
     return { valid: false, error: "Invalid request body" };
@@ -88,52 +33,36 @@ function validateRequest(data: unknown): { valid: boolean; error?: string } {
   const req = data as QuoteRequest;
 
   // Required fields
-  if (
-    !req.name ||
-    typeof req.name !== "string" ||
-    req.name.trim().length === 0
-  ) {
+  if (!isNonEmptyString(req.name)) {
     return { valid: false, error: "Name is required" };
   }
 
-  if (
-    !req.company ||
-    typeof req.company !== "string" ||
-    req.company.trim().length === 0
-  ) {
+  if (!isNonEmptyString(req.company)) {
     return { valid: false, error: "Company is required" };
   }
 
   // Email or phone required
-  const hasEmail =
-    req.email && typeof req.email === "string" && req.email.trim().length > 0;
-  const hasPhone =
-    req.phone && typeof req.phone === "string" && req.phone.trim().length > 0;
+  const hasEmail = isNonEmptyString(req.email);
+  const hasPhone = isNonEmptyString(req.phone);
   if (!hasEmail && !hasPhone) {
     return { valid: false, error: "Email or phone is required" };
   }
 
   // Validate email format if provided
-  if (hasEmail) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(req.email.trim())) {
-      return { valid: false, error: "Invalid email format" };
-    }
+  if (hasEmail && !isValidEmail(req.email!)) {
+    return { valid: false, error: "Invalid email format" };
   }
 
-  if (
-    !req.message ||
-    typeof req.message !== "string" ||
-    req.message.trim().length === 0
-  ) {
+  // Validate phone format if provided
+  if (hasPhone && !isValidPhone(req.phone!)) {
+    return { valid: false, error: "Invalid phone format" };
+  }
+
+  if (!isNonEmptyString(req.message)) {
     return { valid: false, error: "Message is required" };
   }
 
-  if (
-    !req.serviceType ||
-    typeof req.serviceType !== "string" ||
-    req.serviceType.trim().length === 0
-  ) {
+  if (!isNonEmptyString(req.serviceType)) {
     return { valid: false, error: "Service type is required" };
   }
 
@@ -149,12 +78,9 @@ function validateRequest(data: unknown): { valid: boolean; error?: string } {
       return { valid: false, error: "Invalid timestamp" };
     }
     const elapsed = Date.now() - timestamp;
-    if (elapsed < MIN_SUBMISSION_TIME) {
+    if (elapsed < MIN_SUBMISSION_TIME_MS) {
       return { valid: false, error: "Submission too fast" };
     }
-  } else {
-    // Timestamp is recommended but not strictly required for backwards compatibility
-    // In production, you might want to make this required
   }
 
   return { valid: true };
@@ -192,18 +118,6 @@ async function saveQuote(
     );
     throw new Error("Failed to save quote");
   }
-}
-
-// Escape HTML entities to prevent injection
-function escapeHtml(text: string): string {
-  const map: Record<string, string> = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;",
-  };
-  return text.replace(/[&<>"']/g, (m) => map[m]);
 }
 
 async function sendEmail(data: QuoteRequest): Promise<void> {
@@ -255,7 +169,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Check rate limit
     const clientIP = getClientIP(request);
-    const rateLimitCheck = checkRateLimit(clientIP);
+    const rateLimitCheck = quoteRateLimiter.check(clientIP);
     if (!rateLimitCheck.allowed) {
       console.log(
         `[${requestId}] Rate limit exceeded for IP: ${clientIP || "unknown"}`

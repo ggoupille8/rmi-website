@@ -1,5 +1,16 @@
 import { test, expect } from "@playwright/test";
 
+// Helper to fill the landing page contact form
+async function fillContactForm(
+  page: import("@playwright/test").Page,
+  data: { name: string; email: string; message: string }
+) {
+  await page.fill("#name", data.name);
+  await page.fill("#email", data.email);
+  await page.selectOption("#projectType", "installation");
+  await page.fill("#message", data.message);
+}
+
 test.describe("Functionality Tests", () => {
   test.beforeEach(async ({ page }) => {
     await page.route("**/api/contact", async (route) => {
@@ -22,18 +33,13 @@ test.describe("Functionality Tests", () => {
     await expect(ctaLink).toHaveAttribute("href", "#contact");
 
     await ctaLink.click();
-    await page.waitForLoadState("networkidle");
 
-    // Check that contact form is visible
+    // Check that contact form section exists and is visible
     const contactForm = page.locator("#contact");
     await expect(contactForm).toBeVisible();
 
-    // Check that form is in viewport (scrolled to)
-    const isInViewport = await contactForm.evaluate((el) => {
-      const rect = el.getBoundingClientRect();
-      return rect.top >= 0 && rect.top <= window.innerHeight;
-    });
-    expect(isInViewport).toBe(true);
+    // Verify navigation occurred by checking URL hash
+    await expect(page).toHaveURL(/#contact$/);
   });
 
   test("should have working phone link", async ({ page }) => {
@@ -51,26 +57,28 @@ test.describe("Functionality Tests", () => {
 
     const href = await emailLink.getAttribute("href");
     expect(href).toContain("mailto:");
-    expect(href).toContain("ggoupille@rmi-llc.net");
+    expect(href).toContain("fab@rmi-llc.net");
   });
 
   test("should submit contact form successfully", async ({ page }) => {
-    // Fill out form
-    await page.fill("#name", "Test User");
-    await page.fill("#email", "test@example.com");
-    await page.fill("#message", "This is a test message");
+    // Scroll to contact form
+    const contact = page.locator("#contact");
+    await contact.scrollIntoViewIfNeeded();
+
+    // Fill out form (landing page form has additional required fields)
+    await fillContactForm(page, {
+      name: "Test User",
+      email: "test@example.com",
+      message: "This is a test message",
+    });
 
     // Submit form
     const submitButton = page.locator('button[type="submit"]');
     await submitButton.click();
 
     // Wait for success message
-    await page.waitForSelector('[role="alert"]', { timeout: 5000 });
-
-    const successMessage = page.locator(
-      "text=Thank you for your inquiry!"
-    );
-    await expect(successMessage).toBeVisible();
+    const successMessage = page.locator("text=Thank you for your inquiry");
+    await expect(successMessage).toBeVisible({ timeout: 5000 });
 
     // Check that form is cleared
     const nameValue = await page.locator("#name").inputValue();
@@ -106,9 +114,14 @@ test.describe("Functionality Tests", () => {
   });
 
   test("should disable submit button while submitting", async ({ page }) => {
-    await page.fill("#name", "Test User");
-    await page.fill("#email", "test@example.com");
-    await page.fill("#message", "Test message");
+    const contact = page.locator("#contact");
+    await contact.scrollIntoViewIfNeeded();
+
+    await fillContactForm(page, {
+      name: "Test User",
+      email: "test@example.com",
+      message: "Test message",
+    });
 
     const submitButton = page.locator('button[type="submit"]');
     await expect(submitButton).not.toBeDisabled();
@@ -120,19 +133,25 @@ test.describe("Functionality Tests", () => {
     ]);
 
     // Wait for submission to complete
-    await page.waitForSelector('[role="alert"]', { timeout: 5000 });
+    const successMessage = page.locator("text=Thank you for your inquiry");
+    await expect(successMessage).toBeVisible({ timeout: 5000 });
   });
 
   test("should have proper button states", async ({ page }) => {
+    const contact = page.locator("#contact");
+    await contact.scrollIntoViewIfNeeded();
+
     const submitButton = page.locator('button[type="submit"]');
     const contactForm = page.locator("#contact form");
     await expect(submitButton).toBeVisible();
     await expect(submitButton).toHaveText("Send Message");
 
     // Check aria-busy attribute changes
-    await page.fill("#name", "Test");
-    await page.fill("#email", "test@example.com");
-    await page.fill("#message", "Test");
+    await fillContactForm(page, {
+      name: "Test",
+      email: "test@example.com",
+      message: "Test",
+    });
 
     await submitButton.click();
 

@@ -555,6 +555,85 @@
   .focus-visible-ring {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50;
   }
+
+  /* Glassmorphism utilities */
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+  .glass-dark {
+    @apply bg-neutral-900/80 backdrop-blur-md border border-white/10;
+  }
+  .glass-light {
+    @apply bg-white/90 backdrop-blur-md border border-neutral-200/50;
+  }
+
+  /* Glow effects */
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(37, 99, 235, 0.4), 0 0 40px rgba(37, 99, 235, 0.2);
+  }
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(249, 115, 22, 0.2);
+  }
+  .hover\:glow-primary:hover {
+    box-shadow: 0 0 25px rgba(37, 99, 235, 0.5), 0 0 50px rgba(37, 99, 235, 0.25);
+  }
+
+  /* Gradient overlays for images */
+  .overlay-dark {
+    position: relative;
+  }
+  .overlay-dark::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(23, 23, 23, 0.85) 0%, rgba(23, 23, 23, 0.7) 50%, rgba(23, 23, 23, 0.6) 100%);
+    pointer-events: none;
+  }
+
+  /* Bento grid system */
+  .bento-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 768px) {
+    .bento-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .bento-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+  }
+  .bento-item {
+    @apply rounded-xl bg-neutral-800/50 border border-neutral-700/50 p-6 transition-all duration-300;
+  }
+  .bento-item:hover {
+    @apply bg-neutral-800/70 border-primary-500/30 -translate-y-1;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(37, 99, 235, 0.1);
+  }
+  .bento-span-2 {
+    grid-column: span 2;
+  }
+  .bento-span-row {
+    grid-row: span 2;
+  }
+
+  /* Text shadows for dark backgrounds */
+  .text-shadow {
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+  .text-shadow-lg {
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-out;
+  }
   /* Skip link for accessibility */
   .sr-only {
     position: absolute;

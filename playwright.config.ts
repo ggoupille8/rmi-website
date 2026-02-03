@@ -5,6 +5,8 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   testDir: "./tests",
+  /* Ignore unit tests (handled by Vitest) */
+  testIgnore: ["**/unit/**"],
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -22,12 +24,24 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
   },
+  /* Allow small pixel differences for cross-browser visual testing */
+  expect: {
+    toHaveScreenshot: { maxDiffPixelRatio: 0.01 },
+  },
 
   /* Configure projects for major browsers */
   projects: [
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
     },
   ],
 
