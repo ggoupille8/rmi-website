@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { flushSync } from "react-dom";
 import { Phone, Mail, MapPin } from "lucide-react";
-import { phoneTel, phoneDisplay, email } from "../../config/site";
-import { companyNameFull, address } from "../../content/site";
+import { phoneTel, phoneDisplay, email, companyNameFull, address } from "../../content/site";
 
 interface ContactFormProps {
   title?: string;
