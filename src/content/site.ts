@@ -43,47 +43,155 @@ export interface ServiceData {
 
 export const services: ServiceData[] = [
   {
-    title: "Mechanical Piping Insulation",
+    title: "Mechanical Piping",
     anchorId: "piping",
     description:
-      "Hot and cold piping insulation for steam, condensate, chilled water, condenser water, refrigerant systems, and condensate drain lines with heat tracing. Installed for performance, personnel protection, and durability across industrial and commercial facilities.",
-    systems: ["Steam", "Chilled water", "Refrigerant", "Heat tracing"],
+      "Hot and cold piping insulation for steam, chilled water, refrigerant, and heat tracing systems.",
   },
   {
-    title: "HVAC & Specialty Duct Insulation",
+    title: "HVAC Duct Insulation",
     anchorId: "duct",
     description:
-      "Supply, return, outside air, and exhaust duct insulation installed cleanly and to spec. Built to last in exposed, mechanical-room, and rooftop environments.",
-    systems: ["Supply/return", "Outside air", "Exhaust", "Rooftop"],
+      "Supply, return, outside air, and exhaust duct insulation for commercial and industrial facilities.",
   },
   {
-    title: "Fire-Rated Duct Assemblies",
+    title: "Fire-Rated Assemblies",
     anchorId: "fire-rated",
     description:
-      "Fire-rated duct systems including grease duct, stair pressurization, and other fire-rated assemblies. Installed by experienced crews to meet code requirements without slowing your schedule.",
-    systems: ["Grease duct", "Stair pressurization", "Fire-rated assemblies"],
+      "Grease duct, stair pressurization, and fire-rated duct systems installed to code.",
   },
   {
-    title: "Rooftop Duct Jacketing Systems",
+    title: "Outdoor Jacketing",
     anchorId: "jacketing",
     description:
-      "Exterior jacketing systems for rooftop duct and equipment including VentureClad, FlexClad, PVC, aluminum, and other specified systems. Weather-resistant, clean finish, and long-term durability.",
-    systems: ["VentureClad", "FlexClad", "PVC", "Aluminum"],
+      "Exterior jacketing systems including VentureClad, FlexClad, PVC, and aluminum.",
   },
   {
-    title: "Fabrication: Inserts, Shields, Pipe Supports",
+    title: "Pipe Supports & Fabrication",
     anchorId: "supports",
     description:
-      "In-house fabrication of inserts, shields, and pipe supports for speed, fit, and consistency. Custom solutions built for strength and thermal performance with quick turnaround times.",
-    systems: ["Inserts", "Shields", "Pipe supports", "Custom fabrication"],
+      "In-house fabrication of pipe supports with quick turnaround.",
   },
   {
-    title: "Maintenance, Outages & 24/7 Response",
+    title: "24/7 Emergency Response",
     anchorId: "247",
     description:
-      "Reliable support for ongoing maintenance, shutdowns, and urgent issues. Available 24/7 for emergency response—executed safely, cleanly, and on schedule.",
-    systems: ["Maintenance", "Shutdowns", "Emergency response", "24/7"],
+      "Maintenance, shutdowns, and urgent issues—available around the clock.",
   },
+  {
+    title: "Tank & Vessel Insulation",
+    anchorId: "tanks",
+    description:
+      "Hot and cold tank insulation for process vessels, storage tanks, and equipment.",
+  },
+  {
+    title: "Removable Blankets",
+    anchorId: "blankets",
+    description:
+      "Custom removable insulation blankets for valves, flanges, and equipment requiring access.",
+  },
+  {
+    title: "Cryogenic Insulation",
+    anchorId: "cryogenic",
+    description:
+      "Specialized insulation for LNG, nitrogen, oxygen, and other cryogenic piping and equipment.",
+  },
+];
+
+// Value Propositions (4-column grid)
+export interface ValueProp {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export const valueProps: ValueProp[] = [
+  {
+    icon: "Building2",
+    title: "Industry Leaders Trust Us",
+    description: "Serving top-tier clients including Apple, Ford, Rivian, and Cartier.",
+  },
+  {
+    icon: "Target",
+    title: "Precision Engineering",
+    description: "Exacting standards for thermal performance and energy efficiency.",
+  },
+  {
+    icon: "ShieldCheck",
+    title: "Safety-Driven Execution",
+    description: "OSHA-compliant crews with impeccable jobsite safety records.",
+  },
+  {
+    icon: "Wrench",
+    title: "Custom Fabrication",
+    description: "In-house manufacturing of inserts, shields, and pipe supports.",
+  },
+];
+
+// Stats/Metrics
+export interface Stat {
+  value: string;
+  label: string;
+}
+
+export const stats: Stat[] = [
+  { value: "150+", label: "Years Combined Experience" },
+  { value: "500+", label: "Projects Annually" },
+  { value: "74K+", label: "OSHA Man-Hours" },
+];
+
+// =============================================================================
+// OSHA MAN-HOURS DATA
+// Source: Annual OSHA reporting records
+// To add a new year: Add entry to oshaManHoursByYear, total auto-calculates
+// =============================================================================
+export const oshaManHoursByYear: Record<number, number> = {
+  2021: 23848,
+  2022: 60088,
+  2023: 73803,
+  2024: 74014,
+  // Add new years here as data becomes available:
+  // 2025: XXXXX,
+};
+
+// Calculated total - automatically sums all years
+export const totalOshaManHours = Object.values(oshaManHoursByYear).reduce(
+  (sum, hours) => sum + hours,
+  0
+);
+
+// Get the year range from the data (e.g., "2021-2024" or "Since 2021")
+const oshaYears = Object.keys(oshaManHoursByYear).map(Number).sort((a, b) => a - b);
+export const oshaFirstYear = oshaYears[0];
+export const oshaLastYear = oshaYears[oshaYears.length - 1];
+export const oshaYearRange = `Since ${oshaFirstYear}`;
+// Alternative format: `${oshaFirstYear}-${oshaLastYear}`
+
+// Helper to format large numbers (e.g., 231753 -> "231K+")
+export const formatLargeNumber = (num: number): string => {
+  if (num >= 1000000) {
+    return `${Math.floor(num / 1000000)}M+`;
+  }
+  if (num >= 1000) {
+    return `${Math.floor(num / 1000)}K+`;
+  }
+  return `${num}+`;
+};
+
+// =============================================================================
+// HERO ANIMATED STATS
+// These are the stats displayed with counting animation in the hero
+// =============================================================================
+export interface HeroStat {
+  endValue: number;
+  suffix: string;
+  label: string;
+}
+
+export const heroStats: HeroStat[] = [
+  { endValue: 100, suffix: "+", label: "Clients" },
+  { endValue: 500, suffix: "+", label: "Projects Annually" },
+  { endValue: totalOshaManHours, suffix: "", label: `OSHA Man-Hours (${oshaYearRange})` },
 ];
 
 // Materials
