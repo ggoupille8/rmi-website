@@ -1,14 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/landing/Hero';
-import StatsBar from '../components/landing/StatsBar';
+import HeroFullWidth from '../components/landing/HeroFullWidth';
 import Services from '../components/landing/Services';
-import MaterialsMarquee from '../components/landing/MaterialsMarquee';
+import CTABanner from '../components/landing/CTABanner';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
 import FloatingMobileCTA from '../components/landing/FloatingMobileCTA';
-import { phoneTel, phoneDisplay, email } from '../content/site';
-import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary } from '../content/site';
+import { heroHeadline } from '../content/site';
 ---
 
 <BaseLayout
@@ -17,19 +15,16 @@ import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary } from 
   canonical="https://resourcemechanicalinsulation.com/"
 >
   <div>
-    <Hero
+    <HeroFullWidth
+      client:load
       headline={heroHeadline}
-      subheadline={heroSubheadline}
-      ctaPrimary={{ text: heroCtaPrimary, href: '#contact' }}
-      ctaSecondary={{ text: phoneDisplay, href: phoneTel }}
-      ctaEmail={{ href: `mailto:${email}` }}
-      images={['/images/hero/hero-1.jpg']}
+      tagline="Commercial & Industrial Insulation Experts"
+      backgroundImage="/images/hero/hero-1.jpg"
     />
-    <StatsBar />
     <div id="services">
       <Services />
     </div>
-    <MaterialsMarquee />
+    <CTABanner />
     <div id="contact">
       <ContactForm client:load />
     </div>
@@ -37,3 +32,4 @@ import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary } from 
     <FloatingMobileCTA client:load />
   </div>
 </BaseLayout>
+
