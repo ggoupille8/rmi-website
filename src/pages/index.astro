@@ -1,31 +1,30 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/landing/Hero';
+import HeroFullWidth from '../components/landing/HeroFullWidth';
 import Services from '../components/landing/Services';
+import CTABanner from '../components/landing/CTABanner';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
 import FloatingMobileCTA from '../components/landing/FloatingMobileCTA';
-import { phoneTel, phoneDisplay, email } from '../config/site';
-import { heroHeadline, heroSubheadline, heroCtaPrimary, heroCtaSecondary } from '../content/site';
+import { heroHeadline } from '../content/site';
 ---
 
-<BaseLayout 
-  title="Resource Mechanical Insulation - Expert Insulation Services | Romulus, MI" 
+<BaseLayout
+  title="Resource Mechanical Insulation - Expert Insulation Services | Romulus, MI"
   description="Professional mechanical insulation contractor serving Michigan and surrounding areas. Mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Based in Romulus, MI."
   canonical="https://resourcemechanicalinsulation.com/"
 >
   <div>
-    <Hero
+    <HeroFullWidth
+      client:load
       headline={heroHeadline}
-      subheadline={heroSubheadline}
-      ctaPrimary={{ text: heroCtaPrimary, href: '#contact' }}
-      ctaSecondary={{ text: phoneDisplay, href: phoneTel }}
-      ctaEmail={{ href: `mailto:${email}` }}
-      images={['/images/hero/hero-1.jpg']}
+      tagline="Commercial & Industrial Insulation Experts"
+      backgroundImage="/images/hero/hero-1.jpg"
     />
     <div id="services">
       <Services />
     </div>
+    <CTABanner />
     <div id="contact">
       <ContactForm client:load />
     </div>

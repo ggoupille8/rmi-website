@@ -1,6 +1,6 @@
 import { phoneTel, phoneDisplay, companyName, email } from "../../config/site";
 import { Phone, Mail } from "lucide-react";
-import GradientBlendOverlay from "./GradientBlendOverlay";
+import HeroSlider from "./HeroSlider";
 
 interface HeroProps {
   headline?: string;
@@ -32,9 +32,6 @@ export default function Hero({
   // - No conditional rendering based on screen size
   // - Layout changes handled via CSS only (Grid + clamp())
   // - Verify DOM parity: Run scripts/verify-dom-parity.js in browser console
-  
-  // Use first image for both mobile and desktop (one large image)
-  const heroImage = images[0];
 
   return (
     <section
@@ -107,16 +104,9 @@ export default function Hero({
       
       <div className="absolute inset-y-0 left-0 w-full lg:w-1/2 bg-neutral-50 dark:bg-neutral-900 z-0" aria-hidden="true"></div>
 
-      {/* Hero image across entire section with subtle fade */}
+      {/* Hero image slider across right section */}
       <div className="absolute inset-y-0 right-0 w-2/3 z-[1]">
-        <img
-          src={heroImage}
-          alt="Mechanical insulation work"
-          className="w-full h-full rounded-none shadow-2xl object-cover object-[right_top] opacity-90"
-          loading="eager"
-          width="1920"
-          height="1080"
-        />
+        <HeroSlider images={images} interval={6000} />
       </div>
     </section>
   );

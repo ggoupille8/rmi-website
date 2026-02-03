@@ -309,8 +309,8 @@ export default function ContactForm({
     >
       <div className="container-custom py-2 sm:py-3">
         <div className="mx-auto max-w-3xl">
-          <div className="text-center">
-            <h2 id="contact-heading" className="heading-2 text-neutral-900 dark:text-neutral-50">
+          <div className="text-center flex flex-col items-center">
+            <h2 id="contact-heading" className="section-header-stripe font-bold tracking-wider text-neutral-900 dark:text-neutral-50 uppercase text-2xl sm:text-3xl lg:text-4xl">
               {title}
             </h2>
             <p className="mt-1 text-body text-neutral-900 dark:text-neutral-200">{subtitle}</p>
