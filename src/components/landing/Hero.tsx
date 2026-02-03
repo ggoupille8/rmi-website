@@ -1,4 +1,4 @@
-import { phoneTel, phoneDisplay, companyName, email } from "../../config/site";
+import { phoneTel, phoneDisplay, companyName, email } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
 import HeroSlider from "./HeroSlider";
 

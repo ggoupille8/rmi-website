@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { phoneTel, phoneDisplay, companyName, email } from "../../config/site";
-import { heroStats, formatLargeNumber } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
 
 interface HeroFullWidthProps {
