@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Phone, Mail, X } from "lucide-react";
-import { phoneTel, phoneDisplay, companyName, email } from "../../config/site";
+import { phoneTel, phoneDisplay, companyName, email } from "../../content/site";
 
 export default function FloatingMobileCTA() {
   const [isVisible, setIsVisible] = useState(false);

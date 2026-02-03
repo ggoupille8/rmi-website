@@ -1,5 +1,4 @@
-import { phoneTel, phoneDisplay, companyName, email } from "../../config/site";
-import { companyNameFull, address } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address } from "../../content/site";
 import { Phone, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
