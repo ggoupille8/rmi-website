@@ -87,14 +87,18 @@ test.describe("Accessibility Tests", () => {
     for (let i = 0; i < imageCount; i++) {
       const img = images.nth(i);
       const alt = await img.getAttribute("alt");
-      // Hidden images can have empty alt, but visible ones must have meaningful alt
-      const isHidden = await img.evaluate((el) => {
+      const ariaHidden = await img.getAttribute("aria-hidden");
+      // Decorative images may use alt="" with aria-hidden="true" per WCAG
+      // Hidden images (display:none or .hidden class) can also have empty alt
+      const isDecorativeOrHidden = await img.evaluate((el) => {
         return (
+          el.getAttribute("aria-hidden") === "true" ||
+          el.getAttribute("role") === "presentation" ||
           el.classList.contains("hidden") ||
           window.getComputedStyle(el).display === "none"
         );
       });
-      if (!isHidden) {
+      if (!isDecorativeOrHidden) {
         expect(alt).toBeTruthy();
         expect(alt?.length).toBeGreaterThan(0);
       }
