@@ -64,8 +64,12 @@ test.describe("Dark Mode CSS Verification", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    const h1 = page.locator("h1").first();
-    const textColor = await h1.evaluate((el) => {
+    // Check text contrast on the Services section heading (standard background)
+    // Hero h1 is excluded because it intentionally uses white text on a dark
+    // background image overlay — not representative of the site's light mode
+    const servicesHeading = page.locator("#services-heading");
+    await servicesHeading.scrollIntoViewIfNeeded();
+    const textColor = await servicesHeading.evaluate((el) => {
       return window.getComputedStyle(el).color;
     });
 
