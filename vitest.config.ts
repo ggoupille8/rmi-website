@@ -7,7 +7,9 @@ export default defineConfig({
     // Exclude e2e tests (handled by Playwright)
     exclude: ["tests/**/*", "node_modules/**/*"],
     // Environment for React component tests
-    environment: "jsdom",
+    // happy-dom is ESM-native — avoids the ERR_REQUIRE_ESM errors from jsdom 28's
+    // CJS transitive deps (@exodus/bytes, parse5) that break vitest 4 forks pool.
+    environment: "happy-dom",
     // Global test utilities
     globals: true,
     // Setup files
