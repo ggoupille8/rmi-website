@@ -114,6 +114,17 @@ test.describe("Functionality Tests", () => {
   });
 
   test("should disable submit button while submitting", async ({ page }) => {
+    // Override the route with a longer delay so we can reliably observe
+    // the disabled state (200ms from beforeEach is too fast for webkit)
+    await page.route("**/api/contact", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true }),
+      });
+    });
+
     const contact = page.locator("#contact");
     await contact.scrollIntoViewIfNeeded();
 
@@ -126,11 +137,9 @@ test.describe("Functionality Tests", () => {
     const submitButton = page.locator('button[type="submit"]');
     await expect(submitButton).not.toBeDisabled();
 
-    // Click and immediately check if disabled
-    await Promise.all([
-      submitButton.click(),
-      expect(submitButton).toBeDisabled({ timeout: 1000 }),
-    ]);
+    // Click, then verify the button becomes disabled while the request is in-flight
+    await submitButton.click();
+    await expect(submitButton).toBeDisabled({ timeout: 3000 });
 
     // Wait for submission to complete
     const successMessage = page.locator("text=Thank you for your inquiry");
