@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import Navbar from '../components/landing/Navbar.astro';
+import { companyNameFull, email, phone, phoneE164, address, services } from '../content/site';
 
 interface Props {
   title?: string;
@@ -12,18 +14,62 @@ interface Props {
 }
 
 const {
-  title = 'Resource Mechanical Insulation - Expert Insulation Solutions | Romulus, MI',
-  description = 'Professional mechanical insulation contractor serving Michigan and surrounding areas. Mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Based in Romulus, MI.',
+  title = 'Resource Mechanical Insulation | Industrial Insulation Contractors Michigan',
+  description = 'Professional mechanical insulation contractor serving Michigan and surrounding areas. Expert insulation for piping, ductwork, tanks, and equipment — hot, cold, and cryogenic applications. Based in Romulus, MI.',
   ogImage = '/og-image.jpg',
   ogType = 'website',
   canonical = Astro.url.href,
-  keywords = 'mechanical insulation, insulation contractor, Romulus MI, Michigan, piping insulation, ductwork insulation, tank insulation, cryogenic insulation, boiler insulation, turbine insulation, insulation materials, pipe supports',
+  keywords = 'mechanical insulation, insulation contractor, Romulus MI, Michigan, piping insulation, ductwork insulation, tank insulation, cryogenic insulation, boiler insulation, turbine insulation, insulation materials, pipe supports, industrial insulation, commercial insulation',
   author = 'Resource Mechanical Insulation',
 } = Astro.props;
 
 const fullTitle = title.includes('Resource Mechanical Insulation') ? title : `${title} | Resource Mechanical Insulation`;
 const siteUrl = Astro.site?.href || 'https://resourcemechanicalinsulation.com';
 const ogImageUrl = new URL(ogImage, siteUrl).href;
+
+const localBusinessSchema = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": `${siteUrl}#business`,
+  "name": companyNameFull,
+  "description": description,
+  "url": siteUrl,
+  "telephone": phoneE164,
+  "email": email,
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": address.street,
+    "addressLocality": address.city,
+    "addressRegion": address.state,
+    "postalCode": address.zip,
+    "addressCountry": "US"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 42.2223,
+    "longitude": -83.3630
+  },
+  "areaServed": {
+    "@type": "State",
+    "name": "Michigan"
+  },
+  "priceRange": "$$",
+  "image": ogImageUrl,
+  "knowsAbout": services.map(s => s.title),
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Mechanical Insulation Services",
+    "itemListElement": services.map((s, i) => ({
+      "@type": "Offer",
+      "itemOffered": {
+        "@type": "Service",
+        "name": s.title,
+        "description": s.description
+      },
+      "position": i + 1
+    }))
+  }
+});
 ---
 
 <!doctype html>
@@ -78,11 +124,15 @@ const ogImageUrl = new URL(ogImage, siteUrl).href;
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json" set:html={localBusinessSchema} />
   </head>
   <body class="h-full">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600">
       Skip to main content
     </a>
+    <Navbar />
     <main id="main-content">
       <slot />
     </main>

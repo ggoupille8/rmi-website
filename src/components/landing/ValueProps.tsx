@@ -1,5 +1,5 @@
 import { valueProps } from "../../content/site";
-import { Building2, Target, ShieldCheck, Wrench, type LucideIcon } from "lucide-react";
+import { Building2, Target, ShieldCheck, Wrench, Compass, type LucideIcon } from "lucide-react";
 
 // Map icon names to Lucide components
 const iconMap: Record<string, LucideIcon> = {

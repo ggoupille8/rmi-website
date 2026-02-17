@@ -74,11 +74,13 @@ function AnimatedStat({
   endValue,
   suffix,
   label,
+  shortLabel,
   delay = 0,
 }: {
   endValue: number;
   suffix: string;
   label: string;
+  shortLabel?: string;
   delay?: number;
 }) {
   const { count, ref } = useCountUp(endValue, 2500 + delay);
@@ -99,7 +101,14 @@ function AnimatedStat({
         {finalDisplay}
       </div>
       <div className="mt-2 text-sm sm:text-base text-neutral-300 uppercase tracking-wider">
-        {label}
+        {shortLabel ? (
+          <>
+            <span className="hidden sm:inline">{label}</span>
+            <span className="sm:hidden">{shortLabel}</span>
+          </>
+        ) : (
+          label
+        )}
       </div>
     </div>
   );
@@ -117,13 +126,20 @@ export default function HeroFullWidth({
     >
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
-        <img
-          src={backgroundImage}
-          alt=""
-          className="w-full h-full object-cover"
-          loading="eager"
-          aria-hidden="true"
-        />
+        <picture>
+          <source
+            srcSet={backgroundImage.replace(/\.jpe?g$/i, ".webp")}
+            type="image/webp"
+          />
+          <img
+            src={backgroundImage}
+            alt=""
+            className="w-full h-full object-cover"
+            loading="eager"
+            fetchPriority="high"
+            aria-hidden="true"
+          />
+        </picture>
         {/* Dark gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
       </div>
@@ -181,6 +197,7 @@ export default function HeroFullWidth({
                 endValue={stat.endValue}
                 suffix={stat.suffix}
                 label={stat.label}
+                shortLabel={stat.shortLabel}
                 delay={index * 200}
               />
             ))}

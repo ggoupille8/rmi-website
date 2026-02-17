@@ -9,7 +9,7 @@ import vercel from "@astrojs/vercel/serverless";
 // Ensures sitemap URLs are correct for both preview and production deployments
 const site = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
-  : process.env.SITE_URL || "https://rmi-llc.net";
+  : process.env.SITE_URL || "https://resourcemechanicalinsulation.com";
 
 export default defineConfig({
   site,
@@ -25,7 +25,7 @@ export default defineConfig({
     tailwind({
       applyBaseStyles: false,
     }),
-    // sitemap(), // Temporarily disabled - needs investigation
+    sitemap(),
     {
       name: "db-env-log",
       hooks: {
