@@ -2,6 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroFullWidth from '../components/landing/HeroFullWidth';
 import Services from '../components/landing/Services';
+import About from '../components/landing/About';
+import MaterialsMarquee from '../components/landing/MaterialsMarquee';
 import CTABanner from '../components/landing/CTABanner';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
@@ -10,8 +12,8 @@ import { heroHeadline } from '../content/site';
 ---
 
 <BaseLayout
-  title="Resource Mechanical Insulation - Expert Insulation Services | Romulus, MI"
-  description="Professional mechanical insulation contractor serving Michigan and surrounding areas. Mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Based in Romulus, MI."
+  title="Resource Mechanical Insulation | Industrial Insulation Contractors Michigan"
+  description="Professional mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Serving Michigan from Romulus, MI."
   canonical="https://resourcemechanicalinsulation.com/"
 >
   <div>
@@ -21,15 +23,18 @@ import { heroHeadline } from '../content/site';
       tagline="Commercial & Industrial Insulation Experts"
       backgroundImage="/images/hero/hero-1.jpg"
     />
-    <div id="services">
+    <div id="services" class="scroll-mt-20">
       <Services />
     </div>
+    <div id="about" class="scroll-mt-20">
+      <About />
+    </div>
+    <MaterialsMarquee />
     <CTABanner />
-    <div id="contact">
+    <div id="contact" class="scroll-mt-20">
       <ContactForm client:load />
     </div>
     <Footer />
     <FloatingMobileCTA client:load />
   </div>
 </BaseLayout>
-

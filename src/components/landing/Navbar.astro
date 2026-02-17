@@ -1,0 +1,260 @@
+---
+import { companyName } from '../../content/site';
+---
+
+<header
+  id="navbar"
+  class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+  role="banner"
+>
+  <nav class="container-custom flex items-center justify-between h-16 sm:h-20" aria-label="Main navigation">
+    <!-- Left: Logo + Company name -->
+    <a href="#" class="flex items-center gap-3 group shrink-0" aria-label={`${companyName} — go to top`}>
+      <!--
+        Logo: public/images/logo/rmi-logo-white.png (black text on transparent bg).
+        The "brightness-0 invert" filter renders it white against the dark navbar.
+        If the file is missing, the onerror fallback shows the "RMI" text square.
+      -->
+      <img
+        id="navbar-logo"
+        src="/images/logo/rmi-logo-white.png"
+        alt="Resource Mechanical Insulation logo"
+        class="h-9 w-auto brightness-0 invert"
+        onload="document.getElementById('navbar-logo-fallback').style.display='none';"
+        onerror="this.onerror=null;this.style.display='none';document.getElementById('navbar-logo-fallback').style.display='flex';"
+      />
+      <!-- Fallback: shown when logo file is missing -->
+      <span
+        id="navbar-logo-fallback"
+        class="items-center justify-center w-9 h-9 rounded bg-accent-500 text-white font-bold text-sm select-none"
+        style="display: flex;"
+        aria-hidden="true"
+      >
+        RMI
+      </span>
+      <span class="hidden sm:inline text-base font-semibold text-white tracking-wide group-hover:text-accent-300 transition-colors">
+        {companyName}
+      </span>
+    </a>
+
+    <!-- Right: Desktop links -->
+    <div class="hidden md:flex items-center gap-6 lg:gap-8">
+      <a
+        href="#services"
+        data-nav-section="services"
+        class="nav-link text-sm font-medium text-neutral-200 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded px-1 py-1"
+      >
+        Services
+      </a>
+      <a
+        href="#about"
+        data-nav-section="about"
+        class="nav-link text-sm font-medium text-neutral-200 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded px-1 py-1"
+      >
+        About
+      </a>
+      <a
+        href="#contact"
+        data-nav-section="contact"
+        class="nav-link text-sm font-medium text-neutral-200 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded px-1 py-1"
+      >
+        Contact
+      </a>
+      <a
+        href="#contact"
+        class="inline-flex items-center justify-center rounded-md bg-accent-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-accent-500 hover:shadow-lg hover:scale-105 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+      >
+        Request a Quote
+      </a>
+    </div>
+
+    <!-- Mobile hamburger button -->
+    <button
+      id="menu-toggle"
+      type="button"
+      class="md:hidden relative z-10 flex items-center justify-center w-11 h-11 rounded-md text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      aria-label="Open navigation menu"
+    >
+      <!-- Hamburger icon (shown when closed) -->
+      <svg id="icon-open" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+      <!-- Close icon (shown when open) -->
+      <svg id="icon-close" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </nav>
+
+  <!-- Mobile menu overlay -->
+  <div
+    id="mobile-menu"
+    class="md:hidden fixed inset-0 top-16 sm:top-20 hidden"
+    style="background: rgba(23, 23, 23, 0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Mobile navigation"
+  >
+    <nav class="flex flex-col items-center justify-center gap-8 h-full" aria-label="Mobile navigation links">
+      <a href="#services" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
+        Services
+      </a>
+      <a href="#about" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
+        About
+      </a>
+      <a href="#contact" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
+        Contact
+      </a>
+      <a
+        href="#contact"
+        class="mobile-nav-link mt-4 inline-flex items-center justify-center rounded-md bg-accent-600 px-8 py-3 text-lg font-semibold text-white shadow-lg hover:bg-accent-500 hover:shadow-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+      >
+        Request a Quote
+      </a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  /* Active nav link styling — applied via JS */
+  .nav-link-active {
+    color: white;
+    position: relative;
+  }
+  .nav-link-active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0.25rem;
+    right: 0.25rem;
+    height: 2px;
+    background: rgb(59, 130, 246); /* accent-500 */
+    border-radius: 1px;
+  }
+</style>
+
+<script>
+  // ── Scroll-based background transition ──
+  const navbar = document.getElementById('navbar');
+  const scrollThreshold = 50;
+
+  function updateNavbar() {
+    if (!navbar) return;
+    if (window.scrollY > scrollThreshold) {
+      navbar.style.backgroundColor = 'rgba(23, 23, 23, 0.95)';
+      navbar.style.backdropFilter = 'blur(12px)';
+      navbar.style.webkitBackdropFilter = 'blur(12px)';
+      navbar.style.boxShadow = '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)';
+    } else {
+      navbar.style.backgroundColor = '';
+      navbar.style.backdropFilter = '';
+      navbar.style.webkitBackdropFilter = '';
+      navbar.style.boxShadow = '';
+    }
+  }
+
+  updateNavbar();
+  window.addEventListener('scroll', updateNavbar, { passive: true });
+
+  // ── Mobile menu toggle ──
+  const menuToggle = document.getElementById('menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const iconOpen = document.getElementById('icon-open');
+  const iconClose = document.getElementById('icon-close');
+
+  function openMenu() {
+    if (!mobileMenu || !menuToggle || !iconOpen || !iconClose) return;
+    mobileMenu.classList.remove('hidden');
+    iconOpen.classList.add('hidden');
+    iconClose.classList.remove('hidden');
+    menuToggle.setAttribute('aria-expanded', 'true');
+    menuToggle.setAttribute('aria-label', 'Close navigation menu');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMenu() {
+    if (!mobileMenu || !menuToggle || !iconOpen || !iconClose) return;
+    mobileMenu.classList.add('hidden');
+    iconOpen.classList.remove('hidden');
+    iconClose.classList.add('hidden');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuToggle.setAttribute('aria-label', 'Open navigation menu');
+    document.body.style.overflow = '';
+  }
+
+  menuToggle?.addEventListener('click', () => {
+    const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+    if (isOpen) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
+
+  const mobileLinks = mobileMenu?.querySelectorAll('.mobile-nav-link');
+  mobileLinks?.forEach((link) => {
+    link.addEventListener('click', closeMenu);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menuToggle?.getAttribute('aria-expanded') === 'true') {
+      closeMenu();
+      menuToggle.focus();
+    }
+  });
+
+  // ── Intersection Observer for active nav link highlighting ──
+  const navLinks = document.querySelectorAll<HTMLAnchorElement>('a.nav-link[data-nav-section]');
+  const sectionIds = ['services', 'about', 'contact'];
+  const sections = sectionIds
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
+
+  // Track which sections are currently intersecting
+  const visibleSections = new Set<string>();
+
+  function updateActiveLink() {
+    // Pick the first visible section in page order
+    let activeId: string | null = null;
+    for (const id of sectionIds) {
+      if (visibleSections.has(id)) {
+        activeId = id;
+        break;
+      }
+    }
+
+    navLinks.forEach((link) => {
+      const section = link.getAttribute('data-nav-section');
+      if (section === activeId) {
+        link.classList.add('nav-link-active');
+      } else {
+        link.classList.remove('nav-link-active');
+      }
+    });
+  }
+
+  if (sections.length > 0) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const id = entry.target.id;
+          if (entry.isIntersecting) {
+            visibleSections.add(id);
+          } else {
+            visibleSections.delete(id);
+          }
+        });
+        updateActiveLink();
+      },
+      {
+        // Offset top by navbar height, trigger when section enters upper portion
+        rootMargin: '-80px 0px -60% 0px',
+        threshold: 0,
+      }
+    );
+
+    sections.forEach((section) => observer.observe(section));
+  }
+</script>

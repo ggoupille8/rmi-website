@@ -545,6 +545,7 @@ export default function ContactForm({
                   autoComplete="off"
                   value={formData.website}
                   onChange={handleChange}
+                  className="h-0 w-0 border-0 p-0 m-0"
                 />
               </div>
 
