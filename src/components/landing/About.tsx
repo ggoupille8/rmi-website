@@ -41,14 +41,14 @@ const features: AboutFeature[] = [
     icon: Users,
     title: "Union-Trained Workforce",
     description:
-      "Proud to utilize Local 25 insulators from the International Association of Heat and Frost Insulators and Allied Workers. OSHA 10/30-hour certified, CPR and first aid trained, and apprenticeship-developed. Several of our crew members serve as mentors within the union, actively developing the next generation of insulators.",
+      "Proud to employ Local 25 insulators — OSHA 10/30-hour certified, CPR and first aid trained, and backed by years of hands-on field experience in commercial and industrial environments.",
   },
 ];
 
 export default function About() {
   return (
     <section
-      className="py-6 sm:py-8 lg:py-10 bg-neutral-950 border-t border-accent-600/30"
+      className="section-padding-sm bg-neutral-950 border-t border-accent-600/30"
       aria-labelledby="about-heading"
     >
       <div className="container-custom">
@@ -93,7 +93,7 @@ export default function About() {
                 </h3>
 
                 {/* Description */}
-                <p className="text-sm text-neutral-400 leading-relaxed">
+                <p className="text-sm text-neutral-300 leading-relaxed">
                   {feature.description}
                 </p>
               </div>

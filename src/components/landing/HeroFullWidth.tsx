@@ -165,7 +165,7 @@ export default function HeroFullWidth({
             {/* Primary CTA */}
             <a
               href="#contact"
-              className="btn-primary h-14 px-8 text-lg flex items-center justify-center shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300"
+              className="btn-primary h-14 px-8"
             >
               Request a Quote
             </a>

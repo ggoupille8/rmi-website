@@ -8,7 +8,6 @@ export const companyNameFull = "Resource Mechanical Insulation, LLC";
 
 // Contact Information
 export const email = "fab@rmi-llc.net";
-export const emailMailto = `mailto:${email}`;
 export const phone = "419-705-6153";
 export const phoneE164 = "+14197056153";
 export const phoneTel = `tel:${phoneE164}`;
@@ -23,16 +22,14 @@ export const address = {
   full: "11677 Wayne Road, Suite 112, Romulus, MI 48174",
 } as const;
 
-// Service Area
-export const serviceArea = "Michigan and surrounding areas.";
-
 // Hero Content
-export const heroEyebrow = undefined; // Optional eyebrow text
 export const heroHeadline = "Resource Mechanical Insulation";
-export const heroSubheadline =
-  "Serving Michigan and surrounding areas with mechanical insulation for piping, ductwork, equipment, and specialty applications across commercial and industrial environments—focused on professional installs and safety-driven practices.";
-export const heroCtaPrimary = "Request a Quote";
-export const heroCtaSecondary = phoneDisplay;
+
+// CTA Banner Content
+export const ctaBannerHeading = "READY TO START YOUR INSULATION PROJECT?";
+export const ctaBannerSubtitle =
+  "Share your project details and receive a detailed quote within 48 hours\u2014or call for immediate assessment on urgent jobs.";
+export const ctaBannerButton = "Request a Quote";
 
 // Services Data
 export interface ServiceData {
@@ -109,48 +106,6 @@ export const services: ServiceData[] = [
   },
 ];
 
-// Value Propositions (4-column grid)
-export interface ValueProp {
-  icon: string;
-  title: string;
-  description: string;
-}
-
-export const valueProps: ValueProp[] = [
-  {
-    icon: "Building2",
-    title: "Industry Leaders Trust Us",
-    description: "Serving top-tier clients including Apple, Ford, Rivian, and Cartier.",
-  },
-  {
-    icon: "Target",
-    title: "Precision Engineering",
-    description: "Exacting standards for thermal performance and energy efficiency.",
-  },
-  {
-    icon: "ShieldCheck",
-    title: "Safety-Driven Execution",
-    description: "OSHA-compliant crews with impeccable jobsite safety records.",
-  },
-  {
-    icon: "Wrench",
-    title: "Custom Fabrication",
-    description: "In-house manufacturing of inserts, shields, and pipe supports.",
-  },
-];
-
-// Stats/Metrics
-export interface Stat {
-  value: string;
-  label: string;
-}
-
-export const stats: Stat[] = [
-  { value: "150+", label: "Years Combined Experience" },
-  { value: "500+", label: "Projects Annually" },
-  { value: "74K+", label: "OSHA Man-Hours" },
-];
-
 // =============================================================================
 // OSHA MAN-HOURS DATA
 // Source: Annual OSHA reporting records
@@ -174,7 +129,6 @@ export const totalOshaManHours = Object.values(oshaManHoursByYear).reduce(
 // Get the year range from the data (e.g., "2021-2024" or "Since 2021")
 const oshaYears = Object.keys(oshaManHoursByYear).map(Number).sort((a, b) => a - b);
 export const oshaFirstYear = oshaYears[0];
-export const oshaLastYear = oshaYears[oshaYears.length - 1];
 export const oshaYearRange = `Since ${oshaFirstYear}`;
 // Alternative format: `${oshaFirstYear}-${oshaLastYear}`
 

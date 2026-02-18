@@ -28,14 +28,14 @@ const iconMap: Record<string, LucideIcon> = {
 // Tag color map
 const tagColors: Record<string, string> = {
   "Core Service": "text-accent-500",
-  "24/7 Available": "text-emerald-500",
+  "24/7 Available": "text-success",
   Specialized: "text-neutral-500 dark:text-neutral-500",
 };
 
 export default function Services() {
   return (
     <section
-      className="section-padding pt-16 lg:pt-20 bg-neutral-50 dark:bg-neutral-900"
+      className="section-padding bg-neutral-50 dark:bg-neutral-900"
       aria-labelledby="services-heading"
     >
       <div className="container-custom">
@@ -51,7 +51,7 @@ export default function Services() {
         </div>
 
         {/* Section Subtitle */}
-        <p className="text-center text-neutral-600 dark:text-neutral-400 text-lg sm:text-xl max-w-3xl mx-auto mb-12">
+        <p className="text-center text-neutral-600 dark:text-neutral-300 text-lg sm:text-xl max-w-3xl mx-auto mb-12">
           Comprehensive mechanical insulation services for commercial and industrial facilities. From routine maintenance to emergency response and custom fabrication — we handle every insulation need.
         </p>
 
@@ -89,7 +89,7 @@ export default function Services() {
                 </h3>
 
                 {/* Description */}
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed flex-grow">
+                <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed flex-grow">
                   {service.description}
                 </p>
               </div>

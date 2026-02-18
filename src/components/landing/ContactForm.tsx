@@ -304,10 +304,10 @@ export default function ContactForm({
 
   return (
     <section
-      className="bg-white dark:bg-neutral-900"
+      className="section-padding-sm bg-white dark:bg-neutral-900"
       aria-labelledby="contact-heading"
     >
-      <div className="container-custom py-2 sm:py-3">
+      <div className="container-custom">
         <div className="mx-auto max-w-3xl">
           <div className="text-center flex flex-col items-center">
             <h2 id="contact-heading" className="section-header-stripe font-bold tracking-wider text-neutral-900 dark:text-neutral-50 uppercase text-2xl sm:text-3xl lg:text-4xl">
@@ -330,7 +330,7 @@ export default function ContactForm({
                   htmlFor="name"
                   className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed mb-1.5"
                 >
-                  Name <span className="text-error">*</span>
+                  Name <span className="text-error" aria-hidden="true">*</span>
                 </label>
                 <input
                   ref={nameInputRef}
@@ -456,7 +456,7 @@ export default function ContactForm({
                   htmlFor="projectType"
                 className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed mb-1.5"
               >
-                Project Type <span className="text-error">*</span>
+                Project Type <span className="text-error" aria-hidden="true">*</span>
               </label>
               <select
                 ref={projectTypeRef}
@@ -492,7 +492,7 @@ export default function ContactForm({
                   htmlFor="message"
                 className="block text-sm font-medium text-neutral-800 dark:text-neutral-200 leading-relaxed mb-1.5"
               >
-                Project Details <span className="text-error">*</span>
+                Project Details <span className="text-error" aria-hidden="true">*</span>
               </label>
               <textarea
                 ref={messageRef}

@@ -82,12 +82,12 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-6 pt-4 border-t border-neutral-800/50 flex items-center justify-between">
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-neutral-400">
             &copy; {currentYear} {companyNameFull}. All rights reserved.
           </p>
           <a
             href="#"
-            className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-300 transition-colors"
             aria-label="Back to top"
           >
             Back to top
