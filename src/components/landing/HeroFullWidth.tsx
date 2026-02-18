@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroHeadline, heroTagline } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
 
 interface HeroFullWidthProps {
@@ -115,8 +115,8 @@ function AnimatedStat({
 }
 
 export default function HeroFullWidth({
-  headline = "Resource Mechanical Insulation",
-  tagline = "Commercial & Industrial Insulation Experts",
+  headline = heroHeadline,
+  tagline = heroTagline,
   backgroundImage = "/images/hero/hero-1.jpg",
 }: HeroFullWidthProps) {
   return (

@@ -7,7 +7,7 @@ export default function CTABanner() {
   return (
     <section className="section-padding bg-neutral-100 dark:bg-neutral-800" aria-labelledby="cta-heading">
       <div className="container-custom text-center">
-        <h2 id="cta-heading" className="text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 dark:text-white tracking-tight">
+        <h2 id="cta-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 dark:text-white tracking-tight">
           {parts[0]}
           <span className="text-accent-500">INSULATION</span>
           {parts[1]}

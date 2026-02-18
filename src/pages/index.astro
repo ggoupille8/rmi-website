@@ -8,19 +8,19 @@ import CTABanner from '../components/landing/CTABanner';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
 import FloatingMobileCTA from '../components/landing/FloatingMobileCTA';
-import { heroHeadline } from '../content/site';
+import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../content/site';
 ---
 
 <BaseLayout
-  title="Resource Mechanical Insulation | Industrial Insulation Contractors Michigan"
-  description="Professional mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Serving Michigan from Romulus, MI."
+  title={siteTitle}
+  description={siteDescription}
   canonical="https://resourcemechanicalinsulation.com/"
 >
   <div>
     <HeroFullWidth
       client:load
       headline={heroHeadline}
-      tagline="Commercial & Industrial Insulation Experts"
+      tagline={heroTagline}
       backgroundImage="/images/hero/hero-1.jpg"
     />
     <div id="services" class="scroll-mt-20">

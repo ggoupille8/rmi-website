@@ -18,7 +18,7 @@ import { companyName } from '../../content/site';
       <img
         id="navbar-logo"
         src="/images/logo/rmi-logo-white.png"
-        alt="Resource Mechanical Insulation logo"
+        alt={`${companyName} logo`}
         class="h-9 w-auto brightness-0 invert"
         onload="document.getElementById('navbar-logo-fallback').style.display='none';"
         onerror="this.onerror=null;this.style.display='none';document.getElementById('navbar-logo-fallback').style.display='flex';"

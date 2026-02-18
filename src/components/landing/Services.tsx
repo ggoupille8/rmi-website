@@ -1,4 +1,4 @@
-import { services } from "../../content/site";
+import { services, servicesSubtitle } from "../../content/site";
 import {
   Workflow,
   Wind,
@@ -52,7 +52,7 @@ export default function Services() {
 
         {/* Section Subtitle */}
         <p className="text-center text-neutral-600 dark:text-neutral-300 text-lg sm:text-xl max-w-3xl mx-auto mb-12">
-          Comprehensive mechanical insulation services for commercial and industrial facilities. From routine maintenance to emergency response and custom fabrication — we handle every insulation need.
+          {servicesSubtitle}
         </p>
 
         {/* Services Grid - 3 columns on desktop, 2 on tablet, 1 on mobile */}

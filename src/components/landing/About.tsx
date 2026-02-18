@@ -56,7 +56,7 @@ export default function About() {
         <div className="flex justify-center mb-6">
           <h2
             id="about-heading"
-            className="section-header-stripe font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl"
+            className="section-header-stripe font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl"
             style={{ letterSpacing: "0.1em" }}
           >
             Why Choose <span className="hidden sm:inline">{companyName}</span><span className="sm:hidden">RMI</span>

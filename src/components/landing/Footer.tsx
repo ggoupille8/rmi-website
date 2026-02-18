@@ -1,4 +1,4 @@
-import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address, footerDescription } from "../../content/site";
 import { Phone, Mail, MapPin, ArrowUp } from "lucide-react";
 
 export default function Footer() {
@@ -17,7 +17,7 @@ export default function Footer() {
               {companyNameFull}
             </h3>
             <p className="text-neutral-400 text-sm leading-relaxed">
-              Professional mechanical insulation services for commercial and industrial environments.
+              {footerDescription}
             </p>
           </div>
 

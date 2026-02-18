@@ -22,8 +22,20 @@ export const address = {
   full: "11677 Wayne Road, Suite 112, Romulus, MI 48174",
 } as const;
 
+// SEO / Meta
+export const siteTitle = `${companyName} | Industrial Insulation Contractors Michigan`;
+export const siteDescription =
+  "Professional mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Serving Michigan from Romulus, MI.";
+
 // Hero Content
 export const heroHeadline = "Resource Mechanical Insulation";
+export const heroTagline = "Commercial & Industrial Insulation Experts";
+
+// Section Subtitles
+export const servicesSubtitle =
+  "Comprehensive mechanical insulation services for commercial and industrial facilities. From routine maintenance to emergency response and custom fabrication \u2014 we handle every insulation need.";
+export const footerDescription =
+  "Professional mechanical insulation services for commercial and industrial environments.";
 
 // CTA Banner Content
 export const ctaBannerHeading = "READY TO START YOUR INSULATION PROJECT?";
