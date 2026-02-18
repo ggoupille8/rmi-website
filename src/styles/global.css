@@ -373,7 +373,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .service-ticker__track {
-    animation-play-state: paused !important;
+    animation-duration: 120s !important;
+    animation-iteration-count: infinite !important;
   }
 }
 @layer utilities {

@@ -22,7 +22,10 @@
       "Bash(gh pr:*)",
       "Bash(git pull:*)",
       "Bash(cd:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(npm run test:visual:update:*)",
+      "Bash(tr:*)",
+      "Bash(python:*)"
     ]
   }
 }
