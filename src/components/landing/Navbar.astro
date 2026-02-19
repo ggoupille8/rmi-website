@@ -208,24 +208,17 @@ import { companyName } from '../../content/site';
 
   // ── Intersection Observer for active nav link highlighting ──
   const navLinks = document.querySelectorAll<HTMLAnchorElement>('a.nav-link[data-nav-section]');
+  const mobileNavLinks = document.querySelectorAll<HTMLAnchorElement>('.mobile-nav-link[href^="#"]');
   const sectionIds = ['services', 'about', 'contact'];
   const sections = sectionIds
     .map((id) => document.getElementById(id))
     .filter((el): el is HTMLElement => el !== null);
 
-  // Track which sections are currently intersecting
-  const visibleSections = new Set<string>();
+  // Track intersection ratios per section
+  const sectionRatios = new Map<string, number>();
+  let currentHash = '';
 
-  function updateActiveLink() {
-    // Pick the first visible section in page order
-    let activeId: string | null = null;
-    for (const id of sectionIds) {
-      if (visibleSections.has(id)) {
-        activeId = id;
-        break;
-      }
-    }
-
+  function setActiveNav(activeId: string | null) {
     navLinks.forEach((link) => {
       const section = link.getAttribute('data-nav-section');
       if (section === activeId) {
@@ -234,25 +227,59 @@ import { companyName } from '../../content/site';
         link.classList.remove('nav-link-active');
       }
     });
+
+    // Update URL hash without creating history entries
+    const newHash = activeId ? `#${activeId}` : '';
+    if (newHash !== currentHash) {
+      currentHash = newHash;
+      if (newHash) {
+        history.replaceState(null, '', newHash);
+      } else {
+        // Clear hash — use pathname to avoid the bare '#'
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+  }
+
+  function updateActiveLink() {
+    // Find the first section (in page order) with ≥30% visibility
+    let activeId: string | null = null;
+    for (const id of sectionIds) {
+      if ((sectionRatios.get(id) ?? 0) >= 0.3) {
+        activeId = id;
+        break;
+      }
+    }
+
+    // Fallback: if no section hits 30%, pick the one with the highest ratio
+    if (!activeId) {
+      let best = 0;
+      for (const id of sectionIds) {
+        const ratio = sectionRatios.get(id) ?? 0;
+        if (ratio > best) {
+          best = ratio;
+          activeId = id;
+        }
+      }
+      // If the best ratio is essentially zero, nothing is active (hero/top)
+      if (best < 0.05) activeId = null;
+    }
+
+    setActiveNav(activeId);
   }
 
   if (sections.length > 0) {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const id = entry.target.id;
-          if (entry.isIntersecting) {
-            visibleSections.add(id);
-          } else {
-            visibleSections.delete(id);
-          }
+          sectionRatios.set(entry.target.id, entry.intersectionRatio);
         });
         updateActiveLink();
       },
       {
-        // Offset top by navbar height, trigger when section enters upper portion
-        rootMargin: '-80px 0px -60% 0px',
-        threshold: 0,
+        // Offset top by navbar height (h-14 = 56px)
+        rootMargin: '-56px 0px 0px 0px',
+        threshold: [0, 0.1, 0.2, 0.3, 0.5, 0.7, 1],
       }
     );
 
