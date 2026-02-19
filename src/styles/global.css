@@ -197,13 +197,6 @@
   .container-custom {
     @apply mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8;
   }
-  .container-narrow {
-    @apply mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8;
-  }
-  .container-wide {
-    @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8;
-  }
-
   /* Stencil headline - clean, plain text */
   .stencil-spray {
     font-family: 'Russo One', 'Impact', sans-serif;
@@ -227,38 +220,6 @@
   .section-padding-sm {
     @apply py-8 sm:py-10 lg:py-12;
   }
-  .section-padding-lg {
-    @apply py-16 sm:py-20 lg:py-24;
-  }
-  /* Type Scale - Industrial Hierarchy - Increased sizes */
-  .heading-1 {
-    @apply text-5xl font-extrabold tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl xl:text-8xl;
-    line-height: 1.15;
-  }
-  .heading-2 {
-    @apply text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl xl:text-7xl;
-    line-height: 1.25;
-  }
-  .heading-3 {
-    @apply text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl;
-    line-height: 1.35;
-  }
-  .heading-4 {
-    @apply text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl;
-    line-height: 1.4;
-  }
-  .text-body {
-    @apply text-lg text-neutral-800 sm:text-xl;
-    line-height: 1.75;
-  }
-  .text-body-lg {
-    @apply text-xl text-neutral-800 sm:text-2xl;
-    line-height: 1.75;
-  }
-  .text-body-sm {
-    @apply text-base text-neutral-700 sm:text-lg;
-    line-height: 1.7;
-  }
   /* Button System - Industrial, Strong Contrast */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-600 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-300 ease-in-out;
@@ -269,46 +230,8 @@
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent-600 disabled:hover:shadow-md disabled:hover:scale-100 disabled:hover:translate-y-0;
     /* Strong contrast: white on accent-600 (blue) meets WCAG AAA */
   }
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-neutral-300 bg-white px-6 py-3 text-lg font-semibold text-neutral-900 shadow-sm transition-all duration-200;
-    line-height: 1.5;
-    @apply hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-md;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
-    @apply active:bg-neutral-100 active:shadow-sm;
-    /* Strong contrast: neutral-900 on white meets WCAG AAA */
-  }
-  .btn-accent {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-500 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-200;
-    line-height: 1.5;
-    @apply hover:bg-accent-600 hover:shadow-lg;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
-    @apply active:bg-accent-700 active:shadow-md;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent-500 disabled:hover:shadow-md;
-  }
-  .btn-sm {
-    @apply px-4 py-2 text-base;
-  }
-  .btn-lg {
-    @apply px-8 py-4 text-xl;
-  }
-  /* Card Components - Industrial Premium */
-  .card {
-    @apply rounded-xl bg-white p-6 shadow-md transition-all duration-200;
-    @apply border border-neutral-200;
-  }
-  .card-hover {
-    @apply card hover:shadow-lg hover:-translate-y-1;
-  }
   .card-elevated {
     @apply rounded-xl bg-white p-8 shadow-lg border border-neutral-200;
-  }
-  /* Premium Divider */
-  .divider {
-    @apply border-t border-neutral-200;
-  }
-  /* Badge/Pill Components */
-  .badge {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
   }
   /* Form element improvements for mobile/iOS */
   input[type="text"],
@@ -376,64 +299,5 @@
   .service-ticker__track {
     animation-duration: 120s !important;
     animation-iteration-count: infinite !important;
-  }
-}
-@layer utilities {
-  .focus-visible-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50;
-  }
-
-  /* Gradient overlays for images */
-  .overlay-dark {
-    position: relative;
-  }
-  .overlay-dark::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(23, 23, 23, 0.85) 0%, rgba(23, 23, 23, 0.7) 50%, rgba(23, 23, 23, 0.6) 100%);
-    pointer-events: none;
-  }
-
-  /* Text shadows for dark backgrounds */
-  .text-shadow {
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  }
-
-  /* Smooth transitions */
-  .transition-smooth {
-    @apply transition-all duration-300 ease-out;
-  }
-  /* Skip link for accessibility */
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-  .sr-only:focus {
-    position: absolute;
-    width: auto;
-    height: auto;
-    padding: 0.5rem 1rem;
-    margin: 0;
-    overflow: visible;
-    clip: auto;
-    white-space: normal;
-  }
-  .focus\:not-sr-only:focus {
-    position: static;
-    width: auto;
-    height: auto;
-    padding: inherit;
-    margin: inherit;
-    overflow: visible;
-    clip: auto;
-    white-space: normal;
   }
 }
