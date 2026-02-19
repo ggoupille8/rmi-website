@@ -5,7 +5,7 @@ export default function MaterialsMarquee() {
   const duplicatedMaterials = [...materials, ...materials];
 
   return (
-    <section className="relative section-padding-sm overflow-hidden bg-neutral-900">
+    <section className="relative section-padding-sm overflow-hidden bg-neutral-900 border-t border-accent-500/30">
       {/* Edge gradient fades */}
       <div
         className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 z-10 pointer-events-none bg-gradient-to-r from-neutral-900 to-transparent"
@@ -16,10 +16,10 @@ export default function MaterialsMarquee() {
 
       {/* Header */}
       <div className="container-custom mb-6">
-        <h2 className="text-lg sm:text-xl text-white uppercase tracking-[0.15em] font-semibold text-center">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl text-white uppercase tracking-wider font-bold text-center">
           Materials We Work With
         </h2>
-        <p className="text-sm sm:text-base text-neutral-300 text-center mt-1.5 tracking-wide">
+        <p className="text-base sm:text-lg text-neutral-300 text-center mt-1.5 tracking-wide">
           Insulation, jacketing, accessories, and support systems
         </p>
       </div>
@@ -31,7 +31,7 @@ export default function MaterialsMarquee() {
             {duplicatedMaterials.map((material, index) => (
               <span
                 key={`${material}-${index}`}
-                className="inline-block px-4 sm:px-5 py-2 mx-1.5 sm:mx-2 text-neutral-300 text-sm sm:text-base whitespace-nowrap border border-neutral-700/60 rounded-full"
+                className="inline-block px-5 sm:px-6 py-2.5 mx-1.5 sm:mx-2 text-neutral-300 text-base sm:text-lg whitespace-nowrap border border-neutral-700/60 rounded-full"
               >
                 {material}
               </span>

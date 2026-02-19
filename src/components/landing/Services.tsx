@@ -29,6 +29,8 @@ const iconMap: Record<string, LucideIcon> = {
 
 export default function Services() {
   const [activeService, setActiveService] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -37,8 +39,13 @@ export default function Services() {
     : null;
 
   const closeModal = useCallback(() => {
-    setActiveService(null);
-    triggerRef.current?.focus();
+    setIsVisible(false);
+    setIsClosing(true);
+    setTimeout(() => {
+      setActiveService(null);
+      setIsClosing(false);
+      triggerRef.current?.focus();
+    }, 200);
   }, []);
 
   const openModal = (anchorId: string, buttonEl: HTMLButtonElement) => {
@@ -104,11 +111,23 @@ export default function Services() {
     };
   }, [activeService]);
 
+  // Trigger opening animation after modal mounts
+  useEffect(() => {
+    if (activeService && !isClosing) {
+      const frame = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsVisible(true);
+        });
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [activeService, isClosing]);
+
   const isOpen = activeService !== null;
 
   return (
     <section
-      className="section-padding bg-neutral-800"
+      className="pt-6 pb-12 sm:pt-8 sm:pb-16 bg-neutral-800"
       aria-labelledby="services-heading"
     >
       <div className="container-custom">
@@ -159,7 +178,7 @@ export default function Services() {
         >
           {/* Backdrop — click to close */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-md animate-[fadeIn_200ms_ease-out]"
+            className={`absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-200 ${isVisible && !isClosing ? "opacity-100" : "opacity-0"}`}
             onClick={closeModal}
           />
 
@@ -169,7 +188,7 @@ export default function Services() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
-            className="relative z-10 max-w-lg w-full mx-4 bg-neutral-900 rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 animate-[modalIn_300ms_ease-out]"
+            className={`relative z-10 max-w-lg w-full mx-4 bg-neutral-900 rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
