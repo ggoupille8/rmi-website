@@ -97,7 +97,7 @@ function AnimatedStat({
 
   return (
     <div ref={ref} className="text-center">
-      <div className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+      <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
         {finalDisplay}
       </div>
       <div className="mt-2 text-sm sm:text-base text-neutral-200 uppercase tracking-wider">
@@ -174,14 +174,14 @@ export default function HeroFullWidth({
             <div className="flex gap-3">
               <a
                 href={phoneTel}
-                className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300"
+                className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                 aria-label={`Call ${companyName} at ${phoneDisplay}`}
               >
                 <Phone className="w-6 h-6 text-white" aria-hidden="true" />
               </a>
               <a
                 href={`mailto:${email}`}
-                className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300"
+                className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                 aria-label={`Email ${companyName} at ${email}`}
               >
                 <Mail className="w-6 h-6 text-white" aria-hidden="true" />
@@ -190,22 +190,23 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats */}
-          <div className="mt-16 lg:mt-24 grid grid-cols-3 gap-6 sm:gap-8 lg:gap-12 max-w-3xl mx-auto">
-            {heroStats.map((stat, index) => (
-              <AnimatedStat
-                key={stat.label}
-                endValue={stat.endValue}
-                suffix={stat.suffix}
-                label={stat.label}
-                shortLabel={stat.shortLabel}
-                delay={index * 200}
-              />
-            ))}
+          <div className="mt-16 lg:mt-24 max-w-3xl mx-auto bg-neutral-900/60 backdrop-blur-sm rounded-xl px-6 py-4 border border-neutral-700/30">
+            <div className="flex items-center justify-center divide-x divide-neutral-600/50">
+              {heroStats.map((stat, index) => (
+                <div key={stat.label} className="flex-1 px-3 sm:px-6">
+                  <AnimatedStat
+                    endValue={stat.endValue}
+                    suffix={stat.suffix}
+                    label={stat.label}
+                    shortLabel={stat.shortLabel}
+                    delay={index * 200}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Scroll indicator - removed for cleaner look */}
     </section>
   );
 }

@@ -57,14 +57,13 @@ export default function About() {
           <h2
             id="about-heading"
             className="section-header-stripe font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl"
-            style={{ letterSpacing: "0.1em" }}
           >
             Why Choose <span className="hidden sm:inline">{companyName}</span><span className="sm:hidden">RMI</span>
           </h2>
         </div>
 
         {/* Subtitle */}
-        <p className="text-center text-neutral-400 text-lg sm:text-xl max-w-3xl mx-auto mb-8">
+        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-3xl mx-auto mb-8">
           {formatLargeNumber(totalOshaManHours)} safe man-hours. Zero lost-time incidents. Local 25 union crews ready to handle everything from routine maintenance to full facility outages.
         </p>
 

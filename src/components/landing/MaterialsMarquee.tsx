@@ -5,15 +5,13 @@ export default function MaterialsMarquee() {
   const duplicatedMaterials = [...materials, ...materials];
 
   return (
-    <section className="relative section-padding-sm overflow-hidden" style={{ backgroundColor: 'rgb(23, 23, 23)' }}>
+    <section className="relative section-padding-sm overflow-hidden bg-neutral-900">
       {/* Edge gradient fades */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 z-10 pointer-events-none"
-        style={{ background: 'linear-gradient(to right, rgb(23,23,23), transparent)' }}
+        className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 z-10 pointer-events-none bg-gradient-to-r from-neutral-900 to-transparent"
       />
       <div
-        className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 z-10 pointer-events-none"
-        style={{ background: 'linear-gradient(to left, rgb(23,23,23), transparent)' }}
+        className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 z-10 pointer-events-none bg-gradient-to-l from-neutral-900 to-transparent"
       />
 
       {/* Header */}

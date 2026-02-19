@@ -82,6 +82,13 @@ export const services: ServiceData[] = [
       "Thermal insulation solutions for process vessels, storage tanks, and industrial equipment. We maintain optimal operating temperatures, reduce heat loss, protect personnel from hot and cold surfaces, and extend equipment lifespan. Perfect for manufacturing, food & beverage, pharmaceutical, and energy production facilities.",
   },
   {
+    title: "Removable Insulation Blankets",
+    anchorId: "blankets",
+    tag: "Specialized",
+    description:
+      "Custom removable insulation blankets for valves, flanges, equipment access points, and seasonal applications. Our removable blankets maintain thermal performance and energy efficiency while preserving maintenance access and equipment flexibility — ideal for temporary insulation needs and equipment that requires frequent access.",
+  },
+  {
     title: "Field-Applied Jacketing",
     anchorId: "jacketing",
     tag: "Specialized",
@@ -94,13 +101,6 @@ export const services: ServiceData[] = [
     tag: "Specialized",
     description:
       "In-house fabricated pipe supports and hangers with fast turnaround times. We design, fabricate, and deliver custom pipe supports that reduce lead times, keep your projects on schedule, and meet all structural and code requirements for commercial and industrial piping systems.",
-  },
-  {
-    title: "Removable Insulation Blankets",
-    anchorId: "blankets",
-    tag: "Specialized",
-    description:
-      "Custom removable insulation blankets for valves, flanges, equipment access points, and seasonal applications. Our removable blankets maintain thermal performance and energy efficiency while preserving maintenance access and equipment flexibility — ideal for temporary insulation needs and equipment that requires frequent access.",
   },
   {
     title: "Material Sales",
@@ -175,7 +175,7 @@ export interface HeroStat {
 export const heroStats: HeroStat[] = [
   { endValue: 100, suffix: "+", label: "Clients" },
   { endValue: 500, suffix: "+", label: "Projects Annually" },
-  { endValue: totalOshaManHours, suffix: "", label: `OSHA Man-Hours (${oshaYearRange})`, shortLabel: "OSHA Hours" },
+  { endValue: totalOshaManHours, suffix: "", label: "OSHA Man-Hours", shortLabel: "OSHA Hours" },
 ];
 
 // Materials

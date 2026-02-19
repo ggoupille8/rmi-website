@@ -59,7 +59,7 @@ export default function Footer() {
                 className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm"
                 aria-label={`Call ${companyName} at ${phoneDisplay}`}
               >
-                <Phone className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
+                <Phone className="w-3.5 h-3.5 text-accent-500" aria-hidden="true" />
                 <span>{phoneDisplay}</span>
               </a>
 
@@ -68,12 +68,12 @@ export default function Footer() {
                 className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm"
                 aria-label={`Email ${companyName} at ${email}`}
               >
-                <Mail className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
+                <Mail className="w-3.5 h-3.5 text-accent-500" aria-hidden="true" />
                 <span>{email}</span>
               </a>
 
               <div className="flex items-start gap-2 text-white text-sm">
-                <MapPin className="w-3.5 h-3.5 text-primary-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <MapPin className="w-3.5 h-3.5 text-accent-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <span>{address.full}</span>
               </div>
             </div>

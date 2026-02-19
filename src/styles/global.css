@@ -359,14 +359,16 @@
     );
     z-index: -1;
   }
-  .dark .section-header-stripe::before {
-    background: repeating-linear-gradient(
-      -45deg,
-      #525252,
-      #525252 2px,
-      transparent 2px,
-      transparent 8px
-    );
+  @media (prefers-color-scheme: dark) {
+    .section-header-stripe::before {
+      background: repeating-linear-gradient(
+        -45deg,
+        #525252,
+        #525252 2px,
+        transparent 2px,
+        transparent 8px
+      );
+    }
   }
 }
 
