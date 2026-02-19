@@ -200,7 +200,7 @@ export default function ContactForm({
 
   return (
     <section
-      className="section-padding-sm bg-neutral-800"
+      className="pt-14 pb-12 sm:pb-16 bg-neutral-800"
       aria-labelledby="contact-heading"
     >
       <div className="container-custom">
