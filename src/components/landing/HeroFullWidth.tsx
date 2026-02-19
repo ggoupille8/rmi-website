@@ -121,7 +121,7 @@ export default function HeroFullWidth({
 }: HeroFullWidthProps) {
   return (
     <section
-      className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-16 sm:pt-20"
+      className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-12 sm:pt-14"
       aria-labelledby="hero-heading"
     >
       {/* Background Image with Overlay */}
