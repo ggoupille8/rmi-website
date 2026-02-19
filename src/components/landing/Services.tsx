@@ -156,14 +156,11 @@ export default function Services() {
       {isOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) closeModal();
-          }}
         >
-          {/* Backdrop */}
+          {/* Backdrop — click to close */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-md animate-[fadeIn_200ms_ease-out]"
-            aria-hidden="true"
+            onClick={closeModal}
           />
 
           {/* Modal Content */}
@@ -173,6 +170,7 @@ export default function Services() {
             aria-modal="true"
             aria-labelledby="modal-title"
             className="relative z-10 max-w-lg w-full mx-4 bg-neutral-900 rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 animate-[modalIn_300ms_ease-out]"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
