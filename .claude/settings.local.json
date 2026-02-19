@@ -33,7 +33,8 @@
       "Bash(node scripts/inspect-styles.mjs:*)",
       "Bash(pkill:*)",
       "Bash(cwebp:*)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "Bash(node scripts/db-migrate.mjs:*)"
     ]
   }
 }

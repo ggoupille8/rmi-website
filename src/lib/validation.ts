@@ -87,6 +87,7 @@ export interface ContactValidationResult {
 export interface ContactFormData {
   name: unknown;
   email: unknown;
+  phone: unknown;
   message: unknown;
   website?: unknown; // Honeypot field
   source?: unknown;
@@ -114,6 +115,7 @@ export function validateContactForm(data: unknown): ContactValidationResult {
   // Extract and sanitize fields
   const name = sanitizeString(formData.name);
   const email = sanitizeString(formData.email);
+  const phone = sanitizeString(formData.phone);
   const message = sanitizeString(formData.message);
   const website = sanitizeString(formData.website);
 
@@ -129,13 +131,18 @@ export function validateContactForm(data: unknown): ContactValidationResult {
     errors.name = `Name must be ${FIELD_LIMITS.MAX_NAME_LENGTH} characters or less`;
   }
 
-  // Required field: email with format validation
-  if (!isNonEmptyString(email)) {
-    errors.email = "Email is required";
-  } else if (email.length > FIELD_LIMITS.MAX_EMAIL_LENGTH) {
-    errors.email = `Email must be ${FIELD_LIMITS.MAX_EMAIL_LENGTH} characters or less`;
-  } else if (!isValidEmail(email)) {
-    errors.email = "Invalid email format";
+  // Email or phone required (at least one)
+  const hasEmail = isNonEmptyString(email);
+  const hasPhone = isNonEmptyString(phone);
+
+  if (!hasEmail && !hasPhone) {
+    errors.email = "Email or phone is required";
+  } else if (hasEmail) {
+    if (email.length > FIELD_LIMITS.MAX_EMAIL_LENGTH) {
+      errors.email = `Email must be ${FIELD_LIMITS.MAX_EMAIL_LENGTH} characters or less`;
+    } else if (!isValidEmail(email)) {
+      errors.email = "Invalid email format";
+    }
   }
 
   // Required field: message

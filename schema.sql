@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS contacts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   name VARCHAR(100) NOT NULL,
-  email VARCHAR(254) NOT NULL,
+  email VARCHAR(254),
+  phone VARCHAR(50),
   message TEXT NOT NULL,
   source VARCHAR(50) DEFAULT 'contact',
   metadata JSONB DEFAULT '{}'::jsonb
