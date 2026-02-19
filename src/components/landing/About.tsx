@@ -27,7 +27,7 @@ const features: AboutFeature[] = [
   },
   {
     icon: Clock,
-    title: "Outage & Emergency Response",
+    title: "Emergency Response",
     description:
       "When a job calls for it, we scale — staffing dozens of insulators across dual 12-hour shifts, 7 days a week, with the capacity to run multiple outages simultaneously. Emergency repairs mobilized around the clock.",
   },

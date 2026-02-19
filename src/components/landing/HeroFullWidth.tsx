@@ -145,30 +145,30 @@ export default function HeroFullWidth({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container-custom py-12 lg:py-20">
-        <div className="max-w-5xl mx-auto text-center">
+      <div className="relative z-10 container-custom py-12 lg:py-20 flex-1 flex flex-col">
+        <div className="max-w-5xl mx-auto text-center flex-1 flex flex-col justify-center w-full">
           {/* Main Content Card */}
-          <div className="max-w-3xl mx-auto bg-neutral-900/70 backdrop-blur-sm rounded-xl border border-neutral-700/30 py-8 px-8 sm:px-12">
+          <div className="max-w-3xl mx-auto bg-neutral-900/70 backdrop-blur-sm rounded-xl border border-neutral-700/30 py-6 px-6 sm:px-10">
             {/* Logo */}
             <h1 id="hero-heading" className="flex justify-center">
               <img
                 src="/images/logo/rmi-logo-full.png"
                 alt={headline}
-                className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
+                className="h-20 sm:h-28 lg:h-36 xl:h-44 w-auto brightness-0 invert"
               />
             </h1>
 
             {/* Tagline */}
-            <p className="mt-3 text-xl sm:text-2xl lg:text-3xl text-neutral-200 font-light tracking-wide">
+            <p className="mt-2 text-lg sm:text-xl lg:text-2xl text-neutral-200 font-light tracking-wide">
               {tagline}
             </p>
 
             {/* CTA Buttons */}
-            <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center items-center">
               {/* Primary CTA */}
               <a
                 href="#contact"
-                className="btn-primary h-14 px-8"
+                className="btn-primary h-12 px-6"
               >
                 Request a Quote
               </a>
@@ -177,14 +177,14 @@ export default function HeroFullWidth({
               <div className="flex gap-3">
                 <a
                   href={phoneTel}
-                  className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                  className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                   aria-label={`Call ${companyName} at ${phoneDisplay}`}
                 >
                   <Phone className="w-6 h-6 text-white" aria-hidden="true" />
                 </a>
                 <a
                   href={`mailto:${email}`}
-                  className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                  className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                   aria-label={`Email ${companyName} at ${email}`}
                 >
                   <Mail className="w-6 h-6 text-white" aria-hidden="true" />
@@ -194,11 +194,11 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats — Individual Cards */}
-          <div className="mt-8 lg:mt-12 flex justify-center gap-3 sm:gap-4">
+          <div className="mt-auto pt-10 lg:pt-16 flex justify-center gap-6 sm:gap-8">
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="bg-neutral-900/80 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 sm:px-6 py-3"
+                className="w-40 sm:w-44 bg-neutral-900/80 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 py-3"
               >
                 <AnimatedStat
                   endValue={stat.endValue}
