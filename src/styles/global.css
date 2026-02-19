@@ -30,9 +30,11 @@
 @keyframes kenBurns {
   from {
     transform: scale(1);
+    filter: brightness(1);
   }
   to {
-    transform: scale(1.12);
+    transform: scale(1.05);
+    filter: brightness(1.05);
   }
 }
 

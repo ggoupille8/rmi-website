@@ -8,9 +8,14 @@ const heroImages = [
   "/images/hero/hero-3.jpg",
   "/images/hero/hero-4.jpg",
   "/images/hero/hero-5.jpg",
+  "/images/hero/hero-6.jpg",
+  "/images/hero/hero-7.jpg",
+  "/images/hero/hero-8.jpg",
+  "/images/hero/hero-9.jpg",
+  "/images/hero/hero-10.jpg",
 ];
 
-const SLIDE_DURATION = 7000; // 7s per image
+const SLIDE_DURATION = 10000; // 10s per image
 
 interface HeroFullWidthProps {
   headline?: string;
@@ -147,15 +152,15 @@ export default function HeroFullWidth({
 
   return (
     <section
-      className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-12 sm:pt-14"
+      className="relative min-h-[60vh] lg:min-h-[70vh] flex flex-col justify-center overflow-hidden pt-12 sm:pt-14"
       aria-labelledby="hero-heading"
     >
       {/* Background Slideshow */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute top-12 sm:top-14 left-0 right-0 bottom-0 z-0">
         {heroImages.map((src, index) => (
           <div
             key={src}
-            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${
+            className={`absolute inset-0 transition-opacity duration-[3000ms] ease-in-out ${
               index === activeIndex ? "opacity-100" : "opacity-0"
             }`}
             aria-hidden="true"
@@ -168,20 +173,20 @@ export default function HeroFullWidth({
               <img
                 src={src}
                 alt=""
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center"
                 loading={index === 0 ? "eager" : "lazy"}
                 fetchpriority={index === 0 ? "high" : undefined}
                 style={
                   !prefersReducedMotion && index === activeIndex
-                    ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-out forwards` }
-                    : { transform: "scale(1)" }
+                    ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-in-out forwards` }
+                    : { transform: "scale(1)", filter: "brightness(1)" }
                 }
               />
             </picture>
           </div>
         ))}
         {/* Dark gradient overlay — on top of all images */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
       </div>
 
       {/* Content */}
