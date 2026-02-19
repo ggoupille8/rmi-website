@@ -17,6 +17,7 @@ let hasLoggedMissingContacts = false;
 interface ContactRequest {
   name: string;
   email: string;
+  phone: string;
   message: string;
   source?: string;
   timestamp?: string;
@@ -40,9 +41,11 @@ async function saveContact(
   };
 
   try {
+    const emailVal = data.email.trim() || null;
+    const phoneVal = data.phone.trim() || null;
     const result = await sql`
-      INSERT INTO contacts (name, email, message, source, metadata)
-      VALUES (${data.name.trim()}, ${data.email.trim()}, ${
+      INSERT INTO contacts (name, email, phone, message, source, metadata)
+      VALUES (${data.name.trim()}, ${emailVal}, ${phoneVal}, ${
       data.message.trim()
     }, ${data.source?.trim() || "contact"}, ${JSON.stringify(metadata)})
       RETURNING id
@@ -106,6 +109,7 @@ async function checkContactsTable(): Promise<{ ok: boolean }> {
 async function sendContactEmail(params: {
   name: string;
   email: string;
+  phone: string;
   message: string;
   timestamp: string;
 }): Promise<void> {
@@ -119,12 +123,15 @@ async function sendContactEmail(params: {
 
   sgMail.setApiKey(apiKey);
 
+  const contactLines = [`Name: ${params.name}`];
+  if (params.email) contactLines.push(`Email: ${params.email}`);
+  if (params.phone) contactLines.push(`Phone: ${params.phone}`);
+  contactLines.push(`Timestamp: ${params.timestamp}`);
+
   const emailContent = `
 New Contact Submission
 
-Name: ${params.name}
-Email: ${params.email}
-Timestamp: ${params.timestamp}
+${contactLines.join("\n")}
 
 Message:
 ${params.message}
@@ -200,6 +207,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const name = typeof obj.name === "string" ? obj.name.trim() : "";
   const email = typeof obj.email === "string" ? obj.email.trim() : "";
+  const phone = typeof obj.phone === "string" ? obj.phone.trim() : "";
   const message = typeof obj.message === "string" ? obj.message.trim() : "";
   const website = typeof obj.website === "string" ? obj.website.trim() : "";
   const source = typeof obj.source === "string" ? obj.source.trim() : "contact";
@@ -226,15 +234,32 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
+  // Require name and message
   if (
     !isNonEmptyString(name) ||
     !isNonEmptyString(message) ||
-    !isValidEmail(email) ||
     name.length > FIELD_LIMITS.MAX_NAME_LENGTH ||
-    email.length > FIELD_LIMITS.MAX_EMAIL_LENGTH ||
     message.length > FIELD_LIMITS.MAX_MESSAGE_LENGTH
   ) {
     return new Response(JSON.stringify({ ok: false, error: "Invalid input" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Require at least email or phone
+  const hasEmail = email.length > 0;
+  const hasPhone = phone.length > 0;
+  if (!hasEmail && !hasPhone) {
+    return new Response(JSON.stringify({ ok: false, error: "Email or phone is required" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // If email is provided, it must be valid format
+  if (hasEmail && (!isValidEmail(email) || email.length > FIELD_LIMITS.MAX_EMAIL_LENGTH)) {
+    return new Response(JSON.stringify({ ok: false, error: "Invalid email format" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
@@ -254,7 +279,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const userAgent = request.headers.get("user-agent");
     await saveContact(
-      { name, email, message, source, timestamp, metadata: { elapsedMs, fastSubmit } },
+      { name, email, phone, message, source, timestamp, metadata: { elapsedMs, fastSubmit } },
       clientIP,
       userAgent
     );
@@ -272,6 +297,7 @@ export const POST: APIRoute = async ({ request }) => {
     await sendContactEmail({
       name,
       email,
+      phone,
       message,
       timestamp: new Date().toISOString(),
     });

@@ -141,42 +141,6 @@ export default {
         inner: "var(--shadow-inner)",
         none: "var(--shadow-none)",
       },
-      // Background patterns - industrial premium gradients
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-industrial":
-          "linear-gradient(135deg, rgb(var(--color-primary-600)) 0%, rgb(var(--color-primary-800)) 50%, rgb(var(--color-accent-600)) 100%)",
-        "gradient-soft":
-          "linear-gradient(135deg, rgb(var(--color-primary-50)) 0%, rgb(var(--color-neutral-50)) 50%, rgb(var(--color-accent-50)) 100%)",
-        "pattern-grid": `
-          linear-gradient(rgba(var(--color-primary-600), 0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(var(--color-primary-600), 0.03) 1px, transparent 1px)
-        `,
-        "pattern-dots": `
-          radial-gradient(circle, rgba(var(--color-primary-600), 0.1) 1px, transparent 1px)
-        `,
-        "pattern-diagonal": `
-          repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 10px,
-            rgba(var(--color-primary-600), 0.02) 10px,
-            rgba(var(--color-primary-600), 0.02) 20px
-          )
-        `,
-        "pattern-cross": `
-          linear-gradient(rgba(var(--color-primary-600), 0.05) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(var(--color-primary-600), 0.05) 1px, transparent 1px),
-          linear-gradient(rgba(var(--color-accent-500), 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(var(--color-accent-500), 0.02) 1px, transparent 1px)
-        `,
-      },
-      backgroundSize: {
-        "pattern-grid": "40px 40px",
-        "pattern-dots": "20px 20px",
-        "pattern-diagonal": "20px 20px",
-        "pattern-cross": "40px 40px, 40px 40px, 20px 20px, 20px 20px",
-      },
     },
   },
   plugins: [],

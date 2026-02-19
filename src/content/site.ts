@@ -8,7 +8,6 @@ export const companyNameFull = "Resource Mechanical Insulation, LLC";
 
 // Contact Information
 export const email = "fab@rmi-llc.net";
-export const emailMailto = `mailto:${email}`;
 export const phone = "419-705-6153";
 export const phoneE164 = "+14197056153";
 export const phoneTel = `tel:${phoneE164}`;
@@ -23,16 +22,26 @@ export const address = {
   full: "11677 Wayne Road, Suite 112, Romulus, MI 48174",
 } as const;
 
-// Service Area
-export const serviceArea = "Michigan and surrounding areas.";
+// SEO / Meta
+export const siteTitle = `${companyName} | Industrial Insulation Contractors Michigan`;
+export const siteDescription =
+  "Professional mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Serving Michigan from Romulus, MI.";
 
 // Hero Content
-export const heroEyebrow = undefined; // Optional eyebrow text
 export const heroHeadline = "Resource Mechanical Insulation";
-export const heroSubheadline =
-  "Serving Michigan and surrounding areas with mechanical insulation for piping, ductwork, equipment, and specialty applications across commercial and industrial environments—focused on professional installs and safety-driven practices.";
-export const heroCtaPrimary = "Request a Quote";
-export const heroCtaSecondary = phoneDisplay;
+export const heroTagline = "Commercial & Industrial Insulation Experts";
+
+// Section Subtitles
+export const servicesSubtitle =
+  "Comprehensive mechanical insulation services for commercial and industrial facilities. From routine maintenance to emergency response and custom fabrication \u2014 we handle every insulation need.";
+export const footerDescription =
+  "Professional mechanical insulation services for commercial and industrial environments.";
+
+// CTA Banner Content
+export const ctaBannerHeading = "READY TO START YOUR INSULATION PROJECT?";
+export const ctaBannerSubtitle =
+  "Share your project details and receive a detailed quote within 48 hours\u2014or call for immediate assessment on urgent jobs.";
+export const ctaBannerButton = "Request a Quote";
 
 // Services Data
 export interface ServiceData {
@@ -44,13 +53,6 @@ export interface ServiceData {
 }
 
 export const services: ServiceData[] = [
-  {
-    title: "Plan & Specification / Bid Work",
-    anchorId: "ps-bid",
-    tag: "Core Service",
-    description:
-      "Weekly plan & specification bidding and estimation services for commercial and industrial insulation projects. We review customer bid lists weekly, quoting most jobs and working to quote every opportunity we can. Our estimating and technical coordination streamline your project planning and ensure seamless execution from bid to completion.",
-  },
   {
     title: "Pipe Insulation",
     anchorId: "piping",
@@ -73,6 +75,13 @@ export const services: ServiceData[] = [
       "Thermal insulation solutions for process vessels, storage tanks, and industrial equipment. We maintain optimal operating temperatures, reduce heat loss, protect personnel from hot and cold surfaces, and extend equipment lifespan. Perfect for manufacturing, food & beverage, pharmaceutical, and energy production facilities.",
   },
   {
+    title: "Removable Insulation Blankets",
+    anchorId: "blankets",
+    tag: "Specialized",
+    description:
+      "Custom removable insulation blankets for valves, flanges, equipment access points, and seasonal applications. Our removable blankets maintain thermal performance and energy efficiency while preserving maintenance access and equipment flexibility — ideal for temporary insulation needs and equipment that requires frequent access.",
+  },
+  {
     title: "Field-Applied Jacketing",
     anchorId: "jacketing",
     tag: "Specialized",
@@ -87,11 +96,11 @@ export const services: ServiceData[] = [
       "In-house fabricated pipe supports and hangers with fast turnaround times. We design, fabricate, and deliver custom pipe supports that reduce lead times, keep your projects on schedule, and meet all structural and code requirements for commercial and industrial piping systems.",
   },
   {
-    title: "Removable Insulation Blankets",
-    anchorId: "blankets",
-    tag: "Specialized",
+    title: "Plan & Specification / Bid Work",
+    anchorId: "ps-bid",
+    tag: "Core Service",
     description:
-      "Custom removable insulation blankets for valves, flanges, equipment access points, and seasonal applications. Our removable blankets maintain thermal performance and energy efficiency while preserving maintenance access and equipment flexibility — ideal for temporary insulation needs and equipment that requires frequent access.",
+      "Weekly plan & specification bidding and estimation services for commercial and industrial insulation projects. We review customer bid lists weekly, quoting most jobs and working to quote every opportunity we can. Our estimating and technical coordination streamline your project planning and ensure seamless execution from bid to completion.",
   },
   {
     title: "Material Sales",
@@ -107,48 +116,6 @@ export const services: ServiceData[] = [
     description:
       "Around-the-clock emergency insulation repair and outage support. We mobilize crews immediately for pipe failures, emergency breaks, facility shutdowns, and production-critical issues. Our rapid-response teams minimize downtime and keep your operations running with professional emergency insulation services available 7 days a week.",
   },
-];
-
-// Value Propositions (4-column grid)
-export interface ValueProp {
-  icon: string;
-  title: string;
-  description: string;
-}
-
-export const valueProps: ValueProp[] = [
-  {
-    icon: "Building2",
-    title: "Industry Leaders Trust Us",
-    description: "Serving top-tier clients including Apple, Ford, Rivian, and Cartier.",
-  },
-  {
-    icon: "Target",
-    title: "Precision Engineering",
-    description: "Exacting standards for thermal performance and energy efficiency.",
-  },
-  {
-    icon: "ShieldCheck",
-    title: "Safety-Driven Execution",
-    description: "OSHA-compliant crews with impeccable jobsite safety records.",
-  },
-  {
-    icon: "Wrench",
-    title: "Custom Fabrication",
-    description: "In-house manufacturing of inserts, shields, and pipe supports.",
-  },
-];
-
-// Stats/Metrics
-export interface Stat {
-  value: string;
-  label: string;
-}
-
-export const stats: Stat[] = [
-  { value: "150+", label: "Years Combined Experience" },
-  { value: "500+", label: "Projects Annually" },
-  { value: "74K+", label: "OSHA Man-Hours" },
 ];
 
 // =============================================================================
@@ -174,7 +141,6 @@ export const totalOshaManHours = Object.values(oshaManHoursByYear).reduce(
 // Get the year range from the data (e.g., "2021-2024" or "Since 2021")
 const oshaYears = Object.keys(oshaManHoursByYear).map(Number).sort((a, b) => a - b);
 export const oshaFirstYear = oshaYears[0];
-export const oshaLastYear = oshaYears[oshaYears.length - 1];
 export const oshaYearRange = `Since ${oshaFirstYear}`;
 // Alternative format: `${oshaFirstYear}-${oshaLastYear}`
 
@@ -209,31 +175,31 @@ export interface HeroStat {
 export const heroStats: HeroStat[] = [
   { endValue: 100, suffix: "+", label: "Clients" },
   { endValue: 500, suffix: "+", label: "Projects Annually" },
-  { endValue: totalOshaManHours, suffix: "", label: `OSHA Man-Hours (${oshaYearRange})`, shortLabel: "OSHA Hours" },
+  { endValue: totalOshaManHours, suffix: "", label: "OSHA Man-Hours", shortLabel: "OSHA Hours" },
 ];
 
 // Materials
 export const materials = [
   "Fiberglass",
-  "Mineral wool",
-  "Flexible elastomeric",
-  "Polyiso foam / Phenolic foam",
+  "Mineral Wool",
+  "Flexible Elastomeric",
+  "Polyiso Foam / Phenolic Foam",
   "Phenolic",
-  "Cellular glass (FOAMGLAS®)",
-  "Calcium silicate",
-  "Ceramic fiber",
+  "Cellular Glass (FOAMGLAS®)",
+  "Calcium Silicate",
+  "Ceramic Fiber",
   "Aerogel",
-  "Fyrewrap® / fire-rated wrap systems",
-  "Removable insulation blankets",
-  "PVC jacketing",
-  "VentureClad® jacketing",
-  "Aluminum jacketing",
-  "Stainless steel jacketing",
-  "PVC fittings",
-  "Aluminum fittings",
-  "Stainless steel fittings",
-  "Acoustic control (mass loaded vinyl, lead-free)",
-  "Pipe supports",
-  "Banding systems",
-  "Mastics, tapes, and sundries",
+  "Fyrewrap® / Fire-Rated Wrap Systems",
+  "Removable Insulation Blankets",
+  "PVC Jacketing",
+  "VentureClad® Jacketing",
+  "Aluminum Jacketing",
+  "Stainless Steel Jacketing",
+  "PVC Fittings",
+  "Aluminum Fittings",
+  "Stainless Steel Fittings",
+  "Acoustic Control (Mass Loaded Vinyl, Lead-Free)",
+  "Pipe Supports",
+  "Banding Systems",
+  "Mastics, Tapes, and Sundries",
 ] as const;

@@ -1,102 +1,256 @@
-import { services } from "../../content/site";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { services, servicesSubtitle } from "../../content/site";
 import {
-  Workflow,
-  Wind,
-  Layers,
-  Wrench,
-  Clock,
+  Droplets,
+  AirVent,
   Cylinder,
+  SquareStack,
+  Hammer,
+  Cog,
+  Ruler,
   Package,
-  ClipboardList,
-  ShoppingCart,
+  Clock,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
 // Map service anchor IDs to icons
 const iconMap: Record<string, LucideIcon> = {
-  "ps-bid": ClipboardList, // Plan & specification / bidding
-  piping: Workflow,         // Piping system/network
-  duct: Wind,               // Air/HVAC duct
-  tanks: Cylinder,          // Tank/vessel shape
-  jacketing: Layers,        // Layered jacketing materials
-  supports: Wrench,         // Fabrication/tools
-  blankets: Package,        // Removable insulation blankets
-  materials: ShoppingCart,  // Material sales
-  "247": Clock,             // 24/7 availability
-};
-
-// Tag color map
-const tagColors: Record<string, string> = {
-  "Core Service": "text-accent-500",
-  "24/7 Available": "text-emerald-500",
-  Specialized: "text-neutral-500 dark:text-neutral-500",
+  piping: Droplets,
+  duct: AirVent,
+  tanks: Cylinder,
+  blankets: SquareStack,
+  jacketing: Hammer,
+  supports: Cog,
+  "ps-bid": Ruler,
+  materials: Package,
+  "247": Clock,
 };
 
 export default function Services() {
+  const [activeService, setActiveService] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  const activeServiceData = activeService
+    ? services.find((s) => s.anchorId === activeService)
+    : null;
+
+  const closeModal = useCallback(() => {
+    setIsVisible(false);
+    setIsClosing(true);
+    setTimeout(() => {
+      setActiveService(null);
+      setIsClosing(false);
+      triggerRef.current?.focus();
+    }, 200);
+  }, []);
+
+  const openModal = (anchorId: string, buttonEl: HTMLButtonElement) => {
+    triggerRef.current = buttonEl;
+    setActiveService(anchorId);
+  };
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!activeService) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeModal();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [activeService, closeModal]);
+
+  // Focus trap
+  useEffect(() => {
+    if (!activeService || !modalRef.current) return;
+
+    const modal = modalRef.current;
+    const focusableSelector =
+      'button, a[href], [tabindex]:not([tabindex="-1"])';
+    const focusableElements =
+      modal.querySelectorAll<HTMLElement>(focusableSelector);
+    const firstEl = focusableElements[0];
+
+    // Focus the close button initially
+    firstEl?.focus();
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const els = modal.querySelectorAll<HTMLElement>(focusableSelector);
+      const first = els[0];
+      const last = els[els.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleTab);
+    return () => document.removeEventListener("keydown", handleTab);
+  }, [activeService]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (activeService) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [activeService]);
+
+  // Trigger opening animation after modal mounts
+  useEffect(() => {
+    if (activeService && !isClosing) {
+      const frame = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsVisible(true);
+        });
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [activeService, isClosing]);
+
+  const isOpen = activeService !== null;
+
   return (
     <section
-      className="section-padding pt-16 lg:pt-20 bg-neutral-50 dark:bg-neutral-900"
+      className="pt-6 pb-12 sm:pt-8 sm:pb-16 bg-neutral-800"
       aria-labelledby="services-heading"
     >
       <div className="container-custom">
         {/* Section Header with Stripe */}
-        <div className="flex justify-center mb-12">
+        <div className="flex justify-center mb-3">
           <h2
             id="services-heading"
-            className="section-header-stripe font-bold tracking-wider text-neutral-900 dark:text-white uppercase text-2xl sm:text-3xl"
-            style={{ letterSpacing: '0.1em' }}
+            className="font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl"
           >
             Services
           </h2>
         </div>
 
         {/* Section Subtitle */}
-        <p className="text-center text-neutral-600 dark:text-neutral-400 text-lg sm:text-xl max-w-3xl mx-auto mb-12">
-          Comprehensive mechanical insulation services for commercial and industrial facilities. From routine maintenance to emergency response and custom fabrication — we handle every insulation need.
+        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-5xl mx-auto mb-6">
+          {servicesSubtitle}
         </p>
 
-        {/* Services Grid - 3 columns on desktop, 2 on tablet, 1 on mobile */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Services Icon Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {services.map((service) => {
-            const IconComponent = iconMap[service.anchorId] || Workflow;
-
+            const IconComponent = iconMap[service.anchorId] || Droplets;
             return (
-              <div
+              <button
                 key={service.anchorId}
-                className="group relative flex flex-col h-full bg-white dark:bg-neutral-800 p-6 shadow-md border border-neutral-200 dark:border-neutral-700 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-accent-500/40 dark:hover:border-accent-500/40"
+                type="button"
+                onClick={(e) => openModal(service.anchorId, e.currentTarget)}
+                className="flex items-center gap-4 p-4 bg-neutral-900 border border-neutral-700 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:bg-neutral-800 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-200 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset"
               >
-                {/* Tag */}
-                {service.tag && (
-                  <span
-                    className={`absolute top-4 right-4 text-xs font-medium uppercase tracking-wider ${tagColors[service.tag] || "text-neutral-500"}`}
-                  >
-                    {service.tag}
-                  </span>
-                )}
-
-                {/* Icon */}
-                <div className="mb-4">
-                  <IconComponent
-                    className="w-10 h-10 text-accent-500 transition-colors duration-300 group-hover:text-accent-400"
-                    strokeWidth={1.5}
-                    aria-hidden="true"
-                  />
-                </div>
-
-                {/* Title */}
-                <h3 className="text-lg font-bold text-neutral-900 dark:text-white mb-3 uppercase tracking-wide">
+                <IconComponent
+                  className="w-7 h-7 text-accent-500 flex-shrink-0"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+                <span className="text-sm font-bold text-white uppercase tracking-wide">
                   {service.title}
-                </h3>
-
-                {/* Description */}
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed flex-grow">
-                  {service.description}
-                </p>
-              </div>
+                </span>
+              </button>
             );
           })}
         </div>
       </div>
+
+      {/* Modal */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+        >
+          {/* Backdrop — click to close */}
+          <div
+            className={`absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-200 ${isVisible && !isClosing ? "opacity-100" : "opacity-0"}`}
+            onClick={closeModal}
+          />
+
+          {/* Modal Content */}
+          <div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className={`relative z-10 max-w-lg w-full mx-4 bg-neutral-900 rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={closeModal}
+              className="absolute top-4 right-4 flex items-center justify-center w-9 h-9 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" aria-hidden="true" />
+            </button>
+
+            <div className="p-6 sm:p-8">
+              {activeServiceData && (() => {
+                const Icon = iconMap[activeServiceData.anchorId] || Droplets;
+                return (
+                  <>
+                    {/* Icon with accent glow */}
+                    <div className="flex justify-center mb-4">
+                      <div className="relative flex items-center justify-center">
+                        <div className="absolute w-16 h-16 bg-accent-500/20 rounded-full blur-xl" aria-hidden="true" />
+                        <Icon
+                          className="relative w-12 h-12 text-accent-500"
+                          strokeWidth={1.5}
+                          aria-hidden="true"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3
+                      id="modal-title"
+                      className="text-xl font-bold text-white text-center uppercase tracking-wide"
+                    >
+                      {activeServiceData.title}
+                    </h3>
+
+                    {/* Divider */}
+                    <div className="border-t border-neutral-700/50 my-4" />
+
+                    {/* Description */}
+                    <p className="text-neutral-300 text-sm leading-relaxed">
+                      {activeServiceData.description}
+                    </p>
+
+                    {/* CTA */}
+                    <div className="mt-6">
+                      <a
+                        href="#contact"
+                        onClick={closeModal}
+                        className="btn-primary w-full text-center"
+                      >
+                        Request a Quote
+                      </a>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -1,11 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
-
 @keyframes service-ticker-scroll {
   0% {
     transform: translateX(0);
   }
   100% {
     transform: translateX(-50%);
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes kenBurns {
+  from {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  to {
+    transform: scale(1.05);
+    filter: brightness(1.05);
   }
 }
 
@@ -158,7 +187,7 @@
     --letter-spacing-wider: 0.025em;
   }
   html {
-    @apply scroll-smooth;
+    @apply scroll-smooth bg-neutral-950;
   }
   /* Disable animations/transitions for test stability and accessibility */
   @media (prefers-reduced-motion: reduce) {
@@ -172,13 +201,13 @@
     }
   }
   body {
-    @apply bg-neutral-50 text-neutral-900 antialiased;
+    @apply bg-neutral-950 text-neutral-100 antialiased;
     font-feature-settings: 'rlig' 1, 'calt' 1;
     /* Strong contrast: WCAG AAA for normal text */
-    color: rgb(var(--color-neutral-900));
+    color: rgb(var(--color-neutral-100));
   }
   * {
-    @apply border-neutral-200;
+    @apply border-neutral-700;
   }
   /* Strong contrast for all text elements */
   h1,
@@ -187,36 +216,17 @@
   h4,
   h5,
   h6 {
-    @apply text-neutral-900 font-bold;
+    @apply text-white font-bold;
   }
   p,
-  li,
-  span {
-    @apply text-neutral-800;
+  li {
+    @apply text-neutral-200;
   }
 }
 @layer components {
   /* Container System - Consistent widths */
   .container-custom {
     @apply mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8;
-  }
-  .container-narrow {
-    @apply mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8;
-  }
-  .container-wide {
-    @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8;
-  }
-  .font-stencil {
-    font-family: 'Russo One', 'Impact', sans-serif;
-    letter-spacing: 0.06em;
-  }
-
-  /* Stencil headline - clean, plain text */
-  .stencil-spray {
-    font-family: 'Russo One', 'Impact', sans-serif;
-    letter-spacing: 0.1em;
-    word-spacing: 0.08em;
-    text-transform: uppercase;
   }
   .service-ticker {
     @apply relative w-full;
@@ -227,189 +237,25 @@
     animation: service-ticker-scroll 36s linear infinite;
     will-change: transform;
   }
-  /* Spacing System - Consistent vertical rhythm - Tightened */
+  /* Spacing System - Consistent vertical rhythm */
   .section-padding {
-    @apply py-8 sm:py-10 lg:py-12 xl:py-14;
+    @apply py-12 sm:py-16 lg:py-20;
   }
   .section-padding-sm {
-    @apply py-6 sm:py-8 lg:py-10;
-  }
-  .section-padding-lg {
-    @apply py-10 sm:py-12 lg:py-14 xl:py-16;
-  }
-  /* Type Scale - Industrial Hierarchy - Increased sizes */
-  .heading-1 {
-    @apply text-5xl font-extrabold tracking-tight text-neutral-900 sm:text-6xl lg:text-7xl xl:text-8xl;
-    line-height: 1.15;
-  }
-  .heading-2 {
-    @apply text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl lg:text-6xl xl:text-7xl;
-    line-height: 1.25;
-  }
-  .heading-3 {
-    @apply text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl lg:text-5xl;
-    line-height: 1.35;
-  }
-  .heading-4 {
-    @apply text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl;
-    line-height: 1.4;
-  }
-  .text-body {
-    @apply text-lg text-neutral-800 sm:text-xl;
-    line-height: 1.75;
-  }
-  .text-body-lg {
-    @apply text-xl text-neutral-800 sm:text-2xl;
-    line-height: 1.75;
-  }
-  .text-body-sm {
-    @apply text-base text-neutral-700 sm:text-lg;
-    line-height: 1.7;
+    @apply py-8 sm:py-10 lg:py-12;
   }
   /* Button System - Industrial, Strong Contrast */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-600 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-500 ease-in-out;
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-600 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-300 ease-in-out;
     line-height: 1.5;
-    @apply hover:bg-accent-500 hover:shadow-lg hover:scale-110 hover:-translate-y-1;
+    @apply hover:bg-accent-500 hover:shadow-lg hover:scale-105 hover:-translate-y-1;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
     @apply active:bg-accent-700 active:shadow-md active:scale-105;
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent-600 disabled:hover:shadow-md disabled:hover:scale-100 disabled:hover:translate-y-0;
     /* Strong contrast: white on accent-600 (blue) meets WCAG AAA */
   }
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-neutral-300 bg-white px-6 py-3 text-lg font-semibold text-neutral-900 shadow-sm transition-all duration-200;
-    line-height: 1.5;
-    @apply hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-md;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
-    @apply active:bg-neutral-100 active:shadow-sm;
-    /* Strong contrast: neutral-900 on white meets WCAG AAA */
-  }
-  .btn-accent {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-500 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-200;
-    line-height: 1.5;
-    @apply hover:bg-accent-600 hover:shadow-lg;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
-    @apply active:bg-accent-700 active:shadow-md;
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent-500 disabled:hover:shadow-md;
-  }
-  .btn-outline {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border-2 border-primary-600 bg-transparent px-6 py-3 text-lg font-semibold text-primary-600 transition-all duration-200;
-    line-height: 1.5;
-    @apply hover:bg-primary-600 hover:text-white hover:shadow-md;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
-    @apply active:bg-primary-500 active:shadow-sm;
-  }
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-md bg-transparent px-6 py-3 text-lg font-semibold text-neutral-900 transition-all duration-200;
-    line-height: 1.5;
-    @apply hover:bg-neutral-100 hover:shadow-sm;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50 dark:focus-visible:ring-offset-neutral-900;
-    @apply active:bg-neutral-200;
-  }
-  .btn-sm {
-    @apply px-4 py-2 text-base;
-  }
-  .btn-lg {
-    @apply px-8 py-4 text-xl;
-  }
-  /* Card Components - Industrial Premium */
-  .card {
-    @apply rounded-xl bg-white p-6 shadow-md transition-all duration-200;
-    @apply border border-neutral-200;
-  }
-  .card-hover {
-    @apply card hover:shadow-lg hover:-translate-y-1;
-  }
   .card-elevated {
-    @apply rounded-xl bg-white p-8 shadow-lg border border-neutral-200;
-  }
-  .card-interactive {
-    @apply card-hover cursor-pointer focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2;
-  }
-  .card-gradient {
-    @apply rounded-xl p-6 shadow-lg;
-    background: linear-gradient(135deg, rgb(var(--color-primary-50)) 0%, rgb(var(--color-neutral-50)) 100%);
-    border: 1px solid rgb(var(--color-primary-100));
-  }
-  .card-accent {
-    @apply rounded-xl p-6 shadow-lg;
-    background: linear-gradient(135deg, rgb(var(--color-accent-50)) 0%, rgb(var(--color-neutral-50)) 100%);
-    border: 1px solid rgb(var(--color-accent-100));
-  }
-  .card-bordered {
-    @apply rounded-xl bg-white p-6 border-2 border-primary-200 shadow-sm;
-  }
-  .card-minimal {
-    @apply rounded-lg bg-neutral-50 p-6 border border-neutral-200;
-  }
-  /* Section Backgrounds with Patterns */
-  .section-bg-pattern {
-    position: relative;
-    background-color: rgb(var(--color-neutral-50));
-  }
-  .section-bg-pattern::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0.4;
-    background-image:
-      linear-gradient(rgba(var(--color-primary-600), 0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--color-primary-600), 0.02) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-  }
-  .section-bg-gradient {
-    background: linear-gradient(135deg, rgb(var(--color-primary-50)) 0%, rgb(var(--color-neutral-50)) 50%, rgb(var(--color-accent-50)) 100%);
-  }
-  .section-bg-soft {
-    background: linear-gradient(180deg, rgb(var(--color-neutral-50)) 0%, rgb(255 255 255) 100%);
-  }
-  /* Gradient Overlays */
-  .gradient-overlay-primary {
-    position: relative;
-  }
-  .gradient-overlay-primary::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(var(--color-primary-600), 0.05) 0%, transparent 50%);
-    pointer-events: none;
-  }
-  .gradient-overlay-accent {
-    position: relative;
-  }
-  .gradient-overlay-accent::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(var(--color-accent-500), 0.05) 0%, transparent 50%);
-    pointer-events: none;
-  }
-  /* Premium Divider */
-  .divider {
-    @apply border-t border-neutral-200;
-  }
-  .divider-accent {
-    @apply border-t-2 border-accent-300;
-  }
-  .divider-primary {
-    @apply border-t-2 border-primary-300;
-  }
-  /* Badge/Pill Components */
-  .badge {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
-  }
-  .badge-primary {
-    @apply badge bg-primary-100 text-primary-800;
-  }
-  .badge-accent {
-    @apply badge bg-accent-100 text-accent-800;
-  }
-  .badge-neutral {
-    @apply badge bg-neutral-100 text-neutral-800;
-  }
-  .badge-success {
-    @apply badge bg-success-light text-success-dark;
+    @apply rounded-xl bg-neutral-900 p-8 shadow-lg border border-neutral-700;
   }
   /* Form element improvements for mobile/iOS */
   input[type="text"],
@@ -440,294 +286,11 @@
       padding-right: 0.875rem;
     }
   }
-
-  /* Diagonal Stripe Section Headers (Mycad-style) */
-  .section-header-stripe {
-    position: relative;
-    display: inline-block;
-    padding: 0.75rem 3rem 0.75rem 1.5rem;
-  }
-  .section-header-stripe::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      -45deg,
-      #d4d4d4,
-      #d4d4d4 2px,
-      transparent 2px,
-      transparent 8px
-    );
-    z-index: -1;
-  }
-  .dark .section-header-stripe::before {
-    background: repeating-linear-gradient(
-      -45deg,
-      #525252,
-      #525252 2px,
-      transparent 2px,
-      transparent 8px
-    );
-  }
-
-  /* Hero Slider Styles */
-  .hero-slider {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-  .hero-slider__slide {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.7s ease-in-out;
-  }
-  .hero-slider__slide--active {
-    opacity: 1;
-  }
-  .hero-slider__dots {
-    position: absolute;
-    bottom: 1.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 0.75rem;
-    z-index: 10;
-  }
-  .hero-slider__dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    border: 2px solid white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .hero-slider__dot--active {
-    background: white;
-    transform: scale(1.2);
-  }
-  .hero-slider__dot:hover {
-    background: rgba(255, 255, 255, 0.8);
-  }
-  .hero-slider__nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    z-index: 10;
-  }
-  .hero-slider__nav:hover {
-    background: rgba(0, 0, 0, 0.7);
-  }
-  .hero-slider__nav--prev {
-    left: 1rem;
-  }
-  .hero-slider__nav--next {
-    right: 1rem;
-  }
-
-  /* Numbered Card Badge (for Services) */
-  .card-number-badge {
-    @apply absolute top-4 right-4 w-10 h-10 flex items-center justify-center;
-    @apply bg-neutral-800 text-white text-sm font-bold;
-    @apply dark:bg-neutral-200 dark:text-neutral-900;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .service-ticker__track {
-    animation-duration: 60s !important;
+    animation-duration: 120s !important;
     animation-iteration-count: infinite !important;
   }
 }
-@layer utilities {
-  .focus-visible-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-50;
-  }
-
-  /* Glassmorphism utilities */
-  .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
-  }
-  .glass-dark {
-    @apply bg-neutral-900/80 backdrop-blur-md border border-white/10;
-  }
-  .glass-light {
-    @apply bg-white/90 backdrop-blur-md border border-neutral-200/50;
-  }
-
-  /* Glow effects */
-  .glow-primary {
-    box-shadow: 0 0 20px rgba(37, 99, 235, 0.4), 0 0 40px rgba(37, 99, 235, 0.2);
-  }
-  .glow-accent {
-    box-shadow: 0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(249, 115, 22, 0.2);
-  }
-  .hover\:glow-primary:hover {
-    box-shadow: 0 0 25px rgba(37, 99, 235, 0.5), 0 0 50px rgba(37, 99, 235, 0.25);
-  }
-
-  /* Gradient overlays for images */
-  .overlay-dark {
-    position: relative;
-  }
-  .overlay-dark::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(23, 23, 23, 0.85) 0%, rgba(23, 23, 23, 0.7) 50%, rgba(23, 23, 23, 0.6) 100%);
-    pointer-events: none;
-  }
-
-  /* Bento grid system */
-  .bento-grid {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(2, 1fr);
-  }
-  @media (min-width: 768px) {
-    .bento-grid {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.25rem;
-    }
-  }
-  @media (min-width: 1024px) {
-    .bento-grid {
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1.5rem;
-    }
-  }
-  .bento-item {
-    @apply rounded-xl bg-neutral-800/50 border border-neutral-700/50 p-6 transition-all duration-300;
-  }
-  .bento-item:hover {
-    @apply bg-neutral-800/70 border-primary-500/30 -translate-y-1;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(37, 99, 235, 0.1);
-  }
-  .bento-span-2 {
-    grid-column: span 2;
-  }
-  .bento-span-row {
-    grid-row: span 2;
-  }
-
-  /* Text shadows for dark backgrounds */
-  .text-shadow {
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  }
-  .text-shadow-lg {
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  }
-
-  /* Smooth transitions */
-  .transition-smooth {
-    @apply transition-all duration-300 ease-out;
-  }
-  /* Skip link for accessibility */
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-  .sr-only:focus {
-    position: absolute;
-    width: auto;
-    height: auto;
-    padding: 0.5rem 1rem;
-    margin: 0;
-    overflow: visible;
-    clip: auto;
-    white-space: normal;
-  }
-  .focus\:not-sr-only:focus {
-    position: static;
-    width: auto;
-    height: auto;
-    padding: inherit;
-    margin: inherit;
-    overflow: visible;
-    clip: auto;
-    white-space: normal;
-  }
-  /* Text contrast utilities */
-  .text-high-contrast {
-    @apply text-neutral-900;
-  }
-  .text-medium-contrast {
-    @apply text-neutral-800;
-  }
-  .text-low-contrast {
-    @apply text-neutral-600;
-  }
-  /* Industrial spacing utilities */
-  .spacing-section {
-    @apply space-y-8 sm:space-y-12 lg:space-y-16;
-  }
-  .spacing-component {
-    @apply space-y-4 sm:space-y-6;
-  }
-  /* Background Pattern Utilities */
-  .bg-pattern-grid {
-    background-image:
-      linear-gradient(rgba(var(--color-primary-600), 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--color-primary-600), 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
-  .bg-pattern-dots {
-    background-image: radial-gradient(circle, rgba(var(--color-primary-600), 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-  .bg-pattern-diagonal {
-    background-image: repeating-linear-gradient(45deg,
-        transparent,
-        transparent 10px,
-        rgba(var(--color-primary-600), 0.02) 10px,
-        rgba(var(--color-primary-600), 0.02) 20px);
-  }
-  .bg-pattern-cross {
-    background-image:
-      linear-gradient(rgba(var(--color-primary-600), 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--color-primary-600), 0.05) 1px, transparent 1px),
-      linear-gradient(rgba(var(--color-accent-500), 0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(var(--color-accent-500), 0.02) 1px, transparent 1px);
-    background-size: 40px 40px, 40px 40px, 20px 20px, 20px 20px;
-  }
-  /* Gradient Utilities */
-  .bg-gradient-industrial {
-    background: linear-gradient(135deg, rgb(var(--color-primary-600)) 0%, rgb(var(--color-primary-800)) 50%, rgb(var(--color-accent-600)) 100%);
-  }
-  .bg-gradient-soft {
-    background: linear-gradient(135deg, rgb(var(--color-primary-50)) 0%, rgb(var(--color-neutral-50)) 50%, rgb(var(--color-accent-50)) 100%);
-  }
-  /* Text Gradient */
-  .text-gradient-primary {
-    background: linear-gradient(135deg, rgb(var(--color-primary-600)) 0%, rgb(var(--color-primary-800)) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .text-gradient-accent {
-    background: linear-gradient(135deg, rgb(var(--color-accent-500)) 0%, rgb(var(--color-accent-700)) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-}
-

@@ -92,7 +92,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     if (source) {
       result = await sql`
-        SELECT id, created_at, name, email, message, source, metadata
+        SELECT id, created_at, name, email, phone, message, source, metadata
         FROM contacts
         WHERE source = ${source}
         ORDER BY created_at DESC
@@ -104,7 +104,7 @@ export const GET: APIRoute = async ({ request }) => {
       `;
     } else {
       result = await sql`
-        SELECT id, created_at, name, email, message, source, metadata
+        SELECT id, created_at, name, email, phone, message, source, metadata
         FROM contacts
         ORDER BY created_at DESC
         LIMIT ${limit}

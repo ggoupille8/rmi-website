@@ -1,21 +1,21 @@
+import { ctaBannerHeading, ctaBannerSubtitle, ctaBannerButton } from "../../content/site";
+
 export default function CTABanner() {
   return (
-    <section className="py-16 bg-neutral-100 dark:bg-neutral-800">
+    <section className="py-8 sm:py-10 bg-accent-900" aria-labelledby="cta-heading">
       <div className="container-custom text-center">
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 dark:text-white tracking-tight">
-          READY TO START YOUR{" "}
-          <span className="text-accent-500">INSULATION</span>{" "}
-          PROJECT?
+        <h2 id="cta-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight uppercase">
+          {ctaBannerHeading}
         </h2>
-        <p className="mt-4 text-lg text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto">
-          Share your project details and receive a detailed quote within 48 hours—or call for immediate assessment on urgent jobs.
+        <p className="mt-3 text-lg text-white max-w-2xl mx-auto">
+          {ctaBannerSubtitle}
         </p>
-        <div className="mt-8">
+        <div className="mt-6">
           <a
             href="#contact"
-            className="inline-flex items-center justify-center rounded-md px-8 py-4 text-lg font-semibold text-white bg-accent-600 hover:bg-accent-500 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center justify-center rounded-md bg-white px-8 py-3 text-lg font-semibold text-accent-700 shadow-md transition-all duration-300 hover:bg-neutral-100 hover:shadow-lg hover:scale-105 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent-900 active:bg-neutral-200 active:scale-105"
           >
-            Contact Us
+            {ctaBannerButton}
           </a>
         </div>
       </div>

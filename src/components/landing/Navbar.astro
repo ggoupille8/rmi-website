@@ -5,21 +5,22 @@ import { companyName } from '../../content/site';
 <header
   id="navbar"
   class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+  style="background-color: rgba(23, 23, 23, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"
   role="banner"
 >
-  <nav class="container-custom flex items-center justify-between h-16 sm:h-20" aria-label="Main navigation">
+  <nav class="container-custom flex items-center justify-between h-12 sm:h-14 !px-2" aria-label="Main navigation">
     <!-- Left: Logo + Company name -->
     <a href="#" class="flex items-center gap-3 group shrink-0" aria-label={`${companyName} — go to top`}>
       <!--
-        Logo: public/images/logo/rmi-logo-white.png (black text on transparent bg).
+        Logo: public/images/logo/rmi-logo-mark.png (black text on transparent bg).
         The "brightness-0 invert" filter renders it white against the dark navbar.
         If the file is missing, the onerror fallback shows the "RMI" text square.
       -->
       <img
         id="navbar-logo"
-        src="/images/logo/rmi-logo-white.png"
-        alt="Resource Mechanical Insulation logo"
-        class="h-9 w-auto brightness-0 invert"
+        src="/images/logo/rmi-logo-mark.png"
+        alt={`${companyName} logo`}
+        class="h-12 w-auto brightness-0 invert"
         onload="document.getElementById('navbar-logo-fallback').style.display='none';"
         onerror="this.onerror=null;this.style.display='none';document.getElementById('navbar-logo-fallback').style.display='flex';"
       />
@@ -38,7 +39,7 @@ import { companyName } from '../../content/site';
     </a>
 
     <!-- Right: Desktop links -->
-    <div class="hidden md:flex items-center gap-6 lg:gap-8">
+    <div class="hidden md:flex items-center gap-4 lg:gap-6">
       <a
         href="#services"
         data-nav-section="services"
@@ -62,7 +63,7 @@ import { companyName } from '../../content/site';
       </a>
       <a
         href="#contact"
-        class="inline-flex items-center justify-center rounded-md bg-accent-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-accent-500 hover:shadow-lg hover:scale-105 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+        class="btn-primary px-5 py-2 text-sm"
       >
         Request a Quote
       </a>
@@ -91,7 +92,7 @@ import { companyName } from '../../content/site';
   <!-- Mobile menu overlay -->
   <div
     id="mobile-menu"
-    class="md:hidden fixed inset-0 top-16 sm:top-20 hidden"
+    class="md:hidden fixed inset-0 top-12 sm:top-14 hidden"
     style="background: rgba(23, 23, 23, 0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"
     role="dialog"
     aria-modal="true"
@@ -109,7 +110,7 @@ import { companyName } from '../../content/site';
       </a>
       <a
         href="#contact"
-        class="mobile-nav-link mt-4 inline-flex items-center justify-center rounded-md bg-accent-600 px-8 py-3 text-lg font-semibold text-white shadow-lg hover:bg-accent-500 hover:shadow-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+        class="mobile-nav-link mt-4 btn-primary px-8"
       >
         Request a Quote
       </a>
@@ -148,9 +149,9 @@ import { companyName } from '../../content/site';
       navbar.style.webkitBackdropFilter = 'blur(12px)';
       navbar.style.boxShadow = '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)';
     } else {
-      navbar.style.backgroundColor = '';
-      navbar.style.backdropFilter = '';
-      navbar.style.webkitBackdropFilter = '';
+      navbar.style.backgroundColor = 'rgba(23, 23, 23, 0.85)';
+      navbar.style.backdropFilter = 'blur(8px)';
+      navbar.style.webkitBackdropFilter = 'blur(8px)';
       navbar.style.boxShadow = '';
     }
   }
@@ -207,24 +208,17 @@ import { companyName } from '../../content/site';
 
   // ── Intersection Observer for active nav link highlighting ──
   const navLinks = document.querySelectorAll<HTMLAnchorElement>('a.nav-link[data-nav-section]');
+  const mobileNavLinks = document.querySelectorAll<HTMLAnchorElement>('.mobile-nav-link[href^="#"]');
   const sectionIds = ['services', 'about', 'contact'];
   const sections = sectionIds
     .map((id) => document.getElementById(id))
     .filter((el): el is HTMLElement => el !== null);
 
-  // Track which sections are currently intersecting
-  const visibleSections = new Set<string>();
+  // Track intersection ratios per section
+  const sectionRatios = new Map<string, number>();
+  let currentHash = '';
 
-  function updateActiveLink() {
-    // Pick the first visible section in page order
-    let activeId: string | null = null;
-    for (const id of sectionIds) {
-      if (visibleSections.has(id)) {
-        activeId = id;
-        break;
-      }
-    }
-
+  function setActiveNav(activeId: string | null) {
     navLinks.forEach((link) => {
       const section = link.getAttribute('data-nav-section');
       if (section === activeId) {
@@ -233,25 +227,59 @@ import { companyName } from '../../content/site';
         link.classList.remove('nav-link-active');
       }
     });
+
+    // Update URL hash without creating history entries
+    const newHash = activeId ? `#${activeId}` : '';
+    if (newHash !== currentHash) {
+      currentHash = newHash;
+      if (newHash) {
+        history.replaceState(null, '', newHash);
+      } else {
+        // Clear hash — use pathname to avoid the bare '#'
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    }
+  }
+
+  function updateActiveLink() {
+    // Find the first section (in page order) with ≥30% visibility
+    let activeId: string | null = null;
+    for (const id of sectionIds) {
+      if ((sectionRatios.get(id) ?? 0) >= 0.3) {
+        activeId = id;
+        break;
+      }
+    }
+
+    // Fallback: if no section hits 30%, pick the one with the highest ratio
+    if (!activeId) {
+      let best = 0;
+      for (const id of sectionIds) {
+        const ratio = sectionRatios.get(id) ?? 0;
+        if (ratio > best) {
+          best = ratio;
+          activeId = id;
+        }
+      }
+      // If the best ratio is essentially zero, nothing is active (hero/top)
+      if (best < 0.05) activeId = null;
+    }
+
+    setActiveNav(activeId);
   }
 
   if (sections.length > 0) {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          const id = entry.target.id;
-          if (entry.isIntersecting) {
-            visibleSections.add(id);
-          } else {
-            visibleSections.delete(id);
-          }
+          sectionRatios.set(entry.target.id, entry.intersectionRatio);
         });
         updateActiveLink();
       },
       {
-        // Offset top by navbar height, trigger when section enters upper portion
-        rootMargin: '-80px 0px -60% 0px',
-        threshold: 0,
+        // Offset top by navbar height (h-14 = 56px)
+        rootMargin: '-56px 0px 0px 0px',
+        threshold: [0, 0.1, 0.2, 0.3, 0.5, 0.7, 1],
       }
     );
 

@@ -1,11 +1,20 @@
-import { useState, useEffect, useRef } from "react";
-import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber } from "../../content/site";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroHeadline, heroTagline } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
+
+const heroImages = [
+  "/images/hero/hero-1.jpg",
+  "/images/hero/hero-2.jpg",
+  "/images/hero/hero-3.jpg",
+  "/images/hero/hero-4.jpg",
+  "/images/hero/hero-5.jpg",
+];
+
+const SLIDE_DURATION = 12000; // 12s per image
 
 interface HeroFullWidthProps {
   headline?: string;
   tagline?: string;
-  backgroundImage?: string;
 }
 
 // Animated counter hook
@@ -97,10 +106,10 @@ function AnimatedStat({
 
   return (
     <div ref={ref} className="text-center">
-      <div className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+      <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
         {finalDisplay}
       </div>
-      <div className="mt-2 text-sm sm:text-base text-neutral-300 uppercase tracking-wider">
+      <div className="mt-1 text-xs sm:text-sm text-neutral-200 uppercase tracking-wider">
         {shortLabel ? (
           <>
             <span className="hidden sm:inline">{label}</span>
@@ -115,97 +124,143 @@ function AnimatedStat({
 }
 
 export default function HeroFullWidth({
-  headline = "Resource Mechanical Insulation",
-  tagline = "Commercial & Industrial Insulation Experts",
-  backgroundImage = "/images/hero/hero-1.jpg",
+  headline = heroHeadline,
+  tagline = heroTagline,
 }: HeroFullWidthProps) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const prevIndexRef = useRef(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => {
+        prevIndexRef.current = prev;
+        return (prev + 1) % heroImages.length;
+      });
+    }, SLIDE_DURATION);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section
-      className="relative min-h-screen flex flex-col justify-center overflow-hidden"
+      className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-12 sm:pt-14"
       aria-labelledby="hero-heading"
     >
-      {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0">
-        <picture>
-          <source
-            srcSet={backgroundImage.replace(/\.jpe?g$/i, ".webp")}
-            type="image/webp"
-          />
-          <img
-            src={backgroundImage}
-            alt=""
-            className="w-full h-full object-cover"
-            loading="eager"
-            fetchPriority="high"
+      {/* Background Slideshow */}
+      <div className="absolute top-12 sm:top-14 left-0 right-0 bottom-0 z-0">
+        {heroImages.map((src, index) => {
+          const isActive = index === activeIndex;
+          const isPrev = index === prevIndexRef.current && index !== activeIndex;
+          return (
+          <div
+            key={src}
+            className={`absolute inset-0 transition-opacity duration-[4000ms] ease-in-out ${
+              isActive ? "opacity-100 z-[2]" : isPrev ? "opacity-100 z-[1]" : "opacity-0 z-0"
+            }`}
             aria-hidden="true"
-          />
-        </picture>
-        {/* Dark gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
+          >
+            <picture>
+              <source
+                srcSet={src.replace(/\.jpe?g$/i, ".webp")}
+                type="image/webp"
+              />
+              <img
+                src={src}
+                alt=""
+                className="w-full h-full object-cover object-center"
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchpriority={index === 0 ? "high" : undefined}
+                style={
+                  !prefersReducedMotion && index === activeIndex
+                    ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-in-out forwards` }
+                    : { transform: "scale(1)", filter: "brightness(1)" }
+                }
+              />
+            </picture>
+          </div>
+          );
+        })}
+        {/* Dark gradient overlay — on top of all images */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container-custom py-20 lg:py-32">
-        <div className="max-w-5xl mx-auto text-center">
-          {/* Headline - Plain stencil font */}
-          <h1
-            id="hero-heading"
-            className="stencil-spray text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-[1.1]"
-          >
-            {headline}
-          </h1>
+      <div className="relative z-10 container-custom py-12 lg:py-20 flex-1 flex flex-col">
+        <div className="max-w-5xl mx-auto text-center flex-1 flex flex-col justify-center w-full">
+          {/* Main Content Card */}
+          <div className="max-w-3xl mx-auto bg-neutral-900/25 backdrop-blur-sm rounded-xl border border-neutral-700/30 py-6 px-6 sm:px-10">
+            {/* Logo */}
+            <h1 id="hero-heading" className="flex justify-center">
+              <img
+                src="/images/logo/rmi-logo-full.png"
+                alt={headline}
+                className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
+                style={{ filter: 'brightness(0) invert(1) drop-shadow(3px 3px 0px rgba(0,0,0,0.7)) drop-shadow(-1px -1px 0px rgba(0,0,0,0.4))' }}
+              />
+            </h1>
 
-          {/* Tagline */}
-          <p className="mt-6 text-xl sm:text-2xl lg:text-3xl text-neutral-200 font-light tracking-wide">
-            {tagline}
-          </p>
+            {/* Tagline */}
+            <p className="mt-2 text-lg sm:text-xl lg:text-2xl text-neutral-200 font-light tracking-wide">
+              {tagline}
+            </p>
 
-          {/* CTA Buttons */}
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-            {/* Primary CTA */}
-            <a
-              href="#contact"
-              className="btn-primary h-14 px-8 text-lg flex items-center justify-center shadow-2xl hover:shadow-xl hover:scale-105 transition-all duration-300"
-            >
-              Request a Quote
-            </a>
-
-            {/* Secondary CTAs */}
-            <div className="flex gap-3">
+            {/* CTA Buttons */}
+            <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center items-center">
+              {/* Primary CTA */}
               <a
-                href={phoneTel}
-                className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300"
-                aria-label={`Call ${companyName} at ${phoneDisplay}`}
+                href="#contact"
+                className="btn-primary h-12 px-6"
               >
-                <Phone className="w-6 h-6 text-white" aria-hidden="true" />
+                Request a Quote
               </a>
-              <a
-                href={`mailto:${email}`}
-                className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300"
-                aria-label={`Email ${companyName} at ${email}`}
-              >
-                <Mail className="w-6 h-6 text-white" aria-hidden="true" />
-              </a>
+
+              {/* Secondary CTAs */}
+              <div className="flex gap-3">
+                <a
+                  href={phoneTel}
+                  className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                  aria-label={`Call ${companyName} at ${phoneDisplay}`}
+                >
+                  <Phone className="w-6 h-6 text-white" aria-hidden="true" />
+                </a>
+                <a
+                  href={`mailto:${email}`}
+                  className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                  aria-label={`Email ${companyName} at ${email}`}
+                >
+                  <Mail className="w-6 h-6 text-white" aria-hidden="true" />
+                </a>
+              </div>
             </div>
           </div>
 
-          {/* Animated Stats */}
-          <div className="mt-16 lg:mt-24 grid grid-cols-3 gap-6 sm:gap-8 lg:gap-12 max-w-3xl mx-auto">
+          {/* Animated Stats — Individual Cards */}
+          <div className="mt-auto pb-4 sm:pb-6 flex justify-center gap-6 sm:gap-8">
             {heroStats.map((stat, index) => (
-              <AnimatedStat
+              <div
                 key={stat.label}
-                endValue={stat.endValue}
-                suffix={stat.suffix}
-                label={stat.label}
-                shortLabel={stat.shortLabel}
-                delay={index * 200}
-              />
+                className="w-40 sm:w-44 bg-neutral-900/25 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 py-3"
+              >
+                <AnimatedStat
+                  endValue={stat.endValue}
+                  suffix={stat.suffix}
+                  label={stat.label}
+                  shortLabel={stat.shortLabel}
+                  delay={index * 200}
+                />
+              </div>
             ))}
           </div>
         </div>
       </div>
-
-      {/* Scroll indicator - removed for cleaner look */}
     </section>
   );
 }

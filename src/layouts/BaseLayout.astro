@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import Navbar from '../components/landing/Navbar.astro';
-import { companyNameFull, email, phone, phoneE164, address, services } from '../content/site';
+import { companyName, companyNameFull, email, phone, phoneE164, address, services, siteTitle, siteDescription } from '../content/site';
 
 interface Props {
   title?: string;
@@ -14,16 +14,16 @@ interface Props {
 }
 
 const {
-  title = 'Resource Mechanical Insulation | Industrial Insulation Contractors Michigan',
-  description = 'Professional mechanical insulation contractor serving Michigan and surrounding areas. Expert insulation for piping, ductwork, tanks, and equipment — hot, cold, and cryogenic applications. Based in Romulus, MI.',
+  title = siteTitle,
+  description = siteDescription,
   ogImage = '/og-image.jpg',
   ogType = 'website',
   canonical = Astro.url.href,
   keywords = 'mechanical insulation, insulation contractor, Romulus MI, Michigan, piping insulation, ductwork insulation, tank insulation, cryogenic insulation, boiler insulation, turbine insulation, insulation materials, pipe supports, industrial insulation, commercial insulation',
-  author = 'Resource Mechanical Insulation',
+  author = companyName,
 } = Astro.props;
 
-const fullTitle = title.includes('Resource Mechanical Insulation') ? title : `${title} | Resource Mechanical Insulation`;
+const fullTitle = title.includes(companyName) ? title : `${title} | ${companyName}`;
 const siteUrl = Astro.site?.href || 'https://resourcemechanicalinsulation.com';
 const ogImageUrl = new URL(ogImage, siteUrl).href;
 
@@ -98,7 +98,7 @@ const localBusinessSchema = JSON.stringify({
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={fullTitle} />
-    <meta property="og:site_name" content="Resource Mechanical Insulation" />
+    <meta property="og:site_name" content={companyName} />
     <meta property="og:locale" content="en_US" />
     
     <!-- Twitter -->
@@ -118,12 +118,13 @@ const localBusinessSchema = JSON.stringify({
     <link rel="manifest" href="/site.webmanifest" />
     
     <!-- Theme Color -->
-    <meta name="theme-color" content="#1e3a5f" />
-    <meta name="msapplication-TileColor" content="#1e3a5f" />
+    <meta name="theme-color" content="#171717" />
+    <meta name="msapplication-TileColor" content="#171717" />
     
-    <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <!-- Google Fonts - Russo One -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet" />
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json" set:html={localBusinessSchema} />

@@ -1,4 +1,4 @@
-import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address, footerDescription } from "../../content/site";
 import { Phone, Mail, MapPin, ArrowUp } from "lucide-react";
 
 export default function Footer() {
@@ -17,7 +17,7 @@ export default function Footer() {
               {companyNameFull}
             </h3>
             <p className="text-neutral-400 text-sm leading-relaxed">
-              Professional mechanical insulation services for commercial and industrial environments.
+              {footerDescription}
             </p>
           </div>
 
@@ -59,7 +59,7 @@ export default function Footer() {
                 className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm"
                 aria-label={`Call ${companyName} at ${phoneDisplay}`}
               >
-                <Phone className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
+                <Phone className="w-3.5 h-3.5 text-accent-500" aria-hidden="true" />
                 <span>{phoneDisplay}</span>
               </a>
 
@@ -68,12 +68,12 @@ export default function Footer() {
                 className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm"
                 aria-label={`Email ${companyName} at ${email}`}
               >
-                <Mail className="w-3.5 h-3.5 text-primary-400" aria-hidden="true" />
+                <Mail className="w-3.5 h-3.5 text-accent-500" aria-hidden="true" />
                 <span>{email}</span>
               </a>
 
               <div className="flex items-start gap-2 text-white text-sm">
-                <MapPin className="w-3.5 h-3.5 text-primary-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <MapPin className="w-3.5 h-3.5 text-accent-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <span>{address.full}</span>
               </div>
             </div>
@@ -82,12 +82,12 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-6 pt-4 border-t border-neutral-800/50 flex items-center justify-between">
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-neutral-400">
             &copy; {currentYear} {companyNameFull}. All rights reserved.
           </p>
           <a
             href="#"
-            className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-300 transition-colors"
             aria-label="Back to top"
           >
             Back to top
