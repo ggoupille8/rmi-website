@@ -5,6 +5,7 @@ import { companyName } from '../../content/site';
 <header
   id="navbar"
   class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+  style="background-color: rgba(23, 23, 23, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"
   role="banner"
 >
   <nav class="container-custom flex items-center justify-between h-16 sm:h-20" aria-label="Main navigation">
@@ -148,9 +149,9 @@ import { companyName } from '../../content/site';
       navbar.style.webkitBackdropFilter = 'blur(12px)';
       navbar.style.boxShadow = '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)';
     } else {
-      navbar.style.backgroundColor = '';
-      navbar.style.backdropFilter = '';
-      navbar.style.webkitBackdropFilter = '';
+      navbar.style.backgroundColor = 'rgba(23, 23, 23, 0.85)';
+      navbar.style.backdropFilter = 'blur(8px)';
+      navbar.style.webkitBackdropFilter = 'blur(8px)';
       navbar.style.boxShadow = '';
     }
   }

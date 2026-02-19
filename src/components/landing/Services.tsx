@@ -29,19 +29,19 @@ const iconMap: Record<string, LucideIcon> = {
 
 export default function Services() {
   const [activeService, setActiveService] = useState<string | null>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   const activeServiceData = activeService
     ? services.find((s) => s.anchorId === activeService)
     : null;
 
-  const closePanel = useCallback(() => {
+  const closeModal = useCallback(() => {
     setActiveService(null);
     triggerRef.current?.focus();
   }, []);
 
-  const openPanel = (anchorId: string, buttonEl: HTMLButtonElement) => {
+  const openModal = (anchorId: string, buttonEl: HTMLButtonElement) => {
     triggerRef.current = buttonEl;
     setActiveService(anchorId);
   };
@@ -50,31 +50,29 @@ export default function Services() {
   useEffect(() => {
     if (!activeService) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closePanel();
+      if (e.key === "Escape") closeModal();
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [activeService, closePanel]);
+  }, [activeService, closeModal]);
 
   // Focus trap
   useEffect(() => {
-    if (!activeService || !panelRef.current) return;
+    if (!activeService || !modalRef.current) return;
 
-    const panel = panelRef.current;
+    const modal = modalRef.current;
     const focusableSelector =
       'button, a[href], [tabindex]:not([tabindex="-1"])';
     const focusableElements =
-      panel.querySelectorAll<HTMLElement>(focusableSelector);
+      modal.querySelectorAll<HTMLElement>(focusableSelector);
     const firstEl = focusableElements[0];
-    const lastEl = focusableElements[focusableElements.length - 1];
 
     // Focus the close button initially
     firstEl?.focus();
 
     const handleTab = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
-      // Re-query in case DOM changed
-      const els = panel.querySelectorAll<HTMLElement>(focusableSelector);
+      const els = modal.querySelectorAll<HTMLElement>(focusableSelector);
       const first = els[0];
       const last = els[els.length - 1];
       if (e.shiftKey) {
@@ -94,7 +92,7 @@ export default function Services() {
     return () => document.removeEventListener("keydown", handleTab);
   }, [activeService]);
 
-  // Lock body scroll when panel is open
+  // Lock body scroll when modal is open
   useEffect(() => {
     if (activeService) {
       document.body.style.overflow = "hidden";
@@ -137,8 +135,8 @@ export default function Services() {
               <button
                 key={service.anchorId}
                 type="button"
-                onClick={(e) => openPanel(service.anchorId, e.currentTarget)}
-                className="flex items-center gap-4 p-4 bg-neutral-900 border border-neutral-700 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:bg-neutral-800 transition-all duration-200 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset"
+                onClick={(e) => openModal(service.anchorId, e.currentTarget)}
+                className="flex items-center gap-4 p-4 bg-neutral-900 border border-neutral-700 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:bg-neutral-800 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-200 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset"
               >
                 <IconComponent
                   className="w-7 h-7 text-accent-500 flex-shrink-0"
@@ -154,73 +152,87 @@ export default function Services() {
         </div>
       </div>
 
-      {/* Slide-in Panel */}
+      {/* Modal */}
       {isOpen && (
-        <>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) closeModal();
+          }}
+        >
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-[fadeIn_200ms_ease-out]"
-            onClick={closePanel}
+            className="absolute inset-0 bg-black/60 backdrop-blur-md animate-[fadeIn_200ms_ease-out]"
             aria-hidden="true"
           />
 
-          {/* Panel */}
+          {/* Modal Content */}
           <div
-            ref={panelRef}
+            ref={modalRef}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="panel-title"
-            className="fixed right-0 top-0 h-full w-full max-w-md z-50 bg-neutral-900 shadow-2xl animate-[slideInRight_300ms_ease-out] flex flex-col"
+            aria-labelledby="modal-title"
+            className="relative z-10 max-w-lg w-full mx-4 bg-neutral-900 rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 animate-[modalIn_300ms_ease-out]"
           >
-            {/* Panel Header */}
-            <div className="flex items-start justify-between p-6 border-b border-neutral-700">
-              <div className="flex items-center gap-3 min-w-0">
-                {activeServiceData && (() => {
-                  const Icon = iconMap[activeServiceData.anchorId] || Workflow;
-                  return (
-                    <Icon
-                      className="w-8 h-8 text-accent-500 flex-shrink-0"
-                      strokeWidth={1.5}
-                      aria-hidden="true"
-                    />
-                  );
-                })()}
-                <h3
-                  id="panel-title"
-                  className="text-lg font-bold text-white uppercase tracking-wide"
-                >
-                  {activeServiceData?.title}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={closePanel}
-                className="flex items-center justify-center w-10 h-10 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                aria-label="Close panel"
-              >
-                <X className="w-5 h-5" aria-hidden="true" />
-              </button>
-            </div>
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={closeModal}
+              className="absolute top-4 right-4 flex items-center justify-center w-9 h-9 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" aria-hidden="true" />
+            </button>
 
-            {/* Panel Body */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <p className="text-neutral-300 leading-relaxed">
-                {activeServiceData?.description}
-              </p>
-            </div>
+            <div className="p-6 sm:p-8">
+              {activeServiceData && (() => {
+                const Icon = iconMap[activeServiceData.anchorId] || Workflow;
+                return (
+                  <>
+                    {/* Icon with accent glow */}
+                    <div className="flex justify-center mb-4">
+                      <div className="relative flex items-center justify-center">
+                        <div className="absolute w-16 h-16 bg-accent-500/20 rounded-full blur-xl" aria-hidden="true" />
+                        <Icon
+                          className="relative w-12 h-12 text-accent-500"
+                          strokeWidth={1.5}
+                          aria-hidden="true"
+                        />
+                      </div>
+                    </div>
 
-            {/* Panel Footer */}
-            <div className="p-6 border-t border-neutral-700">
-              <a
-                href="#contact"
-                onClick={closePanel}
-                className="btn-primary w-full text-center"
-              >
-                Request a Quote
-              </a>
+                    {/* Title */}
+                    <h3
+                      id="modal-title"
+                      className="text-xl font-bold text-white text-center uppercase tracking-wide"
+                    >
+                      {activeServiceData.title}
+                    </h3>
+
+                    {/* Divider */}
+                    <div className="border-t border-neutral-700/50 my-4" />
+
+                    {/* Description */}
+                    <p className="text-neutral-300 text-sm leading-relaxed">
+                      {activeServiceData.description}
+                    </p>
+
+                    {/* CTA */}
+                    <div className="mt-6">
+                      <a
+                        href="#contact"
+                        onClick={closeModal}
+                        className="btn-primary w-full text-center"
+                      >
+                        Request a Quote
+                      </a>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           </div>
-        </>
+        </div>
       )}
     </section>
   );
