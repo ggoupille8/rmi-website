@@ -53,7 +53,7 @@ export default function About() {
     >
       <div className="container-custom">
         {/* Section Header with Stripe — matches Services pattern */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-3">
           <h2
             id="about-heading"
             className="section-header-stripe font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl"
@@ -63,7 +63,7 @@ export default function About() {
         </div>
 
         {/* Subtitle */}
-        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-3xl mx-auto mb-8">
+        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-3xl mx-auto mb-6">
           {formatLargeNumber(totalOshaManHours)} safe man-hours. Zero lost-time incidents. Local 25 union crews ready to handle everything from routine maintenance to full facility outages.
         </p>
 

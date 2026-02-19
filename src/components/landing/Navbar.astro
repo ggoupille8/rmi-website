@@ -11,13 +11,13 @@ import { companyName } from '../../content/site';
     <!-- Left: Logo + Company name -->
     <a href="#" class="flex items-center gap-3 group shrink-0" aria-label={`${companyName} — go to top`}>
       <!--
-        Logo: public/images/logo/rmi-logo-white.png (black text on transparent bg).
+        Logo: public/images/logo/rmi-logo-mark.png (black text on transparent bg).
         The "brightness-0 invert" filter renders it white against the dark navbar.
         If the file is missing, the onerror fallback shows the "RMI" text square.
       -->
       <img
         id="navbar-logo"
-        src="/images/logo/rmi-logo-white.png"
+        src="/images/logo/rmi-logo-mark.png"
         alt={`${companyName} logo`}
         class="h-9 w-auto brightness-0 invert"
         onload="document.getElementById('navbar-logo-fallback').style.display='none';"

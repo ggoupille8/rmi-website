@@ -147,12 +147,13 @@ export default function HeroFullWidth({
       {/* Content */}
       <div className="relative z-10 container-custom py-20 lg:py-32">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Headline - Plain stencil font */}
-          <h1
-            id="hero-heading"
-            className="stencil-spray text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-[1.1]"
-          >
-            {headline}
+          {/* Logo */}
+          <h1 id="hero-heading" className="flex justify-center">
+            <img
+              src="/images/logo/rmi-logo-full.png"
+              alt={headline}
+              className="h-12 sm:h-16 lg:h-20 xl:h-24 w-auto brightness-0 invert"
+            />
           </h1>
 
           {/* Tagline */}
