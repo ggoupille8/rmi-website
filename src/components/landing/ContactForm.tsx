@@ -310,7 +310,7 @@ export default function ContactForm({
       <div className="container-custom">
         <div className="mx-auto max-w-3xl">
           <div className="text-center flex flex-col items-center">
-            <h2 id="contact-heading" className="section-header-stripe font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl">
+            <h2 id="contact-heading" className="font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl">
               {title}
             </h2>
             <p className="mt-3 text-lg sm:text-xl text-neutral-200">{subtitle}</p>

@@ -217,13 +217,6 @@
   .container-custom {
     @apply mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8;
   }
-  /* Stencil headline - clean, plain text */
-  .stencil-spray {
-    font-family: 'Russo One', 'Impact', sans-serif;
-    letter-spacing: 0.1em;
-    word-spacing: 0.08em;
-    text-transform: uppercase;
-  }
   .service-ticker {
     @apply relative w-full;
   }
@@ -280,37 +273,6 @@
     select {
       padding-left: 0.875rem;
       padding-right: 0.875rem;
-    }
-  }
-
-  /* Diagonal Stripe Section Headers (Mycad-style) */
-  .section-header-stripe {
-    position: relative;
-    display: inline-block;
-    padding: 0.75rem 3rem 0.75rem 1.5rem;
-  }
-  .section-header-stripe::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      -45deg,
-      #d4d4d4,
-      #d4d4d4 2px,
-      transparent 2px,
-      transparent 8px
-    );
-    z-index: -1;
-  }
-  @media (prefers-color-scheme: dark) {
-    .section-header-stripe::before {
-      background: repeating-linear-gradient(
-        -45deg,
-        #525252,
-        #525252 2px,
-        transparent 2px,
-        transparent 8px
-      );
     }
   }
 }

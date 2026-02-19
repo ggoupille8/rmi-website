@@ -52,11 +52,11 @@ export default function About() {
       aria-labelledby="about-heading"
     >
       <div className="container-custom">
-        {/* Section Header with Stripe — matches Services pattern */}
+        {/* Section Header */}
         <div className="flex justify-center mb-3">
           <h2
             id="about-heading"
-            className="section-header-stripe font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl"
+            className="font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl"
           >
             Why Choose <span className="hidden sm:inline">{companyName}</span><span className="sm:hidden">RMI</span>
           </h2>

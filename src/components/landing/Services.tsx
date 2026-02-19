@@ -116,7 +116,7 @@ export default function Services() {
         <div className="flex justify-center mb-3">
           <h2
             id="services-heading"
-            className="section-header-stripe font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl"
+            className="font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl"
           >
             Services
           </h2>
