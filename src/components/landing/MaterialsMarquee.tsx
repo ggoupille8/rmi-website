@@ -18,10 +18,10 @@ export default function MaterialsMarquee() {
 
       {/* Header */}
       <div className="container-custom mb-6">
-        <h2 className="text-base sm:text-lg text-neutral-400 uppercase tracking-[0.15em] font-medium text-center">
+        <h2 className="text-lg sm:text-xl text-white uppercase tracking-[0.15em] font-semibold text-center">
           Materials We Work With
         </h2>
-        <p className="text-xs sm:text-sm text-neutral-500 text-center mt-1.5 tracking-wide">
+        <p className="text-sm sm:text-base text-neutral-300 text-center mt-1.5 tracking-wide">
           Insulation, jacketing, accessories, and support systems
         </p>
       </div>

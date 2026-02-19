@@ -25,13 +25,6 @@ const iconMap: Record<string, LucideIcon> = {
   "247": Clock,             // 24/7 availability
 };
 
-// Tag color map
-const tagColors: Record<string, string> = {
-  "Core Service": "text-accent-500",
-  "24/7 Available": "text-success",
-  Specialized: "text-neutral-500 dark:text-neutral-500",
-};
-
 export default function Services() {
   return (
     <section
@@ -40,7 +33,7 @@ export default function Services() {
     >
       <div className="container-custom">
         {/* Section Header with Stripe */}
-        <div className="flex justify-center mb-12">
+        <div className="flex justify-center mb-4">
           <h2
             id="services-heading"
             className="section-header-stripe font-bold tracking-wider text-neutral-900 dark:text-white uppercase text-2xl sm:text-3xl"
@@ -51,7 +44,7 @@ export default function Services() {
         </div>
 
         {/* Section Subtitle */}
-        <p className="text-center text-neutral-600 dark:text-neutral-300 text-lg sm:text-xl max-w-3xl mx-auto mb-12">
+        <p className="text-center text-neutral-600 dark:text-neutral-300 text-lg sm:text-xl max-w-3xl mx-auto mb-8">
           {servicesSubtitle}
         </p>
 
@@ -65,15 +58,6 @@ export default function Services() {
                 key={service.anchorId}
                 className="group relative flex flex-col h-full bg-white dark:bg-neutral-800 p-6 shadow-md border border-neutral-200 dark:border-neutral-700 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:border-accent-500/40 dark:hover:border-accent-500/40"
               >
-                {/* Tag */}
-                {service.tag && (
-                  <span
-                    className={`absolute top-4 right-4 text-xs font-medium uppercase tracking-wider ${tagColors[service.tag] || "text-neutral-500"}`}
-                  >
-                    {service.tag}
-                  </span>
-                )}
-
                 {/* Icon */}
                 <div className="mb-4">
                   <IconComponent

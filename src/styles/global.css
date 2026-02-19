@@ -188,8 +188,7 @@
     @apply text-neutral-900 font-bold;
   }
   p,
-  li,
-  span {
+  li {
     @apply text-neutral-800;
   }
 }

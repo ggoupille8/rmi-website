@@ -100,7 +100,7 @@ function AnimatedStat({
       <div className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
         {finalDisplay}
       </div>
-      <div className="mt-2 text-sm sm:text-base text-neutral-300 uppercase tracking-wider">
+      <div className="mt-2 text-sm sm:text-base text-neutral-200 uppercase tracking-wider">
         {shortLabel ? (
           <>
             <span className="hidden sm:inline">{label}</span>
