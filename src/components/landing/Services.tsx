@@ -1,29 +1,29 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { services, servicesSubtitle } from "../../content/site";
 import {
-  Workflow,
-  Wind,
-  Layers,
-  Wrench,
-  Clock,
+  Droplets,
+  AirVent,
   Cylinder,
+  SquareStack,
+  Hammer,
+  Cog,
+  Ruler,
   Package,
-  ClipboardList,
-  ShoppingCart,
+  Clock,
   X,
   type LucideIcon,
 } from "lucide-react";
 
 // Map service anchor IDs to icons
 const iconMap: Record<string, LucideIcon> = {
-  "ps-bid": ClipboardList,
-  piping: Workflow,
-  duct: Wind,
+  piping: Droplets,
+  duct: AirVent,
   tanks: Cylinder,
-  jacketing: Layers,
-  supports: Wrench,
-  blankets: Package,
-  materials: ShoppingCart,
+  blankets: SquareStack,
+  jacketing: Hammer,
+  supports: Cog,
+  "ps-bid": Ruler,
+  materials: Package,
   "247": Clock,
 };
 
@@ -130,7 +130,7 @@ export default function Services() {
         {/* Services Icon Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {services.map((service) => {
-            const IconComponent = iconMap[service.anchorId] || Workflow;
+            const IconComponent = iconMap[service.anchorId] || Droplets;
             return (
               <button
                 key={service.anchorId}
@@ -162,7 +162,7 @@ export default function Services() {
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-md animate-[fadeIn_200ms_ease-out]"
+            className="absolute inset-0 bg-black/40 backdrop-blur-md animate-[fadeIn_200ms_ease-out]"
             aria-hidden="true"
           />
 
@@ -186,7 +186,7 @@ export default function Services() {
 
             <div className="p-6 sm:p-8">
               {activeServiceData && (() => {
-                const Icon = iconMap[activeServiceData.anchorId] || Workflow;
+                const Icon = iconMap[activeServiceData.anchorId] || Droplets;
                 return (
                   <>
                     {/* Icon with accent glow */}

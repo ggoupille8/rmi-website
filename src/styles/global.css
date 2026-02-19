@@ -176,7 +176,7 @@
     --letter-spacing-wider: 0.025em;
   }
   html {
-    @apply scroll-smooth;
+    @apply scroll-smooth bg-neutral-950;
   }
   /* Disable animations/transitions for test stability and accessibility */
   @media (prefers-reduced-motion: reduce) {
@@ -190,13 +190,13 @@
     }
   }
   body {
-    @apply bg-neutral-50 text-neutral-900 antialiased;
+    @apply bg-neutral-950 text-neutral-100 antialiased;
     font-feature-settings: 'rlig' 1, 'calt' 1;
     /* Strong contrast: WCAG AAA for normal text */
-    color: rgb(var(--color-neutral-900));
+    color: rgb(var(--color-neutral-100));
   }
   * {
-    @apply border-neutral-200;
+    @apply border-neutral-700;
   }
   /* Strong contrast for all text elements */
   h1,
@@ -205,11 +205,11 @@
   h4,
   h5,
   h6 {
-    @apply text-neutral-900 font-bold;
+    @apply text-white font-bold;
   }
   p,
   li {
-    @apply text-neutral-800;
+    @apply text-neutral-200;
   }
 }
 @layer components {
@@ -244,7 +244,7 @@
     /* Strong contrast: white on accent-600 (blue) meets WCAG AAA */
   }
   .card-elevated {
-    @apply rounded-xl bg-white p-8 shadow-lg border border-neutral-200;
+    @apply rounded-xl bg-neutral-900 p-8 shadow-lg border border-neutral-700;
   }
   /* Form element improvements for mobile/iOS */
   input[type="text"],

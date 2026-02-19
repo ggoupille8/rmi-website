@@ -54,13 +54,6 @@ export interface ServiceData {
 
 export const services: ServiceData[] = [
   {
-    title: "Plan & Specification / Bid Work",
-    anchorId: "ps-bid",
-    tag: "Core Service",
-    description:
-      "Weekly plan & specification bidding and estimation services for commercial and industrial insulation projects. We review customer bid lists weekly, quoting most jobs and working to quote every opportunity we can. Our estimating and technical coordination streamline your project planning and ensure seamless execution from bid to completion.",
-  },
-  {
     title: "Pipe Insulation",
     anchorId: "piping",
     tag: "Core Service",
@@ -101,6 +94,13 @@ export const services: ServiceData[] = [
     tag: "Specialized",
     description:
       "In-house fabricated pipe supports and hangers with fast turnaround times. We design, fabricate, and deliver custom pipe supports that reduce lead times, keep your projects on schedule, and meet all structural and code requirements for commercial and industrial piping systems.",
+  },
+  {
+    title: "Plan & Specification / Bid Work",
+    anchorId: "ps-bid",
+    tag: "Core Service",
+    description:
+      "Weekly plan & specification bidding and estimation services for commercial and industrial insulation projects. We review customer bid lists weekly, quoting most jobs and working to quote every opportunity we can. Our estimating and technical coordination streamline your project planning and ensure seamless execution from bid to completion.",
   },
   {
     title: "Material Sales",

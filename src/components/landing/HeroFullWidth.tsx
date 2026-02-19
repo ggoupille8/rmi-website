@@ -136,7 +136,7 @@ export default function HeroFullWidth({
             alt=""
             className="w-full h-full object-cover"
             loading="eager"
-            fetchPriority="high"
+            fetchpriority="high"
             aria-hidden="true"
           />
         </picture>

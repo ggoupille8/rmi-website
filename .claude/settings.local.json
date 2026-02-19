@@ -26,7 +26,12 @@
       "Bash(npm run test:visual:update:*)",
       "Bash(tr:*)",
       "Bash(python:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(npm ls:*)",
+      "Bash(python3:*)",
+      "Bash(curl:*)",
+      "Bash(node scripts/inspect-styles.mjs:*)",
+      "Bash(pkill:*)"
     ]
   }
 }
