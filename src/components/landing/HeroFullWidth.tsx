@@ -8,11 +8,6 @@ const heroImages = [
   "/images/hero/hero-3.jpg",
   "/images/hero/hero-4.jpg",
   "/images/hero/hero-5.jpg",
-  "/images/hero/hero-6.jpg",
-  "/images/hero/hero-7.jpg",
-  "/images/hero/hero-8.jpg",
-  "/images/hero/hero-9.jpg",
-  "/images/hero/hero-10.jpg",
 ];
 
 const SLIDE_DURATION = 10000; // 10s per image
@@ -193,7 +188,7 @@ export default function HeroFullWidth({
       <div className="relative z-10 container-custom py-12 lg:py-20 flex-1 flex flex-col">
         <div className="max-w-5xl mx-auto text-center flex-1 flex flex-col justify-center w-full">
           {/* Main Content Card */}
-          <div className="max-w-3xl mx-auto bg-neutral-900/70 backdrop-blur-sm rounded-xl border border-neutral-700/30 py-6 px-6 sm:px-10">
+          <div className="max-w-3xl mx-auto bg-neutral-900/40 backdrop-blur-sm rounded-xl border border-neutral-700/30 py-6 px-6 sm:px-10">
             {/* Logo */}
             <h1 id="hero-heading" className="flex justify-center">
               <img
@@ -243,7 +238,7 @@ export default function HeroFullWidth({
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="w-40 sm:w-44 bg-neutral-900/80 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 py-3"
+                className="w-40 sm:w-44 bg-neutral-900/40 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 py-3"
               >
                 <AnimatedStat
                   endValue={stat.endValue}
