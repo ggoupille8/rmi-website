@@ -27,6 +27,15 @@
   }
 }
 
+@keyframes kenBurns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

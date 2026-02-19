@@ -1,11 +1,20 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroHeadline, heroTagline } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
+
+const heroImages = [
+  "/images/hero/hero-1.jpg",
+  "/images/hero/hero-2.jpg",
+  "/images/hero/hero-3.jpg",
+  "/images/hero/hero-4.jpg",
+  "/images/hero/hero-5.jpg",
+];
+
+const SLIDE_DURATION = 7000; // 7s per image
 
 interface HeroFullWidthProps {
   headline?: string;
   tagline?: string;
-  backgroundImage?: string;
 }
 
 // Animated counter hook
@@ -117,30 +126,61 @@ function AnimatedStat({
 export default function HeroFullWidth({
   headline = heroHeadline,
   tagline = heroTagline,
-  backgroundImage = "/images/hero/hero-1.jpg",
 }: HeroFullWidthProps) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % heroImages.length);
+    }, SLIDE_DURATION);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section
       className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-12 sm:pt-14"
       aria-labelledby="hero-heading"
     >
-      {/* Background Image with Overlay */}
+      {/* Background Slideshow */}
       <div className="absolute inset-0 z-0">
-        <picture>
-          <source
-            srcSet={backgroundImage.replace(/\.jpe?g$/i, ".webp")}
-            type="image/webp"
-          />
-          <img
-            src={backgroundImage}
-            alt=""
-            className="w-full h-full object-cover"
-            loading="eager"
-            fetchpriority="high"
+        {heroImages.map((src, index) => (
+          <div
+            key={src}
+            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${
+              index === activeIndex ? "opacity-100" : "opacity-0"
+            }`}
             aria-hidden="true"
-          />
-        </picture>
-        {/* Dark gradient overlay */}
+          >
+            <picture>
+              <source
+                srcSet={src.replace(/\.jpe?g$/i, ".webp")}
+                type="image/webp"
+              />
+              <img
+                src={src}
+                alt=""
+                className="w-full h-full object-cover"
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchpriority={index === 0 ? "high" : undefined}
+                style={
+                  !prefersReducedMotion && index === activeIndex
+                    ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-out forwards` }
+                    : { transform: "scale(1)" }
+                }
+              />
+            </picture>
+          </div>
+        ))}
+        {/* Dark gradient overlay — on top of all images */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
       </div>
 
