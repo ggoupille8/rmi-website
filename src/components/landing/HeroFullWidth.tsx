@@ -97,10 +97,10 @@ function AnimatedStat({
 
   return (
     <div ref={ref} className="text-center">
-      <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
+      <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
         {finalDisplay}
       </div>
-      <div className="mt-2 text-sm sm:text-base text-neutral-200 uppercase tracking-wider">
+      <div className="mt-1 text-xs sm:text-sm text-neutral-200 uppercase tracking-wider">
         {shortLabel ? (
           <>
             <span className="hidden sm:inline">{label}</span>
@@ -121,7 +121,7 @@ export default function HeroFullWidth({
 }: HeroFullWidthProps) {
   return (
     <section
-      className="relative min-h-screen flex flex-col justify-center overflow-hidden"
+      className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-16 sm:pt-20"
       aria-labelledby="hero-heading"
     >
       {/* Background Image with Overlay */}
@@ -145,66 +145,70 @@ export default function HeroFullWidth({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container-custom py-20 lg:py-32">
+      <div className="relative z-10 container-custom py-12 lg:py-20">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Logo */}
-          <h1 id="hero-heading" className="flex justify-center">
-            <img
-              src="/images/logo/rmi-logo-full.png"
-              alt={headline}
-              className="h-12 sm:h-16 lg:h-20 xl:h-24 w-auto brightness-0 invert"
-            />
-          </h1>
+          {/* Main Content Card */}
+          <div className="max-w-3xl mx-auto bg-neutral-900/70 backdrop-blur-sm rounded-xl border border-neutral-700/30 py-8 px-8 sm:px-12">
+            {/* Logo */}
+            <h1 id="hero-heading" className="flex justify-center">
+              <img
+                src="/images/logo/rmi-logo-full.png"
+                alt={headline}
+                className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
+              />
+            </h1>
 
-          {/* Tagline */}
-          <p className="mt-6 text-xl sm:text-2xl lg:text-3xl text-neutral-200 font-light tracking-wide">
-            {tagline}
-          </p>
+            {/* Tagline */}
+            <p className="mt-3 text-xl sm:text-2xl lg:text-3xl text-neutral-200 font-light tracking-wide">
+              {tagline}
+            </p>
 
-          {/* CTA Buttons */}
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-            {/* Primary CTA */}
-            <a
-              href="#contact"
-              className="btn-primary h-14 px-8"
-            >
-              Request a Quote
-            </a>
-
-            {/* Secondary CTAs */}
-            <div className="flex gap-3">
+            {/* CTA Buttons */}
+            <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
+              {/* Primary CTA */}
               <a
-                href={phoneTel}
-                className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
-                aria-label={`Call ${companyName} at ${phoneDisplay}`}
+                href="#contact"
+                className="btn-primary h-14 px-8"
               >
-                <Phone className="w-6 h-6 text-white" aria-hidden="true" />
+                Request a Quote
               </a>
-              <a
-                href={`mailto:${email}`}
-                className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
-                aria-label={`Email ${companyName} at ${email}`}
-              >
-                <Mail className="w-6 h-6 text-white" aria-hidden="true" />
-              </a>
+
+              {/* Secondary CTAs */}
+              <div className="flex gap-3">
+                <a
+                  href={phoneTel}
+                  className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                  aria-label={`Call ${companyName} at ${phoneDisplay}`}
+                >
+                  <Phone className="w-6 h-6 text-white" aria-hidden="true" />
+                </a>
+                <a
+                  href={`mailto:${email}`}
+                  className="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                  aria-label={`Email ${companyName} at ${email}`}
+                >
+                  <Mail className="w-6 h-6 text-white" aria-hidden="true" />
+                </a>
+              </div>
             </div>
           </div>
 
-          {/* Animated Stats */}
-          <div className="mt-16 lg:mt-24 max-w-3xl mx-auto bg-neutral-900/60 backdrop-blur-sm rounded-xl px-6 py-4 border border-neutral-700/30">
-            <div className="flex items-center justify-center divide-x divide-neutral-600/50">
-              {heroStats.map((stat, index) => (
-                <div key={stat.label} className="flex-1 px-3 sm:px-6">
-                  <AnimatedStat
-                    endValue={stat.endValue}
-                    suffix={stat.suffix}
-                    label={stat.label}
-                    shortLabel={stat.shortLabel}
-                    delay={index * 200}
-                  />
-                </div>
-              ))}
-            </div>
+          {/* Animated Stats — Individual Cards */}
+          <div className="mt-8 lg:mt-12 flex justify-center gap-3 sm:gap-4">
+            {heroStats.map((stat, index) => (
+              <div
+                key={stat.label}
+                className="bg-neutral-900/80 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 sm:px-6 py-3"
+              >
+                <AnimatedStat
+                  endValue={stat.endValue}
+                  suffix={stat.suffix}
+                  label={stat.label}
+                  shortLabel={stat.shortLabel}
+                  delay={index * 200}
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>
