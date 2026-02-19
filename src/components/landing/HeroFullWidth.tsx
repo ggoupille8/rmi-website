@@ -10,7 +10,7 @@ const heroImages = [
   "/images/hero/hero-5.jpg",
 ];
 
-const SLIDE_DURATION = 10000; // 10s per image
+const SLIDE_DURATION = 12000; // 12s per image
 
 interface HeroFullWidthProps {
   headline?: string;
@@ -128,6 +128,7 @@ export default function HeroFullWidth({
   tagline = heroTagline,
 }: HeroFullWidthProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const prevIndexRef = useRef(0);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -140,7 +141,10 @@ export default function HeroFullWidth({
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % heroImages.length);
+      setActiveIndex((prev) => {
+        prevIndexRef.current = prev;
+        return (prev + 1) % heroImages.length;
+      });
     }, SLIDE_DURATION);
     return () => clearInterval(timer);
   }, []);
@@ -152,11 +156,14 @@ export default function HeroFullWidth({
     >
       {/* Background Slideshow */}
       <div className="absolute top-12 sm:top-14 left-0 right-0 bottom-0 z-0">
-        {heroImages.map((src, index) => (
+        {heroImages.map((src, index) => {
+          const isActive = index === activeIndex;
+          const isPrev = index === prevIndexRef.current && index !== activeIndex;
+          return (
           <div
             key={src}
-            className={`absolute inset-0 transition-opacity duration-[3000ms] ease-in-out ${
-              index === activeIndex ? "opacity-100" : "opacity-0"
+            className={`absolute inset-0 transition-opacity duration-[4000ms] ease-in-out ${
+              isActive ? "opacity-100 z-[2]" : isPrev ? "opacity-100 z-[1]" : "opacity-0 z-0"
             }`}
             aria-hidden="true"
           >
@@ -179,7 +186,8 @@ export default function HeroFullWidth({
               />
             </picture>
           </div>
-        ))}
+          );
+        })}
         {/* Dark gradient overlay — on top of all images */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
       </div>
@@ -194,7 +202,8 @@ export default function HeroFullWidth({
               <img
                 src="/images/logo/rmi-logo-full.png"
                 alt={headline}
-                className="h-20 sm:h-28 lg:h-36 xl:h-44 w-auto brightness-0 invert"
+                className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
+                style={{ filter: 'brightness(0) invert(1) drop-shadow(3px 3px 0px rgba(0,0,0,0.7)) drop-shadow(-1px -1px 0px rgba(0,0,0,0.4))' }}
               />
             </h1>
 
@@ -234,7 +243,7 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats — Individual Cards */}
-          <div className="mt-auto pt-10 lg:pt-16 flex justify-center gap-6 sm:gap-8">
+          <div className="mt-auto pb-4 sm:pb-6 flex justify-center gap-6 sm:gap-8">
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}

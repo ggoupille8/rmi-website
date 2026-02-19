@@ -6,8 +6,9 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "astro dev",
-    "dev:all": "npm run ports:free && astro dev",
+    "dev": "node scripts/dev.mjs",
+    "dev:all": "node scripts/dev.mjs",
+    "dev:raw": "npm run ports:free && astro dev",
     "start": "astro dev",
     "build": "astro build",
     "postbuild": "node scripts/fix-runtime.js",
