@@ -89,34 +89,35 @@ import { companyName } from '../../content/site';
     </button>
   </nav>
 
-  <!-- Mobile menu overlay -->
-  <div
-    id="mobile-menu"
-    class="md:hidden fixed inset-0 top-12 sm:top-14 z-[60] hidden"
-    style="background: rgba(23, 23, 23, 0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Mobile navigation"
-  >
-    <nav class="flex flex-col items-center justify-center gap-8 h-full" aria-label="Mobile navigation links">
-      <a href="#services" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
-        Services
-      </a>
-      <a href="#about" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
-        About
-      </a>
-      <a href="#contact" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
-        Contact
-      </a>
-      <a
-        href="#contact"
-        class="mobile-nav-link mt-4 btn-primary px-8"
-      >
-        Request a Quote
-      </a>
-    </nav>
-  </div>
 </header>
+
+<!-- Mobile menu overlay — outside <header> so backdrop-filter doesn't create a containing block -->
+<div
+  id="mobile-menu"
+  class="md:hidden fixed inset-0 top-12 sm:top-14 z-[60] hidden"
+  style="background: rgba(23, 23, 23, 0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Mobile navigation"
+>
+  <nav class="flex flex-col items-center justify-center gap-8 h-full" aria-label="Mobile navigation links">
+    <a href="#services" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
+      Services
+    </a>
+    <a href="#about" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
+      About
+    </a>
+    <a href="#contact" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
+      Contact
+    </a>
+    <a
+      href="#contact"
+      class="mobile-nav-link mt-4 btn-primary px-8"
+    >
+      Request a Quote
+    </a>
+  </nav>
+</div>
 
 <style>
   /* Active nav link styling — applied via JS */
@@ -205,6 +206,9 @@ import { companyName } from '../../content/site';
       menuToggle.focus();
     }
   });
+
+  // Signal that the menu script is ready (used by Playwright tests)
+  menuToggle?.setAttribute('data-ready', 'true');
 
   // ── Intersection Observer for active nav link highlighting ──
   const navLinks = document.querySelectorAll<HTMLAnchorElement>('a.nav-link[data-nav-section]');
