@@ -3,11 +3,11 @@ import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumbe
 import { Phone, Mail } from "lucide-react";
 
 const heroImages = [
-  "/images/hero/hero-1.jpg",
-  "/images/hero/hero-2.jpg",
-  "/images/hero/hero-3.jpg",
-  "/images/hero/hero-4.jpg",
-  "/images/hero/hero-5.jpg",
+  "/images/hero/hero-1.webp",
+  "/images/hero/hero-2.webp",
+  "/images/hero/hero-3.webp",
+  "/images/hero/hero-4.webp",
+  "/images/hero/hero-5.webp",
 ];
 
 // Per-image mobile object-position (Issue 4)
@@ -265,11 +265,11 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats — Individual Cards */}
-          <div className="mt-6 sm:mt-auto pb-4 sm:pb-6 flex justify-center gap-3 sm:gap-8">
+          <div className="mt-6 sm:mt-auto pb-4 sm:pb-6 flex justify-center gap-3 sm:gap-8 min-h-[72px] sm:min-h-[80px]">
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="flex-1 min-w-0 sm:w-44 sm:flex-none bg-neutral-900/25 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 py-3"
+                className="flex-1 min-w-0 sm:w-44 sm:flex-none min-h-[44px] sm:min-h-[52px] bg-neutral-900/25 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 py-3"
               >
                 <AnimatedStat
                   endValue={stat.endValue}
