@@ -288,6 +288,17 @@
   }
 }
 
+@media (max-width: 639px) {
+  .service-ticker__track {
+    animation-duration: 90s;
+  }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .service-ticker__track {
+    animation-duration: 60s;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .service-ticker__track {
     animation-duration: 120s !important;

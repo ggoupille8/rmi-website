@@ -68,7 +68,7 @@ export default function FloatingMobileCTA() {
 
   return (
     <div
-      className="fixed bottom-4 right-0 z-40 lg:hidden pointer-events-none"
+      className="fixed bottom-20 right-0 z-40 md:hidden pointer-events-none"
       style={{
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         paddingRight: "env(safe-area-inset-right, 0px)",

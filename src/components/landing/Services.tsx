@@ -155,7 +155,7 @@ export default function Services() {
                 key={service.anchorId}
                 type="button"
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className="flex items-center gap-4 p-4 bg-neutral-900 border border-neutral-700 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:bg-neutral-800 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-200 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset"
+                className="flex items-center justify-center sm:justify-start gap-4 p-4 bg-neutral-900 border border-neutral-700 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:bg-neutral-800 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-200 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset"
               >
                 <IconComponent
                   className="w-7 h-7 text-accent-500 flex-shrink-0"
