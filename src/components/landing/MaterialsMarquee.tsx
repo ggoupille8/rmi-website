@@ -5,7 +5,7 @@ export default function MaterialsMarquee() {
   const duplicatedMaterials = [...materials, ...materials];
 
   return (
-    <section className="relative section-padding-sm overflow-hidden bg-neutral-900 border-t border-accent-500/30">
+    <section className="relative py-8 sm:py-12 overflow-hidden bg-neutral-900 border-t border-accent-500/30">
       {/* Edge gradient fades */}
       <div
         className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 z-10 pointer-events-none bg-gradient-to-r from-neutral-900 to-transparent"
@@ -25,7 +25,7 @@ export default function MaterialsMarquee() {
       </div>
 
       {/* Scrolling marquee */}
-      <div className="relative">
+      <div className="relative" role="marquee" aria-label="Materials we work with" aria-hidden="true" aria-live="off">
         <div className="service-ticker">
           <div className="service-ticker__track">
             {duplicatedMaterials.map((material, index) => (

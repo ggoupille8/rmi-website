@@ -16,7 +16,7 @@ test.describe("Dark Mode CSS Verification", () => {
     expect(backgroundColor).not.toBe("rgb(255, 255, 255)");
   });
 
-  test("should apply light background in light mode", async ({ page }) => {
+  test("should maintain dark appearance in light mode (dark-only site)", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "light" });
     await page.goto("/");
     await page.waitForLoadState("networkidle");
@@ -26,15 +26,12 @@ test.describe("Dark Mode CSS Verification", () => {
       return window.getComputedStyle(el).backgroundColor;
     });
 
-    // Light mode should have a light background
-    // Could be white or near-white
+    // Site is dark-only — background should remain dark regardless of color scheme
     const rgb = backgroundColor.match(/\d+/g)?.map(Number) || [];
     if (rgb.length === 3) {
       const [r, g, b] = rgb;
-      // Light colors have high RGB values
-      expect(r).toBeGreaterThan(200);
-      expect(g).toBeGreaterThan(200);
-      expect(b).toBeGreaterThan(200);
+      const brightness = (r + g + b) / 3;
+      expect(brightness).toBeLessThan(50);
     }
   });
 
@@ -59,27 +56,24 @@ test.describe("Dark Mode CSS Verification", () => {
     }
   });
 
-  test("should have readable text contrast in light mode", async ({ page }) => {
+  test("should have readable text contrast in light mode (dark-only site)", async ({ page }) => {
     await page.emulateMedia({ colorScheme: "light" });
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    // Check text contrast on the Services section heading (standard background)
-    // Hero h1 is excluded because it intentionally uses white text on a dark
-    // background image overlay — not representative of the site's light mode
+    // Site is dark-only — text should be light (readable on dark backgrounds)
     const servicesHeading = page.locator("#services-heading");
     await servicesHeading.scrollIntoViewIfNeeded();
     const textColor = await servicesHeading.evaluate((el) => {
       return window.getComputedStyle(el).color;
     });
 
-    // Text should be dark in light mode
     const rgb = textColor.match(/\d+/g)?.map(Number) || [];
     if (rgb.length >= 3) {
       const [r, g, b] = rgb;
-      // Dark text has low RGB values (at least somewhat dark)
+      // Light text has high RGB values (readable on dark background)
       const brightness = (r + g + b) / 3;
-      expect(brightness).toBeLessThan(200);
+      expect(brightness).toBeGreaterThan(150);
     }
   });
 

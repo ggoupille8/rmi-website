@@ -22,6 +22,12 @@ export default function ContactForm({
     website: "", // Honeypot field (should stay empty)
   });
   const mountedAtRef = useRef(Date.now());
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Signal that React has hydrated (used by Playwright tests)
+  useEffect(() => {
+    formRef.current?.setAttribute("data-hydrated", "true");
+  }, []);
 
   // Update projectType when preselectedProjectType prop changes or URL param is present
   useEffect(() => {
@@ -200,7 +206,7 @@ export default function ContactForm({
 
   return (
     <section
-      className="pt-14 pb-12 sm:pb-16 bg-neutral-800"
+      className="py-12 sm:py-16 bg-neutral-800"
       aria-labelledby="contact-heading"
     >
       <div className="container-custom">
@@ -215,6 +221,7 @@ export default function ContactForm({
         <div className="mx-auto mt-2 sm:mt-3 max-w-3xl">
           <div className="card-elevated p-4 sm:p-5 bg-neutral-900 border-neutral-700">
             <form
+              ref={formRef}
               onSubmit={handleSubmit}
               className="space-y-3 sm:space-y-4"
               noValidate

@@ -1,11 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { VALID_FORM_DATA, API_RESPONSES } from "./fixtures";
 
-// Helper to fill the landing page contact form (has more fields than minimal form)
+// Helper to wait for React hydration then fill the landing page contact form
 async function fillLandingContactForm(
   page: import("@playwright/test").Page,
   data: { name: string; email: string; message: string }
 ) {
+  // Wait for React to hydrate the form (prevents native GET submission)
+  await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 10000 });
   await page.fill("#name", data.name);
   await page.fill("#email", data.email);
   // Select a project type (required field)

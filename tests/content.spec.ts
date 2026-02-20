@@ -19,8 +19,10 @@ test.describe("Content Validation Tests", () => {
   test("should display company name in hero section", async ({ page }) => {
     const heroHeading = page.locator("h1").first();
     await expect(heroHeading).toBeVisible();
-    const headingText = await heroHeading.textContent();
-    expect(headingText).toContain(EXPECTED_COMPANY_NAME);
+    // h1 contains a logo image with company name as alt text
+    const heroImg = heroHeading.locator("img");
+    const altText = await heroImg.getAttribute("alt");
+    expect(altText).toContain(EXPECTED_COMPANY_NAME);
   });
 
   test("should have correct email in all email links", async ({ page }) => {
@@ -73,10 +75,11 @@ test.describe("Content Validation Tests", () => {
   });
 
   test("should have consistent company name usage", async ({ page }) => {
-    // Company name should appear in multiple places
+    // Company name should appear in hero (as logo img alt text)
     const heroHeading = page.locator("h1").first();
-    const heroText = await heroHeading.textContent();
-    expect(heroText).toContain(EXPECTED_COMPANY_NAME);
+    const heroImg = heroHeading.locator("img");
+    const altText = await heroImg.getAttribute("alt");
+    expect(altText).toContain(EXPECTED_COMPANY_NAME);
 
     // Footer should contain full company name
     const footer = page.locator("footer");
@@ -134,7 +137,10 @@ test.describe("Content Validation Tests", () => {
   test("should have hero headline and subheadline", async ({ page }) => {
     const heroHeadline = page.locator("h1").first();
     await expect(heroHeadline).toBeVisible();
-    await expect(heroHeadline).toContainText(EXPECTED_COMPANY_NAME);
+    // h1 contains a logo image with company name as alt text
+    const heroImg = heroHeadline.locator("img");
+    const altText = await heroImg.getAttribute("alt");
+    expect(altText).toContain(EXPECTED_COMPANY_NAME);
 
     // Tagline/subheadline should be visible in the hero section
     const heroSection = page.locator("section").first();

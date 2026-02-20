@@ -112,6 +112,16 @@ const localBusinessSchema = JSON.stringify({
     <!-- Canonical URL -->
     <link rel="canonical" href={canonical} />
     
+    <!-- Preload LCP hero image -->
+    <link
+      rel="preload"
+      as="image"
+      type="image/webp"
+      href="/images/hero/hero-1.webp"
+      fetchpriority="high"
+    />
+    <link rel="preload" as="image" href="/images/logo/rmi-logo-full.png" />
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

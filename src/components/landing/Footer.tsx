@@ -12,7 +12,7 @@ export default function Footer() {
       <div className="container-custom py-6 sm:py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Company Info */}
-          <div>
+          <div className="text-center md:text-left">
             <h3 className="text-base font-semibold text-white mb-3">
               {companyNameFull}
             </h3>
@@ -22,11 +22,11 @@ export default function Footer() {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <div className="text-center md:text-left">
             <h3 className="text-base font-semibold text-white mb-3">
               Quick Links
             </h3>
-            <nav className="flex flex-col gap-2" aria-label="Footer navigation">
+            <nav className="flex flex-col items-center md:items-start gap-2" aria-label="Footer navigation">
               <a
                 href="#services"
                 className="text-neutral-300 hover:text-white transition-colors text-sm w-fit"
@@ -49,11 +49,11 @@ export default function Footer() {
           </div>
 
           {/* Contact Info */}
-          <div>
+          <div className="text-center md:text-left">
             <h3 className="text-base font-semibold text-white mb-3">
               Contact
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-2 inline-flex flex-col items-center md:items-start">
               <a
                 href={phoneTel}
                 className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm"

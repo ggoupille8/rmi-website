@@ -249,7 +249,7 @@ test.describe("Mobile QA Fixes — 375×812", () => {
     test("hero glassmorphism card has supports-[backdrop-filter] class", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
       // The glassmorphism card is the main content card in the hero
-      const card = page.locator('section[aria-labelledby="hero-heading"] .supports-\\[backdrop-filter\\]\\:bg-neutral-900\\/25');
+      const card = page.locator('section[aria-labelledby="hero-heading"] .supports-\\[backdrop-filter\\]\\:bg-neutral-900\\/35');
       await expect(card).toBeAttached();
     });
   });
@@ -383,5 +383,165 @@ test.describe("Desktop cross-check — 1440×900", () => {
       await expect(cta).toBeHidden();
     }
     // If count is 0, the React component returned null — also acceptable
+  });
+
+  // ── Section Padding Consistency (Fix 1) ──────────────────────────────────
+
+  test.describe("Section Padding", () => {
+    test("Services and About use py-12 sm:py-16 (standard sections)", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const services = page.locator('section[aria-labelledby="services-heading"]');
+      const about = page.locator('section[aria-labelledby="about-heading"]');
+
+      const servicesClass = await services.getAttribute("class");
+      const aboutClass = await about.getAttribute("class");
+
+      expect(servicesClass).toContain("py-12");
+      expect(servicesClass).toContain("sm:py-16");
+      expect(aboutClass).toContain("py-12");
+      expect(aboutClass).toContain("sm:py-16");
+    });
+
+    test("Contact section uses py-12 sm:py-16 (standard section)", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const contact = page.locator('section[aria-labelledby="contact-heading"]');
+      const contactClass = await contact.getAttribute("class");
+      expect(contactClass).toContain("py-12");
+      expect(contactClass).toContain("sm:py-16");
+    });
+
+    test("CTA banner uses py-8 sm:py-12 (compact section)", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const cta = page.locator('section[aria-labelledby="cta-heading"]');
+      const ctaClass = await cta.getAttribute("class");
+      expect(ctaClass).toContain("py-8");
+      expect(ctaClass).toContain("sm:py-12");
+    });
+  });
+
+  // ── Glassmorphism Readability (Fix 2) ────────────────────────────────────
+
+  test.describe("Glassmorphism Readability", () => {
+    test("hero card uses backdrop-blur-md (not backdrop-blur-sm)", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      // The main content card should have backdrop-blur-md
+      const card = page.locator('section[aria-labelledby="hero-heading"] .backdrop-blur-md');
+      await expect(card).toBeAttached();
+      // The main content card (with supports-[backdrop-filter]) should NOT have backdrop-blur-sm
+      const mainCard = page.locator('section[aria-labelledby="hero-heading"] .supports-\\[backdrop-filter\\]\\:bg-neutral-900\\/35');
+      const classList = await mainCard.getAttribute("class");
+      expect(classList).toContain("backdrop-blur-md");
+      expect(classList).not.toContain("backdrop-blur-sm");
+    });
+
+    test("hero card has supports-[backdrop-filter]:bg-neutral-900/35", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const card = page.locator('section[aria-labelledby="hero-heading"] .supports-\\[backdrop-filter\\]\\:bg-neutral-900\\/35');
+      await expect(card).toBeAttached();
+    });
+  });
+
+  // ── LCP Preload (Fix 3) ──────────────────────────────────────────────────
+
+  test.describe("LCP Preload", () => {
+    test("page head has preload link for hero-1.webp", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const preload = page.locator('link[rel="preload"][href*="hero-1.webp"]');
+      await expect(preload).toBeAttached();
+      await expect(preload).toHaveAttribute("as", "image");
+      await expect(preload).toHaveAttribute("type", "image/webp");
+    });
+
+    test("page head has preload link for logo image", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const preload = page.locator('link[rel="preload"][href*="rmi-logo"]');
+      await expect(preload).toBeAttached();
+      await expect(preload).toHaveAttribute("as", "image");
+    });
+  });
+
+  // ── Ticker Accessibility (Fix 4) ────────────────────────────────────────
+
+  test.describe("Ticker Accessibility", () => {
+    test("visual ticker container has aria-hidden=true", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const ticker = page.locator('[role="marquee"]');
+      await expect(ticker).toHaveAttribute("aria-hidden", "true");
+    });
+
+    test("sr-only material list does NOT have aria-hidden", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const srList = page.locator("section .sr-only ul");
+      const ariaHidden = await srList.getAttribute("aria-hidden");
+      expect(ariaHidden).toBeNull();
+    });
+
+    test("visual ticker has role=marquee and descriptive aria-label", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const ticker = page.locator('[role="marquee"]');
+      await expect(ticker).toBeAttached();
+      await expect(ticker).toHaveAttribute("aria-label", "Materials we work with");
+    });
+
+    test("visual ticker has aria-live=off", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const ticker = page.locator('[role="marquee"]');
+      await expect(ticker).toHaveAttribute("aria-live", "off");
+    });
+  });
+
+  // ── Footer Alignment (Fix 5) ────────────────────────────────────────────
+
+  test.describe("Footer Alignment", () => {
+    test("footer sections are center-aligned on mobile (375px)", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const footer = page.locator("footer");
+      const gridChildren = footer.locator(".grid > div");
+      const count = await gridChildren.count();
+      expect(count).toBe(3);
+
+      for (let i = 0; i < count; i++) {
+        const classList = await gridChildren.nth(i).getAttribute("class");
+        expect(classList, `Footer section ${i} should have text-center`).toContain("text-center");
+      }
+    });
+
+    test("Quick Links nav has items-center on mobile", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const quickLinksNav = page.locator('footer nav[aria-label="Footer navigation"]');
+      const classList = await quickLinksNav.getAttribute("class");
+      expect(classList).toContain("items-center");
+    });
+  });
+});
+
+// ── Footer Alignment Desktop Check ───────────────────────────────────────────
+
+test.describe("Footer Alignment Desktop — 1440×900", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("footer sections are left-aligned on desktop", async ({ page }) => {
+    await page.goto("/", { waitUntil: "networkidle" });
+    const footer = page.locator("footer");
+    const gridChildren = footer.locator(".grid > div");
+    const count = await gridChildren.count();
+    expect(count).toBe(3);
+
+    for (let i = 0; i < count; i++) {
+      const classList = await gridChildren.nth(i).getAttribute("class");
+      expect(classList, `Footer section ${i} should have md:text-left`).toContain("md:text-left");
+      // Verify computed text-align is left at desktop
+      const textAlign = await gridChildren.nth(i).evaluate((el) => {
+        return window.getComputedStyle(el).textAlign;
+      });
+      expect(textAlign).toMatch(/left|start/);
+    }
+  });
+
+  test("Quick Links nav has items-start on desktop", async ({ page }) => {
+    await page.goto("/", { waitUntil: "networkidle" });
+    const quickLinksNav = page.locator('footer nav[aria-label="Footer navigation"]');
+    const classList = await quickLinksNav.getAttribute("class");
+    expect(classList).toContain("md:items-start");
   });
 });

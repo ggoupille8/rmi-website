@@ -106,6 +106,8 @@ for (const vp of VIEWPORTS) {
     if (vp.width < 768) {
       test("hamburger menu opens and closes", async ({ page }) => {
         await page.goto("/", { waitUntil: "networkidle" });
+        // Wait for Astro inline script to initialise the menu toggle
+        await page.locator('#menu-toggle[data-ready="true"]').waitFor({ state: "attached", timeout: 10000 });
         const toggle = page.locator("#menu-toggle");
         await expect(toggle).toBeVisible();
 
@@ -126,6 +128,8 @@ for (const vp of VIEWPORTS) {
 
       test("hamburger menu closes on Escape", async ({ page }) => {
         await page.goto("/", { waitUntil: "networkidle" });
+        // Wait for Astro inline script to initialise the menu toggle
+        await page.locator('#menu-toggle[data-ready="true"]').waitFor({ state: "attached", timeout: 10000 });
         const toggle = page.locator("#menu-toggle");
         await toggle.click();
         const menu = page.locator("#mobile-menu");
