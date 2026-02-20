@@ -2,7 +2,7 @@ import { ctaBannerHeading, ctaBannerSubtitle, ctaBannerButton } from "../../cont
 
 export default function CTABanner() {
   return (
-    <section className="py-8 sm:py-10 bg-accent-900" aria-labelledby="cta-heading">
+    <section className="py-8 sm:py-12 bg-accent-900" aria-labelledby="cta-heading">
       <div className="container-custom text-center">
         <h2 id="cta-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight uppercase">
           {ctaBannerHeading}

@@ -218,7 +218,7 @@ export default function HeroFullWidth({
       <div className="relative z-10 container-custom py-12 lg:py-20 flex-1 flex flex-col">
         <div className="max-w-5xl mx-auto text-center flex-1 flex flex-col justify-center w-full">
           {/* Main Content Card */}
-          <div className="max-w-3xl mx-auto bg-neutral-900/60 supports-[backdrop-filter]:bg-neutral-900/25 backdrop-blur-sm rounded-xl border border-neutral-700/30 py-6 px-6 sm:px-10">
+          <div className="max-w-3xl mx-auto bg-neutral-900/60 supports-[backdrop-filter]:bg-neutral-900/35 backdrop-blur-md rounded-xl border border-neutral-700/30 py-6 px-6 sm:px-10">
             {/* Logo */}
             <h1 id="hero-heading" className="flex justify-center">
               <img

@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
 
-// Helper to fill the landing page contact form
+// Helper to wait for React hydration then fill the landing page contact form
 async function fillContactForm(
   page: import("@playwright/test").Page,
   data: { name: string; email: string; message: string }
 ) {
+  // Wait for React to hydrate the form (prevents native GET submission)
+  await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 10000 });
   await page.fill("#name", data.name);
   await page.fill("#email", data.email);
   await page.selectOption("#projectType", "installation");
@@ -93,24 +95,21 @@ test.describe("Functionality Tests", () => {
   test("should show validation errors for empty form submission", async ({
     page,
   }) => {
+    // Wait for React to hydrate the form (prevents native GET submission)
+    await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 10000 });
+
     const submitButton = page.locator('button[type="submit"]');
     await submitButton.click();
 
-    // Check browser validation (HTML5 required attributes)
+    // Form uses JavaScript validation (noValidate) — check that error messages appear
+    await page.waitForSelector('[role="alert"]', { timeout: 5000 });
+    const errorAlerts = page.locator('[role="alert"]');
+    const errorCount = await errorAlerts.count();
+    expect(errorCount).toBeGreaterThan(0);
+
+    // Name field should be marked invalid via aria-invalid
     const nameInput = page.locator("#name");
-    const emailInput = page.locator("#email");
-    const messageInput = page.locator("#message");
-
-    // Check that inputs are marked as required
-    await expect(nameInput).toHaveAttribute("required", "");
-    await expect(emailInput).toHaveAttribute("required", "");
-    await expect(messageInput).toHaveAttribute("required", "");
-
-    // Check validity (browser will show native validation)
-    const nameValid = await nameInput.evaluate((el: HTMLInputElement) =>
-      el.checkValidity()
-    );
-    expect(nameValid).toBe(false);
+    await expect(nameInput).toHaveAttribute("aria-invalid", "true");
   });
 
   test("should disable submit button while submitting", async ({ page }) => {
