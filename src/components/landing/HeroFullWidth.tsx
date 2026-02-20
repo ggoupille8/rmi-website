@@ -10,6 +10,23 @@ const heroImages = [
   "/images/hero/hero-5.jpg",
 ];
 
+// Per-image mobile object-position (Issue 4)
+const heroImagePositions = [
+  "object-[50%_70%] sm:object-center",  // hero-1: shift down to show equipment, not sky
+  "object-[50%_40%] sm:object-center",  // hero-2: shift up to center pipes
+  "object-[40%_50%] sm:object-center",  // hero-3: shift left to center subject
+  "object-center",                       // hero-4: already portrait, center works
+  "object-[50%_40%] sm:object-center",  // hero-5: shift up slightly
+];
+
+const heroImageAlts = [
+  "Rooftop HVAC insulation installation",
+  "Insulated pipe cluster",
+  "Industrial valve and equipment insulation",
+  "Mechanical insulation work in progress",
+  "Commercial insulation project",
+];
+
 const SLIDE_DURATION = 12000; // 12s per image
 
 interface HeroFullWidthProps {
@@ -109,7 +126,7 @@ function AnimatedStat({
       <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
         {finalDisplay}
       </div>
-      <div className="mt-1 text-xs sm:text-sm text-neutral-200 uppercase tracking-wider">
+      <div className="mt-1 text-[10px] sm:text-xs text-neutral-200 uppercase tracking-wider leading-tight truncate">
         {shortLabel ? (
           <>
             <span className="hidden sm:inline">{label}</span>
@@ -155,16 +172,21 @@ export default function HeroFullWidth({
       aria-labelledby="hero-heading"
     >
       {/* Background Slideshow */}
-      <div className="absolute top-12 sm:top-14 left-0 right-0 bottom-0 z-0">
+      <div className="absolute top-12 sm:top-14 left-0 right-0 bottom-0 z-0 overflow-hidden">
         {heroImages.map((src, index) => {
           const isActive = index === activeIndex;
           const isPrev = index === prevIndexRef.current && index !== activeIndex;
           return (
           <div
             key={src}
-            className={`absolute inset-0 transition-opacity duration-[4000ms] ease-in-out ${
-              isActive ? "opacity-100 z-[2]" : isPrev ? "opacity-100 z-[1]" : "opacity-0 z-0"
+            className={`absolute inset-0 ease-in-out ${
+              isActive
+                ? "transition-opacity duration-[2000ms] opacity-100"
+                : isPrev
+                ? "transition-opacity duration-[2000ms] opacity-0"
+                : "transition-opacity duration-[0ms] opacity-0"
             }`}
+            style={{ zIndex: isActive ? 2 : isPrev ? 1 : 0 }}
             aria-hidden="true"
           >
             <picture>
@@ -174,8 +196,8 @@ export default function HeroFullWidth({
               />
               <img
                 src={src}
-                alt=""
-                className="w-full h-full object-cover object-center"
+                alt={heroImageAlts[index]}
+                className={`w-full h-full object-cover ${heroImagePositions[index]}`}
                 loading={index === 0 ? "eager" : "lazy"}
                 fetchpriority={index === 0 ? "high" : undefined}
                 style={
@@ -189,14 +211,14 @@ export default function HeroFullWidth({
           );
         })}
         {/* Dark gradient overlay — on top of all images */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
       </div>
 
       {/* Content */}
       <div className="relative z-10 container-custom py-12 lg:py-20 flex-1 flex flex-col">
         <div className="max-w-5xl mx-auto text-center flex-1 flex flex-col justify-center w-full">
           {/* Main Content Card */}
-          <div className="max-w-3xl mx-auto bg-neutral-900/25 backdrop-blur-sm rounded-xl border border-neutral-700/30 py-6 px-6 sm:px-10">
+          <div className="max-w-3xl mx-auto bg-neutral-900/60 supports-[backdrop-filter]:bg-neutral-900/25 backdrop-blur-sm rounded-xl border border-neutral-700/30 py-6 px-6 sm:px-10">
             {/* Logo */}
             <h1 id="hero-heading" className="flex justify-center">
               <img
@@ -243,11 +265,11 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats — Individual Cards */}
-          <div className="mt-auto pb-4 sm:pb-6 flex justify-center gap-6 sm:gap-8">
+          <div className="mt-6 sm:mt-auto pb-4 sm:pb-6 flex justify-center gap-3 sm:gap-8">
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="w-40 sm:w-44 bg-neutral-900/25 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 py-3"
+                className="flex-1 min-w-0 sm:w-44 sm:flex-none bg-neutral-900/25 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 py-3"
               >
                 <AnimatedStat
                   endValue={stat.endValue}
