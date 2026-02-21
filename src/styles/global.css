@@ -209,6 +209,15 @@
   * {
     @apply border-neutral-700;
   }
+  /* Restore visible focus indicators for keyboard navigation (Tailwind Preflight removes them) */
+  :focus-visible {
+    outline: 2px solid rgb(96 165 250); /* accent-400 blue */
+    outline-offset: 2px;
+  }
+  /* Let components with their own focus-visible ring styles override the global outline */
+  [class*="focus-visible:ring"]:focus-visible {
+    outline: none;
+  }
   /* Strong contrast for all text elements */
   h1,
   h2,

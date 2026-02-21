@@ -265,7 +265,7 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats — Individual Cards */}
-          <div className="mt-6 sm:mt-auto pb-4 sm:pb-6 flex justify-center gap-3 sm:gap-8 min-h-[72px] sm:min-h-[80px]">
+          <div className="mt-6 sm:mt-auto pb-4 sm:pb-6 flex flex-wrap justify-center gap-3 sm:gap-8 min-h-[72px] sm:min-h-[80px]">
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
