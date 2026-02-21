@@ -26,22 +26,22 @@ export default function Footer() {
             <h3 className="text-base font-semibold text-white mb-3">
               Quick Links
             </h3>
-            <nav className="flex flex-col items-center md:items-start gap-2" aria-label="Footer navigation">
+            <nav className="flex flex-col items-center md:items-start gap-0" aria-label="Footer navigation">
               <a
                 href="#services"
-                className="text-neutral-300 hover:text-white transition-colors text-sm w-fit"
+                className="text-neutral-300 hover:text-white transition-colors text-sm w-fit py-3"
               >
                 Services
               </a>
               <a
                 href="#about"
-                className="text-neutral-300 hover:text-white transition-colors text-sm w-fit"
+                className="text-neutral-300 hover:text-white transition-colors text-sm w-fit py-3"
               >
                 About
               </a>
               <a
                 href="#contact"
-                className="text-neutral-300 hover:text-white transition-colors text-sm w-fit"
+                className="text-neutral-300 hover:text-white transition-colors text-sm w-fit py-3"
               >
                 Request a Quote
               </a>
@@ -53,10 +53,10 @@ export default function Footer() {
             <h3 className="text-base font-semibold text-white mb-3">
               Contact
             </h3>
-            <div className="space-y-2 inline-flex flex-col items-center md:items-start">
+            <div className="space-y-0 inline-flex flex-col items-center md:items-start">
               <a
                 href={phoneTel}
-                className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm"
+                className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm py-3"
                 aria-label={`Call ${companyName} at ${phoneDisplay}`}
               >
                 <Phone className="w-3.5 h-3.5 text-accent-500" aria-hidden="true" />
@@ -65,7 +65,7 @@ export default function Footer() {
 
               <a
                 href={`mailto:${email}`}
-                className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm"
+                className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm py-3"
                 aria-label={`Email ${companyName} at ${email}`}
               >
                 <Mail className="w-3.5 h-3.5 text-accent-500" aria-hidden="true" />

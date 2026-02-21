@@ -166,6 +166,30 @@ import { companyName } from '../../content/site';
   const iconOpen = document.getElementById('icon-open');
   const iconClose = document.getElementById('icon-close');
 
+  // Focus trap handler — added/removed dynamically when menu opens/closes
+  function trapFocus(e: KeyboardEvent) {
+    if (!mobileMenu || !menuToggle) return;
+    const focusableElements = mobileMenu.querySelectorAll<HTMLElement>('a, button');
+    // Include the hamburger button (close button) in the focus cycle
+    const allFocusable = [menuToggle, ...Array.from(focusableElements)];
+    const firstFocusable = allFocusable[0];
+    const lastFocusable = allFocusable[allFocusable.length - 1];
+
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable.focus();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable.focus();
+        }
+      }
+    }
+  }
+
   function openMenu() {
     if (!mobileMenu || !menuToggle || !iconOpen || !iconClose) return;
     mobileMenu.classList.remove('hidden');
@@ -174,6 +198,10 @@ import { companyName } from '../../content/site';
     menuToggle.setAttribute('aria-expanded', 'true');
     menuToggle.setAttribute('aria-label', 'Close navigation menu');
     document.body.style.overflow = 'hidden';
+    // Activate focus trap and move focus to first nav link
+    document.addEventListener('keydown', trapFocus);
+    const firstLink = mobileMenu.querySelector<HTMLElement>('.mobile-nav-link');
+    firstLink?.focus();
   }
 
   function closeMenu() {
@@ -184,12 +212,15 @@ import { companyName } from '../../content/site';
     menuToggle.setAttribute('aria-expanded', 'false');
     menuToggle.setAttribute('aria-label', 'Open navigation menu');
     document.body.style.overflow = '';
+    // Remove focus trap
+    document.removeEventListener('keydown', trapFocus);
   }
 
   menuToggle?.addEventListener('click', () => {
     const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
     if (isOpen) {
       closeMenu();
+      menuToggle.focus();
     } else {
       openMenu();
     }
@@ -197,7 +228,10 @@ import { companyName } from '../../content/site';
 
   const mobileLinks = mobileMenu?.querySelectorAll('.mobile-nav-link');
   mobileLinks?.forEach((link) => {
-    link.addEventListener('click', closeMenu);
+    link.addEventListener('click', () => {
+      closeMenu();
+      menuToggle?.focus();
+    });
   });
 
   document.addEventListener('keydown', (e) => {

@@ -388,6 +388,15 @@ export default function ContactForm({
               </div>
             )}
 
+              {submitStatus === "error" && (
+                <div
+                  className="rounded-md bg-error-dark/20 p-3 text-red-400 border border-red-500/20 text-sm"
+                  role="alert"
+                  aria-live="polite"
+                >
+                  Something went wrong. Please try again or call us directly.
+                </div>
+              )}
 
               {/* Honeypot field - hidden from users */}
               <div
