@@ -15,8 +15,8 @@ const heroImagePositions = [
   "object-[50%_65%] sm:object-center",  // hero-1: equipment is in lower portion, shift down to avoid showing just ceiling/sky
   "object-[60%_45%] sm:object-center",  // hero-2: pipes cluster right-of-center, shift right and slightly up
   "object-[35%_50%] sm:object-center",  // hero-3: ultra-wide, subject left-of-center, shift left to capture it
-  "object-[50%_35%] sm:object-center",  // hero-4: portrait — on desktop, shift up to show more of the equipment top
-  "object-[55%_40%] sm:object-center",  // hero-5: similar to hero-2, slight right and up adjustment
+  "object-[50%_60%] sm:object-[50%_65%]",  // hero-4: portrait (3:4) — shift down to show duct/HVAC equipment, less sky
+  "object-[40%_45%] sm:object-center",  // hero-5: 4:3 — shift left on mobile to capture tank end cap
 ];
 
 const heroImageAlts = [
@@ -201,8 +201,12 @@ export default function HeroFullWidth({
                 loading={index === 0 ? "eager" : "lazy"}
                 fetchpriority={index === 0 ? "high" : undefined}
                 style={
-                  !prefersReducedMotion && index === activeIndex
-                    ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-in-out forwards` }
+                  !prefersReducedMotion
+                    ? isActive
+                      ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-in-out forwards` }
+                      : isPrev
+                        ? { transform: "scale(1.05)", filter: "brightness(1.05)" }
+                        : { transform: "scale(1)", filter: "brightness(1)" }
                     : { transform: "scale(1)", filter: "brightness(1)" }
                 }
               />

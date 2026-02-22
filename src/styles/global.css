@@ -187,6 +187,7 @@
     --letter-spacing-wider: 0.025em;
   }
   html {
+    scrollbar-gutter: stable;
     @apply scroll-smooth bg-neutral-950;
   }
   /* Disable animations/transitions for test stability and accessibility */
