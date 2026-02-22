@@ -6,12 +6,26 @@ export default function FloatingMobileCTA() {
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFormFocused, setIsFormFocused] = useState(false);
+  const [isContactVisible, setIsContactVisible] = useState(false);
+
+  // Hide when contact section is in viewport
+  useEffect(() => {
+    const contactSection = document.getElementById("contact");
+    if (!contactSection) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsContactVisible(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    observer.observe(contactSection);
+    return () => observer.disconnect();
+  }, []);
 
   // Show/hide based on scroll position and form focus
   useEffect(() => {
     const handleScroll = () => {
-      // Hide when scrolled to top (hero visible) or when form is focused
-      if (isFormFocused) {
+      // Hide when scrolled to top (hero visible), form is focused, or contact section visible
+      if (isFormFocused || isContactVisible) {
         setIsVisible(false);
         return;
       }
@@ -20,7 +34,7 @@ export default function FloatingMobileCTA() {
       const windowHeight = window.innerHeight;
       // Show after scrolling past hero section (approximately 100vh)
       setIsVisible(scrollY > windowHeight * 0.5);
-      
+
       // Auto-collapse when scrolling
       if (scrollY > 0) {
         setIsExpanded(false);
@@ -60,7 +74,7 @@ export default function FloatingMobileCTA() {
       document.removeEventListener("focusin", handleFocusIn);
       document.removeEventListener("focusout", handleFocusOut);
     };
-  }, [isFormFocused]);
+  }, [isFormFocused, isContactVisible]);
 
   return (
     <div

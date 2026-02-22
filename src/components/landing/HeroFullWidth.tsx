@@ -27,6 +27,15 @@ const heroImageAlts = [
   "Commercial insulation project",
 ];
 
+// Per-image Ken Burns zoom origins for visual variety
+const heroImageOrigins = [
+  "center center",     // hero-1: centered zoom
+  "60% 40%",           // hero-2: zoom toward pipe cluster
+  "35% center",        // hero-3: zoom toward left subject
+  "center 35%",        // hero-4: zoom toward upper equipment
+  "55% 40%",           // hero-5: zoom toward right-of-center
+];
+
 const SLIDE_DURATION = 12000; // 12s per image
 
 interface HeroFullWidthProps {
@@ -40,11 +49,20 @@ function useCountUp(
   duration: number = 2000,
   startOnView: boolean = true
 ): { count: number; ref: React.RefObject<HTMLDivElement | null> } {
-  const [count, setCount] = useState(0);
+  // Initialize at endValue so SSR HTML shows final numbers (no "0+" flash)
+  const [count, setCount] = useState(endValue);
   const [hasStarted, setHasStarted] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
+  // On client mount, reset to 0 for animation
   useEffect(() => {
+    setCount(0);
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasMounted) return;
     if (!startOnView) {
       setHasStarted(true);
       return;
@@ -64,7 +82,7 @@ function useCountUp(
     }
 
     return () => observer.disconnect();
-  }, [startOnView, hasStarted]);
+  }, [hasMounted, startOnView, hasStarted]);
 
   useEffect(() => {
     if (!hasStarted) return;
@@ -168,7 +186,7 @@ export default function HeroFullWidth({
 
   return (
     <section
-      className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-12 sm:pt-14"
+      className="relative min-h-[100dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
       aria-labelledby="hero-heading"
     >
       {/* Background Slideshow */}
@@ -198,11 +216,16 @@ export default function HeroFullWidth({
                 src={src}
                 alt={heroImageAlts[index]}
                 className={`w-full h-full object-cover ${heroImagePositions[index]}`}
+                sizes="100vw"
                 loading={index === 0 ? "eager" : "lazy"}
                 fetchpriority={index === 0 ? "high" : undefined}
                 style={
-                  !prefersReducedMotion && index === activeIndex
-                    ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-in-out forwards` }
+                  !prefersReducedMotion
+                    ? isActive
+                      ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-in-out forwards`, transformOrigin: heroImageOrigins[index] }
+                      : isPrev
+                        ? { transform: "scale(1.05)", filter: "brightness(1.05)", transformOrigin: heroImageOrigins[index] }
+                        : { transform: "scale(1)", filter: "brightness(1)" }
                     : { transform: "scale(1)", filter: "brightness(1)" }
                 }
               />
