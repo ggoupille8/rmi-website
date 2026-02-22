@@ -240,6 +240,14 @@ export default function HeroFullWidth({
               <a
                 href="#contact"
                 className="btn-primary h-12 px-6"
+                onClick={() => {
+                  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+                    window.gtag("event", "cta_click", {
+                      event_category: "Engagement",
+                      event_label: "Hero Request a Quote",
+                    });
+                  }
+                }}
               >
                 Request a Quote
               </a>
@@ -250,6 +258,14 @@ export default function HeroFullWidth({
                   href={phoneTel}
                   className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                   aria-label={`Call ${companyName} at ${phoneDisplay}`}
+                  onClick={() => {
+                    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+                      window.gtag("event", "cta_click", {
+                        event_category: "Engagement",
+                        event_label: "Hero Phone Call",
+                      });
+                    }
+                  }}
                 >
                   <Phone className="w-6 h-6 text-white" aria-hidden="true" />
                 </a>
@@ -257,6 +273,14 @@ export default function HeroFullWidth({
                   href={`mailto:${email}`}
                   className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                   aria-label={`Email ${companyName} at ${email}`}
+                  onClick={() => {
+                    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+                      window.gtag("event", "cta_click", {
+                        event_category: "Engagement",
+                        event_label: "Hero Email",
+                      });
+                    }
+                  }}
                 >
                   <Mail className="w-6 h-6 text-white" aria-hidden="true" />
                 </a>

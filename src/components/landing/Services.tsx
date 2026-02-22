@@ -51,6 +51,15 @@ export default function Services() {
   const openModal = (anchorId: string, buttonEl: HTMLButtonElement) => {
     triggerRef.current = buttonEl;
     setActiveService(anchorId);
+
+    // Track which service was clicked
+    const service = services.find((s) => s.anchorId === anchorId);
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+      window.gtag("event", "service_view", {
+        event_category: "Engagement",
+        event_label: service?.title || anchorId,
+      });
+    }
   };
 
   // Close on Escape key

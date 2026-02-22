@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { flushSync } from "react-dom";
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+    dataLayer?: unknown[];
+  }
+}
+
 interface ContactFormProps {
   title?: string;
   subtitle?: string;
@@ -181,6 +188,15 @@ export default function ContactForm({
       setSubmitStatus("success");
       setFieldErrors({});
       setContactError(false);
+
+      // Track successful form submission
+      if (typeof window !== "undefined" && typeof window.gtag === "function") {
+        window.gtag("event", "generate_lead", {
+          event_category: "Contact",
+          event_label: "Quote Request Form",
+          value: 1,
+        });
+      }
       setFormData({
         name: "",
         company: "",
