@@ -1,226 +1,361 @@
-An external audit flagged several issues on the production site. I’ve already verified that many are false flags — the fixes below cover only the REAL issues, plus a few items that need investigation first. Work through everything in order.
+# MOBILE-FIXES.md — Final Polish & Consistency Pass
 
-IMPORTANT: Stay on whatever branch you’re currently on (likely polish/landing-page-v2). Do NOT create a new branch.
+**Date:** February 22, 2026
+**Priority:** High — Finalize before next deploy
+**Scope:** Hero slideshow, card transparency, transition visibility, visual consistency
 
----
-
-## INVESTIGATE FIRST — Verify Before Fixing
-
-Before writing any code, investigate these 4 items and report what you find. Only fix them if the issue is confirmed.
-
-### INVESTIGATE A: Google Fonts / Font Loading
-
-Check frontend/src/layouts/BaseLayout.astro for any Google Fonts `<link>` tags. If fonts are loaded from Google, check whether `font-display: swap` is set (either in the link URL parameter or in CSS @font-face rules). Also check if the site uses system fonts or self-hosted fonts instead.
-
-If Google Fonts ARE loaded without font-display: swap, fix by either:
-
-- Adding `&display=swap` to the Google Fonts URL, OR
-- Adding `font-display: swap` to any @font-face declarations, OR
-- Converting to self-hosted fonts with proper font-display
-
-If no external fonts are loaded, skip this.
-
-### INVESTIGATE B: Unnecessary React Hydration
-
-Check whether the Services grid and Materials marquee are wrapped in `<astro-island>` tags with `client:load` or similar hydration directives. Look at:
-
-- frontend/src/pages/index.astro — how Services.tsx and MaterialsMarquee.tsx are imported and rendered
-- If either component uses NO client-side interactivity (no useState, useEffect, event handlers, or animations that require JS), it should be converted to an Astro component or use `client:visible` instead of `client:load`
-- The Materials marquee uses CSS animation (not JS) so it may not need hydration at all
-- The Services grid uses buttons — check if those buttons have click handlers or if they’re purely visual
-
-Report what you find. If any component can be de-hydrated, do it. If they all need hydration, explain why and skip.
-
-### INVESTIGATE C: Canonical Tag
-
-Check the production `<head>` in BaseLayout.astro for `<link rel="canonical">`. The site is accessible via both rmi-llc.net and resourcemechanicalinsulation.com, so a canonical tag is important.
-
-If missing, add: `<link rel="canonical" href="https://resourcemechanicalinsulation.com" />`
-If already present, report the value and skip.
-
-### INVESTIGATE D: Console 404 Errors
-
-Run the dev server (`npm run dev` in the frontend directory) and open http://localhost:4321 in a headless browser or check the network tab equivalent. Look for any 404 errors for:
-
-- favicon.ico
-- manifest.json or site.webmanifest
-- Any missing image or asset
-
-If you find 404s, fix them by either adding the missing file or removing the reference. If none found, skip.
+> **Instructions for Claude Code:** Read this entire document first. Execute each fix in order. After all changes, run `npm run build` to verify no TypeScript errors, then run `npm run test` to check for regressions. Update visual regression baselines with `npm run test:visual:update` only after confirming the changes look correct. Commit as a single commit: `fix: final polish — glassmorphism cards, slideshow transitions, mobile hero crops`
 
 ---
 
-## FIX 1 — Mobile Menu Focus Trap (High Priority — Accessibility)
+## Fix 1: Hero Slideshow Transitions Not Visible on Desktop
 
-**File:** frontend/src/components/landing/Navbar.astro
+### Problem
 
-When the mobile nav menu is open, pressing Tab moves focus through background page content instead of cycling through menu links. This is an accessibility failure — keyboard users can’t navigate the menu properly and focus escapes into invisible content behind the overlay.
+The `prefers-reduced-motion: reduce` CSS override in `global.css` sets `transition-duration: 0.01ms !important` on ALL elements. This kills the 2000ms crossfade between hero slides on desktop. The crossfade is an opacity-only transition — it does NOT cause vestibular discomfort and should be exempt from the blanket reduced-motion override.
 
-**Fix:**
+The Ken Burns zoom animation IS correctly disabled by the JS-side `prefersReducedMotion` check in `HeroFullWidth.tsx`, which is fine. But the CSS `!important` override also prevents the crossfade from working.
 
-1. When the mobile menu opens, implement a focus trap that constrains Tab/Shift+Tab to cycle through only these elements:
-
-- The close button (hamburger button in X state)
-- The 4 nav links (Services, About, Contact, Request a Quote)
-
-1. When the menu opens, move focus to the first nav link
-1. When Escape is pressed, close the menu and return focus to the hamburger button
-1. When the menu closes (via close button or link click), return focus to the hamburger button
-
-Implementation approach — add this to the existing `<script>` tag in Navbar.astro:
-
-```javascript
-// After menu opens:
-const focusableElements = mobileMenu.querySelectorAll("a, button");
-const firstFocusable = focusableElements[0];
-const lastFocusable = focusableElements[focusableElements.length - 1];
-
-firstFocusable.focus();
-
-function trapFocus(e) {
-  if (e.key === "Tab") {
-    if (e.shiftKey) {
-      if (document.activeElement === firstFocusable) {
-        e.preventDefault();
-        lastFocusable.focus();
-      }
-    } else {
-      if (document.activeElement === lastFocusable) {
-        e.preventDefault();
-        firstFocusable.focus();
-      }
-    }
-  }
-  if (e.key === "Escape") {
-    closeMenu();
-    hamburgerButton.focus();
-  }
-}
-
-// Add when menu opens, remove when menu closes
-mobileMenu.addEventListener("keydown", trapFocus);
-```
-
-Make sure to also include the close/hamburger button in the focusable elements list so users can close the menu via keyboard.
-
----
-
-## FIX 2 — Footer Touch Targets (High Priority — Mobile)
-
-**File:** frontend/src/components/landing/Footer.tsx
-
-The footer “Quick Links” (Services, About, Request a Quote) have a computed height of approximately 32px, which is below the 44px minimum for mobile touch targets.
-
-**Fix:** Add padding to footer nav links to increase their touch target size. Find the footer navigation links and add vertical padding:
-
-Current link styling likely uses something like `text-sm` with minimal padding.
-
-Add `py-2` to each footer nav link to bring the touch target to at least 44px. The visual text size stays the same — only the tappable area increases.
-
-Also check the phone number and email links in the footer Contact section — they need the same treatment. Add `py-2 inline-block` if they’re inline links.
-
----
-
-## FIX 3 — Landscape Stats Overflow (Medium Priority — Mobile)
-
-**File:** frontend/src/components/landing/HeroFullWidth.tsx
-
-At landscape mobile viewport (667x375), the 3 stats cards may not wrap correctly if they have fixed widths or nowrap on the flex container.
-
-We recently changed stats to `flex-1 min-w-0` but the container still uses `flex` without `flex-wrap`. At very narrow heights (landscape), the cards might overflow.
-
-**Fix:**
-
-1. Add `flex-wrap` to the stats container so cards wrap if needed
-1. Ensure the container and cards work at both 375px wide (portrait) and 667px wide by 375px tall (landscape)
-1. Test: the 3 cards should fit in a single row at 667px width but gracefully wrap if the viewport is narrower
-
----
-
-## FIX 4 — Form Submit Loading State (Medium Priority — UX)
-
-**File:** frontend/src/components/landing/ContactForm.tsx
-
-The “Send Message” button provides no visual feedback when clicked. Users can double-submit or think nothing happened.
-
-**Fix:** Add a loading state to the submit button:
-
-1. When the form submits, immediately:
-
-- Disable the button (`disabled`)
-- Change the button text to “Sending…” or show a spinner
-- Add `opacity-70 cursor-not-allowed` classes
-
-1. On success: show a success message (green checkmark + “Message sent! We’ll be in touch within 48 hours.”)
-1. On error: re-enable the button, show an error message (“Something went wrong. Please try again or call us directly.”)
-1. Prevent double-submission by checking the loading state before sending
-
-The form already has a submit handler — find it and wrap it with loading state management. Use React useState for the loading/success/error states.
-
----
-
-## FIX 5 — Global Focus Indicators (High Priority — Accessibility)
-
-**Files:** frontend/src/styles/global.css and component files
-
-Check if there’s a global `outline: none` or `outline: 0` on `:focus` that removes native browser focus indicators. Many Tailwind setups include this via Preflight.
-
-**Fix:**
-
-1. If there IS a global outline removal on `:focus`, add a visible `:focus-visible` style in global.css:
+### Root Cause
 
 ```css
-/* Restore focus indicators for keyboard navigation */
-:focus-visible {
-  outline: 2px solid rgb(96, 165, 250); /* accent blue */
-  outline-offset: 2px;
+/* global.css — line ~24 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important; /* ← This kills crossfade */
+  }
 }
 ```
 
-1. Check that all interactive elements (buttons, links, form inputs) have visible focus states. The site already uses `focus-visible:ring-2 focus-visible:ring-accent-400` on SOME elements (I verified this on the hamburger button). But it needs to be global.
-1. Do NOT add focus styles to `:focus` (non-visible) — that creates ugly outlines on mouse click. Only style `:focus-visible` which activates on keyboard navigation.
-1. Verify by tabbing through the entire page — every link, button, form field, and the mobile menu should show a visible focus ring.
+### Fix
+
+**File:** `frontend/src/styles/global.css`
+
+Add a targeted exception for opacity-only transitions (crossfades) inside the reduced motion media query. The slideshow slide divs use the class pattern `transition-opacity duration-[2000ms]`. Add an override that restores a reasonable (shorter but visible) fade duration for opacity transitions:
+
+```css
+/* Inside the existing @media (prefers-reduced-motion: reduce) block */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Preserve crossfade transitions — opacity changes don't cause vestibular issues */
+  .transition-opacity {
+    transition-duration: 800ms !important;
+  }
+}
+```
+
+This allows the hero slideshow to still crossfade (at a quicker 800ms instead of 2000ms for reduced-motion users) while keeping all other motion-triggering transitions disabled.
+
+**Also update the reduced-motion marquee block at the bottom of global.css.** No change needed there — it already has `animation-iteration-count: infinite !important` which is correct for the marquee.
 
 ---
 
-## FIX 6 — Write Tests for All Fixes
+## Fix 2: Hero Images — Mobile Object Position Tuning
 
-Add Playwright tests to frontend/tests/mobile-qa-fixes.spec.ts (append to the existing file):
+### Problem
 
-### Focus Trap Tests (mobile viewport)
+The hero images are landscape-oriented with varying aspect ratios:
 
-- Open mobile menu, press Tab — focus stays within menu
-- Press Shift+Tab at first menu item — focus wraps to last item
-- Press Escape — menu closes and focus returns to hamburger button
+- `hero-1.webp`: 2560×1440 (16:9) — very wide, loses subject on mobile crop
+- `hero-2.webp`: 2016×1512 (4:3) — decent but subject may be off-center
+- `hero-3.webp`: 1717×918 (1.87:1) — ultra-wide, severely cropped on mobile
+- `hero-4.webp`: 1536×2048 (portrait) — works great on mobile, may lose top/bottom on desktop
+- `hero-5.webp`: 2000×1500 (4:3) — similar to hero-2
 
-### Footer Touch Target Tests (mobile viewport)
+On mobile (portrait viewport ~375×812), `object-fit: cover` crops the sides of wide images. The current `heroImagePositions` array has per-image mobile adjustments, but the positions need refinement to center on the actual subject matter.
 
-- All footer nav links have a computed height >= 44px
-- Footer phone and email links have computed height >= 44px
+### Fix
 
-### Landscape Stats Test (667x375 viewport)
+**File:** `frontend/src/components/landing/HeroFullWidth.tsx`
 
-- Stats container has no horizontal overflow
-- All 3 stat labels are visible
+Update the `heroImagePositions` array. The key insight is that on mobile portrait, we need to shift the focal point to where the actual insulation work/equipment is visible:
 
-### Form Loading State Tests
+```typescript
+const heroImagePositions = [
+  "object-[50%_65%] sm:object-center", // hero-1: equipment is in lower portion, shift down to avoid showing just ceiling/sky
+  "object-[60%_45%] sm:object-center", // hero-2: pipes cluster right-of-center, shift right and slightly up
+  "object-[35%_50%] sm:object-center", // hero-3: ultra-wide, subject left-of-center, shift left to capture it
+  "object-[50%_35%] sm:object-center", // hero-4: portrait — on desktop, shift up to show more of the equipment top
+  "object-[55%_40%] sm:object-center", // hero-5: similar to hero-2, slight right and up adjustment
+];
+```
 
-- Click submit with empty form — validation prevents submission, button stays enabled
-- Fill form and submit — button shows loading state (disabled, text changes)
-
-### Focus Indicator Tests
-
-- Tab to the first nav link — it has a visible outline or ring
-- Tab to a form input — it has a visible outline or ring
-- Tab to the submit button — it has a visible outline or ring
+**Important:** These positions should be verified visually on an actual mobile device or Chrome DevTools mobile emulation after applying. The exact percentages may need 1-2 iterations of fine-tuning.
 
 ---
 
-## AFTER ALL FIXES:
+## Fix 3: Glassmorphism Cards — Consistent Transparency Throughout
 
-1. Run `npm run build` — must pass
-1. Run `npx playwright test` — goal is 0 failures
-1. If visual baselines need updating: `npm run test:visual:update`
-1. Run tests again to confirm 0 failures
-1. Commit with message: “fix: focus trap, footer touch targets, landscape stats, form loading state, focus indicators, audit cleanup”
-1. Do NOT push — report back full results including what you found in the INVESTIGATE items
+### Problem
+
+The hero section uses glassmorphism (semi-transparent bg + backdrop-blur + subtle border), but every other section uses fully opaque cards:
+
+- Hero content card: `bg-neutral-900/35` + `backdrop-blur-md` ✅
+- Hero stat cards: `bg-neutral-900/25` + `backdrop-blur-sm` ✅
+- Service cards: `bg-neutral-900` (fully opaque) ❌
+- About cards: `bg-neutral-800` (fully opaque) ❌
+- Contact form card: `bg-neutral-900` via `card-elevated` (fully opaque) ❌
+- Materials marquee pills: `border-neutral-700/60` (no bg transparency) — fine as-is
+
+The owner wants cards to be "mostly transparent" with a see-through quality throughout the site.
+
+### Fix — Service Cards
+
+**File:** `frontend/src/components/landing/Services.tsx`
+
+Find the service card `<button>` element in the grid map. Change the background from opaque to glassmorphism:
+
+**Current:**
+
+```tsx
+className =
+  "flex items-center justify-center sm:justify-start gap-4 p-4 bg-neutral-900 border border-neutral-700 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:bg-neutral-800 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-200 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset";
+```
+
+**Replace with:**
+
+```tsx
+className =
+  "flex items-center justify-center sm:justify-start gap-4 p-4 bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:bg-neutral-800/60 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-200 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset";
+```
+
+Changes:
+
+- `bg-neutral-900` → `bg-neutral-900/50` (50% opacity)
+- Added `backdrop-blur-sm`
+- `border-neutral-700` → `border-neutral-700/50` (softer border)
+- `hover:bg-neutral-800` → `hover:bg-neutral-800/60`
+
+### Fix — About Cards
+
+**File:** `frontend/src/components/landing/About.tsx`
+
+Find the feature card `<div>` in the features map. Change background:
+
+**Current:**
+
+```tsx
+className =
+  "relative bg-neutral-800 p-6 border border-neutral-700 hover:border-accent-500/30 hover:shadow-lg transition-all duration-300";
+```
+
+**Replace with:**
+
+```tsx
+className =
+  "relative bg-neutral-800/40 backdrop-blur-sm p-6 border border-neutral-700/40 hover:border-accent-500/30 hover:bg-neutral-800/55 hover:shadow-lg transition-all duration-300";
+```
+
+Changes:
+
+- `bg-neutral-800` → `bg-neutral-800/40` (40% opacity — more see-through)
+- Added `backdrop-blur-sm`
+- `border-neutral-700` → `border-neutral-700/40`
+- Added `hover:bg-neutral-800/55` for subtle hover feedback
+
+### Fix — Contact Form Card
+
+**File:** `frontend/src/components/landing/ContactForm.tsx`
+
+Find the card container div with `card-elevated` class:
+
+**Current:**
+
+```tsx
+<div className="card-elevated p-4 sm:p-5 bg-neutral-900 border-neutral-700">
+```
+
+**Replace with:**
+
+```tsx
+<div className="card-elevated p-4 sm:p-5 bg-neutral-900/50 backdrop-blur-sm border-neutral-700/50">
+```
+
+Changes:
+
+- `bg-neutral-900` → `bg-neutral-900/50`
+- Added `backdrop-blur-sm`
+- `border-neutral-700` → `border-neutral-700/50`
+
+**Note:** The `card-elevated` class in `global.css` also sets `bg-neutral-900`. We need to update that base class too, OR override it inline (the inline classes should take precedence with Tailwind). However, to be safe and consistent:
+
+**File:** `frontend/src/styles/global.css`
+
+Update the `.card-elevated` component class:
+
+**Current:**
+
+```css
+.card-elevated {
+  @apply rounded-xl bg-neutral-900 p-8 shadow-lg border border-neutral-700;
+}
+```
+
+**Replace with:**
+
+```css
+.card-elevated {
+  @apply rounded-xl bg-neutral-900/50 backdrop-blur-sm p-8 shadow-lg border border-neutral-700/50;
+}
+```
+
+### Fix — Service Modal (keep more opaque for readability)
+
+**File:** `frontend/src/components/landing/Services.tsx`
+
+The modal dialog should remain more opaque for reading comfort. Find the modal content div:
+
+**Current:**
+
+```tsx
+className={`relative z-10 max-w-lg w-full mx-4 bg-neutral-900 rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
+```
+
+**Replace with:**
+
+```tsx
+className={`relative z-10 max-w-lg w-full mx-4 bg-neutral-900/80 backdrop-blur-md rounded-2xl border border-neutral-700/40 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
+```
+
+Changes:
+
+- `bg-neutral-900` → `bg-neutral-900/80` (80% — higher opacity for readability)
+- Added `backdrop-blur-md`
+- `border-neutral-700/50` → `border-neutral-700/40`
+
+---
+
+## Fix 4: Section Border & Background Consistency
+
+### Problem
+
+Sections have inconsistent border-top treatments and background patterns:
+
+- Services: `bg-neutral-800`, no border-top
+- About: `bg-neutral-950`, `border-t border-accent-600/30`
+- Materials: `bg-neutral-900`, `border-t border-accent-500/30`
+- CTA Banner: `bg-accent-900`, no border
+- Contact: `bg-neutral-800`, no border-top
+- Footer: `bg-neutral-950`, `border-t border-neutral-800/50`
+
+### Fix — Standardize section dividers
+
+Every content section should have a subtle accent border-top for visual rhythm. The CTA Banner and Footer are visually distinct enough to skip.
+
+**File:** `frontend/src/components/landing/Services.tsx`
+
+Find the section element:
+**Current:**
+
+```tsx
+className = "py-12 sm:py-16 bg-neutral-800";
+```
+
+**Replace with:**
+
+```tsx
+className = "py-12 sm:py-16 bg-neutral-800 border-t border-accent-600/20";
+```
+
+**File:** `frontend/src/components/landing/ContactForm.tsx`
+
+Find the section element:
+**Current:**
+
+```tsx
+className = "py-12 sm:py-16 bg-neutral-800";
+```
+
+**Replace with:**
+
+```tsx
+className = "py-12 sm:py-16 bg-neutral-800 border-t border-accent-600/20";
+```
+
+---
+
+## Fix 5: Form Input Consistency with Glassmorphism
+
+### Problem
+
+The contact form inputs use `bg-neutral-700` which is lighter than the card background, creating a raised look. With the card now being semi-transparent, the inputs should also adopt a semi-transparent style for consistency.
+
+### Fix
+
+**File:** `frontend/src/components/landing/ContactForm.tsx`
+
+Find the `inputBase` constant:
+
+**Current:**
+
+```tsx
+const inputBase =
+  "block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 text-sm px-3 py-2.5 border bg-neutral-700 text-neutral-100 leading-relaxed min-w-0";
+```
+
+**Replace with:**
+
+```tsx
+const inputBase =
+  "block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 text-sm px-3 py-2.5 border bg-neutral-700/60 backdrop-blur-sm text-neutral-100 leading-relaxed min-w-0";
+```
+
+Change: `bg-neutral-700` → `bg-neutral-700/60` + `backdrop-blur-sm`
+
+---
+
+## Fix 6: Navbar Logo Link Consistency
+
+### Problem (Minor)
+
+The navbar logo image has inline `style` with `filter: brightness(0) invert(1)` on the hero logo AND Tailwind class `brightness-0 invert` on the navbar logo mark. These are functionally identical but use different approaches. Not a visual bug but worth noting for future maintenance.
+
+### No code change needed — informational only.
+
+---
+
+## Verification Checklist
+
+After applying all fixes, verify:
+
+1. **Hero slideshow crossfade** — Should be visible on desktop even with `prefers-reduced-motion: reduce` enabled (test by toggling in Chrome DevTools → Rendering → Emulate CSS media feature `prefers-reduced-motion`)
+2. **Ken Burns zoom** — Should still be disabled when reduced motion is preferred
+3. **Mobile hero images** — Open Chrome DevTools, toggle device toolbar to iPhone 14 Pro (390×844), cycle through all 5 hero slides and verify subject matter is visible
+4. **Service cards** — Should show slight transparency/glass effect on hover
+5. **About cards** — Should be clearly see-through with text still readable
+6. **Contact form card** — Semi-transparent with functional form inputs
+7. **Service modal** — More opaque than cards (80%) for reading comfort
+8. **Section borders** — All content sections should have subtle accent border-top
+9. **Build passes** — `npm run build` with no errors
+10. **Tests pass** — `npm run test` (expect visual regression failures — update baselines after visual verification)
+
+---
+
+## Files Modified Summary
+
+| File                                                | Changes                                                         |
+| --------------------------------------------------- | --------------------------------------------------------------- |
+| `frontend/src/styles/global.css`                    | Reduced-motion crossfade exception, card-elevated glassmorphism |
+| `frontend/src/components/landing/HeroFullWidth.tsx` | Hero image mobile object-position tuning                        |
+| `frontend/src/components/landing/Services.tsx`      | Service card + modal glassmorphism, section border              |
+| `frontend/src/components/landing/About.tsx`         | About card glassmorphism                                        |
+| `frontend/src/components/landing/ContactForm.tsx`   | Contact card + input glassmorphism, section border              |
+
+---
+
+## Notes
+
+- The glassmorphism transparency values (40%, 50%, 80%) are starting points. If cards feel too transparent or text readability suffers, increase the opacity by 10-15%.
+- Hero image positions are approximate. After applying, do a visual check on actual mobile viewport and adjust the percentage values in `heroImagePositions` as needed.
+- The `prefers-reduced-motion` fix is intentionally targeted — only opacity transitions are exempted. Transform, position, and other motion-triggering transitions remain suppressed.
+- Form input backdrop-blur may not render on all mobile browsers (Safari < 16). The `bg-neutral-700/60` fallback still provides adequate contrast.

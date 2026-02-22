@@ -12,11 +12,11 @@ const heroImages = [
 
 // Per-image mobile object-position (Issue 4)
 const heroImagePositions = [
-  "object-[50%_70%] sm:object-center",  // hero-1: shift down to show equipment, not sky
-  "object-[50%_40%] sm:object-center",  // hero-2: shift up to center pipes
-  "object-[40%_50%] sm:object-center",  // hero-3: shift left to center subject
-  "object-center",                       // hero-4: already portrait, center works
-  "object-[50%_40%] sm:object-center",  // hero-5: shift up slightly
+  "object-[50%_65%] sm:object-center",  // hero-1: equipment is in lower portion, shift down to avoid showing just ceiling/sky
+  "object-[60%_45%] sm:object-center",  // hero-2: pipes cluster right-of-center, shift right and slightly up
+  "object-[35%_50%] sm:object-center",  // hero-3: ultra-wide, subject left-of-center, shift left to capture it
+  "object-[50%_35%] sm:object-center",  // hero-4: portrait — on desktop, shift up to show more of the equipment top
+  "object-[55%_40%] sm:object-center",  // hero-5: similar to hero-2, slight right and up adjustment
 ];
 
 const heroImageAlts = [
@@ -240,6 +240,14 @@ export default function HeroFullWidth({
               <a
                 href="#contact"
                 className="btn-primary h-12 px-6"
+                onClick={() => {
+                  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+                    window.gtag("event", "cta_click", {
+                      event_category: "Engagement",
+                      event_label: "Hero Request a Quote",
+                    });
+                  }
+                }}
               >
                 Request a Quote
               </a>
@@ -250,6 +258,14 @@ export default function HeroFullWidth({
                   href={phoneTel}
                   className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                   aria-label={`Call ${companyName} at ${phoneDisplay}`}
+                  onClick={() => {
+                    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+                      window.gtag("event", "cta_click", {
+                        event_category: "Engagement",
+                        event_label: "Hero Phone Call",
+                      });
+                    }
+                  }}
                 >
                   <Phone className="w-6 h-6 text-white" aria-hidden="true" />
                 </a>
@@ -257,6 +273,14 @@ export default function HeroFullWidth({
                   href={`mailto:${email}`}
                   className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                   aria-label={`Email ${companyName} at ${email}`}
+                  onClick={() => {
+                    if (typeof window !== "undefined" && typeof window.gtag === "function") {
+                      window.gtag("event", "cta_click", {
+                        event_category: "Engagement",
+                        event_label: "Hero Email",
+                      });
+                    }
+                  }}
                 >
                   <Mail className="w-6 h-6 text-white" aria-hidden="true" />
                 </a>

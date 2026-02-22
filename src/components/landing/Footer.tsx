@@ -9,7 +9,7 @@ export default function Footer() {
       className="bg-neutral-950 text-white border-t border-neutral-800/50"
       aria-label="Site footer"
     >
-      <div className="container-custom py-6 sm:py-8">
+      <div className="container-custom py-8 sm:py-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Company Info */}
           <div className="text-center md:text-left">
@@ -81,18 +81,19 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-6 pt-4 border-t border-neutral-800/50 flex items-center justify-between">
+        <div className="mt-8 pt-6 border-t border-neutral-800/50 flex items-center justify-between">
           <p className="text-xs text-neutral-400">
             &copy; {currentYear} {companyNameFull}. All rights reserved.
           </p>
-          <a
-            href="#"
-            className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-300 transition-colors"
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-300 transition-colors cursor-pointer py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 rounded"
             aria-label="Back to top"
           >
             Back to top
             <ArrowUp className="w-3 h-3" aria-hidden="true" />
-          </a>
+          </button>
         </div>
       </div>
     </footer>
