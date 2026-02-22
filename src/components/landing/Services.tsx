@@ -127,7 +127,7 @@ export default function Services() {
 
   return (
     <section
-      className="py-12 sm:py-16 bg-neutral-800"
+      className="py-12 sm:py-16 bg-neutral-800 border-t border-accent-600/20"
       aria-labelledby="services-heading"
     >
       <div className="container-custom">
@@ -155,7 +155,7 @@ export default function Services() {
                 key={service.anchorId}
                 type="button"
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className="flex items-center justify-center sm:justify-start gap-4 p-4 bg-neutral-900 border border-neutral-700 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:bg-neutral-800 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-200 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset"
+                className="flex items-center justify-center sm:justify-start gap-4 p-4 bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:bg-neutral-800/60 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-200 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset"
               >
                 <IconComponent
                   className="w-7 h-7 text-accent-500 flex-shrink-0"
@@ -188,7 +188,7 @@ export default function Services() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
-            className={`relative z-10 max-w-lg w-full mx-4 bg-neutral-900 rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
+            className={`relative z-10 max-w-lg w-full mx-4 bg-neutral-900/80 backdrop-blur-md rounded-2xl border border-neutral-700/40 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}

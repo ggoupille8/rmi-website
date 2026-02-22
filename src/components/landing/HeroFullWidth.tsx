@@ -12,11 +12,11 @@ const heroImages = [
 
 // Per-image mobile object-position (Issue 4)
 const heroImagePositions = [
-  "object-[50%_70%] sm:object-center",  // hero-1: shift down to show equipment, not sky
-  "object-[50%_40%] sm:object-center",  // hero-2: shift up to center pipes
-  "object-[40%_50%] sm:object-center",  // hero-3: shift left to center subject
-  "object-center",                       // hero-4: already portrait, center works
-  "object-[50%_40%] sm:object-center",  // hero-5: shift up slightly
+  "object-[50%_65%] sm:object-center",  // hero-1: equipment is in lower portion, shift down to avoid showing just ceiling/sky
+  "object-[60%_45%] sm:object-center",  // hero-2: pipes cluster right-of-center, shift right and slightly up
+  "object-[35%_50%] sm:object-center",  // hero-3: ultra-wide, subject left-of-center, shift left to capture it
+  "object-[50%_35%] sm:object-center",  // hero-4: portrait — on desktop, shift up to show more of the equipment top
+  "object-[55%_40%] sm:object-center",  // hero-5: similar to hero-2, slight right and up adjustment
 ];
 
 const heroImageAlts = [

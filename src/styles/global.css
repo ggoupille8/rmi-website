@@ -199,6 +199,11 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+
+    /* Preserve crossfade transitions — opacity changes don't cause vestibular issues */
+    .transition-opacity {
+      transition-duration: 800ms !important;
+    }
   }
   body {
     @apply bg-neutral-950 text-neutral-100 antialiased;
@@ -264,7 +269,7 @@
     /* Strong contrast: white on accent-600 (blue) meets WCAG AAA */
   }
   .card-elevated {
-    @apply rounded-xl bg-neutral-900 p-8 shadow-lg border border-neutral-700;
+    @apply rounded-xl bg-neutral-900/50 backdrop-blur-sm p-8 shadow-lg border border-neutral-700/50;
   }
   /* Form element improvements for mobile/iOS */
   input[type="text"],

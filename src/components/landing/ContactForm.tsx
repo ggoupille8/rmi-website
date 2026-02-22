@@ -200,13 +200,13 @@ export default function ContactForm({
   };
 
   const inputBase =
-    "block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 text-sm px-3 py-2.5 border bg-neutral-700 text-neutral-100 leading-relaxed min-w-0";
+    "block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 text-sm px-3 py-2.5 border bg-neutral-700/60 backdrop-blur-sm text-neutral-100 leading-relaxed min-w-0";
   const inputNormal = `${inputBase} border-neutral-600 focus-visible:border-primary-400`;
   const inputError = `${inputBase} border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500`;
 
   return (
     <section
-      className="py-12 sm:py-16 bg-neutral-800"
+      className="py-12 sm:py-16 bg-neutral-800 border-t border-accent-600/20"
       aria-labelledby="contact-heading"
     >
       <div className="container-custom">
@@ -219,7 +219,7 @@ export default function ContactForm({
           </div>
         </div>
         <div className="mx-auto mt-2 sm:mt-3 max-w-3xl">
-          <div className="card-elevated p-4 sm:p-5 bg-neutral-900 border-neutral-700">
+          <div className="card-elevated p-4 sm:p-5 bg-neutral-900/50 backdrop-blur-sm border-neutral-700/50">
             <form
               ref={formRef}
               onSubmit={handleSubmit}
