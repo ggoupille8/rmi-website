@@ -78,9 +78,9 @@ export default function About() {
                 className="relative flex flex-col bg-neutral-800/40 backdrop-blur-sm p-6 border border-neutral-700/40 hover:border-accent-500/30 hover:bg-neutral-800/55 hover:shadow-lg transition-all duration-300"
               >
                 {/* Icon */}
-                <div className="mb-4">
+                <div className="mb-5">
                   <IconComponent
-                    className="w-10 h-10 text-accent-500"
+                    className="w-12 h-12 text-accent-500/80"
                     strokeWidth={1.5}
                     aria-hidden="true"
                   />

@@ -1,4 +1,4 @@
-import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address, footerDescription } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address, footerDescription, siteDescription } from "../../content/site";
 import { Phone, Mail, MapPin, ArrowUp } from "lucide-react";
 
 export default function Footer() {
@@ -9,8 +9,8 @@ export default function Footer() {
       className="bg-neutral-950 text-white border-t border-neutral-800/50"
       aria-label="Site footer"
     >
-      <div className="container-custom py-8 sm:py-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="container-custom py-10 sm:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
           {/* Company Info */}
           <div className="text-center md:text-left">
             <h3 className="text-base font-semibold text-white mb-3">
@@ -18,6 +18,9 @@ export default function Footer() {
             </h3>
             <p className="text-neutral-400 text-sm leading-relaxed">
               {footerDescription}
+            </p>
+            <p className="text-neutral-500 text-sm mt-2">
+              Serving Michigan from {address.city}, {address.state}.
             </p>
           </div>
 

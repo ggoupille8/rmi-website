@@ -13,7 +13,7 @@ export default function CTABanner() {
         <div className="mt-6">
           <a
             href="#contact"
-            className="btn-primary w-full sm:w-auto px-8 py-3"
+            className="btn-primary w-full sm:w-auto sm:min-w-[280px] px-10 py-3.5 text-lg font-bold"
           >
             {ctaBannerButton}
           </a>

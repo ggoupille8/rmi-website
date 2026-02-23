@@ -432,11 +432,11 @@ export default function ContactForm({
                 />
               </div>
 
-              <div className="pt-1 flex justify-center">
+              <div className="pt-1">
                 <button
                 type="submit"
                 disabled={isSubmitting}
-                  className="btn-primary px-12 py-3.5 text-xl font-bold"
+                  className="btn-primary w-full py-3.5 text-xl font-bold"
               >
                   {isSubmitting ? "Sending..." : "Send Message"}
                 </button>

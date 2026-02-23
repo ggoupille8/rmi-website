@@ -136,7 +136,7 @@ export default function Services() {
 
   return (
     <section
-      className="py-12 sm:py-16 bg-neutral-800 border-t border-accent-600/20"
+      className="pt-16 sm:pt-20 pb-12 sm:pb-16 bg-neutral-800 border-t border-accent-600/20"
       aria-labelledby="services-heading"
     >
       <div className="container-custom">
