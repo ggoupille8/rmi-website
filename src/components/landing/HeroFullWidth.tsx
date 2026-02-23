@@ -244,7 +244,10 @@ export default function HeroFullWidth({
       <div className="relative z-10 container-custom py-12 lg:py-20 flex-1 flex flex-col">
         <div className="max-w-5xl mx-auto text-center flex-1 flex flex-col justify-center w-full">
           {/* Main Content Card */}
-          <div className="max-w-3xl mx-auto bg-neutral-900/40 supports-[backdrop-filter]:bg-neutral-900/20 backdrop-blur-lg rounded-2xl border border-white/10 py-6 px-6 sm:px-10">
+          <div
+            className="max-w-3xl mx-auto backdrop-blur-lg py-6 px-6 sm:px-10"
+            style={{ background: "radial-gradient(ellipse at center, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.25) 60%, transparent 100%)" }}
+          >
             {/* Logo */}
             <h1 id="hero-heading" className="flex justify-center">
               <img
@@ -319,7 +322,7 @@ export default function HeroFullWidth({
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="min-h-[44px] sm:w-44 sm:min-h-[52px] bg-neutral-900/25 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-2 sm:px-4 py-3"
+                className="min-h-[44px] sm:w-44 sm:min-h-[52px] bg-neutral-900/50 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-2 sm:px-4 py-3"
               >
                 <AnimatedStat
                   endValue={stat.endValue}

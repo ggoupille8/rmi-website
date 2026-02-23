@@ -48,7 +48,7 @@ const features: AboutFeature[] = [
 export default function About() {
   return (
     <section
-      className="py-12 sm:py-16 bg-neutral-950 border-t border-accent-600/30"
+      className="pt-12 sm:pt-16 pb-6 sm:pb-8 bg-neutral-900 border-t border-neutral-700/40"
       aria-labelledby="about-heading"
     >
       <div className="container-custom">

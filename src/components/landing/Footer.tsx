@@ -9,7 +9,7 @@ export default function Footer() {
       className="bg-neutral-950 text-white border-t border-neutral-800/50"
       aria-label="Site footer"
     >
-      <div className="container-custom py-10 sm:py-12">
+      <div className="container-custom py-8 sm:py-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
           {/* Company Info */}
           <div className="text-center md:text-left">
@@ -19,7 +19,7 @@ export default function Footer() {
             <p className="text-neutral-400 text-sm leading-relaxed">
               {footerDescription}
             </p>
-            <p className="text-neutral-500 text-sm mt-2">
+            <p className="text-neutral-400 text-sm mt-2">
               Serving Michigan from {address.city}, {address.state}.
             </p>
           </div>
@@ -84,7 +84,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-8 pt-6 border-t border-neutral-800/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="mt-6 pt-4 border-t border-neutral-800/50 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-neutral-400">
             &copy; {currentYear} {companyNameFull}. All rights reserved.
           </p>
