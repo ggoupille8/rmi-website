@@ -324,7 +324,7 @@ export default function HeroFullWidth({
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="min-h-[44px] sm:w-44 sm:min-h-[52px] bg-neutral-900/50 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-2 sm:px-4 py-3"
+                className="min-h-[44px] sm:w-44 sm:min-h-[52px] px-2 sm:px-4 py-3"
               >
                 <AnimatedStat
                   endValue={stat.endValue}
