@@ -245,10 +245,10 @@ test.describe("Mobile QA Fixes — 375×812", () => {
   // ── Backdrop Blur (Issue 10) ────────────────────────────────────────────
 
   test.describe("Backdrop Blur", () => {
-    test("hero glassmorphism card has supports-[backdrop-filter] class", async ({ page }) => {
+    test("hero content card has backdrop-blur-lg for readability", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      // The glassmorphism card is the main content card in the hero
-      const card = page.locator('section[aria-labelledby="hero-heading"] .supports-\\[backdrop-filter\\]\\:bg-neutral-900\\/20');
+      // The main content card uses backdrop-blur-lg with a radial gradient background
+      const card = page.locator('section[aria-labelledby="hero-heading"] .backdrop-blur-lg');
       await expect(card).toBeAttached();
     });
   });
@@ -386,7 +386,7 @@ test.describe("Desktop cross-check — 1440×900", () => {
   // ── Section Padding Consistency (Fix 1) ──────────────────────────────────
 
   test.describe("Section Padding", () => {
-    test("Services has increased top padding, About uses py-12 sm:py-16 (standard sections)", async ({ page }) => {
+    test("Services has increased top padding, About has reduced bottom padding", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
       const services = page.locator('section[aria-labelledby="services-heading"]');
       const about = page.locator('section[aria-labelledby="about-heading"]');
@@ -398,8 +398,10 @@ test.describe("Desktop cross-check — 1440×900", () => {
       expect(servicesClass).toContain("sm:pt-20");
       expect(servicesClass).toContain("pb-12");
       expect(servicesClass).toContain("sm:pb-16");
-      expect(aboutClass).toContain("py-12");
-      expect(aboutClass).toContain("sm:py-16");
+      expect(aboutClass).toContain("pt-12");
+      expect(aboutClass).toContain("sm:pt-16");
+      expect(aboutClass).toContain("pb-6");
+      expect(aboutClass).toContain("sm:pb-8");
     });
 
     test("Contact section uses py-12 sm:py-16 (standard section)", async ({ page }) => {
@@ -410,12 +412,12 @@ test.describe("Desktop cross-check — 1440×900", () => {
       expect(contactClass).toContain("sm:py-16");
     });
 
-    test("CTA banner uses py-8 sm:py-12 (compact section)", async ({ page }) => {
+    test("CTA banner uses py-6 sm:py-8 (compact section)", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
       const cta = page.locator('section[aria-labelledby="cta-heading"]');
       const ctaClass = await cta.getAttribute("class");
-      expect(ctaClass).toContain("py-8");
-      expect(ctaClass).toContain("sm:py-12");
+      expect(ctaClass).toContain("py-6");
+      expect(ctaClass).toContain("sm:py-8");
     });
   });
 
@@ -424,20 +426,20 @@ test.describe("Desktop cross-check — 1440×900", () => {
   test.describe("Glassmorphism Readability", () => {
     test("hero card uses backdrop-blur-lg (not backdrop-blur-sm)", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      // The main content card should have backdrop-blur-lg for softened overlay
+      // The main content card should have backdrop-blur-lg for readability
       const card = page.locator('section[aria-labelledby="hero-heading"] .backdrop-blur-lg');
       await expect(card).toBeAttached();
-      // The main content card (with supports-[backdrop-filter]) should NOT have backdrop-blur-sm
-      const mainCard = page.locator('section[aria-labelledby="hero-heading"] .supports-\\[backdrop-filter\\]\\:bg-neutral-900\\/20');
-      const classList = await mainCard.getAttribute("class");
+      const classList = await card.getAttribute("class");
       expect(classList).toContain("backdrop-blur-lg");
       expect(classList).not.toContain("backdrop-blur-sm");
     });
 
-    test("hero card has supports-[backdrop-filter]:bg-neutral-900/20", async ({ page }) => {
+    test("hero card uses radial gradient background (no hard edges)", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      const card = page.locator('section[aria-labelledby="hero-heading"] .supports-\\[backdrop-filter\\]\\:bg-neutral-900\\/20');
-      await expect(card).toBeAttached();
+      // The main content card uses an inline radial-gradient style instead of solid bg
+      const card = page.locator('section[aria-labelledby="hero-heading"] .backdrop-blur-lg');
+      const style = await card.getAttribute("style");
+      expect(style).toContain("radial-gradient");
     });
   });
 
