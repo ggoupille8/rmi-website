@@ -38,11 +38,11 @@ jobs:
       - name: Check for secrets
         run: npm run check-secrets
 
+      - name: Build project
+        run: npm run build
+
       - name: Runtime config test
         run: npm run test:runtime
-
-      - name: Build
-        run: npm run build
 
       - name: Resolve LOCALAPPDATA for cache path
         id: paths
