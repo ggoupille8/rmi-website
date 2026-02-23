@@ -13,7 +13,7 @@ export default function CTABanner() {
         <div className="mt-6">
           <a
             href="#contact"
-            className="inline-flex items-center justify-center rounded-md bg-white px-8 py-3 text-lg font-semibold text-accent-700 shadow-md transition-all duration-300 hover:bg-neutral-100 hover:shadow-lg hover:scale-105 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent-900 active:bg-neutral-200 active:scale-105"
+            className="btn-primary px-8 py-3"
           >
             {ctaBannerButton}
           </a>

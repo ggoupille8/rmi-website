@@ -187,6 +187,7 @@
     --letter-spacing-wider: 0.025em;
   }
   html {
+    scrollbar-gutter: stable;
     @apply scroll-smooth bg-neutral-950;
   }
   /* Disable animations/transitions for test stability and accessibility */
@@ -250,6 +251,9 @@
     width: max-content;
     animation: service-ticker-scroll 36s linear infinite;
     will-change: transform;
+  }
+  .service-ticker:hover .service-ticker__track {
+    animation-play-state: paused;
   }
   /* Spacing System - Consistent vertical rhythm */
   .section-padding {
@@ -317,5 +321,11 @@
   .service-ticker__track {
     animation-duration: 120s !important;
     animation-iteration-count: infinite !important;
+  }
+}
+
+@supports not (min-height: 100dvh) {
+  .hero-dvh {
+    min-height: -webkit-fill-available;
   }
 }

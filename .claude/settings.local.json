@@ -34,7 +34,22 @@
       "Bash(pkill:*)",
       "Bash(cwebp:*)",
       "Bash(where:*)",
-      "Bash(node scripts/db-migrate.mjs:*)"
+      "Bash(node scripts/db-migrate.mjs:*)",
+      "Bash(dir:*)",
+      "Bash(/usr/bin/echo:*)",
+      "Bash(test:*)",
+      "Bash(echo:*)",
+      "Bash(printf:*)",
+      "Bash(set)",
+      "Bash(ls:*)",
+      "Bash(bash -c:*)",
+      "Bash(/bin/cat:*)",
+      "Bash(npx vitest:*)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"& { Get-Content ''C:\\\\Users\\\\Graham Goupille\\\\astro-project\\\\scripts\\\\open-task.ps1'' | Out-Null; Write-Host ''Parse OK'' }\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"try { [System.Management.Automation.Language.Parser]::ParseFile\\(''C:\\\\Users\\\\Graham Goupille\\\\astro-project\\\\scripts\\\\open-task.ps1'', [ref]$null, [ref]$null\\) | Out-Null; Write-Host ''No parser errors'' } catch { Write-Host \"\"ERROR: $_\"\" }\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \"C:\\\\Users\\\\Graham Goupille\\\\astro-project\\\\scripts\\\\open-task.ps1\")",
+      "Bash(git status:*)",
+      "Bash(git log:*)"
     ]
   }
 }

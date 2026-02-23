@@ -130,6 +130,12 @@ const localBusinessSchema = JSON.stringify({
     <!-- Theme Color -->
     <meta name="theme-color" content="#171717" />
     <meta name="msapplication-TileColor" content="#171717" />
+
+    <!-- Geo Meta Tags (Local SEO) -->
+    <meta name="geo.region" content="US-MI" />
+    <meta name="geo.placename" content="Romulus" />
+    <meta name="geo.position" content="42.2223;-83.3630" />
+    <meta name="ICBM" content="42.2223, -83.3630" />
     
     <!-- Google Fonts - Russo One -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -155,6 +161,11 @@ const localBusinessSchema = JSON.stringify({
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600">
       Skip to main content
     </a>
+    <noscript>
+      <div style="background:#171717;color:#e5e5e5;text-align:center;padding:1rem;font-size:0.875rem;">
+        This site works best with JavaScript enabled. Core content is still accessible without it.
+      </div>
+    </noscript>
     <Navbar />
     <main id="main-content">
       <slot />
