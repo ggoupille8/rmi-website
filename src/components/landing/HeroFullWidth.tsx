@@ -147,7 +147,7 @@ function AnimatedStat({
       <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
         {finalDisplay}
       </div>
-      <div className="mt-1 text-[10px] sm:text-xs text-neutral-200 uppercase tracking-wider leading-tight truncate">
+      <div className="mt-1 text-sm sm:text-xs text-neutral-200 uppercase tracking-wider leading-tight">
         {shortLabel ? (
           <>
             <span className="hidden sm:inline">{label}</span>
@@ -315,11 +315,11 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats — Individual Cards */}
-          <div className="mt-6 sm:mt-auto pb-4 sm:pb-6 flex flex-wrap justify-center gap-3 sm:gap-8 min-h-[72px] sm:min-h-[80px]">
+          <div className="mt-6 sm:mt-auto pb-4 sm:pb-6 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:justify-center sm:gap-8 min-h-[72px] sm:min-h-[80px]">
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="flex-1 min-w-0 sm:w-44 sm:flex-none min-h-[44px] sm:min-h-[52px] bg-neutral-900/25 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-4 py-3"
+                className="min-h-[44px] sm:w-44 sm:min-h-[52px] bg-neutral-900/25 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-2 sm:px-4 py-3"
               >
                 <AnimatedStat
                   endValue={stat.endValue}

@@ -176,15 +176,14 @@ test.describe("Mobile QA Fixes — 375×812", () => {
       expect(classList).toContain("mt-6");
     });
 
-    test("stat cards use fluid width on mobile (flex-1)", async ({ page }) => {
+    test("stat cards use grid-cols-3 layout on mobile", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
+      const statsContainer = page.locator('section[aria-labelledby="hero-heading"] .grid-cols-3').first();
+      const classList = await statsContainer.getAttribute("class");
+      expect(classList, "Stats container should use grid-cols-3 on mobile").toContain("grid-cols-3");
       const statCards = page.locator('section[aria-labelledby="hero-heading"] .min-h-\\[44px\\]');
       const count = await statCards.count();
       expect(count).toBe(3);
-      for (let i = 0; i < count; i++) {
-        const classList = await statCards.nth(i).getAttribute("class");
-        expect(classList, `Stat card ${i} should have flex-1`).toContain("flex-1");
-      }
     });
   });
 
@@ -361,9 +360,8 @@ test.describe("Desktop cross-check — 1440×900", () => {
 
     for (let i = 0; i < count; i++) {
       const classList = await statCards.nth(i).getAttribute("class");
-      // Should have sm:w-44 and sm:flex-none for fixed width on larger screens
+      // Should have sm:w-44 for fixed width on larger screens
       expect(classList, `Stat card ${i} should have sm:w-44`).toContain("sm:w-44");
-      expect(classList, `Stat card ${i} should have sm:flex-none`).toContain("sm:flex-none");
     }
   });
 
