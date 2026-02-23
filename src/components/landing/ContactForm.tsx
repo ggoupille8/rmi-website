@@ -216,7 +216,7 @@ export default function ContactForm({
   };
 
   const inputBase =
-    "block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 text-base sm:text-sm px-3 py-2.5 border bg-neutral-700 text-neutral-100 leading-relaxed min-w-0";
+    "block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 text-base px-3 py-2.5 border bg-neutral-700 text-neutral-100 leading-relaxed min-w-0";
   const inputNormal = `${inputBase} border-neutral-600 focus-visible:border-primary-400`;
   const inputError = `${inputBase} border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500`;
 
