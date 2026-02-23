@@ -68,7 +68,7 @@ export default function About() {
         </p>
 
         {/* Feature Cards Grid — 1 col mobile, 2 col tablet, 4 col desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-4 lg:gap-6">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
 

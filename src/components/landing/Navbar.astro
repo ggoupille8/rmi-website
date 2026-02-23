@@ -100,19 +100,19 @@ import { companyName } from '../../content/site';
   aria-modal="true"
   aria-label="Mobile navigation"
 >
-  <nav class="flex flex-col items-center justify-center gap-8 h-full" aria-label="Mobile navigation links">
-    <a href="#services" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
+  <nav class="flex flex-col items-center justify-center gap-6 h-full" aria-label="Mobile navigation links">
+    <a href="#services" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center border-b border-neutral-700/40 w-48 justify-center">
       Services
     </a>
-    <a href="#about" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
+    <a href="#about" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center border-b border-neutral-700/40 w-48 justify-center">
       About
     </a>
-    <a href="#contact" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-4 py-2">
+    <a href="#contact" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center w-48 justify-center">
       Contact
     </a>
     <a
       href="#contact"
-      class="mobile-nav-link mt-4 btn-primary px-8"
+      class="mobile-nav-link mt-4 btn-primary px-8 min-h-[48px]"
     >
       Request a Quote
     </a>
@@ -120,6 +120,15 @@ import { companyName } from '../../content/site';
 </div>
 
 <style>
+  /* Mobile menu open animation */
+  #mobile-menu:not(.hidden) {
+    animation: menuFadeIn 200ms ease-out;
+  }
+  @keyframes menuFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   /* Active nav link styling — applied via JS */
   .nav-link-active {
     color: white;

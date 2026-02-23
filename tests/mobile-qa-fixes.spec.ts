@@ -405,11 +405,12 @@ test.describe("Desktop cross-check — 1440×900", () => {
       expect(aboutClass).toContain("sm:pb-8");
     });
 
-    test("Contact section uses py-12 sm:py-16 (standard section)", async ({ page }) => {
+    test("Contact section uses pt-12 pb-24 sm:py-16 (extra bottom for floating CTA clearance)", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
       const contact = page.locator('section[aria-labelledby="contact-heading"]');
       const contactClass = await contact.getAttribute("class");
-      expect(contactClass).toContain("py-12");
+      expect(contactClass).toContain("pt-12");
+      expect(contactClass).toContain("pb-24");
       expect(contactClass).toContain("sm:py-16");
     });
 

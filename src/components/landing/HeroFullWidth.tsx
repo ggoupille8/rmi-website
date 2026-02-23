@@ -270,7 +270,7 @@ export default function HeroFullWidth({
               {/* Primary CTA */}
               <a
                 href="#contact"
-                className="btn-primary h-12 px-6"
+                className="btn-primary w-full sm:w-auto h-12 px-6"
                 onClick={() => {
                   if (typeof window !== "undefined" && typeof window.gtag === "function") {
                     window.gtag("event", "cta_click", {
