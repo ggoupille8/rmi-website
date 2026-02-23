@@ -244,12 +244,13 @@ test.describe("Mobile QA Fixes — 375×812", () => {
 
   // ── Backdrop Blur (Issue 10) ────────────────────────────────────────────
 
-  test.describe("Backdrop Blur", () => {
-    test("hero content card has backdrop-blur-lg for readability", async ({ page }) => {
+  test.describe("Hero Text Readability", () => {
+    test("hero tagline uses text-shadow for readability (no background box)", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      // The main content card uses backdrop-blur-lg with a radial gradient background
-      const card = page.locator('section[aria-labelledby="hero-heading"] .backdrop-blur-lg');
-      await expect(card).toBeAttached();
+      // The tagline uses text-shadow instead of a backdrop-blur background box
+      const tagline = page.locator('section[aria-labelledby="hero-heading"] p').first();
+      const style = await tagline.getAttribute("style");
+      expect(style).toContain("text-shadow");
     });
   });
 
@@ -423,23 +424,24 @@ test.describe("Desktop cross-check — 1440×900", () => {
 
   // ── Glassmorphism Readability (Fix 2) ────────────────────────────────────
 
-  test.describe("Glassmorphism Readability", () => {
-    test("hero card uses backdrop-blur-lg (not backdrop-blur-sm)", async ({ page }) => {
+  test.describe("Hero Text Shadow Readability", () => {
+    test("hero tagline uses text-shadow (no background card)", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      // The main content card should have backdrop-blur-lg for readability
-      const card = page.locator('section[aria-labelledby="hero-heading"] .backdrop-blur-lg');
-      await expect(card).toBeAttached();
-      const classList = await card.getAttribute("class");
-      expect(classList).toContain("backdrop-blur-lg");
-      expect(classList).not.toContain("backdrop-blur-sm");
+      // Text-shadow approach replaces the old backdrop-blur card
+      const tagline = page.locator('section[aria-labelledby="hero-heading"] p').first();
+      const style = await tagline.getAttribute("style");
+      expect(style).toContain("text-shadow");
     });
 
-    test("hero card uses radial gradient background (no hard edges)", async ({ page }) => {
+    test("hero content area has no visible background box", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      // The main content card uses an inline radial-gradient style instead of solid bg
-      const card = page.locator('section[aria-labelledby="hero-heading"] .backdrop-blur-lg');
-      const style = await card.getAttribute("style");
-      expect(style).toContain("radial-gradient");
+      // The content wrapper should have no backdrop-blur or background styling
+      const contentCard = page.locator('section[aria-labelledby="hero-heading"] .max-w-3xl');
+      await expect(contentCard).toBeAttached();
+      const classList = await contentCard.getAttribute("class");
+      expect(classList).not.toContain("backdrop-blur");
+      const style = await contentCard.getAttribute("style");
+      expect(style).toBeNull();
     });
   });
 
@@ -489,6 +491,19 @@ test.describe("Desktop cross-check — 1440×900", () => {
       await page.goto("/", { waitUntil: "networkidle" });
       const ticker = page.locator('[role="marquee"]');
       await expect(ticker).toHaveAttribute("aria-live", "off");
+    });
+  });
+
+  // ── Marquee Row Parity (Fix 2 v3) ────────────────────────────────────────
+  test.describe("Marquee Row Parity", () => {
+    test("marquee row 1 and row 2 pills have matching computed color", async ({ page }) => {
+      await page.goto("/", { waitUntil: "networkidle" });
+      const row1Pill = page.locator('.service-ticker__track span').first();
+      const row2Pill = page.locator('.service-ticker:nth-of-type(2) .service-ticker__track span, div[aria-hidden="true"]:not([role]) .service-ticker__track span').first();
+      // Both rows should have the same text color
+      const color1 = await row1Pill.evaluate(el => getComputedStyle(el).color);
+      const color2 = await row2Pill.evaluate(el => getComputedStyle(el).color);
+      expect(color1).toBe(color2);
     });
   });
 

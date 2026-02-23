@@ -235,7 +235,7 @@ export default function ContactForm({
           </div>
         </div>
         <div className="mx-auto mt-2 sm:mt-3 max-w-3xl">
-          <div className="card-elevated p-4 sm:p-5 bg-neutral-900/50 backdrop-blur-sm border-neutral-700/50">
+          <div className="p-4 sm:p-5">
             <form
               ref={formRef}
               onSubmit={handleSubmit}

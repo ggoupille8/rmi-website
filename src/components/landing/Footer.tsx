@@ -16,10 +16,10 @@ export default function Footer() {
             <h3 className="text-base font-semibold text-white mb-3">
               {companyNameFull}
             </h3>
-            <p className="text-neutral-400 text-sm leading-relaxed">
+            <p className="text-neutral-300 text-sm leading-relaxed">
               {footerDescription}
             </p>
-            <p className="text-neutral-400 text-sm mt-2">
+            <p className="text-neutral-300 text-sm mt-2">
               Serving Michigan from {address.city}, {address.state}.
             </p>
           </div>
