@@ -67,11 +67,14 @@ function useCountUp(
       setHasStarted(true);
       return;
     }
+    // Already animated — never re-observe
+    if (hasStarted) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasStarted) {
+        if (entry.isIntersecting) {
           setHasStarted(true);
+          observer.disconnect();
         }
       },
       { threshold: 0.3 }
