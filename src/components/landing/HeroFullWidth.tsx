@@ -144,10 +144,10 @@ function AnimatedStat({
 
   return (
     <div ref={ref} className="text-center">
-      <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
+      <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight" style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)" }}>
         {finalDisplay}
       </div>
-      <div className="mt-1 text-sm sm:text-xs text-neutral-200 uppercase tracking-wider leading-tight">
+      <div className="mt-1 text-sm sm:text-xs text-neutral-200 uppercase tracking-wider leading-tight" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
         {shortLabel ? (
           <>
             <span className="hidden sm:inline">{label}</span>
@@ -237,7 +237,7 @@ export default function HeroFullWidth({
           );
         })}
         {/* Dark gradient overlay — on top of all images */}
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
       </div>
 
       {/* Content */}
@@ -245,8 +245,7 @@ export default function HeroFullWidth({
         <div className="max-w-5xl mx-auto text-center flex-1 flex flex-col justify-center w-full">
           {/* Main Content Card */}
           <div
-            className="max-w-3xl mx-auto backdrop-blur-lg py-6 px-6 sm:px-10"
-            style={{ background: "radial-gradient(ellipse at center, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.25) 60%, transparent 100%)" }}
+            className="max-w-3xl mx-auto py-6 px-6 sm:px-10"
           >
             {/* Logo */}
             <h1 id="hero-heading" className="flex justify-center">
@@ -259,7 +258,10 @@ export default function HeroFullWidth({
             </h1>
 
             {/* Tagline */}
-            <p className="mt-2 text-lg sm:text-xl lg:text-2xl text-neutral-200 font-light tracking-wide">
+            <p
+              className="mt-2 text-lg sm:text-xl lg:text-2xl text-neutral-200 font-light tracking-wide"
+              style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)" }}
+            >
               {tagline}
             </p>
 

@@ -1,5 +1,7 @@
 import { materials } from "../../content/site";
 
+const pillClass = "inline-block px-5 sm:px-6 py-2.5 mx-1.5 sm:mx-2 text-neutral-300 text-base sm:text-lg whitespace-nowrap border border-neutral-700/60 rounded-full";
+
 export default function MaterialsMarquee() {
   // Double the materials for seamless loop
   const duplicatedMaterials = [...materials, ...materials];
@@ -21,7 +23,7 @@ export default function MaterialsMarquee() {
 
       {/* Header */}
       <div className="container-custom mb-6">
-        <h2 className="text-xl sm:text-2xl lg:text-3xl text-white uppercase tracking-wider font-bold text-center">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl text-white uppercase tracking-wider font-bold text-center">
           Materials We Work With
         </h2>
         <p className="text-base sm:text-lg text-neutral-300 text-center mt-1.5 tracking-wide">
@@ -36,7 +38,7 @@ export default function MaterialsMarquee() {
             {duplicatedMaterials.map((material, index) => (
               <span
                 key={`r1-${material}-${index}`}
-                className="inline-block px-5 sm:px-6 py-2.5 mx-1.5 sm:mx-2 text-neutral-300 text-base sm:text-lg whitespace-nowrap border border-neutral-700/60 rounded-full"
+                className={pillClass}
               >
                 {material}
               </span>
@@ -52,7 +54,7 @@ export default function MaterialsMarquee() {
             {duplicatedRow2.map((material, index) => (
               <span
                 key={`r2-${material}-${index}`}
-                className="inline-block px-5 sm:px-6 py-2.5 mx-1.5 sm:mx-2 text-neutral-300 text-base sm:text-lg whitespace-nowrap border border-neutral-700/60 rounded-full"
+                className={pillClass}
               >
                 {material}
               </span>
