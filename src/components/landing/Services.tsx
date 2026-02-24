@@ -136,7 +136,7 @@ export default function Services() {
 
   return (
     <section
-      className="pt-16 sm:pt-20 pb-12 sm:pb-16 bg-neutral-800 border-t border-accent-600/20"
+      className="pt-12 sm:pt-12 pb-10 sm:pb-10 bg-neutral-800 border-t border-accent-600/20"
       aria-labelledby="services-heading"
     >
       <div className="container-custom">
@@ -165,7 +165,7 @@ export default function Services() {
                 key={service.anchorId}
                 type="button"
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className={`flex items-center justify-center sm:justify-start gap-4 px-4 py-5 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:border-neutral-600/70 hover:bg-neutral-800/90 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/15 transition-all duration-200 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset${isLastOdd ? " sm:col-span-2 lg:col-span-1" : ""}`}
+                className={`flex items-center justify-center sm:justify-start gap-4 px-4 py-5 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:border-neutral-600/70 hover:bg-neutral-800/90 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/15 transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset${isLastOdd ? " sm:col-span-2 lg:col-span-1" : ""}`}
               >
                 <IconComponent
                   className="w-7 h-7 text-accent-500 flex-shrink-0"

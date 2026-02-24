@@ -9,8 +9,8 @@ export default function Footer() {
       className="bg-neutral-950 text-white border-t border-neutral-800/50"
       aria-label="Site footer"
     >
-      <div className="container-custom py-8 sm:py-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10">
+      <div className="container-custom py-5 sm:py-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {/* Company Info */}
           <div className="text-center md:text-left">
             <h3 className="text-base font-semibold text-white mb-3">
@@ -32,19 +32,19 @@ export default function Footer() {
             <nav className="flex flex-col items-center md:items-start gap-0" aria-label="Footer navigation">
               <a
                 href="#services"
-                className="text-neutral-300 hover:text-white transition-colors text-sm min-w-[44px] py-3"
+                className="text-neutral-300 hover:text-white transition-colors text-sm min-w-[44px] py-1.5"
               >
                 Services
               </a>
               <a
                 href="#about"
-                className="text-neutral-300 hover:text-white transition-colors text-sm min-w-[44px] py-3"
+                className="text-neutral-300 hover:text-white transition-colors text-sm min-w-[44px] py-1.5"
               >
                 About
               </a>
               <a
                 href="#contact"
-                className="text-neutral-300 hover:text-white transition-colors text-sm min-w-[44px] py-3"
+                className="text-neutral-300 hover:text-white transition-colors text-sm min-w-[44px] py-1.5"
               >
                 Request a Quote
               </a>
@@ -59,7 +59,7 @@ export default function Footer() {
             <div className="space-y-0 inline-flex flex-col items-center md:items-start">
               <a
                 href={phoneTel}
-                className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm py-3"
+                className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm py-1.5"
                 aria-label={`Call ${companyName} at ${phoneDisplay}`}
               >
                 <Phone className="w-3.5 h-3.5 text-accent-500" aria-hidden="true" />
@@ -68,7 +68,7 @@ export default function Footer() {
 
               <a
                 href={`mailto:${email}`}
-                className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm py-3"
+                className="flex items-center gap-2 text-white hover:text-accent-300 transition-colors text-sm py-1.5"
                 aria-label={`Email ${companyName} at ${email}`}
               >
                 <Mail className="w-3.5 h-3.5 text-accent-500" aria-hidden="true" />
@@ -84,13 +84,13 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-6 pt-4 border-t border-neutral-800/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="mt-4 pt-3 border-t border-neutral-800/50 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-neutral-400">
             &copy; {currentYear} {companyNameFull}. All rights reserved.
           </p>
           <a
             href="#"
-            className="inline-flex items-center gap-2 text-sm font-medium text-neutral-300 hover:text-white transition-colors cursor-pointer py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 rounded"
+            className="inline-flex items-center gap-2 text-sm font-medium text-neutral-300 hover:text-white transition-colors cursor-pointer py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 rounded"
             aria-label="Back to top"
           >
             Back to top

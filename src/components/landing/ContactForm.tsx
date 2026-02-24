@@ -222,7 +222,7 @@ export default function ContactForm({
 
   return (
     <section
-      className="pt-12 pb-24 sm:py-16 bg-neutral-800 border-t border-accent-600/20"
+      className="pt-10 pb-10 sm:py-10 bg-neutral-800 border-t border-accent-600/20"
       aria-labelledby="contact-heading"
     >
       <div className="container-custom">
