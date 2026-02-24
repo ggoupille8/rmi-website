@@ -48,7 +48,7 @@ const features: AboutFeature[] = [
 export default function About() {
   return (
     <section
-      className="pt-12 sm:pt-16 pb-6 sm:pb-8 bg-neutral-900 border-t border-neutral-700/40"
+      className="pt-10 sm:pt-10 pb-6 sm:pb-8 bg-neutral-900 border-t border-neutral-700/40"
       aria-labelledby="about-heading"
     >
       <div className="container-custom">
@@ -75,7 +75,7 @@ export default function About() {
             return (
               <div
                 key={index}
-                className="relative flex flex-col bg-neutral-800/40 backdrop-blur-sm p-6 border border-neutral-700/40 hover:border-accent-500/30 hover:bg-neutral-800/55 hover:shadow-lg transition-all duration-300"
+                className="relative flex flex-col bg-neutral-800/40 backdrop-blur-sm p-6 border border-neutral-700/40 hover:border-accent-500/30 hover:bg-neutral-800/55 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
               >
                 {/* Icon */}
                 <div className="mb-5">
