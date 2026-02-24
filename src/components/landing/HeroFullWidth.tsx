@@ -325,7 +325,7 @@ export default function HeroFullWidth({
               <div
                 key={stat.label}
                 data-testid="stat-card"
-                className="sm:w-44 bg-neutral-900/15 backdrop-blur-sm rounded-lg border border-neutral-700/20 px-2 sm:px-4 py-1.5"
+                className="sm:w-44 px-2 sm:px-4 py-1.5"
               >
                 <AnimatedStat
                   endValue={stat.endValue}
