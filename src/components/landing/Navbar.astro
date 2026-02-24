@@ -5,7 +5,7 @@ import { companyName } from '../../content/site';
 <header
   id="navbar"
   class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-  style="background-color: rgba(23, 23, 23, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255, 255, 255, 0.08);"
+  style="background-color: rgba(23, 23, 23, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.3);"
   role="banner"
 >
   <nav class="container-custom flex items-center justify-between h-12 sm:h-14 !px-2" aria-label="Main navigation">
@@ -63,7 +63,7 @@ import { companyName } from '../../content/site';
       </a>
       <a
         href="#contact"
-        class="btn-primary px-5 py-2 text-sm"
+        class="btn-primary px-5 py-2 text-sm transition-all duration-200 ease-in-out"
       >
         Request a Quote
       </a>
@@ -162,7 +162,7 @@ import { companyName } from '../../content/site';
       navbar.style.backgroundColor = 'rgba(23, 23, 23, 0.85)';
       navbar.style.backdropFilter = 'blur(8px)';
       navbar.style.webkitBackdropFilter = 'blur(8px)';
-      navbar.style.boxShadow = '';
+      navbar.style.boxShadow = '0 1px 0 rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.3)';
     }
   }
 

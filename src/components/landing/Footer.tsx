@@ -88,15 +88,14 @@ export default function Footer() {
           <p className="text-sm text-neutral-400">
             &copy; {currentYear} {companyNameFull}. All rights reserved.
           </p>
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          <a
+            href="#"
             className="inline-flex items-center gap-2 text-sm font-medium text-neutral-300 hover:text-white transition-colors cursor-pointer py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-950 rounded"
             aria-label="Back to top"
           >
             Back to top
             <ArrowUp className="w-4 h-4" aria-hidden="true" />
-          </button>
+          </a>
         </div>
       </div>
     </footer>
