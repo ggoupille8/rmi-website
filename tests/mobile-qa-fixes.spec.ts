@@ -148,20 +148,17 @@ test.describe("Mobile QA Fixes — 375×812", () => {
   // ── Stats Bar (Issues 5, 6) ─────────────────────────────────────────────
 
   test.describe("Stats Bar", () => {
-    test("stats container has min-height set", async ({ page }) => {
+    test("stats container is attached", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      // The stats container is the flex div with gap inside the hero content area
-      const statsContainer = page.locator('section[aria-labelledby="hero-heading"] .min-h-\\[72px\\]');
+      const statsContainer = page.locator('[data-testid="hero-stats"]');
       await expect(statsContainer).toBeAttached();
     });
 
     test("all 3 stat labels are visible", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      const hero = page.locator('section[aria-labelledby="hero-heading"]');
 
       // Check for stat labels — on mobile, shortLabel variants may be shown
-      // The labels are "Clients", "Projects Annually", and "OSHA Man-Hours" (or "OSHA Hours" on mobile)
-      const statsText = await hero.locator('.min-h-\\[44px\\]').allTextContents();
+      const statsText = await page.locator('[data-testid="stat-card"]').allTextContents();
       const allText = statsText.join(" ");
 
       expect(allText).toMatch(/Clients/i);
@@ -355,7 +352,7 @@ test.describe("Desktop cross-check — 1440×900", () => {
 
   test("stats cards use fixed width on desktop (sm:w-44)", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
-    const statCards = page.locator('section[aria-labelledby="hero-heading"] .min-h-\\[44px\\]');
+    const statCards = page.locator('[data-testid="stat-card"]');
     const count = await statCards.count();
     expect(count).toBe(3);
 
@@ -685,8 +682,7 @@ test.describe("Landscape Stats — 667×375", () => {
 
   test("all 3 stat labels are visible in landscape", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
-    const hero = page.locator('section[aria-labelledby="hero-heading"]');
-    const statsText = await hero.locator('.min-h-\\[44px\\]').allTextContents();
+    const statsText = await page.locator('[data-testid="stat-card"]').allTextContents();
     const allText = statsText.join(" ");
 
     expect(allText).toMatch(/Clients/i);
@@ -696,7 +692,7 @@ test.describe("Landscape Stats — 667×375", () => {
 
   test("stats container has flex-wrap class", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
-    const statsContainer = page.locator('section[aria-labelledby="hero-heading"] .min-h-\\[72px\\]');
+    const statsContainer = page.locator('[data-testid="hero-stats"]');
     const classList = await statsContainer.getAttribute("class");
     expect(classList).toContain("flex-wrap");
   });

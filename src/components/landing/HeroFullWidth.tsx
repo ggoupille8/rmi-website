@@ -253,14 +253,14 @@ export default function HeroFullWidth({
                 src="/images/logo/rmi-logo-full.png"
                 alt={headline}
                 className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
-                style={{ filter: 'brightness(0) invert(1) drop-shadow(3px 3px 0px rgba(0,0,0,0.7)) drop-shadow(-1px -1px 0px rgba(0,0,0,0.4))' }}
+                style={{ filter: 'brightness(0) invert(1) drop-shadow(3px 3px 6px rgba(0,0,0,1)) drop-shadow(-1px -1px 4px rgba(0,0,0,0.8))' }}
               />
             </h1>
 
             {/* Tagline */}
             <p
-              className="mt-2 text-lg sm:text-xl lg:text-2xl text-neutral-200 font-light tracking-wide"
-              style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)" }}
+              className="mt-2 text-lg sm:text-xl lg:text-2xl text-neutral-200 font-semibold tracking-wide"
+              style={{ textShadow: "0 2px 8px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,1)" }}
             >
               {tagline}
             </p>
@@ -320,11 +320,12 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats — Individual Cards */}
-          <div className="mt-6 sm:mt-auto pb-4 sm:pb-6 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:justify-center sm:gap-8 min-h-[72px] sm:min-h-[80px]">
+          <div data-testid="hero-stats" className="mt-6 sm:mt-auto pb-2 sm:pb-4 grid grid-cols-3 gap-1 sm:flex sm:flex-wrap sm:justify-center sm:gap-4">
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className="min-h-[44px] sm:w-44 sm:min-h-[52px] bg-neutral-900/50 backdrop-blur-sm rounded-lg border border-neutral-700/30 px-2 sm:px-4 py-3"
+                data-testid="stat-card"
+                className="sm:w-44 bg-neutral-900/15 backdrop-blur-sm rounded-lg border border-neutral-700/20 px-2 sm:px-4 py-1.5"
               >
                 <AnimatedStat
                   endValue={stat.endValue}

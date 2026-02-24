@@ -248,7 +248,13 @@ export default function Services() {
                     <div className="mt-6">
                       <a
                         href="#contact"
-                        onClick={closeModal}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          closeModal();
+                          setTimeout(() => {
+                            document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
+                          }, 250);
+                        }}
                         className="btn-primary w-full text-center"
                       >
                         Request a Quote
