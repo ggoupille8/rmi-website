@@ -178,6 +178,35 @@ export const heroStats: HeroStat[] = [
   { endValue: totalOshaManHours, suffix: "", label: "OSHA Man-Hours", shortLabel: "OSHA Hours" },
 ];
 
+// Project Highlights (placeholder images — swap with real project photos later)
+export interface ProjectHighlight {
+  title: string;
+  description: string;
+  image: string;
+  tag: string;
+}
+
+export const projectHighlights: ProjectHighlight[] = [
+  {
+    title: "Chiller Plant Piping",
+    description: "Full insulation of chilled water piping system at a regional medical center.",
+    image: "/images/projects/project-1.webp",
+    tag: "Pipe Insulation",
+  },
+  {
+    title: "Boiler Room Equipment",
+    description: "Removable blankets and equipment insulation for a manufacturing facility.",
+    image: "/images/projects/project-2.webp",
+    tag: "Equipment",
+  },
+  {
+    title: "Steam Distribution System",
+    description: "High-temperature steam and condensate piping insulation with aluminum jacketing.",
+    image: "/images/projects/project-3.webp",
+    tag: "Pipe Insulation",
+  },
+];
+
 // Materials
 export const materials = [
   "Fiberglass",
