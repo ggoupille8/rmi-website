@@ -178,6 +178,35 @@ export const heroStats: HeroStat[] = [
   { endValue: totalOshaManHours, suffix: "", label: "OSHA Man-Hours", shortLabel: "OSHA Hours" },
 ];
 
+// Project Highlights (placeholder images — swap with real project photos later)
+export interface ProjectHighlight {
+  title: string;
+  description: string;
+  image: string;
+  tag: string;
+}
+
+export const projectHighlights: ProjectHighlight[] = [
+  {
+    title: "Outdoor Mechanical Insulation — Mid-Michigan",
+    description: "Wrapped up an outdoor mechanical insulation project before the weather turned. Built for durability and long-term serviceability — clean jacketing, solid detailing, and protection that holds up to Michigan weather.",
+    image: "/images/projects/project-1.jpg",
+    tag: "Pipe Insulation",
+  },
+  {
+    title: "DDOT Coolidge Terminal — Detroit",
+    description: "Proud to have been part of the subcontractor team on the nearly complete 193,000-square-foot Detroit Department of Transportation Coolidge Terminal — a major public infrastructure project advancing transit operations in Detroit.",
+    image: "/images/projects/project-2.jpg",
+    tag: "Commercial",
+  },
+  {
+    title: "On-Site Mechanical Insulation Installations",
+    description: "Experienced, detail-driven mechanics who understand the systems they're insulating — many under our leadership from apprenticeship through retirement. No shortcuts. No leaks, condensation, or heat loss. No call-backs.",
+    image: "/images/projects/project-3.jpg",
+    tag: "Industrial",
+  },
+];
+
 // Materials
 export const materials = [
   "Fiberglass",
