@@ -30,7 +30,9 @@ import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../conten
       <About />
     </div>
     <MaterialsMarquee />
-    <ProjectShowcase client:load />
+    <div id="projects" class="scroll-mt-14">
+      <ProjectShowcase client:load />
+    </div>
     <div id="contact" class="scroll-mt-14">
       <ContactForm client:load />
     </div>

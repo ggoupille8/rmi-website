@@ -33,8 +33,8 @@ export default function ProjectShowcase() {
               <img
                 src={project.image}
                 alt={project.title}
-                width="600"
-                height="450"
+                width="960"
+                height="720"
                 className="w-full aspect-[4/3] object-cover rounded-t-xl"
                 loading="lazy"
                 decoding="async"
