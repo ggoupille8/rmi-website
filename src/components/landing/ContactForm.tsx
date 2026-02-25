@@ -250,6 +250,7 @@ export default function ContactForm({
 
           <form
             ref={formRef}
+            method="post"
             onSubmit={handleSubmit}
             className="mt-6 space-y-3"
             noValidate
@@ -269,6 +270,7 @@ export default function ContactForm({
                   type="text"
                   id="name"
                   name="name"
+                  required
                   value={formData.name}
                   onChange={handleChange}
                   className={fieldErrors.name ? inputError : inputNormal}
@@ -387,6 +389,7 @@ export default function ContactForm({
                 ref={messageRef}
                 id="message"
                 name="message"
+                required
                 rows={3}
                 value={formData.message}
                 onChange={handleChange}

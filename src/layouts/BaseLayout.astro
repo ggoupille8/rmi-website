@@ -24,7 +24,7 @@ const {
 } = Astro.props;
 
 const fullTitle = title.includes(companyName) ? title : `${title} | ${companyName}`;
-const siteUrl = Astro.site?.href || 'https://resourcemechanicalinsulation.com';
+const siteUrl = Astro.site?.href || 'https://www.rmi-llc.net';
 const ogImageUrl = new URL(ogImage, siteUrl).href;
 
 const localBusinessSchema = JSON.stringify({
@@ -53,6 +53,21 @@ const localBusinessSchema = JSON.stringify({
     "@type": "State",
     "name": "Michigan"
   },
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "opens": "06:00",
+      "closes": "18:00"
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      "opens": "00:00",
+      "closes": "23:59",
+      "description": "24/7 Emergency Response Available"
+    }
+  ],
   "priceRange": "$$",
   "image": ogImageUrl,
   "knowsAbout": services.map(s => s.title),
@@ -140,7 +155,8 @@ const localBusinessSchema = JSON.stringify({
     <!-- Google Fonts - Russo One -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://www.googletagmanager.com" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet" />
 
     <!-- Google Search Console -->
