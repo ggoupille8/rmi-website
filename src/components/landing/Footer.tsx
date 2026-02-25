@@ -91,7 +91,7 @@ export default function Footer() {
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="inline-flex items-center gap-2 text-sm font-medium text-neutral-400 hover:text-accent-400 transition-colors duration-200 cursor-pointer py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 rounded"
+            className="inline-flex items-center gap-2 text-sm font-medium text-neutral-400 hover:text-accent-400 transition-colors duration-200 cursor-pointer py-1.5 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 rounded"
             aria-label="Back to top"
           >
             Back to top
