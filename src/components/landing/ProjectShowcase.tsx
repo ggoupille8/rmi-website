@@ -43,7 +43,7 @@ export default function ProjectShowcase() {
                 <h3 className="text-lg font-semibold text-white">
                   {project.title}
                 </h3>
-                <p className="mt-1 text-sm text-gray-400">
+                <p className="mt-1 text-sm text-gray-400 line-clamp-3">
                   {project.description}
                 </p>
                 <span className="mt-3 inline-block rounded-full border border-blue-500/40 px-3 py-0.5 text-xs text-blue-400">
@@ -53,6 +53,18 @@ export default function ProjectShowcase() {
             </div>
           ))}
         </div>
+
+        {/* LinkedIn link */}
+        <p className="mt-8 text-center text-sm text-neutral-500">
+          <a
+            href="https://www.linkedin.com/company/resource-mechanical-insulation"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-accent-400 transition-colors duration-200"
+          >
+            Follow us on LinkedIn
+          </a>
+        </p>
       </div>
     </section>
   );

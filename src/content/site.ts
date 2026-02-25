@@ -188,22 +188,22 @@ export interface ProjectHighlight {
 
 export const projectHighlights: ProjectHighlight[] = [
   {
-    title: "Chiller Plant Piping",
-    description: "Full insulation of chilled water piping system at a regional medical center.",
-    image: "/images/projects/project-1.webp",
+    title: "Outdoor Mechanical Insulation — Mid-Michigan",
+    description: "Wrapped up an outdoor mechanical insulation project before the weather turned. Built for durability and long-term serviceability — clean jacketing, solid detailing, and protection that holds up to Michigan weather.",
+    image: "/images/projects/project-1.jpg",
     tag: "Pipe Insulation",
   },
   {
-    title: "Boiler Room Equipment",
-    description: "Removable blankets and equipment insulation for a manufacturing facility.",
-    image: "/images/projects/project-2.webp",
-    tag: "Equipment",
+    title: "DDOT Coolidge Terminal — Detroit",
+    description: "Proud to have been part of the subcontractor team on the nearly complete 193,000-square-foot Detroit Department of Transportation Coolidge Terminal — a major public infrastructure project advancing transit operations in Detroit.",
+    image: "/images/projects/project-2.jpg",
+    tag: "Commercial",
   },
   {
-    title: "Steam Distribution System",
-    description: "High-temperature steam and condensate piping insulation with aluminum jacketing.",
-    image: "/images/projects/project-3.webp",
-    tag: "Pipe Insulation",
+    title: "On-Site Mechanical Insulation Installations",
+    description: "Experienced, detail-driven mechanics who understand the systems they're insulating — many under our leadership from apprenticeship through retirement. No shortcuts. No leaks, condensation, or heat loss. No call-backs.",
+    image: "/images/projects/project-3.jpg",
+    tag: "Industrial",
   },
 ];
 
