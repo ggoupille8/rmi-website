@@ -225,10 +225,10 @@ export default function ContactForm({
         {/* LEFT: Image — flush to left edge */}
         <div className="relative h-[220px] sm:h-[260px] md:h-auto overflow-hidden bg-neutral-800 md:flex md:items-start">
           <img
-            src="/images/cta/cta-project.jpeg"
+            src="/images/cta/cta-project.webp"
             alt="Insulation project work by Resource Mechanical Insulation"
-            width="800"
-            height="600"
+            width="918"
+            height="1224"
             className="absolute inset-0 w-full h-full object-cover object-[50%_40%] md:relative md:inset-auto md:h-auto"
             loading="lazy"
             decoding="async"
