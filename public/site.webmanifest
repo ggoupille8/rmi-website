@@ -4,8 +4,8 @@
   "description": "Union contractor Local 25 serving Southeast Michigan with professional mechanical insulation services",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#1e3a5f",
+  "background_color": "#171717",
+  "theme_color": "#171717",
   "icons": [
     {
       "src": "/favicon.svg",

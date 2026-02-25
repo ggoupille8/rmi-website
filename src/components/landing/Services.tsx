@@ -165,6 +165,7 @@ export default function Services() {
               <button
                 key={service.anchorId}
                 type="button"
+                aria-expanded={activeService === service.anchorId}
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
                 className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:border-neutral-600/70 hover:bg-neutral-800/90 hover:-translate-y-0.5 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset${isLastOdd ? " sm:col-span-2 lg:col-span-1" : ""}`}
               >
@@ -198,7 +199,7 @@ export default function Services() {
             ref={modalRef}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="modal-title"
+            aria-labelledby={`modal-${activeService}`}
             className={`relative z-10 max-w-lg w-full mx-4 bg-neutral-900/80 backdrop-blur-md rounded-2xl border border-neutral-700/40 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -207,7 +208,7 @@ export default function Services() {
               type="button"
               onClick={closeModal}
               className="absolute top-4 right-4 flex items-center justify-center w-9 h-9 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-              aria-label="Close"
+              aria-label="Close dialog"
             >
               <X className="w-5 h-5" aria-hidden="true" />
             </button>
@@ -231,7 +232,7 @@ export default function Services() {
 
                     {/* Title */}
                     <h3
-                      id="modal-title"
+                      id={`modal-${activeServiceData.anchorId}`}
                       className="text-xl font-bold text-white text-center uppercase tracking-wide"
                     >
                       {activeServiceData.title}
