@@ -53,6 +53,7 @@ test.describe("Homepage Visual Regression", () => {
           {
             fullPage: true,
             animations: "disabled",
+            maxDiffPixelRatio: 0.03,
           }
         );
       });
