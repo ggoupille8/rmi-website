@@ -9,14 +9,10 @@ declare global {
 }
 
 interface ContactFormProps {
-  title?: string;
-  subtitle?: string;
   preselectedProjectType?: string;
 }
 
 export default function ContactForm({
-  title = "Request a Quote",
-  subtitle = "Get in touch with our team to discuss your insulation project or material needs.",
   preselectedProjectType,
 }: ContactFormProps) {
   const [formData, setFormData] = useState({
@@ -216,38 +212,55 @@ export default function ContactForm({
   };
 
   const inputBase =
-    "block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 text-base px-3 py-2.5 border bg-neutral-700/60 backdrop-blur-sm text-neutral-100 leading-relaxed min-w-0";
+    "block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 text-base px-3 py-2 border bg-neutral-800 text-white placeholder:text-neutral-400 leading-relaxed min-w-0";
   const inputNormal = `${inputBase} border-neutral-600 focus-visible:border-primary-400`;
   const inputError = `${inputBase} border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500`;
 
   return (
     <section
-      className="pt-10 pb-10 sm:py-10 bg-neutral-800 border-t border-accent-600/20"
+      className="bg-neutral-900 overflow-hidden border-t border-neutral-700/40"
       aria-labelledby="contact-heading"
     >
-      <div className="container-custom">
-        <div className="mx-auto max-w-3xl">
-          <div className="text-center flex flex-col items-center">
-            <h2 id="contact-heading" className="font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl">
-              {title}
-            </h2>
-            <p className="mt-3 text-lg sm:text-xl text-neutral-200">{subtitle}</p>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-[2fr_3fr]">
+        {/* LEFT: Image — flush to left edge */}
+        <div className="relative h-[220px] sm:h-[260px] md:h-auto overflow-hidden bg-neutral-800 md:flex md:items-start">
+          <img
+            src="/images/cta/cta-project.jpeg"
+            alt="Insulation project work by Resource Mechanical Insulation"
+            width="800"
+            height="600"
+            className="absolute inset-0 w-full h-full object-cover object-[50%_40%] md:relative md:inset-auto md:h-auto"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
-        <div className="mx-auto mt-2 sm:mt-3 max-w-3xl">
-          <div className="card-elevated p-4 sm:p-5 bg-neutral-900/50 backdrop-blur-sm border-neutral-700/50">
-            <form
-              ref={formRef}
-              onSubmit={handleSubmit}
-              className="space-y-3 sm:space-y-4"
-              noValidate
-              aria-busy={isSubmitting ? "true" : "false"}
-            >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 -mt-3 sm:-mt-4">
+
+        {/* RIGHT: Form content */}
+        <div className="flex flex-col justify-center px-5 sm:px-10 lg:px-14 py-8 md:py-14 lg:py-16 md:border-l md:border-neutral-700/40">
+          <h2
+            id="contact-heading"
+            className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase tracking-tight"
+          >
+            Ready to Start Your Insulation Project?
+          </h2>
+          <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto md:mx-0" />
+          <p className="mt-3 text-neutral-400 text-sm sm:text-base">
+            Tell us what you need.
+          </p>
+
+          <form
+            ref={formRef}
+            onSubmit={handleSubmit}
+            className="mt-6 space-y-3"
+            noValidate
+            aria-busy={isSubmitting ? "true" : "false"}
+          >
+            {/* Name + Company */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label
                   htmlFor="name"
-                  className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
+                  className="block text-sm font-semibold text-neutral-200 mb-1"
                 >
                   Name
                 </label>
@@ -268,11 +281,10 @@ export default function ContactForm({
                   </div>
                 )}
               </div>
-
               <div>
                 <label
                   htmlFor="company"
-                  className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
+                  className="block text-sm font-semibold text-neutral-200 mb-1"
                 >
                   Company
                 </label>
@@ -285,13 +297,14 @@ export default function ContactForm({
                   className={inputNormal}
                 />
               </div>
-              </div>
+            </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4">
+            {/* Email + Phone */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
+                  className="block text-sm font-semibold text-neutral-200 mb-1"
                 >
                   Email
                 </label>
@@ -312,11 +325,10 @@ export default function ContactForm({
                   </div>
                 )}
               </div>
-
               <div>
                 <label
                   htmlFor="phone"
-                  className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
+                  className="block text-sm font-semibold text-neutral-200 mb-1"
                 >
                   Phone
                 </label>
@@ -330,12 +342,13 @@ export default function ContactForm({
                   aria-invalid={contactError ? "true" : "false"}
                 />
               </div>
-              </div>
+            </div>
 
-              <div>
-                <label
-                  htmlFor="projectType"
-                className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
+            {/* Project Type */}
+            <div>
+              <label
+                htmlFor="projectType"
+                className="block text-sm font-semibold text-neutral-200 mb-1"
               >
                 Project Type
               </label>
@@ -360,12 +373,13 @@ export default function ContactForm({
                   {fieldErrors.projectType}
                 </div>
               )}
-              </div>
+            </div>
 
-              <div>
-                <label
-                  htmlFor="message"
-                className="block text-sm font-medium text-neutral-200 leading-relaxed mb-1.5"
+            {/* Project Details */}
+            <div>
+              <label
+                htmlFor="message"
+                className="block text-sm font-semibold text-neutral-200 mb-1"
               >
                 Project Details
               </label>
@@ -373,7 +387,7 @@ export default function ContactForm({
                 ref={messageRef}
                 id="message"
                 name="message"
-                rows={4}
+                rows={3}
                 value={formData.message}
                 onChange={handleChange}
                 onInput={(e) => {
@@ -381,8 +395,8 @@ export default function ContactForm({
                   textarea.style.height = "auto";
                   textarea.style.height = `${textarea.scrollHeight}px`;
                 }}
-                placeholder="Please describe your project, timeline, and any specific requirements..."
-                className={`${fieldErrors.message ? inputError : inputNormal} resize-none min-h-[120px]`}
+                placeholder="Describe your project, timeline, and requirements..."
+                className={`${fieldErrors.message ? inputError : inputNormal} resize-none`}
                 aria-invalid={fieldErrors.message ? "true" : "false"}
                 aria-describedby={fieldErrors.message ? "message-error" : undefined}
               />
@@ -391,9 +405,9 @@ export default function ContactForm({
                   {fieldErrors.message}
                 </div>
               )}
-              </div>
+            </div>
 
-              {submitStatus === "success" && (
+            {submitStatus === "success" && (
               <div
                 className="rounded-md bg-success-dark/20 p-3 text-success-light border border-success/20 text-sm"
                 role="alert"
@@ -404,45 +418,44 @@ export default function ContactForm({
               </div>
             )}
 
-              {submitStatus === "error" && (
-                <div
-                  className="rounded-md bg-error-dark/20 p-3 text-red-400 border border-red-500/20 text-sm"
-                  role="alert"
-                  aria-live="polite"
-                >
-                  Something went wrong. Please try again or call us directly.
-                </div>
-              )}
-
-              {/* Honeypot field - hidden from users */}
+            {submitStatus === "error" && (
               <div
-                className="absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0 pointer-events-none"
-                aria-hidden="true"
+                className="rounded-md bg-error-dark/20 p-3 text-red-400 border border-red-500/20 text-sm"
+                role="alert"
+                aria-live="polite"
               >
-                <label htmlFor="website">Website</label>
-                <input
-                  type="text"
-                  id="website"
-                  name="website"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  value={formData.website}
-                  onChange={handleChange}
-                  className="h-0 w-0 border-0 p-0 m-0"
-                />
+                Something went wrong. Please try again or call us directly.
               </div>
+            )}
 
-              <div className="pt-1">
-                <button
+            {/* Honeypot field - hidden from users */}
+            <div
+              className="absolute -left-[9999px] h-0 w-0 overflow-hidden opacity-0 pointer-events-none"
+              aria-hidden="true"
+            >
+              <label htmlFor="website">Website</label>
+              <input
+                type="text"
+                id="website"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={formData.website}
+                onChange={handleChange}
+                className="h-0 w-0 border-0 p-0 m-0"
+              />
+            </div>
+
+            <div>
+              <button
                 type="submit"
                 disabled={isSubmitting}
-                  className="btn-primary w-full py-3.5 text-xl font-bold"
+                className="btn-primary w-full py-3 text-base sm:text-lg font-bold"
               >
-                  {isSubmitting ? "Sending..." : "Send Message"}
-                </button>
-              </div>
-            </form>
-          </div>
+                {isSubmitting ? "Sending..." : "Send Message"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </section>

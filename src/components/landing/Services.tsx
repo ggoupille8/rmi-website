@@ -136,27 +136,28 @@ export default function Services() {
 
   return (
     <section
-      className="pt-12 sm:pt-12 pb-10 sm:pb-10 bg-neutral-800 border-t border-accent-600/20"
+      className="py-16 sm:py-20 lg:py-24 bg-neutral-800 border-t border-accent-600/20"
       aria-labelledby="services-heading"
     >
       <div className="container-custom">
         {/* Section Header with Stripe */}
-        <div className="flex justify-center mb-3">
+        <div className="flex flex-col items-center mb-3">
           <h2
             id="services-heading"
-            className="font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl"
+            className="font-bold tracking-wider text-white uppercase text-xl sm:text-2xl lg:text-3xl"
           >
             Services
           </h2>
+          <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full" />
         </div>
 
         {/* Section Subtitle */}
-        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-5xl mx-auto mb-6">
+        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-5xl mx-auto mt-4 mb-6 sm:mb-8 lg:mb-10">
           {servicesSubtitle}
         </p>
 
         {/* Services Icon Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
           {services.map((service, index) => {
             const IconComponent = iconMap[service.anchorId] || Droplets;
             const isLastOdd = index === services.length - 1 && services.length % 2 !== 0;
@@ -165,14 +166,14 @@ export default function Services() {
                 key={service.anchorId}
                 type="button"
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className={`flex items-center justify-center sm:justify-start gap-4 px-4 py-5 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:border-neutral-600/70 hover:bg-neutral-800/90 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/15 transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset${isLastOdd ? " sm:col-span-2 lg:col-span-1" : ""}`}
+                className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] border-l-accent-500 hover:border-l-accent-400 hover:border-neutral-600/70 hover:bg-neutral-800/90 hover:-translate-y-0.5 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset${isLastOdd ? " sm:col-span-2 lg:col-span-1" : ""}`}
               >
                 <IconComponent
-                  className="w-7 h-7 text-accent-500 flex-shrink-0"
+                  className="w-7 h-7 text-accent-500 group-hover:text-accent-400 flex-shrink-0 transition-colors duration-200"
                   strokeWidth={1.5}
                   aria-hidden="true"
                 />
-                <span className="text-sm font-bold text-white uppercase tracking-wide">
+                <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
                   {service.title}
                 </span>
               </button>

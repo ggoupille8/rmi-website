@@ -1,6 +1,6 @@
 import { materials } from "../../content/site";
 
-const pillClass = "inline-block px-5 sm:px-6 py-2.5 mx-1.5 sm:mx-2 text-neutral-300 text-base sm:text-lg whitespace-nowrap border border-neutral-700/60 rounded-full";
+const pillClass = "inline-block px-3 py-1.5 sm:px-5 sm:py-2.5 mx-1.5 sm:mx-2 text-neutral-300 text-xs sm:text-sm whitespace-nowrap border border-neutral-600/50 rounded-full";
 
 export default function MaterialsMarquee() {
   // Double the materials for seamless loop
@@ -12,21 +12,22 @@ export default function MaterialsMarquee() {
   const duplicatedRow2 = [...row2Materials, ...row2Materials];
 
   return (
-    <section className="relative pt-6 sm:pt-8 pb-8 sm:pb-8 overflow-hidden bg-neutral-900 border-t border-neutral-700/40">
+    <section className="relative py-12 sm:py-16 lg:py-20 overflow-hidden bg-neutral-800 border-t border-neutral-600/30">
       {/* Edge gradient fades */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 z-10 pointer-events-none bg-gradient-to-r from-neutral-900 to-transparent"
+        className="absolute left-0 top-0 bottom-0 w-20 sm:w-32 z-10 pointer-events-none bg-gradient-to-r from-neutral-800 to-transparent"
       />
       <div
-        className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 z-10 pointer-events-none bg-gradient-to-l from-neutral-900 to-transparent"
+        className="absolute right-0 top-0 bottom-0 w-20 sm:w-32 z-10 pointer-events-none bg-gradient-to-l from-neutral-800 to-transparent"
       />
 
       {/* Header */}
       <div className="container-custom mb-6">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl text-white uppercase tracking-wider font-bold text-center">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl text-white uppercase tracking-wider font-bold text-center">
           Materials We Work With
         </h2>
-        <p className="text-base sm:text-lg text-neutral-300 text-center mt-1.5 tracking-wide">
+        <div className="w-12 h-0.5 bg-accent-500 mx-auto mt-4 rounded-full" />
+        <p className="text-base sm:text-lg text-neutral-300 text-center mt-3 tracking-wide">
           Insulation, jacketing, accessories, and support systems
         </p>
       </div>
@@ -48,7 +49,7 @@ export default function MaterialsMarquee() {
       </div>
 
       {/* Scrolling marquee — Row 2 (right to left) */}
-      <div className="relative mt-3" aria-hidden="true">
+      <div className="relative mt-3 sm:mt-4" aria-hidden="true">
         <div className="service-ticker">
           <div className="service-ticker__track" style={{ animationDirection: "reverse" }}>
             {duplicatedRow2.map((material, index) => (
