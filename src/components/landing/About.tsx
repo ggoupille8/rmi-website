@@ -48,51 +48,55 @@ const features: AboutFeature[] = [
 export default function About() {
   return (
     <section
-      className="pt-10 sm:pt-10 pb-6 sm:pb-8 bg-neutral-900 border-t border-neutral-700/40"
+      className="py-16 sm:py-20 lg:py-24 bg-neutral-900 border-t border-neutral-600/30"
       aria-labelledby="about-heading"
     >
       <div className="container-custom">
         {/* Section Header */}
-        <div className="flex justify-center mb-3">
+        <div className="flex flex-col items-center mb-3">
           <h2
             id="about-heading"
-            className="font-bold tracking-wider text-white uppercase text-2xl sm:text-3xl lg:text-4xl"
+            className="font-bold tracking-wider text-white uppercase text-xl sm:text-2xl lg:text-3xl"
           >
             Why Choose <span className="hidden sm:inline">{companyName}</span><span className="sm:hidden">RMI</span>
           </h2>
+          <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full" />
         </div>
 
         {/* Subtitle */}
-        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-3xl mx-auto mb-6">
+        <p className="text-center text-neutral-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-6">
           {formatLargeNumber(totalOshaManHours)} safe man-hours. Zero lost-time incidents. Local 25 union crews ready to handle everything from routine maintenance to full facility outages.
         </p>
 
         {/* Feature Cards Grid — 1 col mobile, 2 col tablet, 4 col desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
 
             return (
               <div
                 key={index}
-                className="relative flex flex-col bg-neutral-800/40 backdrop-blur-sm p-6 border border-neutral-700/40 hover:border-accent-500/30 hover:bg-neutral-800/55 hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
+                className="relative overflow-hidden bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 backdrop-blur-sm px-5 pt-5 pb-6 border border-neutral-700/40 hover:border-accent-500/30 hover:bg-neutral-800/55 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 h-full flex flex-col"
               >
-                {/* Icon */}
-                <div className="mb-5">
-                  <IconComponent
-                    className="w-12 h-12 text-accent-500/80"
-                    strokeWidth={1.5}
-                    aria-hidden="true"
-                  />
+                {/* Accent bar */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-accent-500/60 via-accent-400/40 to-transparent" />
+
+                {/* Icon + Title row */}
+                <div className="flex items-center gap-3 mb-3 min-h-[48px]">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent-500/10 flex-shrink-0">
+                    <IconComponent
+                      className="w-5 h-5 text-accent-400"
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <h3 className="text-base font-bold text-white uppercase tracking-wide">
+                    {feature.title}
+                  </h3>
                 </div>
 
-                {/* Title */}
-                <h3 className="text-lg font-bold text-white mb-3 uppercase tracking-wide">
-                  {feature.title}
-                </h3>
-
                 {/* Description */}
-                <p className="text-sm text-neutral-300 leading-relaxed">
+                <p className="text-sm lg:text-base text-neutral-300 leading-relaxed flex-grow">
                   {feature.description}
                 </p>
               </div>

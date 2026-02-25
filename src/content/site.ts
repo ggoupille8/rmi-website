@@ -23,7 +23,7 @@ export const address = {
 } as const;
 
 // SEO / Meta
-export const siteTitle = `${companyName} | Industrial Insulation Contractors Michigan`;
+export const siteTitle = `${companyName} | Insulation Contractors MI`;
 export const siteDescription =
   "Professional mechanical insulation for piping, ductwork, tanks, and equipment. Hot, cold, and cryogenic applications. Serving Michigan from Romulus, MI.";
 

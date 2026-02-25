@@ -179,6 +179,12 @@ test.describe("Functionality Tests", () => {
   });
 
   test("should load all images", async ({ page }) => {
+    // Scroll to bottom and back to trigger lazy-loaded images
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(800);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(300);
+
     const images = page.locator("img");
     const imageCount = await images.count();
 
@@ -187,12 +193,13 @@ test.describe("Functionality Tests", () => {
       const src = await img.getAttribute("src");
       if (src && !src.startsWith("data:")) {
         // Check if image loads (not broken)
-        const naturalWidth = await img.evaluate((el: HTMLImageElement) => {
-          return el.naturalWidth;
-        });
-        // Hidden images might have 0 width, but visible ones should load
+        const { naturalWidth, complete } = await img.evaluate((el: HTMLImageElement) => ({
+          naturalWidth: el.naturalWidth,
+          complete: el.complete,
+        }));
+        // Only assert on images that are visible AND fully loaded
         const isVisible = await img.isVisible();
-        if (isVisible) {
+        if (isVisible && complete) {
           expect(naturalWidth).toBeGreaterThan(0);
         }
       }

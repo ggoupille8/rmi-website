@@ -14,24 +14,38 @@ test.describe("Homepage Visual Regression", () => {
       test(`${deviceName} - ${colorScheme} mode`, async ({ page }) => {
         await page.setViewportSize(viewport);
         // Disable animations for deterministic screenshots
-        await page.emulateMedia({ 
+        await page.emulateMedia({
           colorScheme,
           reducedMotion: "reduce"
         });
+
+        // Freeze the hero slideshow BEFORE page JS executes.
+        // The slideshow uses setInterval(fn, 12000); intercepting it
+        // prevents the active slide from ever advancing, keeping
+        // image 0 visible for every run.
+        await page.addInitScript(`
+          const origSetInterval = window.setInterval.bind(window);
+          window.setInterval = function(fn, ms) {
+            if (ms && ms >= 10000) return 0;
+            return origSetInterval.apply(window, arguments);
+          };
+        `);
+
         await page.goto("/");
 
         // Wait for network to be idle
         await page.waitForLoadState("networkidle");
-        
+
         // Wait for fonts to be loaded (ensures consistent text rendering)
         await page.evaluate(() => document.fonts.ready);
-        
-        // Ensure page has fully rendered
-        await page.waitForLoadState("load");
-        
-        // Small deterministic delay to ensure all rendering is complete
-        // This accounts for any remaining paint/composite work
-        await page.waitForTimeout(200);
+
+        // Trigger lazy-loaded images by scrolling through the page.
+        // This prevents the ~480K-pixel instability caused by the
+        // contact-section image loading between consecutive captures.
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+        await page.waitForTimeout(800);
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.waitForTimeout(500);
 
         // Take a full page screenshot
         await expect(page).toHaveScreenshot(

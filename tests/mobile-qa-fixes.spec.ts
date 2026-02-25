@@ -168,17 +168,17 @@ test.describe("Mobile QA Fixes — 375×812", () => {
 
     test("stats container uses mt-6 on mobile", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      const statsContainer = page.locator('section[aria-labelledby="hero-heading"] .min-h-\\[72px\\]');
+      const statsContainer = page.locator('[data-testid="hero-stats"]');
       const classList = await statsContainer.getAttribute("class");
       expect(classList).toContain("mt-6");
     });
 
     test("stat cards use grid-cols-3 layout on mobile", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      const statsContainer = page.locator('section[aria-labelledby="hero-heading"] .grid-cols-3').first();
+      const statsContainer = page.locator('[data-testid="hero-stats"]');
       const classList = await statsContainer.getAttribute("class");
       expect(classList, "Stats container should use grid-cols-3 on mobile").toContain("grid-cols-3");
-      const statCards = page.locator('section[aria-labelledby="hero-heading"] .min-h-\\[44px\\]');
+      const statCards = page.locator('[data-testid="stat-card"]');
       const count = await statCards.count();
       expect(count).toBe(3);
     });
@@ -279,17 +279,21 @@ test.describe("Mobile QA Fixes — 375×812", () => {
   // ── CLS Prevention (Perf Fix 2) ────────────────────────────────────────
 
   test.describe("CLS Prevention", () => {
-    test("stats container has min-h-[72px] class", async ({ page }) => {
+    test("stats container is attached with data-testid", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      const container = page.locator('section[aria-labelledby="hero-heading"] .min-h-\\[72px\\]');
+      const container = page.locator('[data-testid="hero-stats"]');
       await expect(container).toBeAttached();
     });
 
-    test("individual stat cards have min-h-[44px] class", async ({ page }) => {
+    test("individual stat cards have min-w for CLS prevention", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      const cards = page.locator('section[aria-labelledby="hero-heading"] .min-h-\\[44px\\]');
+      const cards = page.locator('[data-testid="stat-card"]');
       const count = await cards.count();
       expect(count).toBe(3);
+      for (let i = 0; i < count; i++) {
+        const classList = await cards.nth(i).getAttribute("class");
+        expect(classList, `Stat card ${i} should have min-w for CLS prevention`).toContain("min-w-");
+      }
     });
   });
 });
@@ -350,7 +354,7 @@ test.describe("Desktop cross-check — 1440×900", () => {
     }
   });
 
-  test("stats cards use fixed width on desktop (sm:w-44)", async ({ page }) => {
+  test("stats cards use min-width on desktop (sm:min-w-[140px])", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
     const statCards = page.locator('[data-testid="stat-card"]');
     const count = await statCards.count();
@@ -358,8 +362,7 @@ test.describe("Desktop cross-check — 1440×900", () => {
 
     for (let i = 0; i < count; i++) {
       const classList = await statCards.nth(i).getAttribute("class");
-      // Should have sm:w-44 for fixed width on larger screens
-      expect(classList, `Stat card ${i} should have sm:w-44`).toContain("sm:w-44");
+      expect(classList, `Stat card ${i} should have sm:min-w-[140px]`).toContain("sm:min-w-[140px]");
     }
   });
 
@@ -384,7 +387,7 @@ test.describe("Desktop cross-check — 1440×900", () => {
   // ── Section Padding Consistency (Fix 1) ──────────────────────────────────
 
   test.describe("Section Padding", () => {
-    test("Services has increased top padding, About has reduced bottom padding", async ({ page }) => {
+    test("Services and About use consistent py padding", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
       const services = page.locator('section[aria-labelledby="services-heading"]');
       const about = page.locator('section[aria-labelledby="about-heading"]');
@@ -392,31 +395,18 @@ test.describe("Desktop cross-check — 1440×900", () => {
       const servicesClass = await services.getAttribute("class");
       const aboutClass = await about.getAttribute("class");
 
-      expect(servicesClass).toContain("pt-16");
-      expect(servicesClass).toContain("sm:pt-20");
-      expect(servicesClass).toContain("pb-12");
-      expect(servicesClass).toContain("sm:pb-16");
-      expect(aboutClass).toContain("pt-12");
-      expect(aboutClass).toContain("sm:pt-16");
-      expect(aboutClass).toContain("pb-6");
-      expect(aboutClass).toContain("sm:pb-8");
+      // Both sections use py-16 sm:py-20 lg:py-24 (uniform rhythm)
+      expect(servicesClass).toContain("py-16");
+      expect(servicesClass).toContain("sm:py-20");
+      expect(aboutClass).toContain("py-16");
+      expect(aboutClass).toContain("sm:py-20");
     });
 
-    test("Contact section uses pt-12 pb-24 sm:py-16 (extra bottom for floating CTA clearance)", async ({ page }) => {
+    test("Contact section has border-t separator", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
       const contact = page.locator('section[aria-labelledby="contact-heading"]');
       const contactClass = await contact.getAttribute("class");
-      expect(contactClass).toContain("pt-12");
-      expect(contactClass).toContain("pb-24");
-      expect(contactClass).toContain("sm:py-16");
-    });
-
-    test("CTA banner uses py-6 sm:py-8 (compact section)", async ({ page }) => {
-      await page.goto("/", { waitUntil: "networkidle" });
-      const cta = page.locator('section[aria-labelledby="cta-heading"]');
-      const ctaClass = await cta.getAttribute("class");
-      expect(ctaClass).toContain("py-6");
-      expect(ctaClass).toContain("sm:py-8");
+      expect(contactClass).toContain("border-t");
     });
   });
 

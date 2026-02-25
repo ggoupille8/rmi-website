@@ -15,7 +15,7 @@ const heroImagePositions = [
   "object-[50%_65%] sm:object-center",  // hero-1: equipment is in lower portion, shift down to avoid showing just ceiling/sky
   "object-[60%_45%] sm:object-center",  // hero-2: pipes cluster right-of-center, shift right and slightly up
   "object-[35%_50%] sm:object-center",  // hero-3: ultra-wide, subject left-of-center, shift left to capture it
-  "object-[50%_35%] sm:object-center",  // hero-4: portrait — on desktop, shift up to show more of the equipment top
+  "object-[50%_60%] sm:object-center",  // hero-4: portrait — favor lower portion where ductwork is, not sky
   "object-[55%_40%] sm:object-center",  // hero-5: similar to hero-2, slight right and up adjustment
 ];
 
@@ -144,10 +144,10 @@ function AnimatedStat({
 
   return (
     <div ref={ref} className="text-center">
-      <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight" style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)" }}>
+      <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)" }}>
         {finalDisplay}
       </div>
-      <div className="mt-1 text-sm sm:text-xs text-neutral-200 uppercase tracking-wider leading-tight" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
+      <div className="mt-1 text-[10px] sm:text-xs lg:text-sm text-neutral-200 uppercase tracking-normal sm:tracking-wider lg:tracking-widest leading-tight" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
         {shortLabel ? (
           <>
             <span className="hidden sm:inline">{label}</span>
@@ -189,7 +189,7 @@ export default function HeroFullWidth({
 
   return (
     <section
-      className="relative min-h-[100dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
+      className="relative min-h-[90dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
       aria-labelledby="hero-heading"
     >
       {/* Background Slideshow */}
@@ -218,6 +218,8 @@ export default function HeroFullWidth({
               <img
                 src={src}
                 alt={heroImageAlts[index]}
+                width="1920"
+                height="1080"
                 className={`w-full h-full object-cover ${heroImagePositions[index]}`}
                 sizes="100vw"
                 loading={index === 0 ? "eager" : "lazy"}
@@ -266,7 +268,7 @@ export default function HeroFullWidth({
             </p>
 
             {/* CTA Buttons */}
-            <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
               {/* Primary CTA */}
               <a
                 href="#contact"
@@ -287,7 +289,7 @@ export default function HeroFullWidth({
               <div className="flex gap-3">
                 <a
                   href={phoneTel}
-                  className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                  className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 hover:ring-2 hover:ring-white/30 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                   aria-label={`Call ${companyName} at ${phoneDisplay}`}
                   onClick={() => {
                     if (typeof window !== "undefined" && typeof window.gtag === "function") {
@@ -302,7 +304,7 @@ export default function HeroFullWidth({
                 </a>
                 <a
                   href={`mailto:${email}`}
-                  className="flex items-center justify-center w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                  className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 hover:ring-2 hover:ring-white/30 shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                   aria-label={`Email ${companyName} at ${email}`}
                   onClick={() => {
                     if (typeof window !== "undefined" && typeof window.gtag === "function") {
@@ -320,12 +322,12 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats — Individual Cards */}
-          <div data-testid="hero-stats" className="mt-6 sm:mt-auto pb-2 sm:pb-4 grid grid-cols-3 gap-1 sm:flex sm:flex-wrap sm:justify-center sm:gap-4">
+          <div data-testid="hero-stats" className="mt-6 sm:mt-auto pb-2 sm:pb-4 grid grid-cols-3 gap-1 sm:flex sm:flex-wrap sm:justify-center sm:gap-8 lg:gap-16">
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
                 data-testid="stat-card"
-                className="sm:w-44 px-2 sm:px-4 py-1.5"
+                className="min-w-[100px] sm:min-w-[140px] px-2 sm:px-4 py-1.5"
               >
                 <AnimatedStat
                   endValue={stat.endValue}
