@@ -223,3 +223,63 @@
 - `src/layouts/BaseLayout.astro` — GA4 env var conditional, Search Console env var conditional, `is:inline` directives
 - `src/components/landing/ContactForm.tsx` — form submission event name and params updated
 - `src/components/landing/About.tsx` — EMR rating sentence added to Safety-First card
+
+---
+
+# Sprint 5: Icon Visibility, Smooth Scroll & Cleanup
+
+**Branch:** `feat/sprint-5-icon-polish`
+**Date:** 2026-02-26
+**Status:** All 5 tasks complete
+
+---
+
+## Task 1: About Section Icon Backgrounds
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/About.tsx`:** Added `border border-accent-500/30` to the icon container `div` (line 85). The container already had `bg-accent-500/10` fill — the border makes icons clearly visible against dark card backgrounds.
+**Verification:** Build passes. All 4 cards have consistent icon styling with semi-filled, bordered containers.
+
+## Task 2: Hero Phone & Email Icon Visibility
+**Status:** Complete (already implemented)
+**Changes:** No changes needed. The phone and email icons in `HeroFullWidth.tsx` already have full frosted-glass styling: `bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110`. Icons are `text-white` with `w-11 h-11 sm:w-12 sm:h-12` touch targets (44px+).
+**Verification:** Icons are clearly visible against hero background at 375px. Hover states provide feedback. Touch targets meet WCAG AAA.
+
+## Task 3: Smooth Scroll for Anchor Links
+**Status:** Complete
+**Changes:**
+- **`src/layouts/BaseLayout.astro`:** Added `scroll-smooth` to the `<html>` element class list (`class="h-full scroll-smooth"`). CSS-only smooth scrolling for all anchor links site-wide.
+**Verification:** Build passes. `scroll-smooth` class present in built HTML.
+
+## Task 4: Delete Unused Components
+**Status:** Complete (nothing to delete)
+**Changes:** `ValueProps.tsx` and `StatsBar.tsx` do not exist in `src/components/landing/` — already removed in earlier development.
+**Verification:** Glob search confirms neither file exists.
+
+## Task 5: Clean Up Old Spec Files
+**Status:** Complete
+**Changes:** Deleted from project root: `SPRINT-1.md`, `SPRINT-2.md`, `SPRINT-3.md`, `SPRINT-4.md`, `SPRINT-5.md`. `SPEC-GOOGLE-BUSINESS.md` and `MOBILE-FIXES.md` were already deleted earlier.
+**Verification:** Only `README.md` and `CLAUDE.md` remain in project root.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero real errors) |
+| `npm run test:visual:update` | 18/18 passed, baselines regenerated |
+| Playwright functionality tests | 65/66 passed (1 Firefox transient flake) |
+| `scroll-smooth` in built HTML | Confirmed |
+| About icon border in built JS | Confirmed |
+
+---
+
+## Files Modified
+
+- `src/components/landing/About.tsx` — added border to icon containers
+- `src/layouts/BaseLayout.astro` — added `scroll-smooth` to `<html>`
+
+## Files Deleted
+
+- `SPRINT-1.md`, `SPRINT-2.md`, `SPRINT-3.md`, `SPRINT-4.md`, `SPRINT-5.md`
