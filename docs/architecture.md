@@ -238,7 +238,7 @@ Indexes: `created_at DESC`, `service_type`, `source`
 | Build command    | `npm run build` (Astro hybrid SSR)       |
 | Output directory | `dist`                                   |
 | Runtime          | Node.js 20.x                             |
-| Production URL   | https://resourcemechanicalinsulation.com |
+| Production URL   | https://www.rmi-llc.net |
 
 ---
 

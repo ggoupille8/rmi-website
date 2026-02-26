@@ -189,7 +189,7 @@ export default function HeroFullWidth({
 
   return (
     <section
-      className="relative min-h-[90dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
+      className="relative min-h-[80dvh] sm:min-h-[85dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
       aria-labelledby="hero-heading"
     >
       {/* Background Slideshow */}
@@ -239,11 +239,11 @@ export default function HeroFullWidth({
           );
         })}
         {/* Dark gradient overlay — on top of all images */}
-        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+        <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-black/70 via-black/30 to-black/65" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container-custom py-12 lg:py-20 flex-1 flex flex-col">
+      <div className="relative z-10 container-custom py-8 lg:py-14 flex-1 flex flex-col">
         <div className="max-w-5xl mx-auto text-center flex-1 flex flex-col justify-center w-full">
           {/* Main Content Card */}
           <div
@@ -269,7 +269,7 @@ export default function HeroFullWidth({
             </p>
 
             {/* CTA Buttons */}
-            <div className="mt-5 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
+            <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
               {/* Primary CTA */}
               <a
                 href="#contact"
@@ -323,7 +323,7 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats — Individual Cards */}
-          <div data-testid="hero-stats" className="mt-6 sm:mt-auto pb-2 sm:pb-4 grid grid-cols-3 gap-1 sm:flex sm:flex-wrap sm:justify-center sm:gap-8 lg:gap-16">
+          <div data-testid="hero-stats" className="mt-4 sm:mt-6 pb-2 sm:pb-3 grid grid-cols-3 gap-1 sm:flex sm:flex-wrap sm:justify-center sm:gap-8 lg:gap-16">
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
