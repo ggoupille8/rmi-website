@@ -7,25 +7,36 @@ export default function FloatingMobileCTA() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFormFocused, setIsFormFocused] = useState(false);
   const [isContactVisible, setIsContactVisible] = useState(false);
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
 
-  // Hide when contact section is in viewport
+  // Hide when contact section or footer is in viewport
   useEffect(() => {
     const contactSection = document.getElementById("contact");
-    if (!contactSection) return;
+    const footerSection = document.getElementById("footer");
 
-    const observer = new IntersectionObserver(
+    const contactObserver = new IntersectionObserver(
       ([entry]) => setIsContactVisible(entry.isIntersecting),
       { threshold: 0.1 }
     );
-    observer.observe(contactSection);
-    return () => observer.disconnect();
+    const footerObserver = new IntersectionObserver(
+      ([entry]) => setIsFooterVisible(entry.isIntersecting),
+      { threshold: 0.2 }
+    );
+
+    if (contactSection) contactObserver.observe(contactSection);
+    if (footerSection) footerObserver.observe(footerSection);
+
+    return () => {
+      contactObserver.disconnect();
+      footerObserver.disconnect();
+    };
   }, []);
 
   // Show/hide based on scroll position and form focus
   useEffect(() => {
     const handleScroll = () => {
-      // Hide when scrolled to top (hero visible), form is focused, or contact section visible
-      if (isFormFocused || isContactVisible) {
+      // Hide when scrolled to top (hero visible), form is focused, or contact/footer visible
+      if (isFormFocused || isContactVisible || isFooterVisible) {
         setIsVisible(false);
         return;
       }
@@ -74,7 +85,7 @@ export default function FloatingMobileCTA() {
       document.removeEventListener("focusin", handleFocusIn);
       document.removeEventListener("focusout", handleFocusOut);
     };
-  }, [isFormFocused, isContactVisible]);
+  }, [isFormFocused, isContactVisible, isFooterVisible]);
 
   return (
     <div

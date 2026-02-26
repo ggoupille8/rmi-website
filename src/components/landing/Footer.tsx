@@ -6,6 +6,7 @@ export default function Footer() {
 
   return (
     <footer
+      id="footer"
       className="bg-neutral-900 text-white border-t border-neutral-800/50"
       aria-label="Site footer"
     >
