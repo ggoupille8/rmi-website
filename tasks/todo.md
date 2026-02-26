@@ -223,3 +223,45 @@
 - `src/layouts/BaseLayout.astro` — GA4 env var conditional, Search Console env var conditional, `is:inline` directives
 - `src/components/landing/ContactForm.tsx` — form submission event name and params updated
 - `src/components/landing/About.tsx` — EMR rating sentence added to Safety-First card
+
+---
+
+# Google Business Profile Integration
+
+**Branch:** `feat/google-business-integration`
+**Date:** 2026-02-26
+**Status:** All 2 tasks complete
+
+---
+
+## Task 1: Add Google Business Link to Footer
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Footer.tsx`:** Added Google "G" SVG icon link after the Facebook icon in the footer social links row. Links to `https://www.google.com/maps/place/Resource+Mechanical+Insulation,+LLC`. Same styling as LinkedIn/Facebook: `min-w-[44px] min-h-[44px]`, `text-neutral-400 hover:text-accent-400`, `target="_blank"`, `rel="noopener noreferrer"`, `aria-label="Google Business Profile"`.
+**Verification:** Build passes. Footer renders three social icons (LinkedIn, Facebook, Google). Google link opens in new tab. Icon style matches existing social links.
+
+## Task 2: Verify LocalBusiness JSON-LD Consistency
+**Status:** Complete
+**Changes:**
+- **`src/layouts/BaseLayout.astro`:** Updated `openingHoursSpecification` regular hours from `opens: "06:00"` / `closes: "18:00"` to `opens: "07:00"` / `closes: "16:00"` to match Google Business Profile.
+- All other JSON-LD fields already matched: name, url, telephone, email, address, areaServed (Michigan), geo coordinates, 24/7 emergency hours, priceRange, knowsAbout, hasOfferCatalog.
+**Verification:** Build passes. JSON-LD in built HTML contains `"opens":"07:00","closes":"16:00"`. Schema structure is valid.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero real errors; harmless esbuild "canceled" message) |
+| `npm run test:visual:update` | 18/18 passed, baselines regenerated |
+| Playwright functionality tests | 65/66 passed (1 Firefox transient flake) |
+| Google Business icon in footer JS bundle | Present (`Footer.X_b_dneL.js`) |
+| JSON-LD hours in built HTML | `"opens":"07:00","closes":"16:00"` confirmed |
+
+---
+
+## Files Modified
+
+- `src/components/landing/Footer.tsx` — added Google Business SVG icon link to social row
+- `src/layouts/BaseLayout.astro` — updated JSON-LD opening hours to 07:00-16:00
