@@ -2,7 +2,6 @@ import {
   companyName,
   totalOshaManHours,
   oshaFirstYear,
-  formatLargeNumber,
   formatLargeNumberProse,
 } from "../../content/site";
 import {
@@ -35,7 +34,7 @@ const features: AboutFeature[] = [
     icon: Award,
     title: "Proven Track Record",
     description:
-      "500+ commercial and industrial insulation projects completed annually across Michigan and surrounding states, serving power plants, manufacturing facilities, hospitals, and more.",
+      "From hospitals and manufacturing plants to landmark restorations and ground-up campus builds \u2014 our work speaks for itself. Year after year, general contractors and facility managers trust RMI to deliver on schedule and on spec.",
   },
   {
     icon: Users,
@@ -65,7 +64,7 @@ export default function About() {
 
         {/* Subtitle */}
         <p className="text-center text-neutral-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-6">
-          {formatLargeNumber(totalOshaManHours)} safe man-hours. Zero lost-time incidents. Local 25 union crews ready to handle everything from routine maintenance to full facility outages.
+          Built on safety, reliability, and deep expertise. Here&rsquo;s what sets us apart.
         </p>
 
         {/* Feature Cards Grid — 1 col mobile, 2 col tablet, 4 col desktop */}

@@ -10,7 +10,7 @@ export default function CTABanner() {
             <img
               src="/images/cta/cta-project.jpeg"
               alt="Insulation project work by Resource Mechanical Insulation"
-              className="w-auto max-h-[350px] sm:max-h-[450px] mx-auto object-contain rounded-xl shadow-lg"
+              className="w-full max-h-[350px] sm:max-h-[450px] min-h-[250px] mx-auto object-cover object-center rounded-xl shadow-lg"
               loading="lazy"
             />
           </div>

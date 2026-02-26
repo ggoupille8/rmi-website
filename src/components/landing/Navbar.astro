@@ -58,6 +58,13 @@ import { companyName } from '../../content/site';
         About
       </a>
       <a
+        href="#projects"
+        data-nav-section="projects"
+        class="nav-link text-sm font-medium text-neutral-200 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded px-1 py-1"
+      >
+        Projects
+      </a>
+      <a
         href="#contact"
         data-nav-section="contact"
         class="nav-link text-sm font-medium text-neutral-200 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded px-1 py-1"
@@ -109,6 +116,9 @@ import { companyName } from '../../content/site';
     </a>
     <a href="#about" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center border-b border-neutral-700/40 w-48 justify-center">
       About
+    </a>
+    <a href="#projects" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center border-b border-neutral-700/40 w-48 justify-center">
+      Projects
     </a>
     <a href="#contact" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center w-48 justify-center">
       Contact
@@ -259,7 +269,7 @@ import { companyName } from '../../content/site';
   // ── Intersection Observer for active nav link highlighting ──
   const navLinks = document.querySelectorAll<HTMLAnchorElement>('a.nav-link[data-nav-section]');
   const mobileNavLinks = document.querySelectorAll<HTMLAnchorElement>('.mobile-nav-link[href^="#"]');
-  const sectionIds = ['services', 'about', 'contact'];
+  const sectionIds = ['services', 'about', 'projects', 'contact'];
   const sections = sectionIds
     .map((id) => document.getElementById(id))
     .filter((el): el is HTMLElement => el !== null);
