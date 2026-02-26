@@ -183,27 +183,31 @@ export interface ProjectHighlight {
   title: string;
   description: string;
   image: string;
+  alt: string;
   tag: string;
 }
 
 export const projectHighlights: ProjectHighlight[] = [
   {
-    title: "Outdoor Mechanical Insulation — Mid-Michigan",
-    description: "Wrapped up an outdoor mechanical insulation project before the weather turned. Built for durability and long-term serviceability — clean jacketing, solid detailing, and protection that holds up to Michigan weather.",
-    image: "/images/projects/project-1.jpg",
-    tag: "Pipe Insulation",
+    title: "Henry Ford Hospital — Detroit",
+    description: "Our team maintains a year-round presence across Henry Ford Hospital's Detroit campus, providing insulation services, material supply, and pipe support fabrication across multiple buildings. With crews available seven days a week and insulators who have spent the better part of their careers on-site, we deliver the continuity and institutional knowledge that complex healthcare facilities demand.",
+    image: "/images/projects/henry-ford-hospital",
+    alt: "Mechanical insulation work at Henry Ford Hospital in Detroit",
+    tag: "Ongoing Partnership",
   },
   {
-    title: "DDOT Coolidge Terminal — Detroit",
-    description: "Proud to have been part of the subcontractor team on the nearly complete 193,000-square-foot Detroit Department of Transportation Coolidge Terminal — a major public infrastructure project advancing transit operations in Detroit.",
-    image: "/images/projects/project-2.jpg",
-    tag: "Commercial",
+    title: "Michigan Central Station — Detroit",
+    description: "We were part of the subcontractor team on Ford Motor Company's landmark six-year restoration of Michigan Central Station — one of the most ambitious preservation projects in Detroit's history. Our crews contributed insulation work throughout the historic Beaux-Arts building, and we remain on-site today supporting the ongoing buildout of the hotel and additional spaces within the station.",
+    image: "/images/projects/michigan-central-station",
+    alt: "Insulation work at Michigan Central Station in Detroit",
+    tag: "Historic Restoration",
   },
   {
-    title: "On-Site Mechanical Insulation Installations",
-    description: "Experienced, detail-driven mechanics who understand the systems they're insulating — many under our leadership from apprenticeship through retirement. No shortcuts. No leaks, condensation, or heat loss. No call-backs.",
-    image: "/images/projects/project-3.jpg",
-    tag: "Industrial",
+    title: "Ford World Headquarters — Dearborn",
+    description: "From the ground up, we contributed to the construction of Ford's new Henry Ford II World Center in Dearborn — a state-of-the-art campus replacing the iconic Glass House. This multi-year, multi-million dollar project included insulation services and pipe supports from our fabrication team, helping build the next generation of Ford's global headquarters.",
+    image: "/images/projects/ford-hub-dearborn",
+    alt: "Insulation and pipe support fabrication at Ford World Headquarters in Dearborn",
+    tag: "Ground-Up Construction",
   },
 ];
 
