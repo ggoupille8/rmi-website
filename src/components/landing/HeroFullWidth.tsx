@@ -189,7 +189,7 @@ export default function HeroFullWidth({
 
   return (
     <section
-      className="relative min-h-[80dvh] sm:min-h-[85dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
+      className="relative min-h-0 sm:min-h-[75dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
       aria-labelledby="hero-heading"
     >
       {/* Background Slideshow */}
@@ -243,7 +243,7 @@ export default function HeroFullWidth({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container-custom py-8 lg:py-14 flex-1 flex flex-col">
+      <div className="relative z-10 container-custom py-10 sm:py-8 lg:py-14 flex-1 flex flex-col">
         <div className="max-w-5xl mx-auto text-center flex-1 flex flex-col justify-center w-full">
           {/* Main Content Card */}
           <div
