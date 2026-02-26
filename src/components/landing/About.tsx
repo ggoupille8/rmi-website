@@ -22,7 +22,7 @@ const features: AboutFeature[] = [
   {
     icon: ShieldCheck,
     title: "Safety-First Culture",
-    description: `Over ${formatLargeNumberProse(totalOshaManHours)} OSHA-tracked man-hours since ${oshaFirstYear} with zero lost-time incidents. Every job starts with thorough planning and preparation — no shortcuts, no exceptions. Our EMR rating of 0.76 puts us 24% better than the industry average — a direct reflection of our commitment to planning, training, and accountability.`,
+    description: `Over ${formatLargeNumberProse(totalOshaManHours)} OSHA-tracked man-hours since ${oshaFirstYear} with zero lost-time incidents. Our EMR rating of 0.76 puts us 24% better than the industry average — a direct reflection of our commitment to planning, training, and accountability.`,
   },
   {
     icon: Clock,
