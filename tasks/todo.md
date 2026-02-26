@@ -150,3 +150,76 @@
 - `public/images/projects/ford-hub-dearborn.jpg`
 - `public/images/projects/ford-hub-dearborn.webp`
 - `tasks/todo.md` (this file)
+
+---
+
+# Sprint 3: Analytics Setup + Final Polish
+
+**Branch:** `feat/sprint-3-analytics-polish`
+**Date:** 2026-02-26
+**Status:** All 6 tasks complete
+
+---
+
+## Task 1: Google Analytics 4 — Install and Configure
+**Status:** Complete
+**Changes:**
+- **`src/layouts/BaseLayout.astro`:** Replaced hardcoded GA4 script (measurement ID `G-7CW99VN6T3`) with environment-variable-driven conditional rendering. GA4 only loads when `PUBLIC_GA_MEASUREMENT_ID` is set. Both `<script>` tags use `is:inline` directive. Uses `define:vars` to pass the measurement ID from the Astro template to the inline script.
+**Verification:** Build passes. Built HTML excludes GA4 when env var is unset. Built HTML includes GA4 with correct measurement ID when env var is set via `.env` file.
+
+## Task 2: Contact Form — Conversion Event Tracking
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/ContactForm.tsx`:** Changed form submission event from `generate_lead` to `form_submission` with updated params (`event_category: "contact"`, `event_label: "quote_request"`, `value: 1`). The `gtag` type declaration (lines 4-9) and ad-blocker-safe existence check were already in place.
+- **Hero CTA clicks:** Already tracked as `cta_click` events in `HeroFullWidth.tsx` (3 instances: Request a Quote button, phone icon, email icon), all wrapped in `typeof window.gtag === "function"` checks.
+- **CTA Banner:** Not imported in `index.astro` (not on the page), so no tracking needed.
+**Verification:** Build passes. `form_submission` event fires on successful submit. All gtag calls gracefully handle missing gtag.
+
+## Task 3: Google Search Console — Verification Meta Tag
+**Status:** Complete
+**Changes:**
+- **`src/layouts/BaseLayout.astro`:** Replaced hardcoded Search Console verification meta tag with conditional rendering using `PUBLIC_GOOGLE_SITE_VERIFICATION` env var. Meta tag only renders when the env var is set.
+- **`public/robots.txt`:** Already contains `Sitemap: https://www.rmi-llc.net/sitemap-index.xml` — no changes needed.
+**Verification:** Build passes. Meta tag excluded when env var is unset. Meta tag present with correct content when env var is set.
+
+## Task 4: Phone/Email Quick-Action Icons — Visibility Improvement
+**Status:** Complete (already implemented)
+**Changes:** No changes needed — the phone and email icon buttons in `HeroFullWidth.tsx` already have the frosted glass effect: `bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/20 hover:border-white/50 shadow-xl hover:scale-110 transition-all`.
+**Verification:** Icons are visually distinguishable against all hero images at 375px viewport. Hover state provides brightness change.
+
+## Task 5: About Section Icon Circle Background Fill
+**Status:** Complete (already implemented)
+**Changes:** No changes needed — the icon containers in `About.tsx` already have `bg-accent-500/10` (10% opacity accent/blue background fill) on the `rounded-lg` icon containers (line 85).
+**Verification:** Icon containers have visible but subtle blue-tinted background. The fill doesn't overpower the icons.
+
+## Task 6: EMR Safety Rating Badge
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/About.tsx`:** Appended EMR sentence to the Safety-First Culture card description: "Our EMR rating of 0.76 puts us 24% better than the industry average — a direct reflection of our commitment to planning, training, and accountability."
+- No other card content changed.
+**Verification:** Build passes. EMR sentence appears in the Safety-First Culture card. Text reads naturally within the existing description.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero real errors; harmless esbuild "canceled" message) |
+| `npm run test:visual:update` | 18/18 passed, all baselines regenerated |
+| Playwright functionality tests | 22/22 passed (all 3 browsers) |
+| Playwright content tests | All passed (1 Firefox transient flake on retry) |
+| GA4 script (env var unset) | Not present in built HTML |
+| GA4 script (env var set) | Present with correct measurement ID |
+| Search Console meta (env var unset) | Not present in built HTML |
+| Search Console meta (env var set) | Present with correct verification content |
+| `robots.txt` sitemap reference | `Sitemap: https://www.rmi-llc.net/sitemap-index.xml` present |
+| EMR rating in Safety-First card | "Our EMR rating of 0.76..." sentence present |
+
+---
+
+## Files Modified
+
+- `src/layouts/BaseLayout.astro` — GA4 env var conditional, Search Console env var conditional, `is:inline` directives
+- `src/components/landing/ContactForm.tsx` — form submission event name and params updated
+- `src/components/landing/About.tsx` — EMR rating sentence added to Safety-First card

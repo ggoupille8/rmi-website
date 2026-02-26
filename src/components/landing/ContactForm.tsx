@@ -185,11 +185,11 @@ export default function ContactForm({
       setFieldErrors({});
       setContactError(false);
 
-      // Track successful form submission
+      // Track successful form submission (GA4 conversion event)
       if (typeof window !== "undefined" && typeof window.gtag === "function") {
-        window.gtag("event", "generate_lead", {
-          event_category: "Contact",
-          event_label: "Quote Request Form",
+        window.gtag("event", "form_submission", {
+          event_category: "contact",
+          event_label: "quote_request",
           value: 1,
         });
       }
