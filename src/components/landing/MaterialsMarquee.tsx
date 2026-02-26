@@ -15,10 +15,10 @@ export default function MaterialsMarquee() {
     <section className="relative py-12 sm:py-16 lg:py-20 overflow-hidden bg-neutral-800 border-t border-neutral-600/30">
       {/* Edge gradient fades */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-24 sm:w-40 z-10 pointer-events-none bg-gradient-to-r from-neutral-800 to-transparent"
+        className="absolute left-0 top-0 bottom-0 w-32 sm:w-48 z-10 pointer-events-none bg-gradient-to-r from-neutral-800 to-transparent"
       />
       <div
-        className="absolute right-0 top-0 bottom-0 w-24 sm:w-40 z-10 pointer-events-none bg-gradient-to-l from-neutral-800 to-transparent"
+        className="absolute right-0 top-0 bottom-0 w-32 sm:w-48 z-10 pointer-events-none bg-gradient-to-l from-neutral-800 to-transparent"
       />
 
       {/* Header */}
