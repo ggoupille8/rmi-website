@@ -14,6 +14,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+// Per-tier styling
+const tierStyles: Record<string, { borderColor: string; hoverBorder: string; iconColor: string; hoverIcon: string; glowColor: string }> = {
+  core: { borderColor: "border-l-blue-500", hoverBorder: "hover:border-l-blue-400", iconColor: "text-blue-500", hoverIcon: "group-hover:text-blue-400", glowColor: "hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]" },
+  specialty: { borderColor: "border-l-amber-500", hoverBorder: "hover:border-l-amber-400", iconColor: "text-amber-500", hoverIcon: "group-hover:text-amber-400", glowColor: "hover:shadow-[0_0_15px_rgba(245,158,11,0.15)]" },
+  additional: { borderColor: "border-l-emerald-500", hoverBorder: "hover:border-l-emerald-400", iconColor: "text-emerald-500", hoverIcon: "group-hover:text-emerald-400", glowColor: "hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]" },
+};
+
 // Map service anchor IDs to icons
 const iconMap: Record<string, LucideIcon> = {
   piping: Droplets,
@@ -136,7 +143,7 @@ export default function Services() {
 
   return (
     <section
-      className="pt-16 pb-10 sm:py-20 lg:py-24 bg-neutral-800 border-t border-accent-600/20"
+      className="pt-10 pb-16 sm:py-20 lg:py-24 bg-neutral-800 border-t border-accent-600/20"
       aria-labelledby="services-heading"
     >
       <div className="container-custom">
@@ -156,45 +163,31 @@ export default function Services() {
           {servicesSubtitle}
         </p>
 
-        {/* Services Icon Grid — Grouped by Tier */}
-        {([
-          { tier: "core" as const, label: "Core Services", borderColor: "border-l-blue-500", hoverBorder: "hover:border-l-blue-400", iconColor: "text-blue-500", hoverIcon: "group-hover:text-blue-400", glowColor: "hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]", padding: "py-5 sm:p-5" },
-          { tier: "specialty" as const, label: "Specialty", borderColor: "border-l-amber-500", hoverBorder: "hover:border-l-amber-400", iconColor: "text-amber-500", hoverIcon: "group-hover:text-amber-400", glowColor: "hover:shadow-[0_0_15px_rgba(245,158,11,0.15)]", padding: "py-4 sm:p-4" },
-          { tier: "additional" as const, label: "Additional", borderColor: "border-l-emerald-500", hoverBorder: "hover:border-l-emerald-400", iconColor: "text-emerald-500", hoverIcon: "group-hover:text-emerald-400", glowColor: "hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]", padding: "py-3 sm:p-3.5" },
-        ]).map(({ tier, label, borderColor, hoverBorder, iconColor, hoverIcon, glowColor, padding }, tierIndex) => {
-          const tierServices = services.filter((s) => s.tier === tier);
-          if (tierServices.length === 0) return null;
-          const isLastOdd = tierServices.length % 2 !== 0;
-          return (
-            <div key={tier} className={tierIndex > 0 ? "mt-6" : ""}>
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-2 text-center sm:text-left">{label}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
-                {tierServices.map((service, index) => {
-                  const IconComponent = iconMap[service.anchorId] || Droplets;
-                  const spanFull = isLastOdd && index === tierServices.length - 1;
-                  return (
-                    <button
-                      key={service.anchorId}
-                      type="button"
-                      aria-expanded={activeService === service.anchorId}
-                      onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                      className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 ${padding} min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] ${borderColor} ${hoverBorder} hover:border-neutral-600/70 hover:bg-neutral-800/90 hover:-translate-y-0.5 ${glowColor} transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset${spanFull ? " sm:col-span-2 lg:col-span-1" : ""}`}
-                    >
-                      <IconComponent
-                        className={`w-7 h-7 ${iconColor} ${hoverIcon} flex-shrink-0 transition-colors duration-200`}
-                        strokeWidth={1.5}
-                        aria-hidden="true"
-                      />
-                      <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
-                        {service.title}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+        {/* Services Icon Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
+          {services.map((service) => {
+            const IconComponent = iconMap[service.anchorId] || Droplets;
+            const style = tierStyles[service.tier] || tierStyles.core;
+            return (
+              <button
+                key={service.anchorId}
+                type="button"
+                aria-expanded={activeService === service.anchorId}
+                onClick={(e) => openModal(service.anchorId, e.currentTarget)}
+                className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] ${style.borderColor} ${style.hoverBorder} hover:border-neutral-600/70 hover:bg-neutral-800/90 hover:-translate-y-0.5 ${style.glowColor} transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
+              >
+                <IconComponent
+                  className={`w-7 h-7 ${style.iconColor} ${style.hoverIcon} flex-shrink-0 transition-colors duration-200`}
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+                <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
+                  {service.title}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Modal */}

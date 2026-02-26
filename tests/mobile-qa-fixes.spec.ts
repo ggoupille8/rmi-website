@@ -230,12 +230,12 @@ test.describe("Mobile QA Fixes — 375×812", () => {
       expect(classList).toContain("md:hidden");
     });
 
-    test("FloatingMobileCTA has bottom-20 positioning", async ({ page }) => {
+    test("FloatingMobileCTA has bottom-24 positioning", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
       const cta = page.locator('[aria-label="Quick contact actions"]');
       await cta.waitFor({ state: "attached", timeout: 10000 });
       const classList = await cta.getAttribute("class");
-      expect(classList).toContain("bottom-20");
+      expect(classList).toContain("bottom-24");
     });
   });
 
@@ -387,7 +387,7 @@ test.describe("Desktop cross-check — 1440×900", () => {
   // ── Section Padding Consistency (Fix 1) ──────────────────────────────────
 
   test.describe("Section Padding", () => {
-    test("Services and About use consistent py padding", async ({ page }) => {
+    test("Services and About use consistent padding", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
       const services = page.locator('section[aria-labelledby="services-heading"]');
       const about = page.locator('section[aria-labelledby="about-heading"]');
@@ -395,10 +395,12 @@ test.describe("Desktop cross-check — 1440×900", () => {
       const servicesClass = await services.getAttribute("class");
       const aboutClass = await about.getAttribute("class");
 
-      // Both sections use py-16 sm:py-20 lg:py-24 (uniform rhythm)
-      expect(servicesClass).toContain("py-16");
+      // Both sections use pt-10 pb-16 sm:py-20 lg:py-24 (reduced top spacing on mobile)
+      expect(servicesClass).toContain("pt-10");
+      expect(servicesClass).toContain("pb-16");
       expect(servicesClass).toContain("sm:py-20");
-      expect(aboutClass).toContain("py-16");
+      expect(aboutClass).toContain("pt-10");
+      expect(aboutClass).toContain("pb-16");
       expect(aboutClass).toContain("sm:py-20");
     });
 

@@ -2,36 +2,34 @@ import { ctaBannerHeading, ctaBannerSubtitle, ctaBannerButton } from "../../cont
 
 export default function CTABanner() {
   return (
-    <section className="py-6 sm:py-8 bg-accent-900" aria-labelledby="cta-heading">
-      <div className="container-custom">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
-          {/* Image */}
-          <div className="flex items-center justify-center">
-            <img
-              src="/images/cta/cta-project.jpeg"
-              alt="Insulation project work by Resource Mechanical Insulation"
-              className="w-full max-h-[350px] sm:max-h-[450px] min-h-[250px] mx-auto object-cover object-center rounded-xl shadow-lg"
-              loading="lazy"
-            />
-          </div>
+    <section className="relative min-h-[280px] sm:min-h-[320px] flex items-center justify-center overflow-hidden border-t border-neutral-600/30" aria-labelledby="cta-heading">
+      {/* Background Image */}
+      <img
+        src="/images/cta/cta-project.jpeg"
+        alt=""
+        className="absolute inset-0 w-full h-full object-cover object-center"
+        loading="lazy"
+        aria-hidden="true"
+      />
 
-          {/* Text Content */}
-          <div className="text-center md:text-left">
-            <h2 id="cta-heading" className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight uppercase">
-              {ctaBannerHeading}
-            </h2>
-            <p className="mt-3 text-lg text-white max-w-2xl">
-              {ctaBannerSubtitle}
-            </p>
-            <div className="mt-6">
-              <a
-                href="#contact"
-                className="btn-primary w-full sm:w-auto sm:min-w-[280px] px-10 py-3.5 text-lg font-bold"
-              >
-                {ctaBannerButton}
-              </a>
-            </div>
-          </div>
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/60" />
+
+      {/* Content */}
+      <div className="relative z-10 container-custom py-14 sm:py-16 px-6 text-center">
+        <h2 id="cta-heading" className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-wider uppercase">
+          {ctaBannerHeading}
+        </h2>
+        <p className="mt-3 text-base sm:text-lg text-neutral-200 max-w-2xl mx-auto leading-relaxed">
+          {ctaBannerSubtitle}
+        </p>
+        <div className="mt-6">
+          <a
+            href="#contact"
+            className="btn-primary w-full sm:w-auto sm:min-w-[280px] px-10 py-3.5 text-lg font-bold"
+          >
+            {ctaBannerButton}
+          </a>
         </div>
       </div>
     </section>

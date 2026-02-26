@@ -189,7 +189,7 @@ export default function HeroFullWidth({
 
   return (
     <section
-      className="relative min-h-[80dvh] sm:min-h-[85dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
+      className="relative min-h-0 sm:min-h-[75dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
       aria-labelledby="hero-heading"
     >
       {/* Background Slideshow */}
@@ -243,7 +243,7 @@ export default function HeroFullWidth({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container-custom py-8 lg:py-14 flex-1 flex flex-col">
+      <div className="relative z-10 container-custom py-10 sm:py-8 lg:py-14 flex-1 flex flex-col">
         <div className="max-w-5xl mx-auto text-center flex-1 flex flex-col justify-center w-full">
           {/* Main Content Card */}
           <div
@@ -289,7 +289,17 @@ export default function HeroFullWidth({
               {/* Ghost CTA */}
               <a
                 href="#projects"
-                className="inline-flex items-center justify-center w-full sm:w-auto h-12 px-6 text-sm font-semibold text-white border border-white/50 rounded-lg bg-transparent hover:bg-white/10 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                className="w-full sm:w-auto h-12 px-6 inline-flex items-center justify-center rounded-lg border border-white/40 text-white text-sm font-semibold tracking-wide uppercase bg-transparent hover:bg-white/10 hover:border-white/60 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
+                  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+                    window.gtag("event", "cta_click", {
+                      event_category: "Engagement",
+                      event_label: "Hero See Our Work",
+                    });
+                  }
+                }}
               >
                 See Our Work ↓
               </a>

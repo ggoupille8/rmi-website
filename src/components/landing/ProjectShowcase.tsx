@@ -3,7 +3,7 @@ import { projectHighlights } from "../../content/site";
 export default function ProjectShowcase() {
   return (
     <section
-      className="py-16 bg-neutral-900 border-t border-neutral-600/30"
+      className="pt-10 pb-16 sm:py-16 bg-neutral-900 border-t border-neutral-600/30"
       aria-labelledby="projects-heading"
     >
       <div className="container-custom">
@@ -52,9 +52,6 @@ export default function ProjectShowcase() {
                 <p className="mt-1 text-sm text-gray-400 line-clamp-3">
                   {project.description}
                 </p>
-                <span className="mt-3 inline-block rounded-full border border-blue-500/40 px-3 py-0.5 text-xs text-blue-400">
-                  {project.tag}
-                </span>
               </div>
             </div>
           ))}

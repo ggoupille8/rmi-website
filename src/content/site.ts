@@ -194,7 +194,6 @@ export interface ProjectHighlight {
   description: string;
   image: string;
   alt: string;
-  tag: string;
 }
 
 export const projectHighlights: ProjectHighlight[] = [
@@ -203,21 +202,18 @@ export const projectHighlights: ProjectHighlight[] = [
     description: "Our team maintains a year-round presence across Henry Ford Hospital's Detroit campus, providing insulation services, material supply, and pipe support fabrication across multiple buildings. With crews available seven days a week and insulators who have spent the better part of their careers on-site, we deliver the continuity and institutional knowledge that complex healthcare facilities demand.",
     image: "/images/projects/henry-ford-hospital",
     alt: "Mechanical insulation work at Henry Ford Hospital in Detroit",
-    tag: "Ongoing Partnership",
   },
   {
     title: "Michigan Central Station — Detroit",
     description: "We were part of the subcontractor team on Ford Motor Company's landmark six-year restoration of Michigan Central Station — one of the most ambitious preservation projects in Detroit's history. Our crews contributed insulation work throughout the historic Beaux-Arts building, and we remain on-site today supporting the ongoing buildout of the hotel and additional spaces within the station.",
     image: "/images/projects/michigan-central-station",
     alt: "Insulation work at Michigan Central Station in Detroit",
-    tag: "Historic Restoration",
   },
   {
     title: "Ford World Headquarters — Dearborn",
     description: "From the ground up, we contributed to the construction of Ford's new Henry Ford II World Center in Dearborn — a state-of-the-art campus replacing the iconic Glass House. This multi-year, multi-million dollar project included insulation services and pipe supports from our fabrication team, helping build the next generation of Ford's global headquarters.",
     image: "/images/projects/ford-hub-dearborn",
     alt: "Insulation and pipe support fabrication at Ford World Headquarters in Dearborn",
-    tag: "Ground-Up Construction",
   },
 ];
 

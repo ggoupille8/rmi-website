@@ -12,7 +12,7 @@ export default function MaterialsMarquee() {
   const duplicatedRow2 = [...row2Materials, ...row2Materials];
 
   return (
-    <section className="relative py-12 sm:py-16 lg:py-20 overflow-hidden bg-neutral-800 border-t border-neutral-600/30">
+    <section className="relative pt-8 pb-12 sm:py-16 lg:py-20 overflow-hidden bg-neutral-800 border-t border-neutral-600/30">
       {/* Edge gradient fades */}
       <div
         className="absolute left-0 top-0 bottom-0 w-32 sm:w-48 z-10 pointer-events-none bg-gradient-to-r from-neutral-800 to-transparent"
