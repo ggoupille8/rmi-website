@@ -310,3 +310,83 @@
 - `SPRINT-1.md`, `SPRINT-2.md`, `SPRINT-3.md`, `SPRINT-4.md`, `SPRINT-5.md`
 - `src/components/landing/Footer.tsx` — added Google Business SVG icon link to social row
 - `src/layouts/BaseLayout.astro` — updated JSON-LD opening hours to 07:00-16:00
+
+---
+
+# Hard Polish — Landing Page Final Pass
+
+**Branch:** `feat/hard-polish`
+**Date:** 2026-02-26
+**Status:** All 7 tasks complete
+
+---
+
+## Task 1: Remove Service Subcategory Labels
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Services.tsx`:** Replaced tier-grouped grid rendering (3 separate grids with "Core Services", "Specialty", "Additional" labels) with a single flat grid of all 9 service cards. Per-card tier styling (border colors, icon colors, glow effects) preserved via a `tierStyles` map. Uniform `py-4 sm:p-4` padding on all cards.
+**Verification:** Build passes. No subcategory labels visible. All 9 cards in one continuous grid.
+
+## Task 2: Remove Project Type Badges
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/ProjectShowcase.tsx`:** Removed `<span>` tag badge element from project cards.
+- **`src/content/site.ts`:** Removed `tag` property from `ProjectHighlight` interface and all 3 project data entries.
+**Verification:** Build passes. No "Ongoing Partnership", "Historic Restoration", or "Ground-Up Construction" text on cards.
+
+## Task 7: Shorten Safety-First Culture Card
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/About.tsx`:** Removed middle sentence ("Every job starts with thorough planning and preparation — no shortcuts, no exceptions.") from Safety-First Culture card description. Key stats (OSHA hours, EMR rating 0.76) preserved.
+**Verification:** Build passes. Card description is visually balanced with other 3 About cards.
+
+## Task 6: Reduce Section Top Spacing
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Services.tsx`:** `py-16` → `pt-10 pb-16` (mobile), desktop unchanged
+- **`src/components/landing/MaterialsMarquee.tsx`:** `py-12` → `pt-8 pb-12` (mobile), desktop unchanged
+- **`src/components/landing/ProjectShowcase.tsx`:** `py-16` → `pt-10 pb-16` (mobile), desktop unchanged
+- **`src/components/landing/About.tsx`:** `py-16` → `pt-10 pb-16` (mobile), desktop unchanged
+**Verification:** Build passes. All section headings have reduced whitespace above on mobile. Desktop spacing unaffected.
+
+## Task 3: Fix Hero Dead Space
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/HeroFullWidth.tsx`:** Changed mobile hero from `min-h-[80dvh]` to `min-h-0` (content-sized). Desktop uses `sm:min-h-[75dvh]`. Added `py-10` mobile content padding for breathing room.
+**Verification:** Build passes. Hero shrinks to fit content on mobile — no dead space below stats.
+
+## Task 4: Add Ghost CTA to Hero
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/HeroFullWidth.tsx`:** Added "See Our Work ↓" ghost/outline button between "Request a Quote" and phone/email icons. White border (`border-white/40`), transparent background, hover brightens. `onClick` smooth-scrolls to `#projects` section. Includes gtag event tracking. Visible at all breakpoints.
+**Verification:** Build passes. Ghost button visible, clearly secondary to blue primary CTA. Smooth-scrolls to Projects.
+
+## Task 5: Fix CTA Banner Overlay
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/CTABanner.tsx`:** Rewrote from side-by-side grid layout to overlay pattern. Background image (`/images/cta/cta-project.jpeg`) fills section with `absolute inset-0 object-cover`. Dark overlay (`bg-black/60`). Heading, subtitle, and CTA button rendered as `relative z-10` content. Min-height 280px mobile, 320px tablet+.
+- **`src/pages/index.astro`:** Imported CTABanner component and added it between Projects and Contact sections.
+**Verification:** Build passes. CTA banner shows pipe photo background with overlaid text and button. Visually distinct section.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero real errors; harmless esbuild "canceled" message) |
+| `npm run test:visual:update` | 18/18 passed, all baselines regenerated |
+| Playwright functional tests | 93/96 passed (3 Firefox transient flakes — `NS_ERROR_CONNECTION_REFUSED`) |
+
+---
+
+## Files Modified
+
+- `src/components/landing/Services.tsx` — flat grid, removed tier labels, added tierStyles map
+- `src/components/landing/ProjectShowcase.tsx` — removed tag badges, reduced top padding
+- `src/content/site.ts` — removed tag from ProjectHighlight interface and data
+- `src/components/landing/About.tsx` — shortened Safety-First card, reduced top padding
+- `src/components/landing/MaterialsMarquee.tsx` — reduced top padding
+- `src/components/landing/HeroFullWidth.tsx` — min-h-0 mobile, ghost CTA button, content padding
+- `src/components/landing/CTABanner.tsx` — overlay pattern rewrite
+- `src/pages/index.astro` — added CTABanner import and placement
