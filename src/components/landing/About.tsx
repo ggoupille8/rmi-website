@@ -82,7 +82,7 @@ export default function About() {
 
                 {/* Icon + Title row */}
                 <div className="flex items-center gap-3 mb-3 min-h-[48px]">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent-500/10 flex-shrink-0">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent-500/10 border border-accent-500/30 flex-shrink-0">
                     <IconComponent
                       className="w-5 h-5 text-accent-400"
                       strokeWidth={1.5}
