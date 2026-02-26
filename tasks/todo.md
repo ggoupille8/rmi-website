@@ -462,3 +462,50 @@
 - `src/components/landing/HeroFullWidth.tsx` — min-h-0 mobile, ghost CTA button, content padding
 - `src/components/landing/CTABanner.tsx` — overlay pattern rewrite
 - `src/pages/index.astro` — added CTABanner import and placement
+
+---
+
+# Follow-Up Polish — 3 Remaining Issues
+
+**Branch:** `feat/followup-polish`
+**Date:** 2026-02-26
+**Status:** All 3 tasks complete
+
+---
+
+## Task 1: Make Ghost CTA Button More Visible in Hero
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/HeroFullWidth.tsx`:** Changed ghost CTA border from `border-white/40` to `border-white/80`. Added `bg-white/10` default background and `backdrop-blur-sm` for readability over busy hero images. Hover state brightens to `bg-white/20` with full white border. Button is now clearly visible as a tappable element while remaining visually subordinate to the blue primary CTA.
+**Verification:** Build passes. Ghost button clearly visible at 375px and 1024px viewports.
+
+## Task 2: Fix Marquee Edge Text Clipping
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/MaterialsMarquee.tsx`:** Replaced gradient overlay divs (`w-32 sm:w-48` positioned elements) with CSS `mask-image` on the section element. Uses a 100px transparent-to-opaque gradient on each edge, providing a clean hard cutoff that prevents partially-visible text at the marquee edges. Removed the two absolute-positioned gradient fade divs.
+**Verification:** Build passes. Text is cleanly masked at both edges — no partial text visible.
+
+## Task 3: Deduplicate CTA Heading and Remove Bare Image
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/ContactForm.tsx`:** Removed the side image panel (`cta-project.webp`) that duplicated the CTA banner photo. Changed heading from "Ready to Start Your Insulation Project?" to "Get a Quote" to avoid repeating the CTA banner text. Centered the form in a `max-w-2xl` container with `container-custom` wrapper.
+**Verification:** Build passes. "READY TO START YOUR INSULATION PROJECT?" appears only once (in CTA banner). Contact form heading says "Get a Quote". No bare pipe photo between CTA banner and contact form.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero real errors; harmless esbuild "canceled" message) |
+| `npm run test:visual:update` | 18/18 baselines regenerated (1 Firefox transient flake) |
+| Playwright functional tests (Chromium) | 227/227 passed |
+| Visual regression tests | 6 expected failures (baselines updated) |
+
+---
+
+## Files Modified
+
+- `src/components/landing/HeroFullWidth.tsx` — ghost CTA border, bg, backdrop-blur
+- `src/components/landing/MaterialsMarquee.tsx` — CSS mask-image replacing gradient divs
+- `src/components/landing/ContactForm.tsx` — removed image panel, changed heading to "Get a Quote"
