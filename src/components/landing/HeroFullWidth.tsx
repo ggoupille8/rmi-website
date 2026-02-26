@@ -286,6 +286,14 @@ export default function HeroFullWidth({
                 Request a Quote
               </a>
 
+              {/* Ghost CTA */}
+              <a
+                href="#projects"
+                className="inline-flex items-center justify-center w-full sm:w-auto h-12 px-6 text-sm font-semibold text-white border border-white/50 rounded-lg bg-transparent hover:bg-white/10 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+              >
+                See Our Work ↓
+              </a>
+
               {/* Secondary CTAs */}
               <div className="flex gap-3">
                 <a
