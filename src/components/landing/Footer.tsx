@@ -20,7 +20,7 @@ export default function Footer() {
               {footerDescription}
             </p>
             <p className="text-neutral-300 text-sm mt-2">
-              Serving Michigan from {address.city}, {address.state}.
+              Serving Michigan and the Midwest.
             </p>
           </div>
 
@@ -41,6 +41,12 @@ export default function Footer() {
                 className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-colors duration-200 text-sm min-w-[44px] min-h-[44px]"
               >
                 About
+              </a>
+              <a
+                href="#projects"
+                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-colors duration-200 text-sm min-w-[44px] min-h-[44px]"
+              >
+                Projects
               </a>
               <a
                 href="#contact"
