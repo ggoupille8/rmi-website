@@ -260,6 +260,32 @@
 **Status:** Complete
 **Changes:** Deleted from project root: `SPRINT-1.md`, `SPRINT-2.md`, `SPRINT-3.md`, `SPRINT-4.md`, `SPRINT-5.md`. `SPEC-GOOGLE-BUSINESS.md` and `MOBILE-FIXES.md` were already deleted earlier.
 **Verification:** Only `README.md` and `CLAUDE.md` remain in project root.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero real errors) |
+| `npm run test:visual:update` | 18/18 passed, baselines regenerated |
+| Playwright functionality tests | 65/66 passed (1 Firefox transient flake) |
+| `scroll-smooth` in built HTML | Confirmed |
+| About icon border in built JS | Confirmed |
+
+---
+
+## Files Modified
+
+- `src/components/landing/About.tsx` — added border to icon containers
+- `src/layouts/BaseLayout.astro` — added `scroll-smooth` to `<html>`
+
+## Files Deleted
+
+- `SPRINT-1.md`, `SPRINT-2.md`, `SPRINT-3.md`, `SPRINT-4.md`, `SPRINT-5.md`
+
+---
+
 # Google Business Profile Integration
 
 **Branch:** `feat/google-business-integration`
@@ -287,11 +313,6 @@
 
 | Check | Result |
 |-------|--------|
-| `npm run build` | Complete (zero real errors) |
-| `npm run test:visual:update` | 18/18 passed, baselines regenerated |
-| Playwright functionality tests | 65/66 passed (1 Firefox transient flake) |
-| `scroll-smooth` in built HTML | Confirmed |
-| About icon border in built JS | Confirmed |
 | `npm run build` | Complete (zero real errors; harmless esbuild "canceled" message) |
 | `npm run test:visual:update` | 18/18 passed, baselines regenerated |
 | Playwright functionality tests | 65/66 passed (1 Firefox transient flake) |
@@ -302,11 +323,62 @@
 
 ## Files Modified
 
-- `src/components/landing/About.tsx` — added border to icon containers
-- `src/layouts/BaseLayout.astro` — added `scroll-smooth` to `<html>`
-
-## Files Deleted
-
-- `SPRINT-1.md`, `SPRINT-2.md`, `SPRINT-3.md`, `SPRINT-4.md`, `SPRINT-5.md`
 - `src/components/landing/Footer.tsx` — added Google Business SVG icon link to social row
 - `src/layouts/BaseLayout.astro` — updated JSON-LD opening hours to 07:00-16:00
+
+---
+
+# Mobile Real-Device Fixes
+
+**Branch:** `feat/mobile-real-device-fixes`
+**Date:** 2026-02-26
+**Status:** All 4 tasks complete
+
+---
+
+## Task 1: Materials Marquee Edge Clipping
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/MaterialsMarquee.tsx`:** Widened fade mask overlays on both edges from `w-24 sm:w-40` (96px/160px) to `w-32 sm:w-48` (128px/192px). Prevents text clipping at edges on real iOS Safari.
+**Verification:** Build passes. Fade effect is wider and smoother on both edges.
+
+## Task 2: Floating Phone FAB Overlapping Footer Content
+**Status:** Complete (Option A — hide in footer zone)
+**Changes:**
+- **`src/components/landing/Footer.tsx`:** Added `id="footer"` to the outermost `<footer>` element for IntersectionObserver targeting.
+- **`src/components/landing/FloatingMobileCTA.tsx`:** Added a second IntersectionObserver that watches `#footer` with 20% threshold. FAB now fades out when either `#contact` or `#footer` enters the viewport. Added `isFooterVisible` state and updated the scroll handler and effect dependency array.
+**Verification:** Build passes. FAB hides smoothly when footer enters view. FAB still visible during main content scroll.
+
+## Task 3: Missing "See Our Work ↓" Ghost CTA in Hero
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/HeroFullWidth.tsx`:** Added ghost/outline CTA button "See Our Work ↓" between the primary "Request a Quote" button and the phone/email icons. Styled as transparent background with `border border-white/50`, white text, `hover:bg-white/10` transition. Links to `#projects`. Same height (`h-12`) as primary CTA. Visible at all breakpoints.
+**Verification:** Build passes. Both CTAs visible at 375px. Ghost button is clearly secondary (outline, not filled).
+
+## Task 4: Excessive Gap Between Services and About Sections
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Services.tsx`:** Changed mobile padding from `py-16` to `pt-16 pb-10`. This reduces the combined mobile gap between Services and About from 128px (64+64) to 104px (40+64). Desktop spacing unchanged via `sm:py-20 lg:py-24`.
+**Verification:** Build passes. Gap is consistent with other section transitions at 375px. Desktop layout unaffected.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero real errors) |
+| `npm run test:visual:update` | 16/18 passed + 2 Firefox transient flakes, baselines regenerated |
+| Playwright functionality tests | 65/66 passed (1 Firefox transient flake) |
+| "See Our Work" in built hero JS | Confirmed |
+| FAB footer observer in built JS | Confirmed |
+
+---
+
+## Files Modified
+
+- `src/components/landing/MaterialsMarquee.tsx` — wider fade masks (w-32/w-48)
+- `src/components/landing/Services.tsx` — reduced mobile bottom padding (pb-10)
+- `src/components/landing/FloatingMobileCTA.tsx` — footer IntersectionObserver, isFooterVisible state
+- `src/components/landing/Footer.tsx` — added id="footer"
+- `src/components/landing/HeroFullWidth.tsx` — added ghost CTA button
