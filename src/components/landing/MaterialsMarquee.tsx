@@ -14,10 +14,6 @@ export default function MaterialsMarquee() {
   return (
     <section
       className="relative pt-8 pb-12 sm:py-16 lg:py-20 overflow-hidden bg-neutral-800 border-t border-neutral-600/30"
-      style={{
-        maskImage: "linear-gradient(to right, transparent 0%, black clamp(120px, 20vw, 250px), black calc(100% - clamp(120px, 20vw, 250px)), transparent 100%)",
-        WebkitMaskImage: "linear-gradient(to right, transparent 0%, black clamp(120px, 20vw, 250px), black calc(100% - clamp(120px, 20vw, 250px)), transparent 100%)",
-      }}
     >
 
       {/* Header */}
@@ -32,7 +28,17 @@ export default function MaterialsMarquee() {
       </div>
 
       {/* Scrolling marquee — Row 1 (left to right) */}
-      <div className="relative" role="marquee" aria-label="Materials we work with" aria-hidden="true" aria-live="off">
+      <div
+        className="relative overflow-hidden"
+        role="marquee"
+        aria-label="Materials we work with"
+        aria-hidden="true"
+        aria-live="off"
+        style={{
+          maskImage: "linear-gradient(to right, transparent, black clamp(60px, 10vw, 120px), black calc(100% - clamp(60px, 10vw, 120px)), transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(60px, 10vw, 120px), black calc(100% - clamp(60px, 10vw, 120px)), transparent)",
+        }}
+      >
         <div className="service-ticker">
           <div className="service-ticker__track">
             {duplicatedMaterials.map((material, index) => (
@@ -48,7 +54,14 @@ export default function MaterialsMarquee() {
       </div>
 
       {/* Scrolling marquee — Row 2 (right to left) */}
-      <div className="relative mt-3 sm:mt-4" aria-hidden="true">
+      <div
+        className="relative mt-3 sm:mt-4 overflow-hidden"
+        aria-hidden="true"
+        style={{
+          maskImage: "linear-gradient(to right, transparent, black clamp(60px, 10vw, 120px), black calc(100% - clamp(60px, 10vw, 120px)), transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(60px, 10vw, 120px), black calc(100% - clamp(60px, 10vw, 120px)), transparent)",
+        }}
+      >
         <div className="service-ticker">
           <div className="service-ticker__track" style={{ animationDirection: "reverse" }}>
             {duplicatedRow2.map((material, index) => (
