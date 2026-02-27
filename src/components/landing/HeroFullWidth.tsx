@@ -289,7 +289,7 @@ export default function HeroFullWidth({
               {/* Ghost CTA */}
               <a
                 href="#projects"
-                className="w-full sm:w-auto h-12 px-6 inline-flex items-center justify-center rounded-lg border border-white/40 text-white text-sm font-semibold tracking-wide uppercase bg-transparent hover:bg-white/10 hover:border-white/60 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+                className="w-full sm:w-auto h-12 px-6 inline-flex items-center justify-center rounded-lg border border-white/80 text-white text-sm font-semibold tracking-wide uppercase bg-white/10 backdrop-blur-sm hover:bg-white/20 hover:border-white transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                 onClick={(e) => {
                   e.preventDefault();
                   document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });

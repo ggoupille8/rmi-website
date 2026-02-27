@@ -221,30 +221,16 @@ export default function ContactForm({
       className="bg-neutral-900 overflow-hidden border-t border-neutral-700/40"
       aria-labelledby="contact-heading"
     >
-      <div className="grid grid-cols-1 md:grid-cols-[2fr_3fr]">
-        {/* LEFT: Image — flush to left edge */}
-        <div className="relative h-[220px] sm:h-[260px] md:h-auto overflow-hidden bg-neutral-800 md:flex md:items-start">
-          <img
-            src="/images/cta/cta-project.webp"
-            alt="Insulation project work by Resource Mechanical Insulation"
-            width="918"
-            height="1224"
-            className="absolute inset-0 w-full h-full object-cover object-[50%_40%] md:relative md:inset-auto md:h-auto"
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
-
-        {/* RIGHT: Form content */}
-        <div className="flex flex-col justify-center px-5 sm:px-10 lg:px-14 py-8 md:py-14 lg:py-16 md:border-l md:border-neutral-700/40">
+      <div className="container-custom py-10 sm:py-14 lg:py-16">
+        <div className="max-w-2xl mx-auto">
           <h2
             id="contact-heading"
-            className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase tracking-tight"
+            className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase tracking-tight text-center"
           >
-            Ready to Start Your Insulation Project?
+            Get a Quote
           </h2>
-          <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto md:mx-0" />
-          <p className="mt-3 text-neutral-400 text-sm sm:text-base">
+          <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto" />
+          <p className="mt-3 text-neutral-400 text-sm sm:text-base text-center">
             Tell us what you need.
           </p>
 
