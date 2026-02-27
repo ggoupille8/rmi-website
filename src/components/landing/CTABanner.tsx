@@ -2,7 +2,7 @@ import { ctaBannerHeading, ctaBannerSubtitle, ctaBannerButton } from "../../cont
 
 export default function CTABanner() {
   return (
-    <section className="relative min-h-[350px] md:min-h-[400px] flex items-center justify-center overflow-hidden border-t border-neutral-600/30" aria-labelledby="cta-heading">
+    <section id="cta-banner" className="relative min-h-[350px] md:min-h-[400px] flex items-center justify-center overflow-hidden border-t border-neutral-600/30" aria-labelledby="cta-heading">
       {/* Background Image */}
       <img
         src="/images/cta/cta-project.jpeg"

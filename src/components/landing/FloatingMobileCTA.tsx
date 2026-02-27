@@ -11,19 +11,19 @@ export default function FloatingMobileCTA() {
 
   // Hide when contact section or footer is in viewport
   useEffect(() => {
-    const contactSection = document.getElementById("contact");
+    const ctaBanner = document.getElementById("cta-banner");
     const footerSection = document.getElementById("footer");
 
     const contactObserver = new IntersectionObserver(
       ([entry]) => setIsContactVisible(entry.isIntersecting),
-      { threshold: 0, rootMargin: "0px 0px 200px 0px" }
+      { threshold: 0, rootMargin: "0px 0px 400px 0px" }
     );
     const footerObserver = new IntersectionObserver(
       ([entry]) => setIsFooterVisible(entry.isIntersecting),
       { threshold: 0 }
     );
 
-    if (contactSection) contactObserver.observe(contactSection);
+    if (ctaBanner) contactObserver.observe(ctaBanner);
     if (footerSection) footerObserver.observe(footerSection);
 
     return () => {
