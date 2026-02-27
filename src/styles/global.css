@@ -220,6 +220,10 @@
     outline: 2px solid rgb(96 165 250); /* accent-400 blue */
     outline-offset: 2px;
   }
+  /* Remove default focus for mouse users */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
   /* Let components with their own focus-visible ring styles override the global outline */
   [class*="focus-visible:ring"]:focus-visible {
     outline: none;
