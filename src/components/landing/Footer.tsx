@@ -1,10 +1,12 @@
 import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address, footerDescription, siteDescription } from "../../content/site";
 import { Phone, Mail, MapPin, ArrowUp } from "lucide-react";
+import { ErrorBoundary } from "../ErrorBoundary";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
+    <ErrorBoundary>
     <footer
       id="footer"
       className="bg-neutral-900 text-white border-t border-neutral-800/50"
@@ -147,5 +149,6 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+    </ErrorBoundary>
   );
 }

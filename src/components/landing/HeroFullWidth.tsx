@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroHeadline, heroTagline } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
+import { ErrorBoundary } from "../ErrorBoundary";
 
 const heroImages = [
   "/images/hero/hero-1.webp",
@@ -188,6 +189,7 @@ export default function HeroFullWidth({
   }, []);
 
   return (
+    <ErrorBoundary fallback={<div className="min-h-[100dvh] bg-neutral-950" />}>
     <section
       className="relative min-h-[100dvh] flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
       aria-labelledby="hero-heading"
@@ -343,5 +345,6 @@ export default function HeroFullWidth({
         </div>
       </div>
     </section>
+    </ErrorBoundary>
   );
 }

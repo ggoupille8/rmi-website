@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Phone, Mail, X } from "lucide-react";
 import { phoneTel, phoneDisplay, companyName, email } from "../../content/site";
+import { ErrorBoundary } from "../ErrorBoundary";
 
 export default function FloatingMobileCTA() {
   const [isVisible, setIsVisible] = useState(false);
@@ -88,6 +89,7 @@ export default function FloatingMobileCTA() {
   }, [isFormFocused, isContactVisible, isFooterVisible]);
 
   return (
+    <ErrorBoundary>
     <div
       className={`fixed bottom-24 right-0 z-40 md:hidden pointer-events-none transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0 invisible"}`}
       style={{
@@ -130,6 +132,7 @@ export default function FloatingMobileCTA() {
         </button>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }
 

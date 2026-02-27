@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { flushSync } from "react-dom";
+import { ErrorBoundary } from "../ErrorBoundary";
+import { phoneTel, phoneDisplay, email as siteEmail } from "../../content/site";
 
 declare global {
   interface Window {
@@ -217,6 +219,18 @@ export default function ContactForm({
   const inputError = `${inputBase} border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500`;
 
   return (
+    <ErrorBoundary fallback={
+      <section className="bg-neutral-900 border-t border-neutral-700/40 py-12">
+        <div className="container-custom text-center">
+          <p className="text-neutral-400">
+            Unable to load form. Please call{" "}
+            <a href={phoneTel} className="text-accent-400 hover:underline">{phoneDisplay}</a>
+            {" "}or email{" "}
+            <a href={`mailto:${siteEmail}`} className="text-accent-400 hover:underline">{siteEmail}</a>.
+          </p>
+        </div>
+      </section>
+    }>
     <section
       className="bg-neutral-900 overflow-hidden border-t border-neutral-700/40"
       aria-labelledby="contact-heading"
@@ -454,5 +468,6 @@ export default function ContactForm({
         </div>
       </div>
     </section>
+    </ErrorBoundary>
   );
 }
