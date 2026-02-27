@@ -748,3 +748,94 @@
 
 - `public/images/logo/rmi-logo-mark-200.webp` (2.4KB)
 - `public/images/logo/rmi-logo-mark-200.png` (3.6KB)
+
+---
+
+# Polish Round 2 — Production Verification Fixes
+
+**Branch:** `fix/polish-r2`
+**Date:** 2026-02-27
+**Status:** All 8 tasks complete
+
+---
+
+## Task 1: Percentage-Based Marquee Fade Mask
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/MaterialsMarquee.tsx`:** Changed mask from `clamp(100px, 20vw, 250px)` to percentage-based stops: `transparent 0%, black 20%, black 80%, transparent 100%`. Reserves 20% of container width on each side for the fade zone. At 375px: ~75px. At 864px: ~173px. At 1280px: ~256px.
+**Commit:** `fix: use percentage-based marquee fade mask for consistent edge coverage`
+
+## Task 2: Form Autocomplete Attributes
+**Status:** Verified present (no changes needed)
+**Details:** All 7 form fields already have correct `autoComplete` attributes from deep-polish merge.
+
+## Task 3: Service Card aria-label and aria-haspopup
+**Status:** Verified present (no changes needed)
+**Details:** All 9 service buttons already have `aria-label` and `aria-haspopup="dialog"` from deep-polish merge.
+
+## Task 4: Navbar Logo Optimization
+**Status:** Verified present (no changes needed)
+**Details:** Navbar already uses `<picture>` with optimized 200px WebP (2.4KB) / PNG (3.6KB) from deep-polish merge.
+
+## Task 5: Focus-Visible Outlines
+**Status:** Complete
+**Changes:**
+- **`src/styles/global.css`:** Added `:focus:not(:focus-visible) { outline: none; }` rule to suppress mouse-click outlines. Existing `:focus-visible` and `[class*="focus-visible:ring"]:focus-visible` rules already present.
+**Commit:** `a11y: add consistent focus-visible outlines for keyboard navigation`
+
+## Task 6: ErrorBoundary for React Islands
+**Status:** Complete
+**Changes:**
+- **Created `src/components/ErrorBoundary.tsx`:** React class-based ErrorBoundary with optional fallback prop.
+- **Wrapped 6 client:load islands:**
+  - `HeroFullWidth.tsx` — fallback: dark placeholder div (`min-h-[100dvh] bg-neutral-950`)
+  - `Services.tsx` — fallback: null (graceful hide)
+  - `ContactForm.tsx` — fallback: phone/email contact links (meaningful alternative)
+  - `ProjectShowcase.tsx` — fallback: null
+  - `Footer.tsx` — fallback: null
+  - `FloatingMobileCTA.tsx` — fallback: null
+**Commit:** `fix: add ErrorBoundary to React islands with meaningful fallbacks`
+
+## Task 7: External Links rel Audit
+**Status:** Verified present (no changes needed)
+**Details:** All 3 `target="_blank"` links in Footer.tsx (LinkedIn, Facebook, Google) already have `rel="noopener noreferrer"`.
+
+## Task 8: Lighthouse Audit Fixes
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/CTABanner.tsx`:** Added `width="3024"` `height="4032"` to CTA banner image (CLS prevention). Added `<picture>` element with WebP source. Added `decoding="async"`.
+- **`src/components/landing/HeroFullWidth.tsx`:** Added `width="500"` `height="200"` to hero logo image (CLS prevention).
+- Hero slideshow images already had: `width="1920"` `height="1080"`, `fetchPriority="high"` on first, `loading="lazy"` on rest.
+- Project cards already had: `width="960"` `height="720"`, `loading="lazy"`, `decoding="async"`.
+- Navbar logo already had: `width="85"` `height="48"`.
+**Commit:** `perf: fix Lighthouse-flagged issues (CLS, image attributes, priorities)`
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| `npx tsc --noEmit` | Zero errors |
+| Unit tests (Vitest) | 90/90 passed |
+| E2E tests (Chromium) | 233/233 passed |
+| Visual regression | 16/18 passed + 2 Firefox transient flakes |
+
+---
+
+## Files Created
+
+- `src/components/ErrorBoundary.tsx`
+
+## Files Modified
+
+- `src/components/landing/MaterialsMarquee.tsx` — percentage-based fade mask
+- `src/styles/global.css` — :focus:not(:focus-visible) rule
+- `src/components/landing/HeroFullWidth.tsx` — ErrorBoundary wrapper, logo width/height
+- `src/components/landing/Services.tsx` — ErrorBoundary wrapper
+- `src/components/landing/ContactForm.tsx` — ErrorBoundary wrapper with phone/email fallback
+- `src/components/landing/ProjectShowcase.tsx` — ErrorBoundary wrapper
+- `src/components/landing/Footer.tsx` — ErrorBoundary wrapper
+- `src/components/landing/FloatingMobileCTA.tsx` — ErrorBoundary wrapper
+- `src/components/landing/CTABanner.tsx` — picture element, width/height, decoding
