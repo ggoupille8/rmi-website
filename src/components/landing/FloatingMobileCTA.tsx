@@ -16,11 +16,11 @@ export default function FloatingMobileCTA() {
 
     const contactObserver = new IntersectionObserver(
       ([entry]) => setIsContactVisible(entry.isIntersecting),
-      { threshold: 0.1 }
+      { threshold: 0, rootMargin: "0px 0px 200px 0px" }
     );
     const footerObserver = new IntersectionObserver(
       ([entry]) => setIsFooterVisible(entry.isIntersecting),
-      { threshold: 0.2 }
+      { threshold: 0 }
     );
 
     if (contactSection) contactObserver.observe(contactSection);
