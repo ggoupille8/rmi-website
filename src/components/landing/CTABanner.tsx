@@ -2,7 +2,7 @@ import { ctaBannerHeading, ctaBannerSubtitle, ctaBannerButton } from "../../cont
 
 export default function CTABanner() {
   return (
-    <section className="relative min-h-[280px] sm:min-h-[320px] flex items-center justify-center overflow-hidden border-t border-neutral-600/30" aria-labelledby="cta-heading">
+    <section className="relative min-h-[350px] md:min-h-[400px] flex items-center justify-center overflow-hidden border-t border-neutral-600/30" aria-labelledby="cta-heading">
       {/* Background Image */}
       <img
         src="/images/cta/cta-project.jpeg"
@@ -16,7 +16,7 @@ export default function CTABanner() {
       <div className="absolute inset-0 bg-black/60" />
 
       {/* Content */}
-      <div className="relative z-10 container-custom py-14 sm:py-16 px-6 text-center">
+      <div className="relative z-10 container-custom py-20 px-6 text-center">
         <h2 id="cta-heading" className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-wider uppercase">
           {ctaBannerHeading}
         </h2>
