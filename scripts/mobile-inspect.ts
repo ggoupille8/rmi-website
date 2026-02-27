@@ -20,7 +20,7 @@ interface Issue {
   candidateFix: string;
   fileReference: string;
   lineReference?: string;
-  measurements?: Record<string, number>;
+  measurements?: Record<string, number | boolean>;
 }
 
 async function inspectMobileLayout() {
@@ -195,7 +195,7 @@ async function inspectHero(page: any, section: any, deviceName: string, viewport
     const headlineText = await headline.textContent();
     if (headlineBox && headlineText) {
       // Check if text is clipped or awkwardly wrapped
-      const textMetrics = await page.evaluate((el) => {
+      const textMetrics = await page.evaluate((el: Element) => {
         const style = window.getComputedStyle(el);
         return {
           fontSize: style.fontSize,
@@ -204,9 +204,9 @@ async function inspectHero(page: any, section: any, deviceName: string, viewport
           overflowWrap: style.overflowWrap
         };
       }, await headline.elementHandle());
-      
+
       // Check for very long words that might cause issues
-      const longWords = headlineText.split(/\s+/).filter(word => word.length > 15);
+      const longWords = headlineText.split(/\s+/).filter((word: string) => word.length > 15);
       if (longWords.length > 0 && textMetrics.wordBreak === 'normal' && textMetrics.overflowWrap === 'normal') {
         issues.push({
           priority: "P1",
@@ -242,7 +242,7 @@ async function inspectServices(page: any, section: any, deviceName: string, view
     
     if (box && text) {
       // Check if text is clipped
-      const isClipped = await page.evaluate((el) => {
+      const isClipped = await page.evaluate((el: Element) => {
         return el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight;
       }, await item.elementHandle());
 
@@ -262,9 +262,9 @@ async function inspectServices(page: any, section: any, deviceName: string, view
       }
 
       // Check for very long service titles
-      const longTitles = text.split('\n').filter(line => line.trim().length > 50);
+      const longTitles = text.split('\n').filter((line: string) => line.trim().length > 50);
       if (longTitles.length > 0) {
-        const textMetrics = await page.evaluate((el) => {
+        const textMetrics = await page.evaluate((el: Element) => {
           const style = window.getComputedStyle(el);
           return {
             fontSize: style.fontSize,
@@ -295,7 +295,7 @@ async function inspectServices(page: any, section: any, deviceName: string, view
   const container = section.locator('.container-custom').first();
   if (await container.count() > 0) {
     const containerBox = await container.boundingBox();
-    const padding = await page.evaluate((el) => {
+    const padding = await page.evaluate((el: Element) => {
       const style = window.getComputedStyle(el);
       return {
         paddingLeft: parseInt(style.paddingLeft),
@@ -334,7 +334,7 @@ async function inspectContactForm(page: any, section: any, deviceName: string, v
   for (let i = 0; i < inputCount; i++) {
     const input = inputs.nth(i);
     const box = await input.boundingBox();
-    const tagName = await input.evaluate(el => el.tagName.toLowerCase());
+    const tagName = await input.evaluate((el: Element) => el.tagName.toLowerCase());
     
     if (box) {
       const minSize = 44;
@@ -440,7 +440,7 @@ async function inspectFooter(page: any, section: any, deviceName: string, viewpo
     const gridBox = await grid.boundingBox();
     if (gridBox) {
       // Check if columns stack properly on mobile
-      const columnCount = await page.evaluate((el) => {
+      const columnCount = await page.evaluate((el: Element) => {
         const style = window.getComputedStyle(el);
         return style.gridTemplateColumns.split(' ').length;
       }, await grid.elementHandle());

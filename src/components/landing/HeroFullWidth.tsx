@@ -143,7 +143,7 @@ function AnimatedStat({
       : displayValue;
 
   return (
-    <div ref={ref} className="text-center">
+    <div ref={ref as React.LegacyRef<HTMLDivElement>} className="text-center">
       <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)" }}>
         {finalDisplay}
       </div>
@@ -223,7 +223,7 @@ export default function HeroFullWidth({
                 className={`w-full h-full object-cover ${heroImagePositions[index]}`}
                 sizes="100vw"
                 loading={index === 0 ? "eager" : "lazy"}
-                fetchpriority={index === 0 ? "high" : undefined}
+                fetchPriority={index === 0 ? "high" : undefined}
                 style={
                   !prefersReducedMotion
                     ? isActive
