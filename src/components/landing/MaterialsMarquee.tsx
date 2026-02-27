@@ -15,8 +15,8 @@ export default function MaterialsMarquee() {
     <section
       className="relative pt-8 pb-12 sm:py-16 lg:py-20 overflow-hidden bg-neutral-800 border-t border-neutral-600/30"
       style={{
-        maskImage: "linear-gradient(to right, transparent 0%, black 100px, black calc(100% - 100px), transparent 100%)",
-        WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 100px, black calc(100% - 100px), transparent 100%)",
+        maskImage: "linear-gradient(to right, transparent 0%, black clamp(60px, 12vw, 180px), black calc(100% - clamp(60px, 12vw, 180px)), transparent 100%)",
+        WebkitMaskImage: "linear-gradient(to right, transparent 0%, black clamp(60px, 12vw, 180px), black calc(100% - clamp(60px, 12vw, 180px)), transparent 100%)",
       }}
     >
 
