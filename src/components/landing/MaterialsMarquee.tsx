@@ -35,8 +35,8 @@ export default function MaterialsMarquee() {
         aria-hidden="true"
         aria-live="off"
         style={{
-          maskImage: "linear-gradient(to right, transparent, black clamp(100px, 18vw, 220px), black calc(100% - clamp(100px, 18vw, 220px)), transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(100px, 18vw, 220px), black calc(100% - clamp(100px, 18vw, 220px)), transparent)",
+          maskImage: "linear-gradient(to right, transparent, black clamp(100px, 20vw, 250px), black calc(100% - clamp(100px, 20vw, 250px)), transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(100px, 20vw, 250px), black calc(100% - clamp(100px, 20vw, 250px)), transparent)",
         }}
       >
         <div className="service-ticker">
@@ -58,8 +58,8 @@ export default function MaterialsMarquee() {
         className="relative mt-3 sm:mt-4 overflow-hidden"
         aria-hidden="true"
         style={{
-          maskImage: "linear-gradient(to right, transparent, black clamp(100px, 18vw, 220px), black calc(100% - clamp(100px, 18vw, 220px)), transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(100px, 18vw, 220px), black calc(100% - clamp(100px, 18vw, 220px)), transparent)",
+          maskImage: "linear-gradient(to right, transparent, black clamp(100px, 20vw, 250px), black calc(100% - clamp(100px, 20vw, 250px)), transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(100px, 20vw, 250px), black calc(100% - clamp(100px, 20vw, 250px)), transparent)",
         }}
       >
         <div className="service-ticker">
