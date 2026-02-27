@@ -14,11 +14,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-// Per-tier styling
-const tierStyles: Record<string, { borderColor: string; hoverBorder: string; iconColor: string; hoverIcon: string; glowColor: string }> = {
-  core: { borderColor: "border-l-blue-500", hoverBorder: "hover:border-l-blue-400", iconColor: "text-blue-500", hoverIcon: "group-hover:text-blue-400", glowColor: "hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]" },
-  specialty: { borderColor: "border-l-amber-500", hoverBorder: "hover:border-l-amber-400", iconColor: "text-amber-500", hoverIcon: "group-hover:text-amber-400", glowColor: "hover:shadow-[0_0_15px_rgba(245,158,11,0.15)]" },
-  additional: { borderColor: "border-l-emerald-500", hoverBorder: "hover:border-l-emerald-400", iconColor: "text-emerald-500", hoverIcon: "group-hover:text-emerald-400", glowColor: "hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]" },
+// Unified card styling — same accent for all tiers
+const cardStyle = {
+  borderColor: "border-l-blue-500",
+  hoverBorder: "hover:border-l-blue-400",
+  iconColor: "text-blue-500",
+  hoverIcon: "group-hover:text-blue-400",
+  glowColor: "hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]",
 };
 
 // Map service anchor IDs to icons
@@ -167,7 +169,7 @@ export default function Services() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
           {services.map((service) => {
             const IconComponent = iconMap[service.anchorId] || Droplets;
-            const style = tierStyles[service.tier] || tierStyles.core;
+            const style = cardStyle;
             return (
               <button
                 key={service.anchorId}
@@ -223,8 +225,8 @@ export default function Services() {
             <div className="p-6 sm:p-8">
               {activeServiceData && (() => {
                 const Icon = iconMap[activeServiceData.anchorId] || Droplets;
-                const modalIconColor = activeServiceData.tier === "specialty" ? "text-amber-500" : activeServiceData.tier === "additional" ? "text-emerald-500" : "text-blue-500";
-                const modalGlowColor = activeServiceData.tier === "specialty" ? "bg-amber-500/20" : activeServiceData.tier === "additional" ? "bg-emerald-500/20" : "bg-blue-500/20";
+                const modalIconColor = "text-blue-500";
+                const modalGlowColor = "bg-blue-500/20";
                 return (
                   <>
                     {/* Icon with accent glow */}

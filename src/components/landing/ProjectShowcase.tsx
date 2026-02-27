@@ -13,14 +13,14 @@ export default function ProjectShowcase() {
             id="projects-heading"
             className="font-bold tracking-wider text-white uppercase text-xl sm:text-2xl lg:text-3xl"
           >
-            See Our Work
+            Featured Projects
           </h2>
           <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full" />
         </div>
 
         {/* Subtitle */}
         <p className="text-center text-neutral-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-4">
-          Recent projects from the field
+          Projects we've contributed to across Michigan
         </p>
 
         {/* Project Cards Grid */}

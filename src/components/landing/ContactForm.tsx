@@ -221,7 +221,7 @@ export default function ContactForm({
       className="bg-neutral-900 overflow-hidden border-t border-neutral-700/40"
       aria-labelledby="contact-heading"
     >
-      <div className="container-custom py-10 sm:py-14 lg:py-16">
+      <div className="container-custom pt-8 pb-10 sm:pt-10 sm:pb-14 lg:pt-12 lg:pb-16">
         <div className="max-w-2xl mx-auto">
           <h2
             id="contact-heading"

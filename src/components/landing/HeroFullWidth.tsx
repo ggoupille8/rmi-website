@@ -189,7 +189,7 @@ export default function HeroFullWidth({
 
   return (
     <section
-      className="relative min-h-0 sm:min-h-[75dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
+      className="relative min-h-[100dvh] flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
       aria-labelledby="hero-heading"
     >
       {/* Background Slideshow */}
@@ -284,24 +284,6 @@ export default function HeroFullWidth({
                 }}
               >
                 Request a Quote
-              </a>
-
-              {/* Ghost CTA */}
-              <a
-                href="#projects"
-                className="w-full sm:w-auto h-12 px-6 inline-flex items-center justify-center rounded-lg border border-white/80 text-white text-sm font-semibold tracking-wide uppercase bg-white/10 backdrop-blur-sm hover:bg-white/20 hover:border-white transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
-                  if (typeof window !== "undefined" && typeof window.gtag === "function") {
-                    window.gtag("event", "cta_click", {
-                      event_category: "Engagement",
-                      event_label: "Hero See Our Work",
-                    });
-                  }
-                }}
-              >
-                See Our Work ↓
               </a>
 
               {/* Secondary CTAs */}
