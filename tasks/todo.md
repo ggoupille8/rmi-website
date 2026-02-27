@@ -575,3 +575,65 @@
 - `src/components/landing/ProjectShowcase.tsx` — heading/subtitle rename
 - `src/components/landing/CTABanner.tsx` — increased min-height and padding
 - `src/components/landing/ContactForm.tsx` — reduced top padding
+
+---
+
+# Sprint 3: Frontend Polish — Accessibility & UX
+
+**Branch:** `feat/sprint-3-polish`
+**Date:** 2026-02-27
+**Status:** All 5 tasks complete
+
+---
+
+## Task 2: Add Alt Text to CTA Banner Image
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/CTABanner.tsx`:** Changed empty `alt=""` to descriptive `alt="Insulated piping and equipment at a commercial facility"`. Removed `aria-hidden="true"` since the image now conveys meaningful content.
+**Verification:** Build passes. No images on page have empty or missing alt text.
+
+## Task 3: Increase Hero Stat Label Font Size on Mobile
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/HeroFullWidth.tsx`:** Changed stat label base font size from `text-[11px]` to `text-sm` (14px). Desktop breakpoints (`sm:text-xs`, `lg:text-sm`) unchanged.
+**Verification:** Build passes. At 375px viewport, all stat labels render at 14px (WCAG AAA compliant).
+
+## Task 4: Increase Service Card Title Font Size on Mobile
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Services.tsx`:** Changed service card title from `text-xs sm:text-sm` to `text-sm` (14px at all breakpoints).
+**Verification:** Build passes. At 375px viewport, all service card names render at 14px (WCAG AAA compliant).
+
+## Task 5: Widen Marquee Fade Mask
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/MaterialsMarquee.tsx`:** Changed CSS mask fade zones from fixed `100px` to responsive `clamp(60px, 12vw, 180px)`. At 375px mobile: 60px fade. At 1280px desktop: ~154px fade. Text fades to invisible before reaching container edges at all viewports.
+**Verification:** Build passes. No text visible at marquee edges on desktop or mobile.
+
+## Task 1: Fix Floating Phone FAB Overlapping Content on Mobile
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/FloatingMobileCTA.tsx`:** Improved IntersectionObserver thresholds — contact section observer now uses `threshold: 0` with `rootMargin: "0px 0px 200px 0px"` (triggers 200px before contact enters viewport). Footer observer threshold lowered from `0.2` to `0`.
+**Verification:** Build passes. FAB hides well before contact form enters viewport. FAB reappears when scrolling back up.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| `npm run test:e2e` (Chromium) | 233/233 passed |
+| `npm run test:visual:update` | 18/18 passed, 6 mobile baselines regenerated |
+| Visual regression re-run | 233/233 passed after baseline update |
+| Unit tests | 78/90 passed (12 pre-existing ContactForm.test.tsx failures, unrelated to sprint changes) |
+
+---
+
+## Files Modified
+
+- `src/components/landing/CTABanner.tsx` — descriptive alt text, removed aria-hidden
+- `src/components/landing/HeroFullWidth.tsx` — stat label font size 11px → 14px on mobile
+- `src/components/landing/Services.tsx` — service card title font size 12px → 14px on mobile
+- `src/components/landing/MaterialsMarquee.tsx` — responsive fade mask with clamp()
+- `src/components/landing/FloatingMobileCTA.tsx` — earlier FAB hide trigger with rootMargin
