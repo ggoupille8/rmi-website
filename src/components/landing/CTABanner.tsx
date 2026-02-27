@@ -4,12 +4,18 @@ export default function CTABanner() {
   return (
     <section id="cta-banner" className="relative min-h-[350px] md:min-h-[400px] flex items-center justify-center overflow-hidden border-t border-neutral-600/30" aria-labelledby="cta-heading">
       {/* Background Image */}
-      <img
-        src="/images/cta/cta-project.jpeg"
-        alt="Insulated piping and equipment at a commercial facility"
-        className="absolute inset-0 w-full h-full object-cover object-center"
-        loading="lazy"
-      />
+      <picture>
+        <source srcSet="/images/cta/cta-project.webp" type="image/webp" />
+        <img
+          src="/images/cta/cta-project.jpeg"
+          alt="Insulated piping and equipment at a commercial facility"
+          width="3024"
+          height="4032"
+          className="absolute inset-0 w-full h-full object-cover object-center"
+          loading="lazy"
+          decoding="async"
+        />
+      </picture>
 
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/60" />

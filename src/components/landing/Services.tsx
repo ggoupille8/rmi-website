@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { ErrorBoundary } from "../ErrorBoundary";
 import { services, servicesSubtitle } from "../../content/site";
 import {
   Droplets,
@@ -144,6 +145,7 @@ export default function Services() {
   const isOpen = activeService !== null;
 
   return (
+    <ErrorBoundary>
     <section
       className="pt-10 pb-16 sm:py-20 lg:py-24 bg-neutral-800 border-t border-accent-600/20"
       aria-labelledby="services-heading"
@@ -283,5 +285,6 @@ export default function Services() {
         </div>
       )}
     </section>
+    </ErrorBoundary>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroHeadline, heroTagline } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
+import { ErrorBoundary } from "../ErrorBoundary";
 
 const heroImages = [
   "/images/hero/hero-1.webp",
@@ -188,6 +189,7 @@ export default function HeroFullWidth({
   }, []);
 
   return (
+    <ErrorBoundary fallback={<div className="min-h-[100dvh] bg-neutral-950" />}>
     <section
       className="relative min-h-[100dvh] flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
       aria-labelledby="hero-heading"
@@ -254,6 +256,8 @@ export default function HeroFullWidth({
               <img
                 src="/images/logo/rmi-logo-full.png"
                 alt={headline}
+                width="500"
+                height="200"
                 className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
                 style={{ filter: 'brightness(0) invert(1) drop-shadow(3px 3px 6px rgba(0,0,0,1)) drop-shadow(-1px -1px 4px rgba(0,0,0,0.8))' }}
               />
@@ -343,5 +347,6 @@ export default function HeroFullWidth({
         </div>
       </div>
     </section>
+    </ErrorBoundary>
   );
 }

@@ -1,7 +1,9 @@
 import { projectHighlights } from "../../content/site";
+import { ErrorBoundary } from "../ErrorBoundary";
 
 export default function ProjectShowcase() {
   return (
+    <ErrorBoundary>
     <section
       className="pt-10 pb-16 sm:py-16 bg-neutral-900 border-t border-neutral-600/30"
       aria-labelledby="projects-heading"
@@ -59,5 +61,6 @@ export default function ProjectShowcase() {
 
       </div>
     </section>
+    </ErrorBoundary>
   );
 }
