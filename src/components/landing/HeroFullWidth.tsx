@@ -189,7 +189,7 @@ export default function HeroFullWidth({
 
   return (
     <section
-      className="relative min-h-0 sm:min-h-[75dvh] hero-dvh flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
+      className="relative min-h-[100dvh] flex flex-col justify-center overflow-hidden pt-12 sm:pt-14 bg-neutral-900"
       aria-labelledby="hero-heading"
     >
       {/* Background Slideshow */}
