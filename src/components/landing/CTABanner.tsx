@@ -11,7 +11,7 @@ export default function CTABanner() {
           alt="Insulated piping and equipment at a commercial facility"
           width="3024"
           height="4032"
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover object-[center_30%] md:object-[center_40%]"
           loading="lazy"
           decoding="async"
         />
