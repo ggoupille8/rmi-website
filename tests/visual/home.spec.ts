@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 const viewports = {
   mobile: { width: 375, height: 667 },
@@ -7,6 +7,22 @@ const viewports = {
 };
 
 const colorSchemes = ["light", "dark"] as const;
+
+// Retry page.goto on connection failures (Firefox NS_ERROR_CONNECTION_REFUSED)
+async function gotoWithRetry(page: Page, url: string, retries = 3): Promise<void> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await page.goto(url, { waitUntil: "load", timeout: 30000 });
+      return;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (attempt === retries || !message.includes("NS_ERROR_CONNECTION_REFUSED")) {
+        throw err;
+      }
+      await page.waitForTimeout(1000 * attempt);
+    }
+  }
+}
 
 test.describe("Homepage Visual Regression", () => {
   for (const [deviceName, viewport] of Object.entries(viewports)) {
@@ -31,7 +47,7 @@ test.describe("Homepage Visual Regression", () => {
           };
         `);
 
-        await page.goto("/");
+        await gotoWithRetry(page, "/");
 
         // Wait for network to be idle
         await page.waitForLoadState("networkidle");
