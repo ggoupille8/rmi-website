@@ -174,6 +174,8 @@ export default function Services() {
               <button
                 key={service.anchorId}
                 type="button"
+                aria-label={`Learn more about ${service.title}`}
+                aria-haspopup="dialog"
                 aria-expanded={activeService === service.anchorId}
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
                 className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] ${style.borderColor} ${style.hoverBorder} hover:border-neutral-600/70 hover:bg-neutral-800/90 hover:-translate-y-0.5 ${style.glowColor} transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
