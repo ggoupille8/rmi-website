@@ -13,7 +13,7 @@ export default function MaterialsMarquee() {
 
   return (
     <section
-      className="relative pt-8 pb-12 sm:py-16 lg:py-20 overflow-hidden bg-neutral-800 border-t border-neutral-600/30"
+      className="relative pt-10 pb-16 sm:py-20 lg:py-24 overflow-hidden bg-neutral-800 border-t border-neutral-600/30"
     >
 
       {/* Header */}
