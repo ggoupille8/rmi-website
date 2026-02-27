@@ -164,18 +164,14 @@ const localBusinessSchema = JSON.stringify({
       <meta name="google-site-verification" content={import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION} />
     )}
 
-    <!-- Google Analytics 4 (loads only when PUBLIC_GA_MEASUREMENT_ID is set) -->
-    {import.meta.env.PUBLIC_GA_MEASUREMENT_ID && (
-      <>
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${import.meta.env.PUBLIC_GA_MEASUREMENT_ID}`} is:inline></script>
-        <script is:inline define:vars={{ gaId: import.meta.env.PUBLIC_GA_MEASUREMENT_ID }}>
-          window.dataLayer = window.dataLayer || [];
-          function gtag() { dataLayer.push(arguments); }
-          gtag('js', new Date());
-          gtag('config', gaId);
-        </script>
-      </>
-    )}
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7CW99VN6T3" is:inline></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      gtag('js', new Date());
+      gtag('config', 'G-7CW99VN6T3');
+    </script>
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json" set:html={localBusinessSchema} />
