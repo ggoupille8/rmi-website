@@ -509,3 +509,69 @@
 - `src/components/landing/HeroFullWidth.tsx` — ghost CTA border, bg, backdrop-blur
 - `src/components/landing/MaterialsMarquee.tsx` — CSS mask-image replacing gradient divs
 - `src/components/landing/ContactForm.tsx` — removed image panel, changed heading to "Get a Quote"
+
+---
+
+# Final Polish — 6 Fixes
+
+**Branch:** `feat/final-polish`
+**Date:** 2026-02-26
+**Status:** All 6 tasks complete
+
+---
+
+## Task 1: Remove Ghost CTA Button from Hero
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/HeroFullWidth.tsx`:** Removed the "See Our Work ↓" ghost/outline button and its onClick handler from the hero CTA section. Hero now flows: "Request a Quote" button → phone/email icons → stats row.
+**Verification:** Build passes. No ghost button in hero.
+
+## Task 2: Hero Fills Full Viewport Height
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/HeroFullWidth.tsx`:** Changed hero min-height from `min-h-0 sm:min-h-[75dvh] hero-dvh` to `min-h-[100dvh]`. Hero now fills the entire viewport on page load. Services starts just below the fold.
+**Verification:** Build passes. Hero fills viewport edge-to-edge.
+
+## Task 3: Unify Service Card Colors
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Services.tsx`:** Replaced per-tier `tierStyles` map (blue/amber/emerald) with a single unified `cardStyle` using blue accent (`border-l-blue-500`, `text-blue-500`). All 9 cards now have identical border color, icon color, and glow effect. Modal icon/glow colors also unified to blue.
+**Verification:** Build passes. All 9 service cards have identical blue accent styling.
+
+## Task 5: Rename "See Our Work" to "Featured Projects"
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/ProjectShowcase.tsx`:** Changed heading from "See Our Work" to "Featured Projects". Changed subtitle from "Recent projects from the field" to "Projects we've contributed to across Michigan".
+- Navbar and Footer already say "Projects" — no changes needed.
+**Verification:** Build passes. Section heading says "FEATURED PROJECTS".
+
+## Task 4: CTA Banner Image Full Size
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/CTABanner.tsx`:** Increased min-height from `min-h-[280px] sm:min-h-[320px]` to `min-h-[350px] md:min-h-[400px]`. Increased content padding from `py-14 sm:py-16` to `py-20`. Banner now has more visual weight with the pipe photo filling a larger area.
+**Verification:** Build passes. CTA banner feels like a standalone full-width section.
+
+## Task 6: Reduce Space Above Contact Form
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/ContactForm.tsx`:** Changed padding from symmetric `py-10 sm:py-14 lg:py-16` to asymmetric `pt-8 pb-10 sm:pt-10 sm:pb-14 lg:pt-12 lg:pb-16`. Reduced top padding creates tighter transition from CTA banner to contact form.
+**Verification:** Build passes. CTA banner flows naturally into the contact form.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero real errors) |
+| `npm run test:visual:update` | 18/18 passed, all baselines regenerated |
+
+---
+
+## Files Modified
+
+- `src/components/landing/HeroFullWidth.tsx` — removed ghost CTA, min-h-[100dvh]
+- `src/components/landing/Services.tsx` — unified card colors to single blue accent
+- `src/components/landing/ProjectShowcase.tsx` — heading/subtitle rename
+- `src/components/landing/CTABanner.tsx` — increased min-height and padding
+- `src/components/landing/ContactForm.tsx` — reduced top padding
