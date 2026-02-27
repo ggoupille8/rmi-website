@@ -183,7 +183,7 @@ export default function Services() {
                   strokeWidth={1.5}
                   aria-hidden="true"
                 />
-                <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
+                <span className="text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
                   {service.title}
                 </span>
               </button>

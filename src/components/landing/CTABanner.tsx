@@ -6,10 +6,9 @@ export default function CTABanner() {
       {/* Background Image */}
       <img
         src="/images/cta/cta-project.jpeg"
-        alt=""
+        alt="Insulated piping and equipment at a commercial facility"
         className="absolute inset-0 w-full h-full object-cover object-center"
         loading="lazy"
-        aria-hidden="true"
       />
 
       {/* Dark Overlay */}
