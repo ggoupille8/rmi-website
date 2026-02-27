@@ -13,7 +13,7 @@ export default function MaterialsMarquee() {
 
   return (
     <section
-      className="relative pt-8 pb-12 sm:py-16 lg:py-20 overflow-hidden bg-neutral-800 border-t border-neutral-600/30"
+      className="relative pt-10 pb-16 sm:py-20 lg:py-24 overflow-hidden bg-neutral-800 border-t border-neutral-600/30"
     >
 
       {/* Header */}
@@ -35,8 +35,8 @@ export default function MaterialsMarquee() {
         aria-hidden="true"
         aria-live="off"
         style={{
-          maskImage: "linear-gradient(to right, transparent, black clamp(100px, 18vw, 220px), black calc(100% - clamp(100px, 18vw, 220px)), transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(100px, 18vw, 220px), black calc(100% - clamp(100px, 18vw, 220px)), transparent)",
+          maskImage: "linear-gradient(to right, transparent, black clamp(100px, 20vw, 250px), black calc(100% - clamp(100px, 20vw, 250px)), transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(100px, 20vw, 250px), black calc(100% - clamp(100px, 20vw, 250px)), transparent)",
         }}
       >
         <div className="service-ticker">
@@ -58,8 +58,8 @@ export default function MaterialsMarquee() {
         className="relative mt-3 sm:mt-4 overflow-hidden"
         aria-hidden="true"
         style={{
-          maskImage: "linear-gradient(to right, transparent, black clamp(100px, 18vw, 220px), black calc(100% - clamp(100px, 18vw, 220px)), transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(100px, 18vw, 220px), black calc(100% - clamp(100px, 18vw, 220px)), transparent)",
+          maskImage: "linear-gradient(to right, transparent, black clamp(100px, 20vw, 250px), black calc(100% - clamp(100px, 20vw, 250px)), transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(100px, 20vw, 250px), black calc(100% - clamp(100px, 20vw, 250px)), transparent)",
         }}
       >
         <div className="service-ticker">

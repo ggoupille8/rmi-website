@@ -257,6 +257,7 @@ export default function ContactForm({
                   id="name"
                   name="name"
                   required
+                  autoComplete="name"
                   value={formData.name}
                   onChange={handleChange}
                   className={fieldErrors.name ? inputError : inputNormal}
@@ -280,6 +281,7 @@ export default function ContactForm({
                   type="text"
                   id="company"
                   name="company"
+                  autoComplete="organization"
                   value={formData.company}
                   onChange={handleChange}
                   className={inputNormal}
@@ -301,6 +303,7 @@ export default function ContactForm({
                   type="email"
                   id="email"
                   name="email"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
                   className={contactError ? inputError : inputNormal}
@@ -324,6 +327,7 @@ export default function ContactForm({
                   type="tel"
                   id="phone"
                   name="phone"
+                  autoComplete="tel"
                   value={formData.phone}
                   onChange={handleChange}
                   className={contactError ? inputError : inputNormal}
@@ -344,6 +348,7 @@ export default function ContactForm({
                 ref={projectTypeRef}
                 id="projectType"
                 name="projectType"
+                autoComplete="off"
                 value={formData.projectType}
                 onChange={handleChange}
                 className={`${fieldErrors.projectType ? inputError : inputNormal} appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%239ca3af%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3E%3C/svg%3E')] bg-[length:1.25em_1.25em] bg-[right_0.5rem_center] bg-no-repeat pr-8`}
@@ -376,6 +381,7 @@ export default function ContactForm({
                 id="message"
                 name="message"
                 required
+                autoComplete="off"
                 rows={3}
                 value={formData.message}
                 onChange={handleChange}

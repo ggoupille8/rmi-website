@@ -637,3 +637,114 @@
 - `src/components/landing/Services.tsx` — service card title font size 12px → 14px on mobile
 - `src/components/landing/MaterialsMarquee.tsx` — responsive fade mask with clamp()
 - `src/components/landing/FloatingMobileCTA.tsx` — earlier FAB hide trigger with rootMargin
+
+---
+
+# Sprint 3B: Marquee Mask + ContactForm Test Fixes
+
+**Branch:** `fix/sprint-3b-polish`
+**Date:** 2026-02-27
+**Status:** All 2 tasks complete
+
+---
+
+## Task 1: Widen Marquee Fade Mask
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/MaterialsMarquee.tsx`:** Widened mask from `clamp(60px, 10vw, 120px)` to `clamp(100px, 18vw, 220px)`. Also moved mask-image from `<section>` to individual ticker wrapper `<div>`s to fix a production rendering issue.
+**Verification:** Build passes. Text fully fades at edges on both mobile and desktop.
+
+## Task 2: Fix ContactForm Unit Tests (12 Failures)
+**Status:** Complete
+**Changes:**
+- **`src/components/__tests__/ContactForm.test.tsx`:** Rewrote 12 failing tests to match current component. Updated heading expectations ("Get a Quote"), added projectType selection to submission tests, fixed error message expectations, fixed aria attribute assertions.
+**Verification:** All 90 unit tests pass (4 test files, 90 tests).
+
+---
+
+# Deep Polish — Senior Developer Pass
+
+**Branch:** `fix/deep-polish`
+**Date:** 2026-02-27
+**Status:** All 9 tasks complete
+
+---
+
+## Task 8: Clean Stale Files and Dead Code
+**Status:** Complete
+**Changes:**
+- Deleted 3 stale SPEC files from project root (SPEC-SPRINT-3-POLISH.md, SPEC-SPRINT-3B-POLISH.md, SPEC-DEEP-POLISH.md)
+- Fixed `fetchpriority` → `fetchPriority` in HeroFullWidth.tsx (React camelCase)
+- Fixed fetch mock typing in ContactForm.test.tsx
+- Fixed useRef type assertion for React 18 @types/react compatibility
+- Added explicit type annotations to all `page.evaluate()` callbacks in scripts/mobile-inspect.ts
+- Result: `npx tsc --noEmit` passes with zero errors (was 12)
+
+## Task 1: Widen Marquee Fade Mask
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/MaterialsMarquee.tsx`:** Updated mask from `clamp(100px, 18vw, 220px)` to `clamp(100px, 20vw, 250px)`. At 375px: 100px fade (covers ~2/3 of a chip). At 1280px: 250px fade (hides full chips).
+
+## Task 2: Add Autocomplete Attributes to Contact Form
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/ContactForm.tsx`:** Added `autoComplete` to all 7 form fields:
+  - Name: `name`, Company: `organization`, Email: `email`, Phone: `tel`
+  - Project Type: `off`, Message: `off`, Honeypot: already had `off`
+
+## Task 4: Add aria-label and aria-haspopup to Service Card Buttons
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Services.tsx`:** Added `aria-label={`Learn more about ${service.title}`}` and `aria-haspopup="dialog"` to all 9 service card buttons.
+
+## Task 6: Normalize Section Spacing
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/MaterialsMarquee.tsx`:** Changed section padding from `pt-8 pb-12 sm:py-16 lg:py-20` to `pt-10 pb-16 sm:py-20 lg:py-24` to match Services and About sections.
+
+## Task 9: Add Preconnect Hints
+**Status:** Already complete (no changes needed)
+- BaseLayout.astro already has preconnect for fonts.googleapis.com, fonts.gstatic.com, and googletagmanager.com.
+
+## Task 3: Optimize Navbar Logo Image
+**Status:** Complete
+**Changes:**
+- Created optimized 200px-wide versions: `rmi-logo-mark-200.webp` (2.4KB) and `rmi-logo-mark-200.png` (3.6KB) from original 1920x1080 (35KB)
+- **`src/components/landing/Navbar.astro`:** Updated to use `<picture>` element with WebP source and PNG fallback. Original high-res file preserved.
+
+## Task 5: Fix Modal Scroll Restoration
+**Status:** Already complete (no changes needed)
+- Services.tsx already saves `triggerRef.current` on open and calls `triggerRef.current?.focus()` on close, restoring focus to the triggering button.
+
+## Task 7: Fix ContactForm Unit Tests
+**Status:** Already complete (no changes needed)
+- All 90 unit tests pass (fixed in Sprint 3B).
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| `npx tsc --noEmit` | Zero errors |
+| Unit tests (Vitest) | 90/90 passed |
+| Visual regression baselines | 18/18 updated (2 Firefox transient flakes) |
+| Stale files in root | Zero (only README.md and CLAUDE.md) |
+
+---
+
+## Files Modified
+
+- `src/components/landing/HeroFullWidth.tsx` — fetchPriority fix, useRef type assertion
+- `src/components/landing/MaterialsMarquee.tsx` — wider mask clamp, normalized section padding
+- `src/components/landing/ContactForm.tsx` — autocomplete attributes on all fields
+- `src/components/landing/Services.tsx` — aria-label and aria-haspopup on card buttons
+- `src/components/landing/Navbar.astro` — picture element with optimized logo
+- `src/components/__tests__/ContactForm.test.tsx` — fetch mock type fix
+- `scripts/mobile-inspect.ts` — explicit type annotations, fixed Record type
+
+## Files Added
+
+- `public/images/logo/rmi-logo-mark-200.webp` (2.4KB)
+- `public/images/logo/rmi-logo-mark-200.png` (3.6KB)

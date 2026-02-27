@@ -22,7 +22,7 @@ describe("ContactForm component", () => {
 
   beforeEach(() => {
     fetchMock = vi.fn();
-    global.fetch = fetchMock;
+    global.fetch = fetchMock as unknown as typeof fetch;
 
     // Default successful response
     fetchMock.mockResolvedValue({
