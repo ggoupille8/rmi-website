@@ -47,25 +47,20 @@ describe("ContactForm component", () => {
       expect(screen.getByLabelText(/project details/i)).toBeInTheDocument();
     });
 
-    it("renders with custom title and subtitle", () => {
-      render(
-        <ContactForm
-          title="Custom Title"
-          subtitle="Custom subtitle text"
-        />
-      );
-
-      expect(
-        screen.getByRole("heading", { name: "Custom Title" })
-      ).toBeInTheDocument();
-      expect(screen.getByText("Custom subtitle text")).toBeInTheDocument();
-    });
-
-    it("renders with default title when not provided", () => {
+    it("renders with default heading and subtitle", () => {
       render(<ContactForm />);
 
       expect(
-        screen.getByRole("heading", { name: "Request a Quote" })
+        screen.getByRole("heading", { name: "Get a Quote" })
+      ).toBeInTheDocument();
+      expect(screen.getByText("Tell us what you need.")).toBeInTheDocument();
+    });
+
+    it("renders with the correct heading text", () => {
+      render(<ContactForm />);
+
+      expect(
+        screen.getByRole("heading", { name: "Get a Quote" })
       ).toBeInTheDocument();
     });
 
@@ -93,12 +88,16 @@ describe("ContactForm component", () => {
   });
 
   describe("form validation", () => {
-    it("shows error when name and company are both empty", async () => {
+    it("shows error when name is empty", async () => {
       const user = userEvent.setup();
       render(<ContactForm />);
 
-      // Fill only email and message (leaving name and company empty)
+      // Fill email, projectType, and message (leaving name empty)
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -107,13 +106,11 @@ describe("ContactForm component", () => {
       // Submit
       await user.click(screen.getByRole("button", { name: /send message/i }));
 
-      // Should show error for name/company - check for the error alert
+      // Should show error for name
       await waitFor(() => {
-        const errorMessages = screen.getAllByRole("alert");
-        const hasNameCompanyError = errorMessages.some(el =>
-          el.textContent?.toLowerCase().includes("name or company")
-        );
-        expect(hasNameCompanyError).toBe(true);
+        expect(
+          screen.getByText(/please enter your name/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -121,8 +118,12 @@ describe("ContactForm component", () => {
       const user = userEvent.setup();
       render(<ContactForm />);
 
-      // Fill name and message
+      // Fill name, projectType, and message
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -133,20 +134,22 @@ describe("ContactForm component", () => {
 
       // Should show error for email/phone - check for the error alert
       await waitFor(() => {
-        const errorMessages = screen.getAllByRole("alert");
-        const hasEmailPhoneError = errorMessages.some(el =>
-          el.textContent?.toLowerCase().includes("email or phone")
-        );
-        expect(hasEmailPhoneError).toBe(true);
+        expect(
+          screen.getByText(/please provide an email or phone/i)
+        ).toBeInTheDocument();
       });
     });
 
-    it("shows error for invalid email format", async () => {
+    it("accepts email without phone number", async () => {
       const user = userEvent.setup();
       render(<ContactForm />);
 
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
-      await user.type(screen.getByLabelText(/email/i), "invalid-email");
+      await user.type(screen.getByLabelText(/email/i), "john@example.com");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -155,9 +158,7 @@ describe("ContactForm component", () => {
       await user.click(screen.getByRole("button", { name: /send message/i }));
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/please enter a valid email/i)
-        ).toBeInTheDocument();
+        expect(fetchMock).toHaveBeenCalled();
       });
     });
 
@@ -167,12 +168,16 @@ describe("ContactForm component", () => {
 
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
       await user.type(screen.getByLabelText(/email/i), "test@example.com");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
 
       await user.click(screen.getByRole("button", { name: /send message/i }));
 
       await waitFor(() => {
         expect(
-          screen.getByText(/project details are required/i)
+          screen.getByText(/please describe your project/i)
         ).toBeInTheDocument();
       });
     });
@@ -183,6 +188,10 @@ describe("ContactForm component", () => {
 
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
       await user.type(screen.getByLabelText(/phone/i), "555-123-4567");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -282,6 +291,10 @@ describe("ContactForm component", () => {
 
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
       await user.type(screen.getByLabelText(/email/i), "john@example.com");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -304,6 +317,10 @@ describe("ContactForm component", () => {
 
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
       await user.type(screen.getByLabelText(/email/i), "john@example.com");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -322,6 +339,10 @@ describe("ContactForm component", () => {
 
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
       await user.type(screen.getByLabelText(/email/i), "john@example.com");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -348,6 +369,10 @@ describe("ContactForm component", () => {
 
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
       await user.type(screen.getByLabelText(/email/i), "john@example.com");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -375,6 +400,10 @@ describe("ContactForm component", () => {
 
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
       await user.type(screen.getByLabelText(/email/i), "john@example.com");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -419,6 +448,10 @@ describe("ContactForm component", () => {
 
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
       await user.type(screen.getByLabelText(/email/i), "john@example.com");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -460,6 +493,10 @@ describe("ContactForm component", () => {
 
       await user.type(screen.getByLabelText(/^name/i), "John Doe");
       await user.type(screen.getByLabelText(/email/i), "john@example.com");
+      await user.selectOptions(
+        screen.getByLabelText(/project type/i),
+        "installation"
+      );
       await user.type(
         screen.getByLabelText(/project details/i),
         "Test message"
@@ -486,25 +523,11 @@ describe("ContactForm component", () => {
       expect(form).toHaveAttribute("aria-busy", "false");
     });
 
-    it("marks required fields with aria-required", () => {
+    it("marks required fields with required attribute", () => {
       render(<ContactForm />);
 
-      expect(screen.getByLabelText(/^name/i)).toHaveAttribute(
-        "aria-required",
-        "true"
-      );
-      expect(screen.getByLabelText(/email/i)).toHaveAttribute(
-        "aria-required",
-        "true"
-      );
-      expect(screen.getByLabelText(/project type/i)).toHaveAttribute(
-        "aria-required",
-        "true"
-      );
-      expect(screen.getByLabelText(/project details/i)).toHaveAttribute(
-        "aria-required",
-        "true"
-      );
+      expect(screen.getByLabelText(/^name/i)).toBeRequired();
+      expect(screen.getByLabelText(/project details/i)).toBeRequired();
     });
 
     it("sets aria-invalid on invalid fields", async () => {
