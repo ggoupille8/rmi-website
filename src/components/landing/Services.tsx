@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { services, servicesSubtitle } from "../../content/site";
+import ImageSlideshow from "./ImageSlideshow";
 import {
   Droplets,
   AirVent,
@@ -213,26 +214,36 @@ export default function Services() {
             role="dialog"
             aria-modal="true"
             aria-labelledby={`modal-${activeService}`}
-            className={`relative z-10 max-w-lg w-full mx-4 bg-neutral-900/80 backdrop-blur-md rounded-2xl border border-neutral-700/40 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
+            className={`relative z-10 max-w-xl w-full mx-4 max-h-[90vh] overflow-y-auto bg-neutral-900/80 backdrop-blur-md rounded-2xl border border-neutral-700/40 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
               type="button"
               onClick={closeModal}
-              className="absolute top-4 right-4 flex items-center justify-center w-9 h-9 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              className={`absolute top-4 right-4 z-30 flex items-center justify-center w-9 h-9 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 ${
+                activeServiceData && activeServiceData.images.length > 0
+                  ? "bg-black/50 text-white hover:bg-black/70"
+                  : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+              }`}
               aria-label="Close dialog"
             >
               <X className="w-5 h-5" aria-hidden="true" />
             </button>
 
-            <div className="p-6 sm:p-8">
-              {activeServiceData && (() => {
-                const Icon = iconMap[activeServiceData.anchorId] || Droplets;
-                const modalIconColor = "text-blue-500";
-                const modalGlowColor = "bg-blue-500/20";
-                return (
-                  <>
+            {activeServiceData && (() => {
+              const Icon = iconMap[activeServiceData.anchorId] || Droplets;
+              const modalIconColor = "text-blue-500";
+              const modalGlowColor = "bg-blue-500/20";
+              const hasImages = activeServiceData.images.length > 0;
+              return (
+                <>
+                  {/* Image Slideshow — only if images exist */}
+                  {hasImages && (
+                    <ImageSlideshow images={activeServiceData.images} />
+                  )}
+
+                  <div className="p-6 sm:p-8">
                     {/* Icon with accent glow */}
                     <div className="flex justify-center mb-4">
                       <div className="relative flex items-center justify-center">
@@ -277,10 +288,10 @@ export default function Services() {
                         Request a Quote
                       </a>
                     </div>
-                  </>
-                );
-              })()}
-            </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

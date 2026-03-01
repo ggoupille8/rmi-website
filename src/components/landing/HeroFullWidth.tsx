@@ -9,6 +9,7 @@ const heroImages = [
   "/images/hero/hero-3.webp",
   "/images/hero/hero-4.webp",
   "/images/hero/hero-5.webp",
+  "/images/hero/hero-6.webp",
 ];
 
 // Per-image mobile object-position (Issue 4)
@@ -18,6 +19,7 @@ const heroImagePositions = [
   "object-[35%_50%] sm:object-center",  // hero-3: ultra-wide, subject left-of-center, shift left to capture it
   "object-[50%_60%] sm:object-center",  // hero-4: portrait — favor lower portion where ductwork is, not sky
   "object-[55%_40%] sm:object-center",  // hero-5: similar to hero-2, slight right and up adjustment
+  "object-[50%_45%] sm:object-center",  // hero-6: portrait — center subject slightly up
 ];
 
 const heroImageAlts = [
@@ -26,6 +28,7 @@ const heroImageAlts = [
   "Industrial valve and equipment insulation",
   "Mechanical insulation work in progress",
   "Commercial insulation project",
+  "Industrial insulation installation by RMI",
 ];
 
 // Per-image Ken Burns zoom origins for visual variety
@@ -35,6 +38,7 @@ const heroImageOrigins = [
   "35% center",        // hero-3: zoom toward left subject
   "center 35%",        // hero-4: zoom toward upper equipment
   "55% 40%",           // hero-5: zoom toward right-of-center
+  "center 45%",        // hero-6: zoom toward center-upper subject
 ];
 
 const SLIDE_DURATION = 12000; // 12s per image

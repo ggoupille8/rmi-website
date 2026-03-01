@@ -839,3 +839,240 @@
 - `src/components/landing/Footer.tsx` — ErrorBoundary wrapper
 - `src/components/landing/FloatingMobileCTA.tsx` — ErrorBoundary wrapper
 - `src/components/landing/CTABanner.tsx` — picture element, width/height, decoding
+
+---
+
+# Sprint 2: SEO & Polish
+
+**Branch:** `feat/sprint-2-seo-polish`
+**Date:** 2026-02-27
+**Status:** All 5 tasks complete (2 already done on main, 3 committed)
+
+---
+
+## Task 1: Add "Projects" Link to Footer Quick Links
+**Status:** Already present (no changes needed)
+**Details:** Footer.tsx already has Services, About, Projects, and Request a Quote links in the Quick Links section.
+
+## Task 2: Meta Description & Keywords Enhancement
+**Status:** Complete
+**Changes:**
+- **`src/content/site.ts`:** Updated `siteDescription` to keyword-rich version: "Commercial & industrial mechanical insulation contractor in Michigan. Piping, ductwork, equipment insulation, pipe support fabrication & 24/7 emergency response."
+- **`src/layouts/BaseLayout.astro`:** Updated default `keywords` meta to target search terms: "mechanical insulation contractor, Michigan, pipe insulation, duct insulation, industrial insulation, commercial insulation, pipe support fabrication, removable insulation blankets, Detroit, southeast Michigan, Local 25"
+**Commit:** `seo: enhance meta description and keywords for target search terms`
+
+## Task 3: Service Schema Structured Data
+**Status:** Complete
+**Changes:**
+- **`src/layouts/BaseLayout.astro`:** Added `serviceCatalogSchema` variable (Organization type with OfferCatalog containing 6 services: Pipe Insulation, Duct Insulation, Equipment Insulation, Pipe Support Fabrication, Field-Applied Jacketing, 24/7 Emergency Response). Added second `<script type="application/ld+json">` block.
+**Commit:** `seo: add Service schema structured data for core offerings`
+
+## Task 4: CTA Banner Image Positioning
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/CTABanner.tsx`:** Changed `object-center` to responsive `object-[center_30%] md:object-[center_40%]`. Shows more of the insulated piping subject on mobile while maintaining good framing on desktop.
+**Commit:** `fix: CTA banner image positioning across viewports`
+
+## Task 5: Materials Marquee Screen Reader Content
+**Status:** Already present (no changes needed)
+**Details:** MaterialsMarquee.tsx already has an `sr-only` `<ul>` listing all materials (lines 79-86). Both marquee rows have `aria-hidden="true"`.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| `npx tsc --noEmit` | Zero errors |
+| Unit tests (Vitest) | 90/90 passed |
+| E2E tests (Chromium) | 233/233 passed |
+| Visual regression | 18/18 passed (no baseline changes needed) |
+
+---
+
+## Files Modified
+
+- `src/content/site.ts` — keyword-rich meta description
+- `src/layouts/BaseLayout.astro` — target keywords, service schema JSON-LD
+- `src/components/landing/CTABanner.tsx` — responsive image positioning
+
+---
+
+# Footer Section Polish
+
+**Branch:** `feat/footer-polish`
+**Date:** 2026-02-27
+**Status:** All 4 tasks complete
+
+---
+
+## Task 1: Remove Google Business Icon
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Footer.tsx`:** Removed the Google "G" `<a>` element and its 4-path SVG icon from the social links row. Left a placeholder comment: `{/* Google Business icon — add back when GBP is claimed and verified */}`. LinkedIn and Facebook icons unchanged.
+**Verification:** Build passes. `google.com/maps/place` not found in built output. Footer shows exactly 2 social icons.
+
+## Task 4: Fix Quick Links Spacing on Mobile
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Footer.tsx`:** Changed Quick Links `<nav>` from `gap-0` to `gap-1` (4px). Adds visible breathing room between link labels on mobile without affecting the 44px touch targets.
+**Verification:** Build passes. Links have slight visible spacing on mobile.
+
+## Task 2: Reduce Dead Space Above Social Icons
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Footer.tsx`:** Changed social icons container from `mt-8 sm:mt-10` to `mt-8 pt-6 border-t border-neutral-800/50`. Adds a subtle horizontal divider line above the social icons, visually anchoring them to the footer content grid.
+**Verification:** Build passes. Divider visible on desktop and mobile. Icons remain centered.
+
+## Task 3: Add Divider Above Copyright/Back-to-Top Row
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Footer.tsx`:** Changed bottom bar border from `border-neutral-800/50` to `border-neutral-800/30` (slightly more subtle than the social icons divider). Removed `sm:mt-8` responsive margin, keeping compact `mt-6`. Creates clear visual hierarchy: content grid → social icons → copyright strip.
+**Verification:** Build passes. Two distinct dividers visible with appropriate visual weight.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| `npx tsc --noEmit` | Zero errors |
+| Unit tests (Vitest) | 90/90 passed |
+| E2E tests (Chromium) | 227/233 passed (6 visual regression — expected, baselines updated) |
+| Visual regression baselines | 18/18 regenerated |
+| Google Maps URL in built output | Zero matches |
+| Only Footer.tsx modified | Confirmed |
+
+---
+
+## Files Modified
+
+- `src/components/landing/Footer.tsx` — removed Google icon, added dividers, fixed Quick Links gap
+
+---
+
+# Vercel Analytics & Speed Insights
+
+**Branch:** `feat/vercel-analytics`
+**Date:** 2026-03-01
+**Status:** All 4 tasks complete
+
+---
+
+## Task 1: Install Vercel Packages
+**Status:** Complete
+**Changes:**
+- **`package.json`:** Added `@vercel/analytics@1.6.1` and `@vercel/speed-insights@1.3.1` to dependencies.
+**Verification:** `npm ls` confirms both packages installed without errors.
+
+## Task 2: Add Analytics Component to Base Layout
+**Status:** Complete
+**Changes:**
+- **`src/layouts/BaseLayout.astro`:** Added `import Analytics from '@vercel/analytics/astro'` and `<Analytics />` component before `</body>`.
+**Verification:** Build passes. Built HTML includes `<vercel-analytics>` custom element with tracking script.
+
+## Task 3: Add Speed Insights Component to Base Layout
+**Status:** Complete
+**Changes:**
+- **`src/layouts/BaseLayout.astro`:** Added `import SpeedInsights from '@vercel/speed-insights/astro'` and `<SpeedInsights />` component after `<Analytics />`, before `</body>`.
+**Verification:** Build passes. Built HTML includes both Vercel analytics and speed insights scripts.
+
+## Task 4: Verify Production Build & Tests
+**Status:** Complete
+**Verification:** All gates passed (see summary below).
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| `npx tsc --noEmit` | Zero errors |
+| Unit tests (Vitest) | 90/90 passed |
+| E2E tests (Chromium) | 233/233 passed |
+| Visual regression | No baseline changes needed (scripts are invisible) |
+| Vercel analytics in built HTML | `<vercel-analytics>` custom element confirmed |
+
+---
+
+## Files Modified
+
+- `package.json` / `package-lock.json` — added @vercel/analytics, @vercel/speed-insights
+- `src/layouts/BaseLayout.astro` — imported and added Analytics + SpeedInsights components
+
+---
+
+# Service Image Slideshows
+
+**Branch:** `feat/service-image-slideshows`
+**Date:** 2026-03-01
+**Status:** All 6 tasks complete
+
+---
+
+## Task 1: Inventory & Rename Service Images
+**Status:** Complete
+**Changes:** Renamed 7 service folders from display names to kebab-case via `git mv`. Renamed 91 image files from camera names (IMG_xxxx) to `{service}-{N}.{ext}` pattern. Empty folders (24-7 Emergency Response, Plan & Specification Work) renamed to `emergency-response` and `plan-spec`.
+**Image counts:** duct-insulation (13), field-applied-jacketing (24), material-sales (2), pipe-insulation (21), pipe-supports (5), removable-blankets (8), tanks-vessels (18) = 91 total
+**Commit:** `chore: rename and organize service images`
+
+## Task 2: Convert All Images to WebP + Optimize
+**Status:** Complete
+**Changes:** Created `scripts/convert-service-images.mjs` using sharp. Converted all 91 images to WebP (quality 80) + optimized JPG (quality 75-85) at max 1200px wide. Normalized all extensions to lowercase. Total size reduced from 65.2MB to 37.3MB (43% savings). Largest file: 490KB (all under 500KB limit). Cleaned up stale originals (.JPEG, .jpeg, .JPG) and spurious .tmp files.
+**Commit:** `perf: convert service images to WebP with optimization`
+
+## Task 3: Process New Hero Image
+**Status:** Complete
+**Changes:** Processed `IMG_4969 - new.jpg` as hero-6 (960x1280 portrait). WebP: 305KB, JPG: 404KB. Added to `HeroFullWidth.tsx` slideshow arrays (heroImages, heroImagePositions, heroImageAlts, heroImageOrigins).
+**Build checkpoint:** `npm run build` passes clean.
+**Commit:** `perf: add and optimize new hero image`
+
+## Task 4: Add Service Image Data to Site Content
+**Status:** Complete
+**Changes:** Added `ServiceImage` interface and `images` arrays to all 9 service definitions in `src/content/site.ts`. Descriptive alt text based on visual inspection of each image. Emergency Response and Plan & Spec have empty arrays.
+**Commit:** `feat: add service image data to site content`
+
+## Task 5: Build Service Modal Image Slideshow Component
+**Status:** Complete
+**Changes:** Created `src/components/landing/ImageSlideshow.tsx` with:
+- Full-width 16:9 aspect ratio container with `object-fit: cover`
+- Left/right arrow navigation (44px touch targets, semi-transparent dark bg)
+- Dot indicators (12px visible, 44px touch targets)
+- Touch/swipe support (50px threshold)
+- Auto-advance every 5s, pauses on hover/touch
+- Smooth crossfade transition (CSS opacity, 500ms)
+- `<picture>` elements with WebP + JPG fallback
+- First image eager-loaded, rest lazy-loaded
+- Single image: no arrows/dots. Zero images: no slideshow rendered.
+
+Updated `Services.tsx` modal:
+- Imported and rendered ImageSlideshow above icon/title/description
+- Modal widened to max-w-xl, scrollable with max-h-[90vh]
+- Close button adapts style (dark bg when over images, transparent otherwise)
+**Commit:** `feat: add image slideshow to service modals`
+
+## Task 6: Full Verification
+**Status:** Complete
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| `npx tsc --noEmit` | Zero errors |
+| Unit tests (Vitest) | 90/90 passed |
+| E2E tests (Chromium) | 233/233 passed |
+| Visual regression | 18/18 passed (no baseline changes needed — slideshow is inside modal) |
+
+---
+
+## Files Created/Modified
+
+- `scripts/convert-service-images.mjs` — one-time image conversion script
+- `src/components/landing/ImageSlideshow.tsx` — slideshow component (NEW)
+- `src/components/landing/Services.tsx` — modal integration with slideshow
+- `src/components/landing/HeroFullWidth.tsx` — hero-6 added to slideshow arrays
+- `src/content/site.ts` — ServiceImage interface + images arrays for all 9 services
+- `public/images/services/` — 91 images converted to WebP + JPG pairs (182 files)
+- `public/images/hero/hero-6.webp` + `hero-6.jpg` — new hero image (NEW)
