@@ -66,7 +66,6 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
     }
     touchStartRef.current = null;
     touchDeltaRef.current = 0;
-    // Resume auto-advance after a delay
     setTimeout(() => setIsPaused(false), AUTO_ADVANCE_MS);
   };
 
@@ -74,15 +73,15 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
 
   return (
     <div
-      className="relative w-full overflow-hidden bg-neutral-950 rounded-t-2xl"
+      className="relative flex flex-col bg-black h-full"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* 16:9 aspect ratio container */}
-      <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+      {/* Image container — fills available height, object-contain for no cropping */}
+      <div className="relative flex-1 min-h-[280px] md:min-h-[400px]">
         {images.map((image, index) => {
           const isActive = index === currentIndex;
           return (
@@ -101,7 +100,7 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
                 <img
                   src={`/images/services/${image.src}.jpg`}
                   alt={image.alt}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-contain"
                   loading={index === 0 ? "eager" : "lazy"}
                   draggable={false}
                 />
@@ -109,54 +108,40 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
             </div>
           );
         })}
+
+        {/* Arrow buttons — only if multiple images */}
+        {hasMultiple && (
+          <>
+            <button
+              type="button"
+              onClick={goPrev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              aria-label="Previous image"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={goNext}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              aria-label="Next image"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
 
-      {/* Arrow buttons — only if multiple images */}
+      {/* Photo counter — "3 / 20" format */}
       {hasMultiple && (
-        <>
-          <button
-            type="button"
-            onClick={goPrev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-            aria-label="Previous image"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={goNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-            aria-label="Next image"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-          </button>
-        </>
-      )}
-
-      {/* Dot indicators — only if multiple images */}
-      {hasMultiple && (
-        <div className="absolute bottom-0 left-0 right-0 z-20 flex justify-center gap-1 pb-1">
-          {images.map((image, index) => (
-            <button
-              key={image.src}
-              type="button"
-              onClick={() => goTo(index)}
-              className="flex items-center justify-center w-11 h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-1 focus-visible:ring-offset-black rounded-full"
-              aria-label={`Go to image ${index + 1}`}
-            >
-              <span
-                className={`block w-3 h-3 rounded-full transition-all duration-200 ${
-                  index === currentIndex
-                    ? "bg-white scale-110"
-                    : "bg-white/40 hover:bg-white/60"
-                }`}
-              />
-            </button>
-          ))}
+        <div className="flex-shrink-0 py-2 text-center">
+          <span className="text-sm text-neutral-400 tabular-nums">
+            {currentIndex + 1} / {count}
+          </span>
         </div>
       )}
     </div>

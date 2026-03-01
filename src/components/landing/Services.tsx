@@ -214,82 +214,98 @@ export default function Services() {
             role="dialog"
             aria-modal="true"
             aria-labelledby={`modal-${activeService}`}
-            className={`relative z-10 max-w-xl w-full mx-4 max-h-[90vh] overflow-y-auto bg-neutral-900/80 backdrop-blur-md rounded-2xl border border-neutral-700/40 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
+            className={`relative z-10 w-full mx-4 max-h-[85vh] overflow-hidden bg-neutral-900 backdrop-blur-md rounded-2xl border border-neutral-700/40 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${
+              activeServiceData && activeServiceData.images.length > 0
+                ? "max-w-[1000px]"
+                : "max-w-lg"
+            } ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
-            <button
-              type="button"
-              onClick={closeModal}
-              className={`absolute top-4 right-4 z-30 flex items-center justify-center w-9 h-9 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 ${
-                activeServiceData && activeServiceData.images.length > 0
-                  ? "bg-black/50 text-white hover:bg-black/70"
-                  : "text-neutral-400 hover:text-white hover:bg-neutral-800"
-              }`}
-              aria-label="Close dialog"
-            >
-              <X className="w-5 h-5" aria-hidden="true" />
-            </button>
-
             {activeServiceData && (() => {
               const Icon = iconMap[activeServiceData.anchorId] || Droplets;
               const modalIconColor = "text-blue-500";
               const modalGlowColor = "bg-blue-500/20";
               const hasImages = activeServiceData.images.length > 0;
               return (
-                <>
-                  {/* Image Slideshow — only if images exist */}
+                <div className={`flex h-full ${hasImages ? "flex-col md:flex-row" : "flex-col"}`} style={hasImages ? { height: "85vh", maxHeight: "85vh" } : undefined}>
+                  {/* Left Panel — Image Slideshow (60% on desktop) */}
                   {hasImages && (
-                    <ImageSlideshow images={activeServiceData.images} />
+                    <div className="relative md:w-[60%] flex-shrink-0 max-h-[50vh] md:max-h-none overflow-hidden rounded-t-2xl md:rounded-t-none md:rounded-l-2xl">
+                      <ImageSlideshow images={activeServiceData.images} />
+                      {/* Close button — over image panel */}
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="absolute top-3 right-3 z-30 flex items-center justify-center w-9 h-9 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        aria-label="Close dialog"
+                      >
+                        <X className="w-5 h-5" aria-hidden="true" />
+                      </button>
+                    </div>
                   )}
 
-                  <div className="p-6 sm:p-8">
-                    {/* Icon with accent glow */}
-                    <div className="flex justify-center mb-4">
-                      <div className="relative flex items-center justify-center">
-                        <div className={`absolute w-16 h-16 ${modalGlowColor} rounded-full blur-xl`} aria-hidden="true" />
-                        <Icon
-                          className={`relative w-12 h-12 ${modalIconColor}`}
-                          strokeWidth={1.5}
-                          aria-hidden="true"
-                        />
+                  {/* Right Panel — Text Content (40% on desktop, full width on mobile & no-image) */}
+                  <div className={`flex flex-col ${hasImages ? "md:w-[40%] md:border-l md:border-neutral-700/40" : "w-full"} overflow-y-auto`}>
+                    {/* Close button for no-image modals */}
+                    {!hasImages && (
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="absolute top-4 right-4 z-30 flex items-center justify-center w-9 h-9 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        aria-label="Close dialog"
+                      >
+                        <X className="w-5 h-5" aria-hidden="true" />
+                      </button>
+                    )}
+
+                    <div className={`flex flex-col justify-center flex-1 p-6 sm:p-8 ${hasImages ? "md:py-10" : ""}`}>
+                      {/* Icon with accent glow */}
+                      <div className="flex justify-center mb-4">
+                        <div className="relative flex items-center justify-center">
+                          <div className={`absolute w-16 h-16 ${modalGlowColor} rounded-full blur-xl`} aria-hidden="true" />
+                          <Icon
+                            className={`relative w-12 h-12 ${modalIconColor}`}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Title */}
+                      <h3
+                        id={`modal-${activeServiceData.anchorId}`}
+                        className="text-xl font-bold text-white text-center uppercase tracking-wide"
+                      >
+                        {activeServiceData.title}
+                      </h3>
+
+                      {/* Divider */}
+                      <div className="border-t border-neutral-700/50 my-4" />
+
+                      {/* Description */}
+                      <p className="text-neutral-300 text-sm leading-relaxed">
+                        {activeServiceData.description}
+                      </p>
+
+                      {/* CTA */}
+                      <div className="mt-6">
+                        <a
+                          href="#contact"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            closeModal();
+                            setTimeout(() => {
+                              document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
+                            }, 250);
+                          }}
+                          className="btn-primary w-full text-center"
+                        >
+                          Request a Quote
+                        </a>
                       </div>
                     </div>
-
-                    {/* Title */}
-                    <h3
-                      id={`modal-${activeServiceData.anchorId}`}
-                      className="text-xl font-bold text-white text-center uppercase tracking-wide"
-                    >
-                      {activeServiceData.title}
-                    </h3>
-
-                    {/* Divider */}
-                    <div className="border-t border-neutral-700/50 my-4" />
-
-                    {/* Description */}
-                    <p className="text-neutral-300 text-sm leading-relaxed">
-                      {activeServiceData.description}
-                    </p>
-
-                    {/* CTA */}
-                    <div className="mt-6">
-                      <a
-                        href="#contact"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          closeModal();
-                          setTimeout(() => {
-                            document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
-                          }, 250);
-                        }}
-                        className="btn-primary w-full text-center"
-                      >
-                        Request a Quote
-                      </a>
-                    </div>
                   </div>
-                </>
+                </div>
               );
             })()}
           </div>
