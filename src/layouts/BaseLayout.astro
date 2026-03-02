@@ -190,12 +190,13 @@ const serviceCatalogSchema = JSON.stringify({
     <!-- Canonical URL -->
     <link rel="canonical" href={canonical} />
     
-    <!-- Preload LCP hero image -->
+    <!-- Preload LCP hero image (responsive) -->
     <link
       rel="preload"
       as="image"
       type="image/webp"
-      href="/images/hero/hero-1.webp"
+      imagesrcset="/images/hero/hero-1-480w.webp 480w, /images/hero/hero-1-960w.webp 960w, /images/hero/hero-1.webp 1920w"
+      imagesizes="100vw"
       fetchpriority="high"
     />
     <link rel="preload" as="image" href="/images/logo/rmi-logo-full.png" />
