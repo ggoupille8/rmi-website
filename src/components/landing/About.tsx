@@ -47,7 +47,7 @@ const features: AboutFeature[] = [
 export default function About() {
   return (
     <section
-      className="pt-10 pb-16 sm:py-20 lg:py-24 bg-neutral-900 border-t border-neutral-600/30"
+      className="py-8 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-600/30"
       aria-labelledby="about-heading"
     >
       <div className="container-custom">
@@ -63,9 +63,10 @@ export default function About() {
         </div>
 
         {/* Subtitle */}
-        <p className="text-center text-neutral-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-6">
+        <p className="text-center text-neutral-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-4">
           Built on safety, reliability, and deep expertise. Here&rsquo;s what sets us apart.
         </p>
+
 
         {/* Feature Cards Grid — 1 col mobile, 2 col tablet, 4 col desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
