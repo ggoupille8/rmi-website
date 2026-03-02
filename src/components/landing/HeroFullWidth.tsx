@@ -214,16 +214,18 @@ export default function HeroFullWidth({
           >
             <picture>
               <source
-                srcSet={src.replace(/\.jpe?g$/i, ".webp")}
+                srcSet={`${src.replace(/\.(webp|jpe?g)$/i, "-480w.webp")} 480w, ${src.replace(/\.(webp|jpe?g)$/i, "-960w.webp")} 960w, ${src.replace(/\.(webp|jpe?g)$/i, ".webp")} 1920w`}
+                sizes="100vw"
                 type="image/webp"
               />
               <img
                 src={src}
+                srcSet={`${src.replace(/\.webp$/, "-480w.jpg")} 480w, ${src.replace(/\.webp$/, "-960w.jpg")} 960w, ${src.replace(/\.webp$/, ".jpg")} 1920w`}
+                sizes="100vw"
                 alt={heroImageAlts[index]}
                 width="1920"
                 height="1080"
                 className={`w-full h-full object-cover ${heroImagePositions[index]}`}
-                sizes="100vw"
                 loading={index === 0 ? "eager" : "lazy"}
                 fetchPriority={index === 0 ? "high" : undefined}
                 style={
