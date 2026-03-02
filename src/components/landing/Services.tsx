@@ -148,7 +148,7 @@ export default function Services() {
   return (
     <ErrorBoundary>
     <section
-      className="pt-10 pb-16 sm:py-20 lg:py-24 bg-neutral-800 border-t border-accent-600/20"
+      className="py-8 sm:py-10 lg:py-12 bg-neutral-800 border-t border-accent-600/20"
       aria-labelledby="services-heading"
     >
       <div className="container-custom">
@@ -164,7 +164,7 @@ export default function Services() {
         </div>
 
         {/* Section Subtitle */}
-        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-5xl mx-auto mt-4 mb-6 sm:mb-8 lg:mb-10">
+        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-5xl mx-auto mt-4 mb-4 sm:mb-6">
           {servicesSubtitle}
         </p>
 

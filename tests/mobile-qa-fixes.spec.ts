@@ -395,20 +395,22 @@ test.describe("Desktop cross-check — 1440×900", () => {
       const servicesClass = await services.getAttribute("class");
       const aboutClass = await about.getAttribute("class");
 
-      // Both sections use pt-10 pb-16 sm:py-20 lg:py-24 (reduced top spacing on mobile)
-      expect(servicesClass).toContain("pt-10");
-      expect(servicesClass).toContain("pb-16");
-      expect(servicesClass).toContain("sm:py-20");
-      expect(aboutClass).toContain("pt-10");
-      expect(aboutClass).toContain("pb-16");
-      expect(aboutClass).toContain("sm:py-20");
+      // Both sections use py-8 sm:py-10 lg:py-12 (tightened spacing)
+      expect(servicesClass).toContain("py-8");
+      expect(servicesClass).toContain("sm:py-10");
+      expect(servicesClass).toContain("lg:py-12");
+      expect(aboutClass).toContain("py-8");
+      expect(aboutClass).toContain("sm:py-10");
+      expect(aboutClass).toContain("lg:py-12");
     });
 
-    test("Contact section has border-t separator", async ({ page }) => {
+    test("Contact section is inside shared CTA background wrapper", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
       const contact = page.locator('section[aria-labelledby="contact-heading"]');
       const contactClass = await contact.getAttribute("class");
-      expect(contactClass).toContain("border-t");
+      // Contact form sits inside shared CTA background wrapper with relative z-10
+      expect(contactClass).toContain("relative");
+      expect(contactClass).toContain("z-10");
     });
   });
 

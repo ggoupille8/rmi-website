@@ -220,7 +220,7 @@ export default function ContactForm({
 
   return (
     <ErrorBoundary fallback={
-      <section className="bg-neutral-900 border-t border-neutral-700/40 py-12">
+      <section className="relative z-10 py-12">
         <div className="container-custom text-center">
           <p className="text-neutral-400">
             Unable to load form. Please call{" "}
@@ -232,10 +232,10 @@ export default function ContactForm({
       </section>
     }>
     <section
-      className="bg-neutral-900 overflow-hidden border-t border-neutral-700/40"
+      className="relative z-10 overflow-hidden"
       aria-labelledby="contact-heading"
     >
-      <div className="container-custom pt-8 pb-10 sm:pt-10 sm:pb-14 lg:pt-12 lg:pb-16">
+      <div className="container-custom py-8 sm:py-10 lg:py-12">
         <div className="max-w-2xl mx-auto">
           <h2
             id="contact-heading"
@@ -252,7 +252,7 @@ export default function ContactForm({
             ref={formRef}
             method="post"
             onSubmit={handleSubmit}
-            className="mt-6 space-y-3"
+            className="mt-4 space-y-3"
             noValidate
             aria-busy={isSubmitting ? "true" : "false"}
           >
