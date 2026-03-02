@@ -148,15 +148,8 @@ function AnimatedStat({
       <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)" }}>
         {finalDisplay}
       </div>
-      <div className="mt-1 text-sm sm:text-xs lg:text-sm text-neutral-200 uppercase tracking-normal sm:tracking-wider lg:tracking-widest leading-tight" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
-        {shortLabel ? (
-          <>
-            <span className="hidden sm:inline">{label}</span>
-            <span className="sm:hidden">{shortLabel}</span>
-          </>
-        ) : (
-          label
-        )}
+      <div className="mt-1 text-[10px] sm:text-xs lg:text-sm text-neutral-200 uppercase tracking-normal sm:tracking-wider lg:tracking-widest leading-tight" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
+        {label}
       </div>
     </div>
   );
