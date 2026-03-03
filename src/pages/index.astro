@@ -43,15 +43,16 @@ import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../conten
           alt=""
           width="3024"
           height="4032"
-          class="absolute inset-0 w-full h-full object-cover object-[center_30%] md:object-[center_40%]"
+          class="absolute inset-0 w-full h-full object-cover object-[center_25%] md:object-[center_35%]"
           loading="lazy"
           decoding="async"
           aria-hidden="true"
         />
       </picture>
-      <div class="absolute inset-0 bg-black/60"></div>
+      <div class="absolute inset-0 bg-black/70"></div>
       <CTABanner />
-      <div id="contact" class="scroll-mt-14">
+      <div id="contact" class="scroll-mt-14 relative">
+        <div class="absolute inset-0 bg-black/10"></div>
         <ContactForm client:visible />
       </div>
     </div>
