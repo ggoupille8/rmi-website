@@ -17,14 +17,24 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-// Unified card styling — same accent for all tiers
-const cardStyle = {
-  borderColor: "border-l-blue-500",
-  hoverBorder: "hover:border-l-blue-400",
+// Card styling per visual tier
+const tier1Style = {
+  border: "border-l-4 border-l-blue-500 hover:border-l-blue-400",
+  bg: "bg-neutral-900/60",
   iconColor: "text-blue-500",
   hoverIcon: "group-hover:text-blue-400",
   glowColor: "hover:shadow-lg hover:shadow-blue-500/10",
 };
+const defaultStyle = {
+  border: "border-l-[3px] border-l-blue-500/70 hover:border-l-blue-400/70",
+  bg: "bg-neutral-900/50",
+  iconColor: "text-blue-500",
+  hoverIcon: "group-hover:text-blue-400",
+  glowColor: "hover:shadow-lg hover:shadow-blue-500/10",
+};
+
+// First 3 services = Tier 1 (core); rest = default
+const tier1Anchors = new Set(["piping", "duct", "tanks"]);
 
 // Map service anchor IDs to icons
 const iconMap: Record<string, LucideIcon> = {
@@ -173,7 +183,7 @@ export default function Services() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
           {services.map((service) => {
             const IconComponent = iconMap[service.anchorId] || Droplets;
-            const style = cardStyle;
+            const style = tier1Anchors.has(service.anchorId) ? tier1Style : defaultStyle;
             return (
               <button
                 key={service.anchorId}
@@ -182,7 +192,7 @@ export default function Services() {
                 aria-haspopup="dialog"
                 aria-expanded={activeService === service.anchorId}
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] ${style.borderColor} transition-all duration-200 ease-out hover:bg-neutral-800/70 ${style.hoverBorder} hover:border-neutral-600 hover:-translate-y-0.5 ${style.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
+                className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] ${style.bg} backdrop-blur-sm border border-neutral-700/50 ${style.border} transition-all duration-200 ease-out hover:bg-neutral-800/70 hover:border-neutral-600 hover:-translate-y-0.5 ${style.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
               >
                 <IconComponent
                   className={`w-7 h-7 ${style.iconColor} ${style.hoverIcon} flex-shrink-0 transition-colors duration-200`}

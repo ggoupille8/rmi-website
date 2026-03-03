@@ -1205,3 +1205,65 @@ Updated `Services.tsx` modal:
 - `src/pages/index.astro` — removed unused backgroundImage prop
 - `src/components/landing/Navbar.astro` — fixed webkitBackdropFilter TypeScript cast
 - `tasks/lessons.md` — upgrade notes and remaining vulnerability documentation
+
+---
+
+# Sprint 2: UI Polish & Visual Improvements
+
+**Branch:** `feat/sprint-2-ui-polish`
+**Date:** 2026-03-03
+**Status:** All 5 tasks complete
+
+---
+
+## Task 1: Materials Marquee — Responsive Fade Masks
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/MaterialsMarquee.tsx`:** Updated CSS mask-image gradient stops from fixed `80px` to `clamp(48px, 8vw, 120px)`. At 375px mobile: ~48px fade. At 1280px desktop: ~102px fade. At 1500px+: 120px max. Ensures text fades smoothly at edges across all viewports.
+**Verification:** Build passes. Text smoothly fades in/out at both edges.
+
+## Task 2: Service Cards — Visual Tiering
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Services.tsx`:** Replaced single `cardStyle` with tiered styles. Tier 1 (piping, duct, tanks) gets `border-l-4` with full blue opacity and slightly brighter background (`bg-neutral-900/60`). Tier 2/3 services get thinner `border-l-[3px]` with reduced blue opacity (`border-l-blue-500/70`) and standard background (`bg-neutral-900/50`). Modal styling unchanged.
+**Verification:** Build passes. Top 3 cards visually distinct from lower 6 cards. All modals open correctly.
+
+## Task 3: About Section — Deduplicate Subtitle
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/About.tsx`:** Changed subtitle from "Built on safety, reliability, and deep expertise. Here's what sets us apart." to "Here's what sets us apart from other insulation contractors." Removes redundancy with Safety-First Culture card.
+**Verification:** Build passes. Subtitle no longer front-runs the Safety card content.
+
+## Task 4: Proven Track Record Card — Concrete Proof Points
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/About.tsx`:** Replaced generic Track Record text ("our work speaks for itself... trust RMI to deliver") with specific Michigan project names ("Henry Ford Hospital... Ford's new World Headquarters... Michigan's most recognized names").
+**Verification:** Build passes. Card now has concrete proof points matching Featured Projects section.
+
+## Task 5: Service Area JSON-LD Consistency
+**Status:** Complete
+**Changes:**
+- **`src/layouts/BaseLayout.astro`:** Expanded `areaServed` from single Michigan entry to array of 5 states: Michigan, Ohio, Indiana, Illinois, Wisconsin. Matches footer language "Serving Michigan and the Midwest."
+**Verification:** Build passes. JSON-LD areaServed lists 5 Midwest states.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| Marquee fade masks | Responsive `clamp(48px, 8vw, 120px)` |
+| Service card tiering | Top 3 cards have thicker blue border |
+| About subtitle | Deduplicated — no longer repeats Safety card |
+| Track Record card | Concrete Michigan project names |
+| JSON-LD areaServed | 5 Midwest states (MI, OH, IN, IL, WI) |
+
+---
+
+## Files Modified
+
+- `src/components/landing/MaterialsMarquee.tsx` — responsive fade mask clamp values
+- `src/components/landing/Services.tsx` — tier-based card styling (border width, opacity, background)
+- `src/components/landing/About.tsx` — subtitle dedup, Track Record card content
+- `src/layouts/BaseLayout.astro` — expanded areaServed to 5 states

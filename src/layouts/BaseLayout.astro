@@ -51,10 +51,13 @@ const localBusinessSchema = JSON.stringify({
     "latitude": 42.2223,
     "longitude": -83.3630
   },
-  "areaServed": {
-    "@type": "State",
-    "name": "Michigan"
-  },
+  "areaServed": [
+    { "@type": "State", "name": "Michigan" },
+    { "@type": "State", "name": "Ohio" },
+    { "@type": "State", "name": "Indiana" },
+    { "@type": "State", "name": "Illinois" },
+    { "@type": "State", "name": "Wisconsin" }
+  ],
   "openingHoursSpecification": [
     {
       "@type": "OpeningHoursSpecification",
