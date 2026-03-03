@@ -35,8 +35,8 @@ export default function MaterialsMarquee() {
         aria-hidden="true"
         aria-live="off"
         style={{
-          maskImage: "linear-gradient(to right, transparent, black 80px, black calc(100% - 80px), transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black 80px, black calc(100% - 80px), transparent)",
+          maskImage: "linear-gradient(to right, transparent, black clamp(48px, 8vw, 120px), black calc(100% - clamp(48px, 8vw, 120px)), transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(48px, 8vw, 120px), black calc(100% - clamp(48px, 8vw, 120px)), transparent)",
         }}
       >
         <div className="service-ticker">
@@ -58,8 +58,8 @@ export default function MaterialsMarquee() {
         className="relative mt-3 sm:mt-4 overflow-hidden"
         aria-hidden="true"
         style={{
-          maskImage: "linear-gradient(to right, transparent, black 80px, black calc(100% - 80px), transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black 80px, black calc(100% - 80px), transparent)",
+          maskImage: "linear-gradient(to right, transparent, black clamp(48px, 8vw, 120px), black calc(100% - clamp(48px, 8vw, 120px)), transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(48px, 8vw, 120px), black calc(100% - clamp(48px, 8vw, 120px)), transparent)",
         }}
       >
         <div className="service-ticker">
