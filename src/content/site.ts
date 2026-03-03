@@ -330,7 +330,7 @@ export const projectHighlights: ProjectHighlight[] = [
   },
   {
     title: "Ford World Headquarters — Dearborn",
-    description: "From the ground up, we contributed to the construction of Ford's new Henry Ford II World Center in Dearborn — a state-of-the-art campus replacing the iconic Glass House. This multi-year, multi-million dollar project included insulation services and pipe supports from our fabrication team, helping build the next generation of Ford's global headquarters.",
+    description: "From the ground up, we contributed to the construction of Ford's new World Headquarters in Dearborn — a state-of-the-art facility replacing the iconic Glass House. This multi-year, multi-million dollar project included insulation services and pipe supports from our fabrication team, helping build the next generation of Ford's global headquarters.",
     image: "/images/projects/ford-hub-dearborn",
     alt: "Insulation and pipe support fabrication at Ford World Headquarters in Dearborn",
   },
