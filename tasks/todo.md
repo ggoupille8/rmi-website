@@ -1076,3 +1076,62 @@ Updated `Services.tsx` modal:
 - `src/content/site.ts` — ServiceImage interface + images arrays for all 9 services
 - `public/images/services/` — 91 images converted to WebP + JPG pairs (182 files)
 - `public/images/hero/hero-6.webp` + `hero-6.jpg` — new hero image (NEW)
+
+---
+
+# Sprint 2: Content Fix + UI Polish (Chrome Audit)
+
+**Branch:** `feat/sprint-2-content-fixes`
+**Date:** 2026-03-03
+**Status:** All 4 tasks complete
+
+---
+
+## Task 1: Fix Ford World Headquarters Project Name
+**Status:** Complete
+**Severity:** HIGH (factual error on production site)
+**Changes:**
+- **`src/content/site.ts`:** Changed "Henry Ford II World Center" to "World Headquarters" and "campus" to "facility" in Ford World HQ project card description.
+**Verification:** `grep -r "Henry Ford II" src/` returns zero results. Card title "Ford World Headquarters — Dearborn" unchanged. `npm run build` passes.
+
+## Task 2: Add Missing Alt Text to CTA Banner Image
+**Status:** Complete (already resolved)
+**Severity:** MEDIUM (accessibility)
+**Changes:** No code change needed — the CTA background image in `index.astro` already has `alt=""` with `aria-hidden="true"`, which is the correct WCAG treatment for a decorative background image behind CTA text.
+
+## Task 3: Fix "Why Choose RMI" Heading Screen Reader Accessibility
+**Status:** Complete
+**Severity:** LOW (screen reader)
+**Changes:**
+- **`src/components/landing/About.tsx`:** Added `aria-label="Why Choose Resource Mechanical Insulation"` to the h2 element. Wrapped all visual text content in `<span aria-hidden="true">` so screen readers use the clean aria-label instead of reading both responsive spans concatenated ("Resource Mechanical InsulationRMI").
+**Verification:** `aria-label` present on heading. Visual rendering identical (full name on desktop, "RMI" on mobile). `npm run build` passes.
+
+## Task 4: Verify URL Canonical Consistency (www vs non-www)
+**Status:** Complete (no changes needed)
+**Severity:** LOW (SEO hygiene)
+**Finding:** All web URLs are consistent — every reference uses `https://www.rmi-llc.net`:
+- `astro.config.mjs` site property: `https://www.rmi-llc.net`
+- `index.astro` canonical: `https://www.rmi-llc.net/`
+- `BaseLayout.astro` siteUrl fallback: `https://www.rmi-llc.net`
+- `BaseLayout.astro` JSON-LD schema: `https://www.rmi-llc.net`
+- Email addresses use `rmi-llc.net` (no www) — correct for email domains, not a mismatch.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| `npx tsc --noEmit` | Zero errors |
+| "Henry Ford II" in src/ | Zero matches |
+| CTA image alt attribute | Present (`alt=""` + `aria-hidden="true"`) |
+| About heading aria-label | Present |
+| Canonical URL consistency | All `https://www.rmi-llc.net` |
+
+---
+
+## Files Modified
+
+- `src/content/site.ts` — Ford HQ project name correction
+- `src/components/landing/About.tsx` — aria-label on heading, aria-hidden on visual spans
