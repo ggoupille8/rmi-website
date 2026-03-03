@@ -34,7 +34,7 @@ const features: AboutFeature[] = [
     icon: Award,
     title: "Proven Track Record",
     description:
-      "From hospitals and manufacturing plants to landmark restorations and ground-up campus builds \u2014 our work speaks for itself. Year after year, general contractors and facility managers trust RMI to deliver on schedule and on spec.",
+      "From a year-round presence at Henry Ford Hospital to Ford\u2019s new World Headquarters \u2014 our project list includes Michigan\u2019s most recognized names. General contractors and facility managers choose RMI because we deliver on schedule, on spec, and on budget.",
   },
   {
     icon: Users,
@@ -65,7 +65,7 @@ export default function About() {
 
         {/* Subtitle */}
         <p className="text-center text-neutral-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-4">
-          Built on safety, reliability, and deep expertise. Here&rsquo;s what sets us apart.
+          Here&rsquo;s what sets us apart from other insulation contractors.
         </p>
 
 
