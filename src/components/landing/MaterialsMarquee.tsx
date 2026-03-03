@@ -13,11 +13,11 @@ export default function MaterialsMarquee() {
 
   return (
     <section
-      className="relative pt-10 pb-16 sm:py-20 lg:py-24 overflow-hidden bg-neutral-800 border-t border-neutral-600/30"
+      className="relative py-8 sm:py-10 lg:py-12 overflow-hidden bg-neutral-800 border-t border-neutral-600/30"
     >
 
       {/* Header */}
-      <div className="container-custom mb-6">
+      <div className="container-custom mb-4">
         <h2 className="text-xl sm:text-2xl lg:text-3xl text-white uppercase tracking-wider font-bold text-center">
           Materials We Work With
         </h2>

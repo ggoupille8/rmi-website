@@ -12,11 +12,11 @@ export default function Footer() {
       className="bg-neutral-900 text-white border-t border-neutral-800/50"
       aria-label="Site footer"
     >
-      <div className="container-custom pt-12 sm:pt-16 pb-6 sm:pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
+      <div className="container-custom pt-8 sm:pt-10 pb-4 sm:pb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {/* Company Info */}
           <div className="text-center md:text-left">
-            <h3 className="text-lg font-bold text-white mb-4 sm:mb-6">
+            <h3 className="text-lg font-bold text-white mb-3 sm:mb-4">
               {companyNameFull}
             </h3>
             <p className="text-neutral-300 text-sm leading-relaxed">
@@ -29,7 +29,7 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="text-center md:text-left">
-            <h3 className="text-lg font-bold text-white mb-4 sm:mb-6">
+            <h3 className="text-lg font-bold text-white mb-3 sm:mb-4">
               Quick Links
             </h3>
             <nav className="flex flex-col items-center md:items-start gap-1" aria-label="Footer navigation">
@@ -62,7 +62,7 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div className="text-center md:text-left">
-            <h3 className="text-lg font-bold text-white mb-4 sm:mb-6">
+            <h3 className="text-lg font-bold text-white mb-3 sm:mb-4">
               Contact
             </h3>
             <div className="space-y-0 inline-flex flex-col items-center md:items-start">
@@ -93,7 +93,7 @@ export default function Footer() {
         </div>
 
         {/* Social Links */}
-        <div className="mt-8 pt-6 border-t border-neutral-800/50 flex justify-center gap-5">
+        <div className="mt-4 pt-4 border-t border-neutral-800/50 flex justify-center gap-5">
           <a
             href="https://www.linkedin.com/company/resource-mechanical-insulation"
             target="_blank"
@@ -120,7 +120,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-6 pt-6 border-t border-neutral-800/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-3 pt-3 border-t border-neutral-800/30 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-neutral-500">
             &copy; {currentYear} {companyNameFull}. All rights reserved.
           </p>

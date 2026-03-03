@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { services, servicesSubtitle } from "../../content/site";
+import ImageSlideshow from "./ImageSlideshow";
 import {
   Droplets,
   AirVent,
@@ -12,6 +13,7 @@ import {
   Package,
   Clock,
   X,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 
@@ -21,7 +23,7 @@ const cardStyle = {
   hoverBorder: "hover:border-l-blue-400",
   iconColor: "text-blue-500",
   hoverIcon: "group-hover:text-blue-400",
-  glowColor: "hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]",
+  glowColor: "hover:shadow-lg hover:shadow-blue-500/10",
 };
 
 // Map service anchor IDs to icons
@@ -147,7 +149,7 @@ export default function Services() {
   return (
     <ErrorBoundary>
     <section
-      className="pt-10 pb-16 sm:py-20 lg:py-24 bg-neutral-800 border-t border-accent-600/20"
+      className="py-8 sm:py-10 lg:py-12 bg-neutral-800 border-t border-accent-600/20"
       aria-labelledby="services-heading"
     >
       <div className="container-custom">
@@ -163,7 +165,7 @@ export default function Services() {
         </div>
 
         {/* Section Subtitle */}
-        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-5xl mx-auto mt-4 mb-6 sm:mb-8 lg:mb-10">
+        <p className="text-center text-neutral-300 text-lg sm:text-xl max-w-5xl mx-auto mt-4 mb-4 sm:mb-6">
           {servicesSubtitle}
         </p>
 
@@ -180,7 +182,7 @@ export default function Services() {
                 aria-haspopup="dialog"
                 aria-expanded={activeService === service.anchorId}
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] ${style.borderColor} ${style.hoverBorder} hover:border-neutral-600/70 hover:bg-neutral-800/90 hover:-translate-y-0.5 ${style.glowColor} transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
+                className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] ${style.borderColor} transition-all duration-200 ease-out hover:bg-neutral-800/70 ${style.hoverBorder} hover:border-neutral-600 hover:-translate-y-0.5 ${style.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
               >
                 <IconComponent
                   className={`w-7 h-7 ${style.iconColor} ${style.hoverIcon} flex-shrink-0 transition-colors duration-200`}
@@ -190,6 +192,10 @@ export default function Services() {
                 <span className="text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
                   {service.title}
                 </span>
+                <ChevronRight
+                  className="w-4 h-4 text-neutral-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all duration-200 ml-auto flex-shrink-0 hidden sm:block"
+                  aria-hidden="true"
+                />
               </button>
             );
           })}
@@ -213,74 +219,100 @@ export default function Services() {
             role="dialog"
             aria-modal="true"
             aria-labelledby={`modal-${activeService}`}
-            className={`relative z-10 max-w-lg w-full mx-4 bg-neutral-900/80 backdrop-blur-md rounded-2xl border border-neutral-700/40 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
+            className={`relative z-10 w-full mx-4 max-h-[85vh] overflow-hidden bg-neutral-900 backdrop-blur-md rounded-2xl border border-neutral-700/40 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${
+              activeServiceData && activeServiceData.images.length > 0
+                ? "max-w-[1000px]"
+                : "max-w-lg"
+            } ${isVisible && !isClosing ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
-            <button
-              type="button"
-              onClick={closeModal}
-              className="absolute top-4 right-4 flex items-center justify-center w-9 h-9 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-              aria-label="Close dialog"
-            >
-              <X className="w-5 h-5" aria-hidden="true" />
-            </button>
+            {activeServiceData && (() => {
+              const Icon = iconMap[activeServiceData.anchorId] || Droplets;
+              const modalIconColor = "text-blue-500";
+              const modalGlowColor = "bg-blue-500/20";
+              const hasImages = activeServiceData.images.length > 0;
+              return (
+                <div className={`flex h-full ${hasImages ? "flex-col md:flex-row" : "flex-col"}`} style={hasImages ? { height: "85vh", maxHeight: "85vh" } : undefined}>
+                  {/* Left Panel — Image Slideshow (60% on desktop) */}
+                  {hasImages && (
+                    <div className="relative md:w-[60%] flex-shrink-0 max-h-[50vh] md:max-h-none overflow-hidden rounded-t-2xl md:rounded-t-none md:rounded-l-2xl">
+                      <ImageSlideshow images={activeServiceData.images} />
+                      {/* Close button — over image panel */}
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="absolute top-3 right-3 z-30 flex items-center justify-center w-9 h-9 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        aria-label="Close dialog"
+                      >
+                        <X className="w-5 h-5" aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
 
-            <div className="p-6 sm:p-8">
-              {activeServiceData && (() => {
-                const Icon = iconMap[activeServiceData.anchorId] || Droplets;
-                const modalIconColor = "text-blue-500";
-                const modalGlowColor = "bg-blue-500/20";
-                return (
-                  <>
-                    {/* Icon with accent glow */}
-                    <div className="flex justify-center mb-4">
-                      <div className="relative flex items-center justify-center">
-                        <div className={`absolute w-16 h-16 ${modalGlowColor} rounded-full blur-xl`} aria-hidden="true" />
-                        <Icon
-                          className={`relative w-12 h-12 ${modalIconColor}`}
-                          strokeWidth={1.5}
-                          aria-hidden="true"
-                        />
+                  {/* Right Panel — Text Content (40% on desktop, full width on mobile & no-image) */}
+                  <div className={`flex flex-col ${hasImages ? "md:w-[40%] md:border-l md:border-neutral-700/40" : "w-full"} overflow-y-auto`}>
+                    {/* Close button for no-image modals */}
+                    {!hasImages && (
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="absolute top-4 right-4 z-30 flex items-center justify-center w-9 h-9 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        aria-label="Close dialog"
+                      >
+                        <X className="w-5 h-5" aria-hidden="true" />
+                      </button>
+                    )}
+
+                    <div className={`flex flex-col justify-center flex-1 p-6 sm:p-8 ${hasImages ? "md:py-10" : ""}`}>
+                      {/* Icon with accent glow */}
+                      <div className="flex justify-center mb-4">
+                        <div className="relative flex items-center justify-center">
+                          <div className={`absolute w-16 h-16 ${modalGlowColor} rounded-full blur-xl`} aria-hidden="true" />
+                          <Icon
+                            className={`relative w-12 h-12 ${modalIconColor}`}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Title */}
+                      <h3
+                        id={`modal-${activeServiceData.anchorId}`}
+                        className="text-xl font-bold text-white text-center uppercase tracking-wide"
+                      >
+                        {activeServiceData.title}
+                      </h3>
+
+                      {/* Divider */}
+                      <div className="border-t border-neutral-700/50 my-4" />
+
+                      {/* Description */}
+                      <p className="text-neutral-300 text-sm leading-relaxed">
+                        {activeServiceData.description}
+                      </p>
+
+                      {/* CTA */}
+                      <div className="mt-6">
+                        <a
+                          href="#contact"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            closeModal();
+                            setTimeout(() => {
+                              document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
+                            }, 250);
+                          }}
+                          className="btn-primary w-full text-center"
+                        >
+                          Request a Quote
+                        </a>
                       </div>
                     </div>
-
-                    {/* Title */}
-                    <h3
-                      id={`modal-${activeServiceData.anchorId}`}
-                      className="text-xl font-bold text-white text-center uppercase tracking-wide"
-                    >
-                      {activeServiceData.title}
-                    </h3>
-
-                    {/* Divider */}
-                    <div className="border-t border-neutral-700/50 my-4" />
-
-                    {/* Description */}
-                    <p className="text-neutral-300 text-sm leading-relaxed">
-                      {activeServiceData.description}
-                    </p>
-
-                    {/* CTA */}
-                    <div className="mt-6">
-                      <a
-                        href="#contact"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          closeModal();
-                          setTimeout(() => {
-                            document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
-                          }, 250);
-                        }}
-                        className="btn-primary w-full text-center"
-                      >
-                        Request a Quote
-                      </a>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

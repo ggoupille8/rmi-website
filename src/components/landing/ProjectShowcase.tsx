@@ -5,7 +5,7 @@ export default function ProjectShowcase() {
   return (
     <ErrorBoundary>
     <section
-      className="pt-10 pb-16 sm:py-16 bg-neutral-900 border-t border-neutral-600/30"
+      className="py-8 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-600/30"
       aria-labelledby="projects-heading"
     >
       <div className="container-custom">
@@ -51,7 +51,7 @@ export default function ProjectShowcase() {
                 <h3 className="text-lg font-semibold text-white">
                   {project.title}
                 </h3>
-                <p className="mt-1 text-sm text-gray-400 line-clamp-3">
+                <p className="mt-1 text-sm text-gray-400">
                   {project.description}
                 </p>
               </div>

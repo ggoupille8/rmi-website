@@ -34,9 +34,26 @@ import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../conten
     <div id="projects" class="scroll-mt-14">
       <ProjectShowcase client:visible />
     </div>
-    <CTABanner />
-    <div id="contact" class="scroll-mt-14">
-      <ContactForm client:visible />
+    <div class="relative overflow-hidden">
+      <!-- Shared background image for CTA + Contact -->
+      <picture>
+        <source srcset="/images/cta/cta-project.webp" type="image/webp" />
+        <img
+          src="/images/cta/cta-project.jpeg"
+          alt=""
+          width="3024"
+          height="4032"
+          class="absolute inset-0 w-full h-full object-cover object-[center_30%] md:object-[center_40%]"
+          loading="lazy"
+          decoding="async"
+          aria-hidden="true"
+        />
+      </picture>
+      <div class="absolute inset-0 bg-black/60"></div>
+      <CTABanner />
+      <div id="contact" class="scroll-mt-14">
+        <ContactForm client:visible />
+      </div>
     </div>
     <Footer client:visible />
     <FloatingMobileCTA client:load />
