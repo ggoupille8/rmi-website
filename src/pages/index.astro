@@ -25,14 +25,14 @@ import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../conten
       backgroundImage="/images/hero/hero-1.jpg"
     />
     <div id="services" class="scroll-mt-14">
-      <Services client:load />
+      <Services client:visible />
     </div>
     <div id="about" class="scroll-mt-14">
       <About />
     </div>
     <MaterialsMarquee />
     <div id="projects" class="scroll-mt-14">
-      <ProjectShowcase client:load />
+      <ProjectShowcase client:visible />
     </div>
     <div class="relative overflow-hidden">
       <!-- Shared background image for CTA + Contact -->
@@ -52,10 +52,10 @@ import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../conten
       <div class="absolute inset-0 bg-black/60"></div>
       <CTABanner />
       <div id="contact" class="scroll-mt-14">
-        <ContactForm client:load />
+        <ContactForm client:visible />
       </div>
     </div>
-    <Footer client:load />
+    <Footer client:visible />
     <FloatingMobileCTA client:load />
   </div>
 </BaseLayout>

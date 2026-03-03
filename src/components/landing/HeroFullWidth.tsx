@@ -152,15 +152,8 @@ function AnimatedStat({
       <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)" }}>
         {finalDisplay}
       </div>
-      <div className="mt-1 text-sm sm:text-xs lg:text-sm text-neutral-200 uppercase tracking-normal sm:tracking-wider lg:tracking-widest leading-tight" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
-        {shortLabel ? (
-          <>
-            <span className="hidden sm:inline">{label}</span>
-            <span className="sm:hidden">{shortLabel}</span>
-          </>
-        ) : (
-          label
-        )}
+      <div className="mt-1 text-[10px] sm:text-xs lg:text-sm text-neutral-200 uppercase tracking-normal sm:tracking-wider lg:tracking-widest leading-tight" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
+        {label}
       </div>
     </div>
   );
@@ -218,16 +211,18 @@ export default function HeroFullWidth({
           >
             <picture>
               <source
-                srcSet={src.replace(/\.jpe?g$/i, ".webp")}
+                srcSet={`${src.replace(/\.(webp|jpe?g)$/i, "-480w.webp")} 480w, ${src.replace(/\.(webp|jpe?g)$/i, "-960w.webp")} 960w, ${src.replace(/\.(webp|jpe?g)$/i, ".webp")} 1920w`}
+                sizes="100vw"
                 type="image/webp"
               />
               <img
                 src={src}
+                srcSet={`${src.replace(/\.webp$/, "-480w.jpg")} 480w, ${src.replace(/\.webp$/, "-960w.jpg")} 960w, ${src.replace(/\.webp$/, ".jpg")} 1920w`}
+                sizes="100vw"
                 alt={heroImageAlts[index]}
                 width="1920"
                 height="1080"
                 className={`w-full h-full object-cover ${heroImagePositions[index]}`}
-                sizes="100vw"
                 loading={index === 0 ? "eager" : "lazy"}
                 fetchPriority={index === 0 ? "high" : undefined}
                 style={
