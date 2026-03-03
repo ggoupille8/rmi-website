@@ -13,6 +13,7 @@ import {
   Package,
   Clock,
   X,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,7 +23,7 @@ const cardStyle = {
   hoverBorder: "hover:border-l-blue-400",
   iconColor: "text-blue-500",
   hoverIcon: "group-hover:text-blue-400",
-  glowColor: "hover:shadow-[0_0_15px_rgba(59,130,246,0.15)]",
+  glowColor: "hover:shadow-lg hover:shadow-blue-500/10",
 };
 
 // Map service anchor IDs to icons
@@ -181,7 +182,7 @@ export default function Services() {
                 aria-haspopup="dialog"
                 aria-expanded={activeService === service.anchorId}
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] ${style.borderColor} ${style.hoverBorder} hover:border-neutral-600/70 hover:bg-neutral-800/90 hover:-translate-y-0.5 ${style.glowColor} transition-all duration-200 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
+                className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] bg-neutral-900/50 backdrop-blur-sm border border-neutral-700/50 border-l-[3px] ${style.borderColor} transition-all duration-200 ease-out hover:bg-neutral-800/70 ${style.hoverBorder} hover:border-neutral-600 hover:-translate-y-0.5 ${style.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
               >
                 <IconComponent
                   className={`w-7 h-7 ${style.iconColor} ${style.hoverIcon} flex-shrink-0 transition-colors duration-200`}
@@ -191,6 +192,10 @@ export default function Services() {
                 <span className="text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
                   {service.title}
                 </span>
+                <ChevronRight
+                  className="w-4 h-4 text-neutral-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all duration-200 ml-auto flex-shrink-0 hidden sm:block"
+                  aria-hidden="true"
+                />
               </button>
             );
           })}
