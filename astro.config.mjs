@@ -2,7 +2,7 @@ import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import tailwind from "@astrojs/tailwind";
 import sitemap from "@astrojs/sitemap";
-import vercel from "@astrojs/vercel/serverless";
+import vercel from "@astrojs/vercel";
 
 // https://astro.build/config
 const site = "https://www.rmi-llc.net";
@@ -12,10 +12,7 @@ export default defineConfig({
   devToolbar: {
     enabled: false,
   },
-  output: "hybrid",
-  adapter: vercel({
-    runtime: "nodejs20.x",
-  }),
+  adapter: vercel(),
   integrations: [
     react(),
     tailwind({

@@ -1135,3 +1135,73 @@ Updated `Services.tsx` modal:
 
 - `src/content/site.ts` — Ford HQ project name correction
 - `src/components/landing/About.tsx` — aria-label on heading, aria-hidden on visual spans
+
+---
+
+# Astro 4 → 5 Major Framework Upgrade
+
+**Branch:** `feat/astro-5-upgrade`
+**Date:** 2026-03-03
+**Status:** All tasks complete
+
+---
+
+## Task 1: Upgrade Packages
+**Status:** Complete
+**Changes:**
+- `astro` — `^4.0.0` → `^5.18.0`
+- `@astrojs/react` — `^3.3.1` → `^4.4.2`
+- `@astrojs/vercel` — `^7.8.2` → `^9.0.4`
+- `@astrojs/sitemap` — `^3.6.0` → `^3.7.0`
+- `@astrojs/tailwind` — `^5.1.0` → `^6.0.2`
+- `@astrojs/check` — added (required by `astro check`)
+- React remains at `^18.2.0` (no change)
+- Tailwind CSS remains at `3.4.19` (no change)
+
+## Task 2: Fix Breaking Changes
+**Status:** Complete
+**Changes:**
+- **`astro.config.mjs`:** Removed `output: "hybrid"` (Astro 5 merges hybrid into static). Changed import from `@astrojs/vercel/serverless` to `@astrojs/vercel`. Removed `runtime: "nodejs20.x"` option (no longer supported in v9).
+- **`src/pages/index.astro`:** Removed unused `backgroundImage` prop from HeroFullWidth (surfaced by `astro check`).
+- **`src/components/landing/Navbar.astro`:** Fixed `webkitBackdropFilter` TypeScript error with double cast through `unknown`.
+
+## Task 3: npm audit — Vulnerabilities Resolved
+**Status:** Complete
+**Result:** The 5 original Astro-pinned vulnerabilities (astro <=5.15.8, esbuild, vite, @astrojs/vercel, @astrojs/react) are all resolved. 3 new vulnerabilities remain in `path-to-regexp` via `@vercel/routing-utils` — low risk for this project (see `tasks/lessons.md`).
+
+## Task 4: Type Checking
+**Status:** Complete
+**Result:**
+- `npx tsc --noEmit` — zero errors
+- `npx astro check` — 0 errors, 0 warnings, 18 hints (all pre-existing unused variable warnings)
+
+## Task 5: Tests
+**Status:** Complete
+**Result:** Unit tests (Vitest) — 90/90 passed (4 test files)
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| `npx tsc --noEmit` | Zero errors |
+| `npx astro check` | 0 errors, 0 warnings |
+| Unit tests (Vitest) | 90/90 passed |
+| `npm audit` — original 5 vulns | All resolved |
+| `npm audit` — remaining | 3 (path-to-regexp via @vercel/routing-utils, low risk) |
+| Astro version | 5.18.0 |
+| React version | 18.x (unchanged) |
+| Tailwind version | 3.4.19 (unchanged) |
+
+---
+
+## Files Modified
+
+- `package.json` — upgraded astro, @astrojs/react, @astrojs/vercel, @astrojs/sitemap, @astrojs/tailwind; added @astrojs/check
+- `package-lock.json` — regenerated
+- `astro.config.mjs` — removed output:hybrid, updated vercel import, removed runtime option
+- `src/pages/index.astro` — removed unused backgroundImage prop
+- `src/components/landing/Navbar.astro` — fixed webkitBackdropFilter TypeScript cast
+- `tasks/lessons.md` — upgrade notes and remaining vulnerability documentation
