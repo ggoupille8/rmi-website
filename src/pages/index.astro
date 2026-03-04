@@ -37,7 +37,11 @@ import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../conten
     <div class="relative overflow-hidden">
       <!-- Background image for Contact form -->
       <picture>
-        <source srcset="/images/cta/cta-project.webp" type="image/webp" />
+        <source
+          srcset="/images/cta/cta-project-960w.webp 960w, /images/cta/cta-project-1920w.webp 1920w"
+          sizes="100vw"
+          type="image/webp"
+        />
         <img
           src="/images/cta/cta-project.jpeg"
           alt=""

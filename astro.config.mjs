@@ -9,6 +9,9 @@ const site = "https://www.rmi-llc.net";
 
 export default defineConfig({
   site,
+  build: {
+    inlineStylesheets: "always",
+  },
   devToolbar: {
     enabled: false,
   },
