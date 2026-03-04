@@ -132,7 +132,9 @@ test.describe("Accessibility Tests", () => {
   });
 
   test("should have proper form error states", async ({ page }) => {
-    // Wait for React to hydrate the form (prevents native GET submission)
+    // Scroll form into view first — ContactForm uses client:visible so it
+    // only hydrates once the IntersectionObserver fires.
+    await page.locator('form').scrollIntoViewIfNeeded();
     await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 10000 });
 
     const submitButton = page.locator('button[type="submit"]');
@@ -152,7 +154,8 @@ test.describe("Accessibility Tests", () => {
   test("should have proper live regions for form feedback", async ({
     page,
   }) => {
-    // Wait for React to hydrate the form
+    // Scroll form into view first — ContactForm uses client:visible
+    await page.locator('form').scrollIntoViewIfNeeded();
     await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 10000 });
 
     // Fill out form
