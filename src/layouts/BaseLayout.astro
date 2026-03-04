@@ -73,6 +73,11 @@ const localBusinessSchema = JSON.stringify({
       "description": "24/7 Emergency Response Available"
     }
   ],
+  "logo": "https://www.rmi-llc.net/images/logo/rmi-logo-full.webp",
+  "sameAs": [
+    "https://www.linkedin.com/company/resource-mechanical-insulation",
+    "https://www.facebook.com/ResourceMechanicalInsulation"
+  ],
   "priceRange": "$$",
   "image": ogImageUrl,
   "knowsAbout": services.map(s => s.title),
@@ -96,6 +101,24 @@ const serviceCatalogSchema = JSON.stringify({
   "@type": "Organization",
   "name": "Resource Mechanical Insulation",
   "url": "https://www.rmi-llc.net",
+  "logo": "https://www.rmi-llc.net/images/logo/rmi-logo-full.webp",
+  "sameAs": [
+    "https://www.linkedin.com/company/resource-mechanical-insulation",
+    "https://www.facebook.com/ResourceMechanicalInsulation"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "telephone": "+14197056153",
+    "contactType": "sales",
+    "email": "fab@rmi-llc.net",
+    "availableLanguage": "English"
+  },
+  "foundingDate": "2021",
+  "numberOfEmployees": {
+    "@type": "QuantitativeValue",
+    "minValue": 10,
+    "maxValue": 50
+  },
   "hasOfferCatalog": {
     "@type": "OfferCatalog",
     "name": "Mechanical Insulation Services",
@@ -151,6 +174,57 @@ const serviceCatalogSchema = JSON.stringify({
     ]
   }
 });
+
+const serviceSchemas = JSON.stringify([
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "Pipe Insulation",
+    "provider": { "@type": "LocalBusiness", "name": companyNameFull },
+    "areaServed": { "@type": "State", "name": "Michigan" },
+    "description": "Commercial and industrial pipe insulation services including plumbing, HVAC, process piping, steam/condensate, and cryogenic systems."
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "Duct Insulation",
+    "provider": { "@type": "LocalBusiness", "name": companyNameFull },
+    "areaServed": { "@type": "State", "name": "Michigan" },
+    "description": "Insulation for standard ductwork, grease duct, fume hood, generator exhaust, and boiler breeching."
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "Equipment Insulation",
+    "provider": { "@type": "LocalBusiness", "name": companyNameFull },
+    "areaServed": { "@type": "State", "name": "Michigan" },
+    "description": "Insulation for tanks, vessels, and equipment including removable insulation blankets and cans."
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "Field-Applied Jacketing",
+    "provider": { "@type": "LocalBusiness", "name": companyNameFull },
+    "areaServed": { "@type": "State", "name": "Michigan" },
+    "description": "Aluminum, stainless steel, and PVC jacketing and lagging for outdoor and industrial insulation systems."
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "Pipe Support Fabrication",
+    "provider": { "@type": "LocalBusiness", "name": companyNameFull },
+    "areaServed": { "@type": "State", "name": "Michigan" },
+    "description": "Custom pipe support fabrication and installation for industrial and commercial applications."
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "serviceType": "Emergency Insulation Response",
+    "provider": { "@type": "LocalBusiness", "name": companyNameFull },
+    "areaServed": { "@type": "State", "name": "Michigan" },
+    "description": "24/7 emergency insulation repair and replacement services for urgent facility needs."
+  }
+]);
 ---
 
 <!doctype html>
@@ -243,6 +317,7 @@ const serviceCatalogSchema = JSON.stringify({
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json" set:html={localBusinessSchema} />
     <script type="application/ld+json" set:html={serviceCatalogSchema} />
+    <script type="application/ld+json" set:html={serviceSchemas} />
   </head>
   <body class="h-full">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600">
