@@ -245,7 +245,7 @@ export default function Services() {
                 <div className={`flex h-full ${hasImages ? "flex-col md:flex-row" : "flex-col"}`} style={hasImages ? { height: "85vh", maxHeight: "85vh" } : undefined}>
                   {/* Left Panel — Image Slideshow (60% on desktop) */}
                   {hasImages && (
-                    <div className="relative md:w-[60%] flex-shrink-0 max-h-[50vh] md:max-h-none overflow-hidden rounded-t-2xl md:rounded-t-none md:rounded-l-2xl">
+                    <div className="relative md:w-[60%] flex-shrink-0 max-h-[40vh] md:max-h-none overflow-hidden rounded-t-2xl md:rounded-t-none md:rounded-l-2xl">
                       <ImageSlideshow images={activeServiceData.images} />
                       {/* Close button — over image panel */}
                       <button
