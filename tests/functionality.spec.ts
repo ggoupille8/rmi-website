@@ -79,7 +79,7 @@ test.describe("Functionality Tests", () => {
     await submitButton.click();
 
     // Wait for success message
-    const successMessage = page.locator("text=Thank you for your inquiry");
+    const successMessage = page.locator("text=Thank you!");
     await expect(successMessage).toBeVisible({ timeout: 5000 });
 
     // Check that form is cleared
@@ -141,7 +141,7 @@ test.describe("Functionality Tests", () => {
     await expect(submitButton).toBeDisabled({ timeout: 3000 });
 
     // Wait for submission to complete
-    const successMessage = page.locator("text=Thank you for your inquiry");
+    const successMessage = page.locator("text=Thank you!");
     await expect(successMessage).toBeVisible({ timeout: 5000 });
   });
 

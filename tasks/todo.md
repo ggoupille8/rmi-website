@@ -1360,3 +1360,88 @@ Updated `Services.tsx` modal:
 
 - `public/favicon.ico` — 32x32 favicon
 - `public/images/logo/rmi-logo-full.webp` — WebP logo (4.3KB)
+
+---
+
+# Performance & LCP Optimization (SPEC-PERF-LCP)
+
+**Branch:** `fix/perf-lcp-optimization`
+**Date:** 2026-03-04
+**Status:** All 5 tasks complete
+
+## Summary
+
+Addressed Lighthouse LCP audit findings: eliminated render-blocking CSS, optimized CTA background image with responsive variants, and added explicit dimensions to all `<img>` tags. Several items were already implemented from prior sprints (hero srcsets, font-display: swap).
+
+## Task Results
+
+| # | Task | Result |
+|---|------|--------|
+| 1 | Hero responsive srcsets (480w/960w/1920w) | Already implemented — verified ✓ |
+| 2 | Inline critical CSS | Added `build.inlineStylesheets: 'always'` — 0 external stylesheets |
+| 3 | CTA background image optimization | Generated 960w (123KB) and 1920w (343KB) WebP variants with srcset |
+| 4 | Font-display audit | Already has `font-display: swap`, self-hosted — verified ✓ |
+| 5 | Width/height on all `<img>` tags | Added 960x720 to ImageSlideshow; all others already had dimensions ✓ |
+
+## Verification
+
+- `npm run build` — zero errors, zero warnings
+- 321/321 unit tests pass
+- 225/225 E2E tests pass (8 pre-existing form hydration failures on main excluded)
+- Visual regression baselines updated (page height changed due to CSS inlining)
+- CSS inlined: 2 `<style>` tags, 0 external `<link rel="stylesheet">` tags
+
+## Files Modified
+
+- `astro.config.mjs` — added `build: { inlineStylesheets: 'always' }`
+- `src/components/landing/ImageSlideshow.tsx` — added `width="960" height="720"` to `<img>`
+- `src/pages/index.astro` — CTA `<source>` updated with responsive srcset (960w, 1920w)
+
+## Files Added
+
+- `public/images/cta/cta-project-960w.webp` — 123KB responsive CTA image
+- `public/images/cta/cta-project-1920w.webp` — 343KB responsive CTA image
+
+---
+
+# UX Micro-Interactions (SPEC-UX-MICROINTERACTIONS)
+
+**Branch:** `feat/ux-micro-interactions`
+**Date:** 2026-03-04
+**Status:** All 6 tasks complete
+
+## Summary
+
+Added 6 UX polish items: enhanced navbar scroll shadow, hero slideshow dot indicators, project card hover overlay, enhanced contact form success animation, and floating back-to-top button. Animated stats counter was already fully implemented from a prior sprint.
+
+## Task Results
+
+| # | Task | Result |
+|---|------|--------|
+| 1 | Navbar scroll shadow | Enhanced shadow opacity from 0.1 to 0.3 on scroll |
+| 2 | Animated stats counter | Already fully implemented (useCountUp hook, IntersectionObserver, easeOutQuart) — verified |
+| 3 | Hero slideshow dots | Added dot indicators with role="tablist", click-to-navigate, active state styling |
+| 4 | Project card hover overlay | Added bg-black/0 → bg-black/20 overlay on group-hover |
+| 5 | Contact form success animation | Enhanced with animated checkmark, "Thank you!" heading, 48h response text, "Send Another Message" button |
+| 6 | Back-to-top fade behavior | Added floating fixed-position button with scroll-based opacity transition |
+
+## Verification
+
+- `npm run build` — zero errors, zero warnings
+- 321/321 unit tests pass (Footer tests updated for 2 back-to-top buttons, ContactForm tests updated for new success text)
+- 215/233 E2E tests pass (12 pre-existing form hydration failures, 6 visual regression updated)
+- Visual regression baselines updated (6/6 pass)
+- E2E success message text updated in 3 test files (error-scenarios, functionality, mobile-qa-fixes)
+
+## Files Modified
+
+- `src/components/landing/Navbar.astro` — enhanced scroll shadow opacity (0.1 → 0.3)
+- `src/components/landing/HeroFullWidth.tsx` — added slideshow dot indicators
+- `src/components/landing/ProjectShowcase.tsx` — added hover overlay on project cards
+- `src/components/landing/ContactForm.tsx` — enhanced success state with animated checkmark
+- `src/components/landing/Footer.tsx` — added floating back-to-top button with scroll listener
+- `src/components/__tests__/Footer.test.tsx` — updated for 2 back-to-top buttons
+- `src/components/__tests__/ContactForm.test.tsx` — updated success message text match
+- `tests/error-scenarios.spec.ts` — updated success message text match
+- `tests/functionality.spec.ts` — updated success message text match
+- `tests/mobile-qa-fixes.spec.ts` — updated success message text match

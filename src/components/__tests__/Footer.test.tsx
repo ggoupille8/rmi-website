@@ -113,11 +113,11 @@ describe("Footer", () => {
     });
   });
 
-  describe("back to top button", () => {
-    it("renders back to top button", () => {
+  describe("back to top buttons", () => {
+    it("renders inline and floating back to top buttons", () => {
       render(<Footer />);
-      const button = screen.getByRole("button", { name: "Back to top" });
-      expect(button).toBeDefined();
+      const buttons = screen.getAllByRole("button", { name: "Back to top" });
+      expect(buttons.length).toBe(2);
     });
 
     it("calls window.scrollTo on click", () => {
@@ -125,8 +125,8 @@ describe("Footer", () => {
       vi.stubGlobal("scrollTo", scrollToSpy);
 
       render(<Footer />);
-      const button = screen.getByRole("button", { name: "Back to top" });
-      fireEvent.click(button);
+      const buttons = screen.getAllByRole("button", { name: "Back to top" });
+      fireEvent.click(buttons[0]);
 
       expect(scrollToSpy).toHaveBeenCalledWith({
         top: 0,
@@ -134,23 +134,26 @@ describe("Footer", () => {
       });
     });
 
-    it("has minimum 44px touch target", () => {
+    it("inline button has minimum 44px touch target", () => {
       render(<Footer />);
-      const button = screen.getByRole("button", { name: "Back to top" });
-      expect(button.className).toContain("min-h-[44px]");
+      const buttons = screen.getAllByRole("button", { name: "Back to top" });
+      const inlineButton = buttons[0];
+      expect(inlineButton.className).toContain("min-h-[44px]");
     });
 
-    it("has focus-visible ring styles", () => {
+    it("both buttons have focus-visible ring styles", () => {
       render(<Footer />);
-      const button = screen.getByRole("button", { name: "Back to top" });
-      expect(button.className).toContain("focus-visible:ring-2");
+      const buttons = screen.getAllByRole("button", { name: "Back to top" });
+      for (const button of buttons) {
+        expect(button.className).toContain("focus-visible:ring-2");
+      }
     });
   });
 
   it("renders icons as aria-hidden", () => {
     const { container } = render(<Footer />);
     const hiddenSvgs = container.querySelectorAll('svg[aria-hidden="true"]');
-    // Phone, Mail, MapPin icons + ArrowUp + LinkedIn SVG + Facebook SVG
-    expect(hiddenSvgs.length).toBeGreaterThanOrEqual(5);
+    // Phone, Mail, MapPin icons + 2x ArrowUp + LinkedIn SVG + Facebook SVG
+    expect(hiddenSvgs.length).toBeGreaterThanOrEqual(6);
   });
 });

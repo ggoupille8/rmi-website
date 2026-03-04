@@ -329,7 +329,7 @@ describe("ContactForm component", () => {
       await user.click(screen.getByRole("button", { name: /send message/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/thank you for your inquiry/i)).toBeInTheDocument();
+        expect(screen.getByText(/thank you/i)).toBeInTheDocument();
       });
     });
 
@@ -467,7 +467,7 @@ describe("ContactForm component", () => {
       // Wait for submission to complete
       await waitFor(
         () => {
-          expect(screen.getByText(/thank you for your inquiry/i)).toBeInTheDocument();
+          expect(screen.getByText(/thank you/i)).toBeInTheDocument();
         },
         { timeout: 500 }
       );

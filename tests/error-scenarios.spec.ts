@@ -304,7 +304,7 @@ test.describe("Error Scenario Tests", () => {
       await submitButton.click();
 
       // Wait for success - form should show success message
-      const successMessage = page.locator('text=Thank you for your inquiry');
+      const successMessage = page.locator('text=Thank you!');
       await expect(successMessage).toBeVisible({ timeout: 5000 });
 
       // Should have made 2 requests
