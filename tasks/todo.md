@@ -1360,3 +1360,80 @@ Updated `Services.tsx` modal:
 
 - `public/favicon.ico` — 32x32 favicon
 - `public/images/logo/rmi-logo-full.webp` — WebP logo (4.3KB)
+
+---
+
+# Error Handling & 404 Page Enhancements
+
+**Branch:** `feat/error-handling-404`
+**Date:** 2026-03-04
+**Status:** All 6 tasks complete (3 new implementations, 3 verified already done)
+
+---
+
+## Task 6: Dynamic Copyright Year in Footer
+**Status:** Already complete (no changes needed)
+**Details:** `Footer.tsx` line 7 already has `const currentYear = new Date().getFullYear()` rendered in the copyright text.
+
+## Task 5: Skip-to-Content Accessibility Link
+**Status:** Already complete (no changes needed)
+**Details:** `BaseLayout.astro` already has a skip link at lines 323-325 (`<a href="#main-content" class="sr-only focus:not-sr-only ...">Skip to main content</a>`) with `<main id="main-content">` at line 332.
+
+## Task 1: Custom 404 Page Enhancement
+**Status:** Complete
+**Changes:**
+- **`src/pages/404.astro`:** Enhanced from basic page to polished 404 experience:
+  - Large semi-transparent decorative "404" text (`text-[12rem]` to `text-[20rem]`, `text-white/5`, `aria-hidden`)
+  - "Page Not Found" heading with descriptive paragraph
+  - Primary "Back to Home" CTA button + secondary "Request a Quote" link to `/#contact`
+  - Footer component with `client:visible`
+  - Dynamic page title using `companyName` from site content
+**Verification:** Build passes. 404 page renders with decorative text, both CTAs, and footer.
+
+## Task 3: Contact Form Loading State
+**Status:** Already complete (no changes needed)
+**Details:** `ContactForm.tsx` already has `isSubmitting` state, disabled inputs during submission, and "Sending..." button text with spinner animation.
+
+## Task 4: Server Error Handling Enhancement
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/ContactForm.tsx`:** Enhanced error message display:
+  - Changed error styling to `bg-red-900/50 border border-red-500/50 text-red-200`
+  - Added clickable phone link using `phoneTel`/`phoneDisplay` from site content
+  - Added "Try Again" button that resets form to idle state via `setSubmitStatus("idle")`
+**Verification:** Build passes. Error state shows phone link and Try Again button.
+
+## Task 2: Contact Form Validation Enhancement
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/ContactForm.tsx`:** Added comprehensive client-side validation:
+  - Created centralized `validateField(name, value)` function for all field rules
+  - Name: required + minimum 2 characters
+  - Email: format validation (`/^[^\s@]+@[^\s@]+\.[^\s@]+$/`) when provided
+  - Phone: minimum 10 digits (digits only count) when provided
+  - Project Type: required selection
+  - Message: required
+  - Added `handleBlur` handler with `onBlur` on all 5 validated fields
+  - Inline error messages with `role="alert"` and `aria-live="polite"`
+  - Email/phone fields show format errors OR contact-group errors (not both)
+  - Submit handler uses same `validateField` function (no duplication)
+**Verification:** Build passes. All unit tests pass (321/321). Blur validation triggers on field exit.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| Unit tests (Vitest) | 321/321 passed (20 test files) |
+| E2E tests (Chromium) | 225/233 passed (8 pre-existing form hydration failures) |
+| Visual regression | All passed (no baseline changes needed) |
+| `npx tsc --noEmit` | Zero errors |
+
+---
+
+## Files Modified
+
+- `src/pages/404.astro` — enhanced with decorative text, secondary CTA, Footer component
+- `src/components/landing/ContactForm.tsx` — blur validation, email/phone format checks, error UI enhancement with phone link and Try Again button
