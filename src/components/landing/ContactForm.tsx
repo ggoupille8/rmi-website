@@ -71,6 +71,8 @@ export default function ContactForm({
   >("idle");
   const [fieldErrors, setFieldErrors] = useState<{
     name?: string;
+    email?: string;
+    phone?: string;
     projectType?: string;
     message?: string;
   }>({});
@@ -103,6 +105,43 @@ export default function ContactForm({
     }
   };
 
+  const validateField = (name: string, value: string): string | undefined => {
+    switch (name) {
+      case "name":
+        if (!value.trim()) return "Please enter your name";
+        if (value.trim().length < 2) return "Name must be at least 2 characters";
+        return undefined;
+      case "email":
+        if (value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()))
+          return "Please enter a valid email address";
+        return undefined;
+      case "phone":
+        if (value.trim() && value.replace(/\D/g, "").length < 10)
+          return "Please enter a valid phone number (10+ digits)";
+        return undefined;
+      case "projectType":
+        if (!value.trim()) return "Please select a project type";
+        return undefined;
+      case "message":
+        if (!value.trim()) return "Please describe your project";
+        return undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  const handleBlur = (
+    e: React.FocusEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    const error = validateField(name, value);
+    if (error) {
+      setFieldErrors((prev) => ({ ...prev, [name]: error }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -122,15 +161,20 @@ export default function ContactForm({
     const errors: typeof fieldErrors = {};
     const needsContact = !formData.email.trim() && !formData.phone.trim();
 
-    if (!formData.name.trim()) {
-      errors.name = "Please enter your name";
-    }
-    if (!formData.projectType.trim()) {
-      errors.projectType = "Please select a project type";
-    }
-    if (!formData.message.trim()) {
-      errors.message = "Please describe your project";
-    }
+    const nameErr = validateField("name", formData.name);
+    if (nameErr) errors.name = nameErr;
+
+    const emailErr = validateField("email", formData.email);
+    if (emailErr) errors.email = emailErr;
+
+    const phoneErr = validateField("phone", formData.phone);
+    if (phoneErr) errors.phone = phoneErr;
+
+    const projectTypeErr = validateField("projectType", formData.projectType);
+    if (projectTypeErr) errors.projectType = projectTypeErr;
+
+    const messageErr = validateField("message", formData.message);
+    if (messageErr) errors.message = messageErr;
 
     const hasErrors = Object.keys(errors).length > 0 || needsContact;
 
@@ -143,7 +187,7 @@ export default function ContactForm({
       setTimeout(() => {
         const firstErrorField = errors.name
           ? nameInputRef.current
-          : needsContact
+          : (needsContact || errors.email)
             ? emailInputRef.current
             : errors.projectType
               ? projectTypeRef.current
@@ -274,6 +318,7 @@ export default function ContactForm({
                   autoComplete="name"
                   value={formData.name}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   className={fieldErrors.name ? inputError : inputNormal}
                   aria-invalid={fieldErrors.name ? "true" : "false"}
                   aria-describedby={fieldErrors.name ? "name-error" : undefined}
@@ -320,11 +365,17 @@ export default function ContactForm({
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={contactError ? inputError : inputNormal}
-                  aria-invalid={contactError ? "true" : "false"}
-                  aria-describedby={contactError ? "contact-error" : undefined}
+                  onBlur={handleBlur}
+                  className={fieldErrors.email || contactError ? inputError : inputNormal}
+                  aria-invalid={fieldErrors.email || contactError ? "true" : "false"}
+                  aria-describedby={fieldErrors.email ? "email-error" : contactError ? "contact-error" : undefined}
                 />
-                {contactError && (
+                {fieldErrors.email && (
+                  <div id="email-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
+                    {fieldErrors.email}
+                  </div>
+                )}
+                {!fieldErrors.email && contactError && (
                   <div id="contact-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
                     Please provide an email or phone number
                   </div>
@@ -344,9 +395,16 @@ export default function ContactForm({
                   autoComplete="tel"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={contactError ? inputError : inputNormal}
-                  aria-invalid={contactError ? "true" : "false"}
+                  onBlur={handleBlur}
+                  className={fieldErrors.phone || contactError ? inputError : inputNormal}
+                  aria-invalid={fieldErrors.phone || contactError ? "true" : "false"}
+                  aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
                 />
+                {fieldErrors.phone && (
+                  <div id="phone-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
+                    {fieldErrors.phone}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -365,6 +423,7 @@ export default function ContactForm({
                 autoComplete="off"
                 value={formData.projectType}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={`${fieldErrors.projectType ? inputError : inputNormal} appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%239ca3af%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3E%3C/svg%3E')] bg-[length:1.25em_1.25em] bg-[right_0.5rem_center] bg-no-repeat pr-8`}
                 aria-invalid={fieldErrors.projectType ? "true" : "false"}
                 aria-describedby={fieldErrors.projectType ? "projectType-error" : undefined}
@@ -399,6 +458,7 @@ export default function ContactForm({
                 rows={3}
                 value={formData.message}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 onInput={(e) => {
                   const textarea = e.currentTarget;
                   textarea.style.height = "auto";
@@ -448,11 +508,23 @@ export default function ContactForm({
 
             {submitStatus === "error" && (
               <div
-                className="rounded-md bg-error-dark/20 p-3 text-red-400 border border-red-500/20 text-sm"
+                className="rounded-md bg-red-900/50 p-3 text-red-200 border border-red-500/50 text-sm"
                 role="alert"
                 aria-live="polite"
               >
-                Something went wrong. Please try again or call us directly.
+                <p>
+                  Something went wrong. Please try again or call us directly at{" "}
+                  <a href={phoneTel} className="font-medium text-red-300 hover:text-white underline underline-offset-2">
+                    {phoneDisplay}
+                  </a>.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSubmitStatus("idle")}
+                  className="mt-2 text-sm font-medium text-red-300 hover:text-white underline underline-offset-2"
+                >
+                  Try Again
+                </button>
               </div>
             )}
 

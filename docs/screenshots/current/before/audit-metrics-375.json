@@ -1,0 +1,43 @@
+{
+  "viewport": "375px",
+  "hasHorizontalOverflow": false,
+  "scrollWidth": 360,
+  "clientWidth": 375,
+  "smallTouchTargets": [
+    "[unknown] a(\"Skip to main content\") 1x1",
+    "[HEADER] a(\"Resource Mechanical Insulation — go to top\") 71x40"
+  ],
+  "smallTouchTargetCount": 2,
+  "smallText": [
+    "[hero-heading] div(\"CLIENTS\") fontSize=10px",
+    "[hero-heading] div(\"PROJECTS / YR\") fontSize=10px",
+    "[hero-heading] div(\"OSHA HOURS\") fontSize=10px",
+    "[about-heading] p(\"Over 231,000 OSHA-tracked man-hours since 2021 wit\") fontSize=12px",
+    "[about-heading] p(\"When a job calls for it, we scale — staffing dozen\") fontSize=12px",
+    "[about-heading] p(\"From a year-round presence at Henry Ford Hospital\") fontSize=12px",
+    "[about-heading] p(\"Proud to employ Local 25 insulators — OSHA 10/30-h\") fontSize=12px",
+    "[SECTION] span(\"Fiberglass\") fontSize=12px",
+    "[SECTION] span(\"Mineral Wool\") fontSize=12px",
+    "[SECTION] span(\"Flexible Elastomeric\") fontSize=12px",
+    "[SECTION] span(\"Polyiso Foam / Phenolic Foam\") fontSize=12px",
+    "[SECTION] span(\"Phenolic\") fontSize=12px",
+    "[SECTION] span(\"Cellular Glass (FOAMGLAS®)\") fontSize=12px",
+    "[SECTION] span(\"Calcium Silicate\") fontSize=12px",
+    "[SECTION] span(\"Ceramic Fiber\") fontSize=12px",
+    "[SECTION] span(\"Aerogel\") fontSize=12px",
+    "[SECTION] span(\"Fyrewrap® / Fire-Rated Wrap Systems\") fontSize=12px",
+    "[SECTION] span(\"Removable Insulation Blankets\") fontSize=12px",
+    "[SECTION] span(\"PVC Jacketing\") fontSize=12px",
+    "[SECTION] span(\"VentureClad® Jacketing\") fontSize=12px",
+    "[SECTION] span(\"Aluminum Jacketing\") fontSize=12px",
+    "[SECTION] span(\"Stainless Steel Jacketing\") fontSize=12px",
+    "[SECTION] span(\"PVC Fittings\") fontSize=12px",
+    "[SECTION] span(\"Aluminum Fittings\") fontSize=12px",
+    "[SECTION] span(\"Stainless Steel Fittings\") fontSize=12px",
+    "[SECTION] span(\"Acoustic Control (MLV)\") fontSize=12px",
+    "[SECTION] span(\"Pipe Supports\") fontSize=12px",
+    "[SECTION] span(\"Banding Systems\") fontSize=12px",
+    "[SECTION] span(\"Mastics, Tapes, and Sundries\") fontSize=12px"
+  ],
+  "smallTextCount": 29
+}

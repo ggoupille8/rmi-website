@@ -110,6 +110,8 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
                 <img
                   src={`/images/services/${image.src}.jpg`}
                   alt={image.alt}
+                  width="960"
+                  height="720"
                   className="absolute inset-0 w-full h-full object-cover md:object-contain"
                   style={{ objectPosition: focusPoint }}
                   loading={isActive ? "eager" : "lazy"}
