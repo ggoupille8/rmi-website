@@ -107,44 +107,46 @@ import { companyName } from '../../content/site';
 <!-- Mobile menu overlay — outside <header> so backdrop-filter doesn't create a containing block -->
 <div
   id="mobile-menu"
-  class="md:hidden fixed inset-0 top-12 sm:top-14 z-[60] hidden"
-  style="background: rgba(23, 23, 23, 0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"
+  class="md:hidden fixed inset-0 top-12 sm:top-14 z-[60] invisible pointer-events-none"
   role="dialog"
   aria-modal="true"
   aria-label="Mobile navigation"
 >
-  <nav class="flex flex-col items-center justify-center gap-6 h-full" aria-label="Mobile navigation links">
-    <a href="#services" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center border-b border-neutral-700/40 w-48 justify-center">
-      Services
-    </a>
-    <a href="#about" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center border-b border-neutral-700/40 w-48 justify-center">
-      About
-    </a>
-    <a href="#projects" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center border-b border-neutral-700/40 w-48 justify-center">
-      Projects
-    </a>
-    <a href="#contact" class="mobile-nav-link text-2xl font-semibold text-neutral-100 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center w-48 justify-center">
-      Contact
-    </a>
-    <a
-      href="#contact"
-      class="mobile-nav-link mt-4 btn-primary px-8 min-h-[48px]"
-    >
-      Request a Quote
-    </a>
-  </nav>
+  <!-- Backdrop — tap to close -->
+  <div
+    id="mobile-menu-backdrop"
+    class="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300"
+  ></div>
+  <!-- Slide-in panel -->
+  <div
+    id="mobile-menu-panel"
+    class="absolute top-0 right-0 bottom-0 w-72 translate-x-full transition-transform duration-300 ease-out"
+    style="background: rgba(23, 23, 23, 0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);"
+  >
+    <nav class="flex flex-col items-center justify-center gap-6 h-full" aria-label="Mobile navigation links">
+      <a href="#services" class="mobile-nav-link text-2xl font-semibold text-neutral-300 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center border-b border-neutral-700/40 w-48 justify-center">
+        Services
+      </a>
+      <a href="#about" class="mobile-nav-link text-2xl font-semibold text-neutral-300 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center border-b border-neutral-700/40 w-48 justify-center">
+        About
+      </a>
+      <a href="#projects" class="mobile-nav-link text-2xl font-semibold text-neutral-300 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center border-b border-neutral-700/40 w-48 justify-center">
+        Projects
+      </a>
+      <a href="#contact" class="mobile-nav-link text-2xl font-semibold text-neutral-300 hover:text-accent-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 rounded px-6 py-3 min-h-[48px] flex items-center w-48 justify-center">
+        Contact
+      </a>
+      <a
+        href="#contact"
+        class="mobile-nav-link mt-4 btn-primary px-8 min-h-[48px]"
+      >
+        Request a Quote
+      </a>
+    </nav>
+  </div>
 </div>
 
 <style>
-  /* Mobile menu open animation */
-  #mobile-menu:not(.hidden) {
-    animation: menuFadeIn 200ms ease-out;
-  }
-  @keyframes menuFadeIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
   /* Active nav link styling — applied via JS */
   .nav-link-active {
     color: white;
@@ -159,6 +161,12 @@ import { companyName } from '../../content/site';
     height: 2px;
     background: rgb(59, 130, 246); /* accent-500 */
     border-radius: 1px;
+  }
+
+  /* Active mobile nav link — applied via JS */
+  .mobile-nav-link-active {
+    color: rgb(96, 165, 250) !important; /* blue-400 */
+    border-left: 3px solid rgb(96, 165, 250);
   }
 </style>
 
@@ -188,8 +196,32 @@ import { companyName } from '../../content/site';
   // ── Mobile menu toggle ──
   const menuToggle = document.getElementById('menu-toggle');
   const mobileMenu = document.getElementById('mobile-menu');
+  const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+  const mobileMenuPanel = document.getElementById('mobile-menu-panel');
   const iconOpen = document.getElementById('icon-open');
   const iconClose = document.getElementById('icon-close');
+
+  // Body scroll lock (iOS-safe: position:fixed with stored scroll position)
+  let savedScrollY = 0;
+
+  function lockBodyScroll() {
+    savedScrollY = window.scrollY;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${savedScrollY}px`;
+    document.body.style.width = '100%';
+  }
+
+  function unlockBodyScroll() {
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.width = '';
+    window.scrollTo(0, savedScrollY);
+  }
+
+  // Track close animation timeout to cancel if reopened quickly
+  let closeTimerId: number | undefined;
 
   // Focus trap handler — added/removed dynamically when menu opens/closes
   function trapFocus(e: KeyboardEvent) {
@@ -217,12 +249,21 @@ import { companyName } from '../../content/site';
 
   function openMenu() {
     if (!mobileMenu || !menuToggle || !iconOpen || !iconClose) return;
-    mobileMenu.classList.remove('hidden');
+    // Cancel any pending close animation
+    if (closeTimerId) { clearTimeout(closeTimerId); closeTimerId = undefined; }
+    // Slide panel in + fade backdrop
+    mobileMenu.classList.remove('invisible', 'pointer-events-none');
+    mobileMenu.classList.add('visible', 'pointer-events-auto');
+    mobileMenuBackdrop?.classList.remove('opacity-0');
+    mobileMenuBackdrop?.classList.add('opacity-100');
+    mobileMenuPanel?.classList.remove('translate-x-full');
+    mobileMenuPanel?.classList.add('translate-x-0');
+
     iconOpen.classList.add('hidden');
     iconClose.classList.remove('hidden');
     menuToggle.setAttribute('aria-expanded', 'true');
     menuToggle.setAttribute('aria-label', 'Close navigation menu');
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
     // Activate focus trap and move focus to first nav link
     document.addEventListener('keydown', trapFocus);
     const firstLink = mobileMenu.querySelector<HTMLElement>('.mobile-nav-link');
@@ -231,12 +272,23 @@ import { companyName } from '../../content/site';
 
   function closeMenu() {
     if (!mobileMenu || !menuToggle || !iconOpen || !iconClose) return;
-    mobileMenu.classList.add('hidden');
+    // Start slide-out + fade-out transitions
+    mobileMenuBackdrop?.classList.remove('opacity-100');
+    mobileMenuBackdrop?.classList.add('opacity-0');
+    mobileMenuPanel?.classList.remove('translate-x-0');
+    mobileMenuPanel?.classList.add('translate-x-full');
+    // Hide container after transition completes (300ms)
+    closeTimerId = window.setTimeout(() => {
+      mobileMenu?.classList.remove('visible', 'pointer-events-auto');
+      mobileMenu?.classList.add('invisible', 'pointer-events-none');
+      closeTimerId = undefined;
+    }, 300);
+
     iconOpen.classList.remove('hidden');
     iconClose.classList.add('hidden');
     menuToggle.setAttribute('aria-expanded', 'false');
     menuToggle.setAttribute('aria-label', 'Open navigation menu');
-    document.body.style.overflow = '';
+    unlockBodyScroll();
     // Remove focus trap
     document.removeEventListener('keydown', trapFocus);
   }
@@ -257,6 +309,12 @@ import { companyName } from '../../content/site';
       closeMenu();
       menuToggle?.focus();
     });
+  });
+
+  // Close menu when tapping the backdrop
+  mobileMenuBackdrop?.addEventListener('click', () => {
+    closeMenu();
+    menuToggle?.focus();
   });
 
   document.addEventListener('keydown', (e) => {
@@ -288,6 +346,17 @@ import { companyName } from '../../content/site';
         link.classList.add('nav-link-active');
       } else {
         link.classList.remove('nav-link-active');
+      }
+    });
+
+    // Highlight active mobile nav link (exclude CTA button)
+    mobileNavLinks.forEach((link) => {
+      if (link.classList.contains('btn-primary')) return;
+      const section = link.getAttribute('href')?.replace('#', '');
+      if (section === activeId) {
+        link.classList.add('mobile-nav-link-active');
+      } else {
+        link.classList.remove('mobile-nav-link-active');
       }
     });
 
