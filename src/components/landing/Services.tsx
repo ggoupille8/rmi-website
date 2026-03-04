@@ -251,7 +251,7 @@ export default function Services() {
                       <button
                         type="button"
                         onClick={closeModal}
-                        className="absolute top-3 right-3 z-30 flex items-center justify-center w-9 h-9 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        className="absolute top-3 right-3 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                         aria-label="Close dialog"
                       >
                         <X className="w-5 h-5" aria-hidden="true" />
@@ -266,7 +266,7 @@ export default function Services() {
                       <button
                         type="button"
                         onClick={closeModal}
-                        className="absolute top-4 right-4 z-30 flex items-center justify-center w-9 h-9 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        className="absolute top-4 right-4 z-30 flex items-center justify-center w-11 h-11 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                         aria-label="Close dialog"
                       >
                         <X className="w-5 h-5" aria-hidden="true" />

@@ -84,6 +84,14 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
            object-contain on desktop (shows full image in side panel) */}
       <div className="relative flex-1 min-h-[280px] md:min-h-[400px]">
         {images.map((image, index) => {
+          // Only render current slide and its immediate neighbors (3 max)
+          const distance = Math.min(
+            Math.abs(index - currentIndex),
+            Math.abs(index - currentIndex + count),
+            Math.abs(index - currentIndex - count)
+          );
+          if (distance > 1) return null;
+
           const isActive = index === currentIndex;
           const focusPoint = image.focusPoint || "center center";
           return (
@@ -104,7 +112,7 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
                   alt={image.alt}
                   className="absolute inset-0 w-full h-full object-cover md:object-contain"
                   style={{ objectPosition: focusPoint }}
-                  loading={index === 0 ? "eager" : "lazy"}
+                  loading={isActive ? "eager" : "lazy"}
                   draggable={false}
                 />
               </picture>
