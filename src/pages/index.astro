@@ -33,8 +33,9 @@ import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../conten
     <div id="projects" class="scroll-mt-14">
       <ProjectShowcase client:visible />
     </div>
+    <CTABanner />
     <div class="relative overflow-hidden">
-      <!-- Shared background image for CTA + Contact -->
+      <!-- Background image for Contact form -->
       <picture>
         <source srcset="/images/cta/cta-project.webp" type="image/webp" />
         <img
@@ -49,7 +50,6 @@ import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../conten
         />
       </picture>
       <div class="absolute inset-0 bg-black/70"></div>
-      <CTABanner />
       <div id="contact" class="scroll-mt-14 relative">
         <div class="absolute inset-0 bg-black/10"></div>
         <ContactForm client:visible />

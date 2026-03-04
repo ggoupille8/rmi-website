@@ -25,7 +25,7 @@ export default function MaterialsMarquee() {
         </h2>
         <div className="w-12 h-0.5 bg-accent-500 mx-auto mt-4 rounded-full" />
         <p className="text-base sm:text-lg text-neutral-300 text-center mt-3 tracking-wide">
-          Insulation, jacketing, accessories, and support systems
+          Insulation, jacketing, accessories, and pipe supports
         </p>
       </div>
 
