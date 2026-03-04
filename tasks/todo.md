@@ -1267,3 +1267,96 @@ Updated `Services.tsx` modal:
 - `src/components/landing/Services.tsx` — tier-based card styling (border width, opacity, background)
 - `src/components/landing/About.tsx` — subtitle dedup, Track Record card content
 - `src/layouts/BaseLayout.astro` — expanded areaServed to 5 states
+
+---
+
+# Mobile Polish & Remaining Fixes
+
+**Branch:** `fix/mobile-polish-march4`
+**Date:** 2026-03-04
+**Status:** All 8 tasks complete
+
+---
+
+## Task 1: Fix Hero Image Preload Link (Performance)
+**Status:** Complete
+**Changes:**
+- **`src/layouts/BaseLayout.astro`:** Added `href="/images/hero/hero-1.webp"` to the hero LCP preload link. The `imagesrcset` and `imagesizes` attributes remain intact. Browsers that don't support `imagesrcset` on preload links now have a valid fallback URL.
+**Verification:** Built HTML contains `href="/images/hero/hero-1.webp"` alongside `imagesrcset` and `imagesizes`.
+
+## Task 4: Add Preconnect for Google Analytics Domain
+**Status:** Complete
+**Changes:**
+- **`src/layouts/BaseLayout.astro`:** Added `<link rel="preconnect" href="https://www.google-analytics.com" />` after the existing googletagmanager preconnect hint. Saves ~100-200ms on analytics connection setup.
+**Verification:** Built HTML contains both `preconnect` entries (googletagmanager.com and google-analytics.com).
+
+## Task 3: Add favicon.ico Fallback
+**Status:** Complete
+**Changes:**
+- **`public/favicon.ico`:** Generated 32x32 PNG from `apple-touch-icon.png` using sharp.
+- **`src/layouts/BaseLayout.astro`:** Added `<link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="32x32" />` before the SVG favicon link.
+**Verification:** `favicon.ico` exists at 32x32. Built HTML contains both `.ico` and `.svg` favicon links.
+
+## Task 5: Logo in `<picture>` Element with WebP
+**Status:** Complete
+**Changes:**
+- **`public/images/logo/rmi-logo-full.webp`:** Generated from `rmi-logo-full.png` (500x200, 4.3KB).
+- **`src/layouts/BaseLayout.astro`:** Updated logo preload from `rmi-logo-full.png` to `rmi-logo-full.webp` with `type="image/webp"`.
+- **`src/components/landing/Navbar.astro`:** Already had `<picture>` element with WebP source (from deep-polish sprint). No changes needed.
+**Verification:** Both `.webp` logo files exist. Preload link uses WebP. Navbar renders correctly.
+
+## Task 2: Add "Contact" to Footer Quick Links
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Footer.tsx`:** Added "Contact" link (`href="#contact"`) between "Projects" and "Request a Quote" in the Quick Links nav.
+**Verification:** Footer Quick Links shows 5 items: Services, About, Projects, Contact, Request a Quote.
+
+## Task 6: Service Card Touch Targets on Mobile
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/Services.tsx`:** Added `active:bg-neutral-700/50` to each service card's class list for immediate visual feedback on touch. Cards are already `<button>` elements (keyboard-accessible via Enter/Space natively). Chevron arrow already has `aria-hidden="true"`.
+**Verification:** All service cards have `active:bg-neutral-700/50`. Cards are `<button>` elements with `aria-haspopup="dialog"` and `aria-label`.
+
+## Task 7: Materials Marquee Accessibility
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/MaterialsMarquee.tsx`:** Added `role="region"` and `aria-label="Materials we work with"` to the section element. Both visual ticker tracks already had `aria-hidden="true"`. The sr-only list does NOT have `aria-hidden`.
+**Verification:** Section has `role="region"` + `aria-label`. Visual tracks hidden from AT. SR-only list accessible.
+
+## Task 8: Contact Form Mobile Grid Stacking
+**Status:** Complete
+**Changes:**
+- **`src/components/landing/ContactForm.tsx`:** Increased input `min-h-[44px]` to `min-h-[48px]` for all form inputs (inputBase class). All labels have correct `htmlFor` matching input `id` attributes (name, company, email, phone, projectType, message).
+**Verification:** All inputs render at >= 48px height. All label/input associations correct. `npm run build` passes.
+
+---
+
+## Verification Summary
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | Complete (zero errors) |
+| Unit tests (Vitest) | 321/321 passed (20 test files) |
+| Hero preload `href` | `/images/hero/hero-1.webp` present with `imagesrcset` intact |
+| GA preconnect | `google-analytics.com` preconnect in built HTML |
+| `favicon.ico` | 32x32 in `public/` |
+| Logo WebP | `rmi-logo-full.webp` (4.3KB) + `rmi-logo-mark-200.webp` (2.4KB) |
+| Footer Quick Links | 5 items (Services, About, Projects, Contact, Request a Quote) |
+| Service card touch | `active:bg-neutral-700/50` on all 9 cards |
+| Marquee accessibility | `role="region"` + `aria-label` on section |
+| Form inputs | `min-h-[48px]` on all fields |
+
+---
+
+## Files Modified
+
+- `src/layouts/BaseLayout.astro` — hero preload href, favicon.ico link, logo preload WebP, GA preconnect
+- `src/components/landing/Footer.tsx` — added Contact quick link
+- `src/components/landing/Services.tsx` — active touch feedback class
+- `src/components/landing/MaterialsMarquee.tsx` — role="region", aria-label
+- `src/components/landing/ContactForm.tsx` — min-h-[48px] on inputs
+
+## Files Added
+
+- `public/favicon.ico` — 32x32 favicon
+- `public/images/logo/rmi-logo-full.webp` — WebP logo (4.3KB)

@@ -55,6 +55,12 @@ export default function Footer() {
                 href="#contact"
                 className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-colors duration-200 text-sm min-w-[44px] min-h-[44px]"
               >
+                Contact
+              </a>
+              <a
+                href="#contact"
+                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-colors duration-200 text-sm min-w-[44px] min-h-[44px]"
+              >
                 Request a Quote
               </a>
             </nav>

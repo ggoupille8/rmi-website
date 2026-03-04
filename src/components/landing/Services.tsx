@@ -192,7 +192,7 @@ export default function Services() {
                 aria-haspopup="dialog"
                 aria-expanded={activeService === service.anchorId}
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] ${style.bg} backdrop-blur-sm border border-neutral-700/50 ${style.border} transition-all duration-200 ease-out hover:bg-neutral-800/70 hover:border-neutral-600 hover:-translate-y-0.5 ${style.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
+                className={`group cursor-pointer flex items-center justify-center sm:justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] ${style.bg} backdrop-blur-sm border border-neutral-700/50 ${style.border} transition-all duration-200 ease-out hover:bg-neutral-800/70 active:bg-neutral-700/50 hover:border-neutral-600 hover:-translate-y-0.5 ${style.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
               >
                 <IconComponent
                   className={`w-7 h-7 ${style.iconColor} ${style.hoverIcon} flex-shrink-0 transition-colors duration-200`}
