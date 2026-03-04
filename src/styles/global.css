@@ -198,6 +198,7 @@
   }
   html {
     scrollbar-gutter: stable;
+    overflow-x: hidden;
     @apply scroll-smooth bg-neutral-950;
   }
   /* Disable animations/transitions for test stability and accessibility */
