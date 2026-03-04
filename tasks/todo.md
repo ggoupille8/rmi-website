@@ -142,6 +142,14 @@ _No active tasks._
 - Task 5: 321/321 unit tests pass, no orphaned test files
 - Task 6: npm audit findings documented (see Dependencies section below)
 
+### Mobile Navigation Polish
+**Branch:** `feat/mobile-nav-polish` | **Date:** 2026-03-04 | **Tasks:** 5/5 complete
+- Slide-in panel from right (300ms ease-out) with backdrop overlay (bg-black/60 + backdrop-blur)
+- Active section highlight on mobile nav links via IntersectionObserver (blue-400 + left border)
+- Close on link click (pre-existing), focus trap (pre-existing), Escape key (pre-existing)
+- iOS-safe body scroll lock (position:fixed with stored scroll position)
+- Backdrop tap-to-close handler
+
 ---
 
 ## Dependencies
