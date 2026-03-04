@@ -47,6 +47,8 @@ export const ctaBannerButton = "Request a Quote";
 export interface ServiceImage {
   src: string; // Path relative to /images/services/ without extension
   alt: string;
+  /** CSS object-position for mobile crop (e.g. "center 30%"). Defaults to "center center". */
+  focusPoint?: string;
 }
 
 export interface ServiceData {

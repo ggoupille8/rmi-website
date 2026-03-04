@@ -6,7 +6,7 @@ import ImageSlideshow from "../landing/ImageSlideshow";
 
 const mockImages: ServiceImage[] = [
   { src: "pipe-insulation/pipe-1", alt: "First pipe insulation image" },
-  { src: "pipe-insulation/pipe-2", alt: "Second pipe insulation image" },
+  { src: "pipe-insulation/pipe-2", alt: "Second pipe insulation image", focusPoint: "center 30%" },
   { src: "pipe-insulation/pipe-3", alt: "Third pipe insulation image" },
 ];
 
@@ -221,6 +221,30 @@ describe("ImageSlideshow", () => {
       expect(firstImg.getAttribute("src")).toBe(
         "/images/services/pipe-insulation/pipe-1.jpg"
       );
+    });
+  });
+
+  describe("responsive image display", () => {
+    it("uses object-cover on mobile and object-contain on desktop", () => {
+      render(<ImageSlideshow images={mockImages} />);
+
+      const firstImg = screen.getByAltText("First pipe insulation image");
+      expect(firstImg.className).toContain("object-cover");
+      expect(firstImg.className).toContain("md:object-contain");
+    });
+
+    it("applies default focus point when none specified", () => {
+      render(<ImageSlideshow images={mockImages} />);
+
+      const firstImg = screen.getByAltText("First pipe insulation image");
+      expect(firstImg.style.objectPosition).toBe("center center");
+    });
+
+    it("applies custom focus point when specified", () => {
+      render(<ImageSlideshow images={mockImages} />);
+
+      const secondImg = screen.getByAltText("Second pipe insulation image");
+      expect(secondImg.style.objectPosition).toBe("center 30%");
     });
   });
 
