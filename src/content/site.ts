@@ -25,7 +25,7 @@ export const address = {
 // SEO / Meta
 export const siteTitle = `${companyName} | Insulation Contractors MI`;
 export const siteDescription =
-  "Commercial & industrial mechanical insulation contractor in Michigan. Piping, ductwork, equipment insulation, pipe support fabrication & 24/7 emergency response.";
+  "Commercial & industrial mechanical insulation contractor in Michigan. Piping, ductwork, equipment insulation, pipe support fabrication & 24/7 emergency response";
 
 // Hero Content
 export const heroHeadline = "Resource Mechanical Insulation";
