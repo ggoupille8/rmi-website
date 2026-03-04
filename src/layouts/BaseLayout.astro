@@ -198,13 +198,15 @@ const serviceCatalogSchema = JSON.stringify({
       rel="preload"
       as="image"
       type="image/webp"
+      href="/images/hero/hero-1.webp"
       imagesrcset="/images/hero/hero-1-480w.webp 480w, /images/hero/hero-1-960w.webp 960w, /images/hero/hero-1.webp 1920w"
       imagesizes="100vw"
       fetchpriority="high"
     />
-    <link rel="preload" as="image" href="/images/logo/rmi-logo-full.png" />
+    <link rel="preload" as="image" type="image/webp" href="/images/logo/rmi-logo-full.webp" />
 
     <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -222,6 +224,7 @@ const serviceCatalogSchema = JSON.stringify({
     <!-- Google Tag Manager preconnect -->
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
+    <link rel="preconnect" href="https://www.google-analytics.com" />
 
     <!-- Google Search Console (loads only when PUBLIC_GOOGLE_SITE_VERIFICATION is set) -->
     {import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION && (

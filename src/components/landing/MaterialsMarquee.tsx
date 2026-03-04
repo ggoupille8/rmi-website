@@ -14,6 +14,8 @@ export default function MaterialsMarquee() {
   return (
     <section
       className="relative py-8 sm:py-10 lg:py-12 overflow-hidden bg-neutral-800 border-t border-neutral-600/30"
+      role="region"
+      aria-label="Materials we work with"
     >
 
       {/* Header */}
