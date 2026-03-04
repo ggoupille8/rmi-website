@@ -6,149 +6,27 @@ _No active tasks._
 
 ---
 
-## Completed Sprints
+## Completed
 
-### Sprint 1: High Impact UI Audit Fixes
-**Branch:** `feat/sprint-1-ui-audit` | **Date:** 2026-02-26 | **Tasks:** 6/6 complete
-- Hero overlay gradient, dead space, stats tightening
-- Replaced 3 project cards (Henry Ford Hospital, Michigan Central Station, Ford World HQ)
-- Moved social links to footer
-- Domain reference audit (`rmi-llc.net` everywhere)
+23 sprints completed (Feb 26 – Mar 4, 2026). See git log for full history.
 
-### Sprint 2: UI Audit Polish
-**Branch:** `feat/sprint-2-ui-polish` | **Date:** 2026-02-26 | **Tasks:** 8/8 complete
-- Service cards tiered layout (core/specialty/additional)
-- Added Projects to navbar and footer
-- About section content dedup, "Projects / Yr" shortLabel fix
-- Marquee fade mask, CTA banner image, FAB positioning, footer service area text
+### Branch Cleanup (Mar 4, 2026)
+- `feat/modal-ux-improvements` — already merged via PR #106, local branch deleted
+- `feat/mobile-nav-polish` — evaluated, rebased, merged via PR #107 (slide animation, focus trap, scroll lock, active highlight)
+- `feat/sprint-2-ui-polish` — stale (superseded marquee approach), deleted
+- `feat/sprint-2-perf` — fully merged, stale remote deleted
+- 38 local branches pruned, 36 remote tracking refs pruned
+- Result: only `main` local, only `origin/main` remote
 
-### Sprint 3: Analytics Setup + Final Polish
-**Branch:** `feat/sprint-3-analytics-polish` | **Date:** 2026-02-26 | **Tasks:** 6/6 complete
-- GA4 install (env-var-driven), form submission tracking, Search Console meta
-- EMR safety rating added to About card
+---
 
-### Sprint 5: Icon Visibility, Smooth Scroll & Cleanup
-**Branch:** `feat/sprint-5-icon-polish` | **Date:** 2026-02-26 | **Tasks:** 5/5 complete
-- About icon borders, smooth scroll, deleted old sprint files
+## Backlog
 
-### Google Business Profile Integration
-**Branch:** `feat/google-business-integration` | **Date:** 2026-02-26 | **Tasks:** 2/2 complete
-- Google Business icon in footer, JSON-LD hours corrected to 07:00-16:00
-
-### Mobile Real-Device Fixes
-**Branch:** `feat/mobile-real-device-fixes` | **Date:** 2026-02-26 | **Tasks:** 4/4 complete
-- Marquee fade masks, FAB footer observer, ghost CTA, Services/About gap
-
-### Hard Polish — Landing Page Final Pass
-**Branch:** `feat/hard-polish` | **Date:** 2026-02-26 | **Tasks:** 7/7 complete
-- Removed service subcategory labels and project badges
-- Hero dead space fix, CTA banner overlay rewrite
-- Section spacing reduction, Safety-First card shortened
-
-### Follow-Up Polish
-**Branch:** `feat/followup-polish` | **Date:** 2026-02-26 | **Tasks:** 3/3 complete
-- Ghost CTA visibility, marquee CSS mask-image, CTA heading dedup
-
-### Final Polish
-**Branch:** `feat/final-polish` | **Date:** 2026-02-26 | **Tasks:** 6/6 complete
-- Removed ghost CTA, hero 100dvh, unified card colors, "Featured Projects" rename
-- CTA banner size increase, contact form spacing
-
-### Sprint 3: Accessibility & UX
-**Branch:** `feat/sprint-3-polish` | **Date:** 2026-02-27 | **Tasks:** 5/5 complete
-- CTA alt text, hero stat label font size, service card font size
-- Responsive marquee mask, FAB rootMargin trigger
-
-### Sprint 3B: Marquee Mask + Test Fixes
-**Branch:** `fix/sprint-3b-polish` | **Date:** 2026-02-27 | **Tasks:** 2/2 complete
-- Wider marquee mask, 12 ContactForm unit test fixes
-
-### Deep Polish — Senior Developer Pass
-**Branch:** `fix/deep-polish` | **Date:** 2026-02-27 | **Tasks:** 9/9 complete
-- Autocomplete attributes, aria-label/aria-haspopup on cards
-- Optimized navbar logo (200px WebP/PNG), section spacing normalization
-- `npx tsc --noEmit` zero errors (was 12), stale file cleanup
-
-### Polish Round 2 — Production Verification
-**Branch:** `fix/polish-r2` | **Date:** 2026-02-27 | **Tasks:** 8/8 complete
-- Percentage-based marquee mask, focus-visible outlines
-- ErrorBoundary on all 6 React islands, Lighthouse CLS fixes
-
-### Sprint 2: SEO & Polish
-**Branch:** `feat/sprint-2-seo-polish` | **Date:** 2026-02-27 | **Tasks:** 5/5 complete
-- Meta description/keywords, service schema JSON-LD, CTA image positioning
-
-### Footer Section Polish
-**Branch:** `feat/footer-polish` | **Date:** 2026-02-27 | **Tasks:** 4/4 complete
-- Removed Google Business icon, added dividers, Quick Links spacing
-
-### Vercel Analytics & Speed Insights
-**Branch:** `feat/vercel-analytics` | **Date:** 2026-03-01 | **Tasks:** 4/4 complete
-- Installed @vercel/analytics + @vercel/speed-insights, added to BaseLayout
-
-### Service Image Slideshows
-**Branch:** `feat/service-image-slideshows` | **Date:** 2026-03-01 | **Tasks:** 6/6 complete
-- Renamed/optimized 91 service images (WebP + JPG, 43% size savings)
-- New hero-6 image, ImageSlideshow component in service modals
-- ServiceImage interface + images arrays in site.ts
-
-### Sprint 2: Content Fix + UI Polish
-**Branch:** `feat/sprint-2-content-fixes` | **Date:** 2026-03-03 | **Tasks:** 4/4 complete
-- Ford HQ name fix, About heading aria-label, canonical URL audit
-
-### Astro 4 → 5 Upgrade
-**Branch:** `feat/astro-5-upgrade` | **Date:** 2026-03-03 | **Tasks:** 5/5 complete
-- astro 5.18.0, @astrojs/react 4.4.2, @astrojs/vercel 9.0.4
-- See `tasks/lessons.md` for upgrade notes and remaining vulnerabilities
-
-### Sprint 2: UI Polish & Visual Improvements
-**Branch:** `feat/sprint-2-ui-polish` | **Date:** 2026-03-03 | **Tasks:** 5/5 complete
-- Marquee responsive masks, service card visual tiering
-- About subtitle dedup, Track Record proof points, JSON-LD areaServed (5 states)
-
-### Mobile Polish & Remaining Fixes
-**Branch:** `fix/mobile-polish-march4` | **Date:** 2026-03-04 | **Tasks:** 8/8 complete
-- Hero preload href, favicon.ico, logo WebP, GA preconnect
-- Footer Contact link, service card touch targets, marquee a11y, form input height
-
-### Error Handling & 404 Page Enhancements
-**Branch:** `feat/error-handling-404` | **Date:** 2026-03-04 | **Tasks:** 6/6 complete
-- Custom 404 page (decorative text, secondary CTA, Footer)
-- Contact form blur validation, email/phone format checks
-- Server error UI with phone link and "Try Again" button
-
-### Performance & LCP Optimization
-**Branch:** `fix/perf-lcp-optimization` | **Date:** 2026-03-04 | **Tasks:** 5/5 complete
-- Inline critical CSS (`build.inlineStylesheets: 'always'`)
-- CTA background image responsive variants (960w/1920w WebP)
-- Width/height on ImageSlideshow `<img>` tags
-- Hero srcsets and font-display already implemented from prior sprints
-
-### UX Micro-Interactions
-**Branch:** `feat/ux-micro-interactions` | **Date:** 2026-03-04 | **Tasks:** 6/6 complete
-- Enhanced navbar scroll shadow (opacity 0.1 → 0.3)
-- Hero slideshow dot indicators with role="tablist"
-- Project card hover overlay (bg-black/0 → bg-black/20)
-- Contact form success animation (animated checkmark, "Thank you!", "Send Another Message")
-- Floating back-to-top button with scroll-based opacity
-- Animated stats counter already implemented — verified
-
-### Code Cleanup & Technical Debt
-**Branch:** `chore/code-cleanup` | **Date:** 2026-03-04 | **Tasks:** 6/6 complete
-- Task 1: ValueProps.tsx and StatsBar.tsx already removed (no action)
-- Task 2: Deleted 4 orphaned placeholder images (plan-spec, emergency-response)
-- Task 3: Service data already consolidated — ServiceData + ServiceImage interfaces in site.ts
-- Task 4: Consolidated todo.md from 1440 lines to ~120 lines
-- Task 5: 321/321 unit tests pass, no orphaned test files
-- Task 6: npm audit findings documented (see Dependencies section below)
-
-### Mobile Navigation Polish
-**Branch:** `feat/mobile-nav-polish` | **Date:** 2026-03-04 | **Tasks:** 5/5 complete
-- Slide-in panel from right (300ms ease-out) with backdrop overlay (bg-black/60 + backdrop-blur)
-- Active section highlight on mobile nav links via IntersectionObserver (blue-400 + left border)
-- Close on link click (pre-existing), focus trap (pre-existing), Escape key (pre-existing)
-- iOS-safe body scroll lock (position:fixed with stored scroll position)
-- Backdrop tap-to-close handler
+- Contact section: add info panel beside form, floating labels, premium input styling
+- Footer: gradient bg, link hover effects, social icon colors, service area badge
+- About section: scroll entrance animations, icon glow, card hover
+- Mobile nav: slide animation, focus trap, active section highlight
+- Service modal: swipe gestures, entrance/exit animation
 
 ---
 
