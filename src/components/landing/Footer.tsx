@@ -23,7 +23,7 @@ export default function Footer() {
               {footerDescription}
             </p>
             <p className="text-neutral-300 text-sm mt-2">
-              Serving Michigan and the Midwest.
+              Serving Michigan, Ohio, Indiana &amp; the Midwest.
             </p>
           </div>
 
