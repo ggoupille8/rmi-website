@@ -356,7 +356,7 @@ export const materials = [
   "PVC Fittings",
   "Aluminum Fittings",
   "Stainless Steel Fittings",
-  "Acoustic Control (Mass Loaded Vinyl, Lead-Free)",
+  "Acoustic Control (MLV)",
   "Pipe Supports",
   "Banding Systems",
   "Mastics, Tapes, and Sundries",
