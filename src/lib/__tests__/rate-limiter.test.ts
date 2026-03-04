@@ -230,6 +230,27 @@ describe("getClientIP", () => {
     });
     expect(getClientIP(request)).toBe("192.168.1.101");
   });
+
+  it("trims whitespace from x-forwarded-for IP", () => {
+    const headers = new Headers();
+    headers.set("x-forwarded-for", "  192.168.1.200  ");
+    const request = new Request("http://localhost/api/test", {
+      method: "POST",
+      headers,
+    });
+    const ip = getClientIP(request);
+    expect(ip).toBe("192.168.1.200");
+  });
+
+  it("falls back through all header types to cf-connecting-ip", () => {
+    const headers = new Headers();
+    headers.set("cf-connecting-ip", "203.0.113.50");
+    const request = new Request("http://localhost/api/test", {
+      method: "POST",
+      headers,
+    });
+    expect(getClientIP(request)).toBe("203.0.113.50");
+  });
 });
 
 describe("createMockRequest", () => {

@@ -80,10 +80,12 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Image container — fills available height, object-contain for no cropping */}
+      {/* Image container — object-cover on mobile (fills space, crops edges),
+           object-contain on desktop (shows full image in side panel) */}
       <div className="relative flex-1 min-h-[280px] md:min-h-[400px]">
         {images.map((image, index) => {
           const isActive = index === currentIndex;
+          const focusPoint = image.focusPoint || "center center";
           return (
             <div
               key={image.src}
@@ -100,7 +102,8 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
                 <img
                   src={`/images/services/${image.src}.jpg`}
                   alt={image.alt}
-                  className="absolute inset-0 w-full h-full object-contain"
+                  className="absolute inset-0 w-full h-full object-cover md:object-contain"
+                  style={{ objectPosition: focusPoint }}
                   loading={index === 0 ? "eager" : "lazy"}
                   draggable={false}
                 />
