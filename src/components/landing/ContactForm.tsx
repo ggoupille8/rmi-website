@@ -478,12 +478,31 @@ export default function ContactForm({
 
             {submitStatus === "success" && (
               <div
-                className="rounded-md bg-success-dark/20 p-3 text-success-light border border-success/20 text-sm"
+                className="rounded-lg bg-success-dark/20 p-6 border border-success/30 text-center"
                 role="alert"
                 aria-live="polite"
+                style={{ animation: "fadeIn 400ms ease-out" }}
               >
-                Thank you for your inquiry! Our team will review your request
-                and get back to you within 24 hours.
+                {/* Animated checkmark */}
+                <div
+                  className="mx-auto w-14 h-14 rounded-full bg-success/20 flex items-center justify-center mb-3"
+                  style={{ animation: "modalIn 500ms ease-out" }}
+                >
+                  <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-1">Thank you!</h3>
+                <p className="text-neutral-300 text-sm mb-4">
+                  We'll review your request and get back to you within 48 hours.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSubmitStatus("idle")}
+                  className="text-sm font-medium text-accent-400 hover:text-accent-300 transition-colors underline underline-offset-2"
+                >
+                  Send Another Message
+                </button>
               </div>
             )}
 

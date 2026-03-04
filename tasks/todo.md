@@ -117,6 +117,22 @@ _No active tasks._
 - Contact form blur validation, email/phone format checks
 - Server error UI with phone link and "Try Again" button
 
+### Performance & LCP Optimization
+**Branch:** `fix/perf-lcp-optimization` | **Date:** 2026-03-04 | **Tasks:** 5/5 complete
+- Inline critical CSS (`build.inlineStylesheets: 'always'`)
+- CTA background image responsive variants (960w/1920w WebP)
+- Width/height on ImageSlideshow `<img>` tags
+- Hero srcsets and font-display already implemented from prior sprints
+
+### UX Micro-Interactions
+**Branch:** `feat/ux-micro-interactions` | **Date:** 2026-03-04 | **Tasks:** 6/6 complete
+- Enhanced navbar scroll shadow (opacity 0.1 → 0.3)
+- Hero slideshow dot indicators with role="tablist"
+- Project card hover overlay (bg-black/0 → bg-black/20)
+- Contact form success animation (animated checkmark, "Thank you!", "Send Another Message")
+- Floating back-to-top button with scroll-based opacity
+- Animated stats counter already implemented — verified
+
 ### Code Cleanup & Technical Debt
 **Branch:** `chore/code-cleanup` | **Date:** 2026-03-04 | **Tasks:** 6/6 complete
 - Task 1: ValueProps.tsx and StatsBar.tsx already removed (no action)

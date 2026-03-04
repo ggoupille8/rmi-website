@@ -747,7 +747,7 @@ test.describe("Form Loading State", () => {
     await expect(submitBtn).toBeDisabled();
 
     // Wait for success message after route fulfills
-    await expect(page.getByText("Thank you for your inquiry")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Thank you!")).toBeVisible({ timeout: 10000 });
   });
 
   test("error response shows error message", async ({ page }) => {

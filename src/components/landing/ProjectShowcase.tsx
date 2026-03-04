@@ -32,7 +32,7 @@ export default function ProjectShowcase() {
               key={project.title}
               className="group overflow-hidden rounded-xl bg-white/5 border border-white/10 hover:border-neutral-600 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 ease-out"
             >
-              <div className="overflow-hidden rounded-t-xl">
+              <div className="relative overflow-hidden rounded-t-xl">
                 <picture>
                   <source
                     srcSet={`${project.image}.webp`}
@@ -48,6 +48,7 @@ export default function ProjectShowcase() {
                     decoding="async"
                   />
                 </picture>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
               </div>
               <div className="px-5 py-4">
                 <h3 className="text-lg font-semibold text-white transition-colors duration-200 group-hover:text-blue-400">

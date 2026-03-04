@@ -348,6 +348,28 @@ export default function HeroFullWidth({
               </div>
             ))}
           </div>
+
+          {/* Slideshow Dots */}
+          <div className="flex justify-center gap-2 pb-3" role="tablist" aria-label="Hero slideshow navigation">
+            {heroImages.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  prevIndexRef.current = activeIndex;
+                  setActiveIndex(idx);
+                }}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  idx === activeIndex
+                    ? "bg-white w-5"
+                    : "bg-white/40 w-2 hover:bg-white/60"
+                }`}
+                role="tab"
+                aria-selected={idx === activeIndex}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
