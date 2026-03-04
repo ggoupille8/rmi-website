@@ -2,7 +2,7 @@ import { ctaBannerHeading, ctaBannerSubtitle, ctaBannerButton } from "../../cont
 
 export default function CTABanner() {
   return (
-    <section id="cta-banner" className="relative z-10 min-h-[350px] md:min-h-[400px] flex items-center justify-center" aria-labelledby="cta-heading">
+    <section id="cta-banner" className="relative z-10 min-h-[350px] md:min-h-[400px] flex items-center justify-center bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900 border-t border-blue-500/30" aria-labelledby="cta-heading">
       {/* Content */}
       <div className="container-custom py-20 px-6 text-center">
         <h2 id="cta-heading" className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-wider uppercase">

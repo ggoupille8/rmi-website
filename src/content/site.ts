@@ -218,10 +218,7 @@ export const services: ServiceData[] = [
     tier: "specialty",
     description:
       "Weekly plan & specification bidding and estimation services for commercial and industrial insulation projects. We review customer bid lists weekly, quoting most jobs and working to quote every opportunity we can. Our estimating and technical coordination streamline your project planning and ensure seamless execution from bid to completion.",
-    images: [
-      { src: "plan-spec-1", alt: "Blueprints with tools on desk for insulation project planning" },
-      { src: "plan-spec-2", alt: "Team reviewing construction plans overhead" },
-    ],
+    images: [],
   },
   {
     title: "Material Sales",
@@ -242,10 +239,7 @@ export const services: ServiceData[] = [
     tier: "additional",
     description:
       "Around-the-clock emergency insulation repair and outage support. We mobilize crews immediately for pipe failures, emergency breaks, facility shutdowns, and production-critical issues. Our rapid-response teams minimize downtime and keep your operations running with professional emergency insulation services available 7 days a week.",
-    images: [
-      { src: "emergency-response-1", alt: "Industrial worker in hi-vis vest directing emergency response work" },
-      { src: "emergency-response-2", alt: "Construction worker with hard hat on emergency insulation job" },
-    ],
+    images: [],
   },
 ];
 
@@ -320,7 +314,7 @@ export interface ProjectHighlight {
 export const projectHighlights: ProjectHighlight[] = [
   {
     title: "Henry Ford Hospital — Detroit",
-    description: "Our team maintains a year-round presence across Henry Ford Hospital's Detroit campus, providing insulation services, material supply, and pipe support fabrication across multiple buildings. With crews available seven days a week and insulators who have spent the better part of their careers on-site, we deliver the continuity and institutional knowledge that complex healthcare facilities demand.",
+    description: "Our team maintains a year-round presence across Henry Ford Hospital's Detroit campus, providing insulation services, material supply, and pipe supports across multiple buildings. With crews available seven days a week and insulators who have spent the better part of their careers on-site, we deliver the continuity and institutional knowledge that complex healthcare facilities demand.",
     image: "/images/projects/henry-ford-hospital",
     alt: "Mechanical insulation work at Henry Ford Hospital in Detroit",
   },

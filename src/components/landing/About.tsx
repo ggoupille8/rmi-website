@@ -34,13 +34,13 @@ const features: AboutFeature[] = [
     icon: Award,
     title: "Proven Track Record",
     description:
-      "From a year-round presence at Henry Ford Hospital to Ford\u2019s new World Headquarters \u2014 our project list includes Michigan\u2019s most recognized names. General contractors and facility managers choose RMI because we deliver on schedule, on spec, and on budget.",
+      "From a year-round presence at Henry Ford Hospital to Ford\u2019s new World Headquarters \u2014 our project list includes Michigan\u2019s most recognized names. Contractors and facility managers choose RMI because we deliver on schedule, by design, and on budget.",
   },
   {
     icon: Users,
     title: "Union-Trained Workforce",
     description:
-      "Proud to employ Local 25 insulators — OSHA 10/30-hour certified, CPR and first aid trained, and backed by years of hands-on field experience in commercial and industrial environments.",
+      "Proud to employ Local 25 insulators — OSHA 10/30-hour certified, CPR and first aid trained, and backed by years of hands-on field experience in commercial and industrial environments. Every crew member brings the skill and professionalism that comes from rigorous union apprenticeship training.",
   },
 ];
 
