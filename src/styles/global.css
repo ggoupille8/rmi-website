@@ -207,9 +207,10 @@
     --letter-spacing-wider: 0.025em;
   }
   html {
+    scroll-behavior: smooth;
     scrollbar-gutter: stable;
     overflow-x: hidden;
-    @apply scroll-smooth bg-neutral-950;
+    @apply bg-neutral-950;
   }
   /* Disable animations/transitions for test stability and accessibility */
   @media (prefers-reduced-motion: reduce) {
