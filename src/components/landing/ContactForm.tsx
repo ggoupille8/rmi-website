@@ -258,9 +258,9 @@ export default function ContactForm({
   };
 
   const inputBase =
-    "block w-full rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 text-base px-3 py-2 border bg-neutral-800 text-white placeholder:text-neutral-400 leading-relaxed min-w-0 min-h-[48px]";
-  const inputNormal = `${inputBase} border-neutral-600 focus-visible:border-primary-400`;
-  const inputError = `${inputBase} border-red-500 focus-visible:border-red-500 focus-visible:ring-red-500`;
+    "block w-full rounded-md shadow-sm text-base px-3 py-2 border bg-neutral-800 text-white placeholder:text-neutral-400 leading-relaxed min-w-0 min-h-[48px] hover:border-neutral-500/50 focus:ring-1 focus:ring-accent-500/20 transition-colors duration-200";
+  const inputNormal = `${inputBase} border-neutral-600 focus:border-accent-500/50`;
+  const inputError = `${inputBase} border-red-500 focus:border-red-500 focus:ring-red-500`;
 
   return (
     <ErrorBoundary fallback={
@@ -296,7 +296,7 @@ export default function ContactForm({
             ref={formRef}
             method="post"
             onSubmit={handleSubmit}
-            className="mt-4 space-y-3"
+            className="mt-6 space-y-4 border border-neutral-700/30 rounded-xl backdrop-blur-sm bg-neutral-900/50 p-6 sm:p-8"
             noValidate
             aria-busy={isSubmitting ? "true" : "false"}
           >
@@ -550,7 +550,7 @@ export default function ContactForm({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-primary w-full py-3 text-base sm:text-lg font-bold"
+                className="btn-primary w-full py-3 text-base sm:text-lg font-bold hover:shadow-[0_8px_24px_rgba(59,130,246,0.25)] hover:scale-[1.02] active:scale-[0.98]"
               >
                 {isSubmitting ? "Sending..." : "Send Message"}
               </button>
