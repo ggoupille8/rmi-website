@@ -23,11 +23,11 @@ export default function Footer() {
       className="bg-neutral-900 text-white border-t border-neutral-800/50"
       aria-label="Site footer"
     >
-      <div className="container-custom pt-8 sm:pt-10 pb-4 sm:pb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+      <div className="container-custom pt-6 sm:pt-8 pb-3 sm:pb-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
           {/* Company Info */}
           <div className="text-center md:text-left">
-            <h3 className="text-lg font-bold text-white mb-3 sm:mb-4">
+            <h3 className="text-lg font-bold text-white mb-2 sm:mb-3">
               {companyNameFull}
             </h3>
             <p className="text-neutral-300 text-sm leading-relaxed">
@@ -40,7 +40,7 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="text-center md:text-left">
-            <h3 className="text-lg font-bold text-white mb-3 sm:mb-4">
+            <h3 className="text-lg font-bold text-white mb-2 sm:mb-3">
               Quick Links
             </h3>
             <nav className="flex flex-col items-center md:items-start gap-1" aria-label="Footer navigation">
@@ -79,7 +79,7 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div className="text-center md:text-left">
-            <h3 className="text-lg font-bold text-white mb-3 sm:mb-4">
+            <h3 className="text-lg font-bold text-white mb-2 sm:mb-3">
               Contact
             </h3>
             <div className="space-y-0 inline-flex flex-col items-center md:items-start">
@@ -110,7 +110,7 @@ export default function Footer() {
         </div>
 
         {/* Social Links */}
-        <div className="mt-4 pt-4 border-t border-neutral-800/50 flex justify-center gap-5">
+        <div className="mt-3 pt-3 border-t border-neutral-800/50 flex justify-center gap-5">
           <a
             href="https://www.linkedin.com/company/resource-mechanical-insulation"
             target="_blank"
@@ -137,19 +137,10 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-3 pt-3 border-t border-neutral-800/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-3 pt-3 border-t border-neutral-800/30 flex items-center justify-center">
           <p className="text-sm text-neutral-400">
             &copy; {currentYear} {companyNameFull}. All rights reserved.
           </p>
-          <button
-            type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="inline-flex items-center gap-2 text-sm font-medium text-neutral-400 hover:text-accent-400 transition-colors duration-200 cursor-pointer py-1.5 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 rounded"
-            aria-label="Back to top"
-          >
-            Back to top
-            <ArrowUp className="w-4 h-4" aria-hidden="true" />
-          </button>
         </div>
       </div>
 
