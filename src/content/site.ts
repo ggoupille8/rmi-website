@@ -40,7 +40,7 @@ export const footerDescription =
 // CTA Banner Content
 export const ctaBannerHeading = "READY TO START YOUR INSULATION PROJECT?";
 export const ctaBannerSubtitle =
-  "Share your project details and receive a detailed quote within 48 hours\u2014or call for immediate assessment on urgent jobs.";
+  "Tell us about your project and we\u2019ll put together a detailed quote\u2014or call for immediate emergency response.";
 export const ctaBannerButton = "Request a Quote";
 
 // Services Data

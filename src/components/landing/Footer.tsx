@@ -63,31 +63,31 @@ export default function Footer() {
             <nav className="flex flex-col items-center md:items-start gap-1" aria-label="Footer navigation">
               <a
                 href="#services"
-                className="inline-flex items-center text-neutral-400 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px]"
+                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Services
               </a>
               <a
                 href="#about"
-                className="inline-flex items-center text-neutral-400 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px]"
+                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 About
               </a>
               <a
                 href="#projects"
-                className="inline-flex items-center text-neutral-400 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px]"
+                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Projects
               </a>
               <a
                 href="#contact"
-                className="inline-flex items-center text-neutral-400 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px]"
+                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Contact
               </a>
               <a
                 href="#contact"
-                className="inline-flex items-center text-neutral-400 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px]"
+                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Request a Quote
               </a>
@@ -102,7 +102,7 @@ export default function Footer() {
             <div className="space-y-0 inline-flex flex-col items-center md:items-start">
               <a
                 href={phoneTel}
-                className="group flex items-center gap-2 text-white hover:text-accent-400 transition-all duration-200 text-sm min-h-[44px]"
+                className="group flex items-center gap-2 text-white hover:text-accent-400 transition-all duration-200 text-sm min-h-[44px] sm:min-h-0 sm:py-1.5"
                 aria-label={`Call ${companyName} at ${phoneDisplay}`}
               >
                 <Phone className="w-3.5 h-3.5 text-accent-500 group-hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)] transition-all duration-200" aria-hidden="true" />
@@ -111,17 +111,23 @@ export default function Footer() {
 
               <a
                 href={`mailto:${email}`}
-                className="group flex items-center gap-2 text-white hover:text-accent-400 transition-all duration-200 text-sm min-h-[44px]"
+                className="group flex items-center gap-2 text-white hover:text-accent-400 transition-all duration-200 text-sm min-h-[44px] sm:min-h-0 sm:py-1.5"
                 aria-label={`Email ${companyName} at ${email}`}
               >
                 <Mail className="w-3.5 h-3.5 text-accent-500 group-hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)] transition-all duration-200" aria-hidden="true" />
                 <span>{email}</span>
               </a>
 
-              <div className="flex items-start gap-2 text-white text-sm">
-                <MapPin className="w-3.5 h-3.5 text-accent-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <a
+                href="https://maps.google.com/?q=11677+Wayne+Road+Suite+112+Romulus+MI+48174"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-start gap-2 text-white hover:text-accent-400 transition-all duration-200 text-sm min-h-[44px] sm:min-h-0 sm:py-1.5"
+                aria-label="View address on Google Maps"
+              >
+                <MapPin className="w-3.5 h-3.5 text-accent-500 group-hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)] flex-shrink-0 mt-0.5 transition-all duration-200" aria-hidden="true" />
                 <span>{address.full}</span>
-              </div>
+              </a>
             </div>
           </div>
         </div>
