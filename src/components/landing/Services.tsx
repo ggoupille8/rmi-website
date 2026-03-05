@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { services, servicesSubtitle } from "../../content/site";
 import ImageSlideshow from "./ImageSlideshow";
@@ -18,23 +18,42 @@ import {
 } from "lucide-react";
 
 // Card styling per visual tier
-const tier1Style = {
-  border: "border-l-4 border-l-blue-500 hover:border-l-blue-400",
-  bg: "bg-neutral-900/60",
-  iconColor: "text-blue-500",
-  hoverIcon: "group-hover:text-blue-400",
-  glowColor: "hover:shadow-lg hover:shadow-blue-500/10",
-};
-const defaultStyle = {
-  border: "border-l-[3px] border-l-blue-500/70 hover:border-l-blue-400/70",
-  bg: "bg-neutral-900/50",
-  iconColor: "text-blue-500",
-  hoverIcon: "group-hover:text-blue-400",
-  glowColor: "hover:shadow-lg hover:shadow-blue-500/10",
+const tierStyles: Record<string, { border: string; bg: string; iconColor: string; hoverIcon: string; glowColor: string; py: string; chevronHover: string }> = {
+  core: {
+    border: "border-l-4 border-l-blue-500 hover:border-l-blue-400",
+    bg: "bg-neutral-900/60",
+    iconColor: "text-blue-500",
+    hoverIcon: "group-hover:text-blue-400",
+    glowColor: "hover:shadow-lg hover:shadow-blue-500/10",
+    py: "py-5",
+    chevronHover: "group-hover:text-blue-400",
+  },
+  specialty: {
+    border: "border-l-4 border-l-amber-500 hover:border-l-amber-400",
+    bg: "bg-neutral-900/50",
+    iconColor: "text-amber-400",
+    hoverIcon: "group-hover:text-amber-300",
+    glowColor: "hover:shadow-lg hover:shadow-amber-500/10",
+    py: "py-4",
+    chevronHover: "group-hover:text-amber-400",
+  },
+  additional: {
+    border: "border-l-4 border-l-emerald-500 hover:border-l-emerald-400",
+    bg: "bg-neutral-900/50",
+    iconColor: "text-emerald-400",
+    hoverIcon: "group-hover:text-emerald-300",
+    glowColor: "hover:shadow-lg hover:shadow-emerald-500/10",
+    py: "py-3",
+    chevronHover: "group-hover:text-emerald-400",
+  },
 };
 
-// First 3 services = Tier 1 (core); rest = default
-const tier1Anchors = new Set(["piping", "duct", "tanks"]);
+// Group services by tier for rendering with labels
+const tierGroups: { key: string; label: string; services: typeof services }[] = [
+  { key: "core", label: "Core Services", services: services.filter(s => s.tier === "core") },
+  { key: "specialty", label: "Specialty", services: services.filter(s => s.tier === "specialty") },
+  { key: "additional", label: "Additional", services: services.filter(s => s.tier === "additional") },
+];
 
 // Map service anchor IDs to icons
 const iconMap: Record<string, LucideIcon> = {
@@ -181,33 +200,42 @@ export default function Services() {
 
         {/* Services Icon Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
-          {services.map((service) => {
-            const IconComponent = iconMap[service.anchorId] || Droplets;
-            const style = tier1Anchors.has(service.anchorId) ? tier1Style : defaultStyle;
-            return (
-              <button
-                key={service.anchorId}
-                type="button"
-                aria-label={`Learn more about ${service.title}`}
-                aria-haspopup="dialog"
-                aria-expanded={activeService === service.anchorId}
-                onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className={`group cursor-pointer flex items-center justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] ${style.bg} backdrop-blur-sm border border-neutral-700/50 ${style.border} transition-all duration-200 ease-out hover:bg-neutral-800/70 active:bg-neutral-700/50 hover:border-neutral-600 hover:-translate-y-0.5 ${style.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
-              >
-                <IconComponent
-                  className={`w-7 h-7 ${style.iconColor} ${style.hoverIcon} flex-shrink-0 transition-colors duration-200`}
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                />
-                <span className="text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
-                  {service.title}
-                </span>
-                <ChevronRight
-                  className="w-4 h-4 text-neutral-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all duration-200 ml-auto flex-shrink-0"
-                  aria-hidden="true"
-                />
-              </button>
-            );
+          {tierGroups.map((group, groupIndex) => {
+            const style = tierStyles[group.key];
+            return group.services.map((service, serviceIndex) => {
+              const IconComponent = iconMap[service.anchorId] || Droplets;
+              return (
+                <React.Fragment key={service.anchorId}>
+                  {/* Tier label — spans full grid width */}
+                  {serviceIndex === 0 && (
+                    <p className={`col-span-1 sm:col-span-2 lg:col-span-3 text-xs text-neutral-500 uppercase tracking-widest font-medium mb-1 ${groupIndex > 0 ? "mt-4" : ""}`}>
+                      {group.label}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    aria-label={`Learn more about ${service.title}`}
+                    aria-haspopup="dialog"
+                    aria-expanded={activeService === service.anchorId}
+                    onClick={(e) => openModal(service.anchorId, e.currentTarget)}
+                    className={`group cursor-pointer flex items-center justify-start gap-4 px-4 ${style.py} sm:p-4 min-h-[56px] ${style.bg} backdrop-blur-sm border border-neutral-700/50 ${style.border} transition-all duration-200 ease-out hover:bg-neutral-800/70 active:bg-neutral-700/50 hover:border-neutral-600 hover:-translate-y-0.5 ${style.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
+                  >
+                    <IconComponent
+                      className={`w-7 h-7 ${style.iconColor} ${style.hoverIcon} flex-shrink-0 transition-colors duration-200`}
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                    />
+                    <span className="text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
+                      {service.title}
+                    </span>
+                    <ChevronRight
+                      className={`w-4 h-4 text-neutral-500 ${style.chevronHover} group-hover:translate-x-0.5 transition-all duration-200 ml-auto flex-shrink-0`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </React.Fragment>
+              );
+            });
           })}
         </div>
       </div>
@@ -238,8 +266,9 @@ export default function Services() {
           >
             {activeServiceData && (() => {
               const Icon = iconMap[activeServiceData.anchorId] || Droplets;
-              const modalIconColor = "text-blue-500";
-              const modalGlowColor = "bg-blue-500/20";
+              const activeTierStyle = tierStyles[activeServiceData.tier] || tierStyles.core;
+              const modalIconColor = activeTierStyle.iconColor;
+              const modalGlowColor = activeServiceData.tier === "specialty" ? "bg-amber-400/20" : activeServiceData.tier === "additional" ? "bg-emerald-400/20" : "bg-blue-500/20";
               const hasImages = activeServiceData.images.length > 0;
               return (
                 <div className={`flex h-full ${hasImages ? "flex-col md:flex-row" : "flex-col"}`} style={hasImages ? { height: "85vh", maxHeight: "85vh" } : undefined}>
