@@ -26,9 +26,13 @@ CREATE TABLE IF NOT EXISTS contacts (
   phone VARCHAR(50),
   message TEXT NOT NULL,
   source VARCHAR(50) DEFAULT 'contact',
-  metadata JSONB DEFAULT '{}'::jsonb
+  metadata JSONB DEFAULT '{}'::jsonb,
+  status VARCHAR(20) DEFAULT 'new',
+  notes TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Index for common queries
 CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_contacts_source ON contacts(source);
+CREATE INDEX IF NOT EXISTS idx_contacts_status ON contacts(status);
