@@ -8,7 +8,15 @@ _No active tasks._
 
 ## Completed
 
-24 sprints completed (Feb 26 – Mar 5, 2026). See git log for full history.
+25 sprints completed (Feb 26 – Mar 5, 2026). See git log for full history.
+
+### Sprint 2: Service Card Tiers + Polish (Mar 5, 2026)
+Branch: `feat/sprint-2-service-tiers` (pushed, NOT merged)
+
+1. **feat: tiered service cards with color-coded borders** — Reworked `Services.tsx` to render cards in 3 tier groups (core/specialty/additional) with distinct accent colors. Core (4 cards): blue borders + icons. Specialty (3 cards): amber borders + icons. Additional (2 cards): emerald borders + icons. Added tier group labels ("Core Services", "Specialty", "Additional") as full-width grid separators. Vertical padding varies by tier (py-5/py-4/py-3). Modal icon colors now match the service tier. Tier metadata already existed in `site.ts`.
+2. **fix(a11y): CTA image alt text** — Changed empty `alt=""` on the CTA background image in `index.astro` to `alt="RMI insulation project work"`. `<picture>` element and WebP sources were already in place.
+3. **fix(a11y): About section H2 screen-reader text** — Added `<span class="sr-only">Why Choose Resource Mechanical Insulation</span>` to the About H2 alongside the existing `aria-hidden="true"` visual span. Removed redundant `aria-label` from the H2.
+4. **fix: hide FABs when footer is in view** — Added `IntersectionObserver` on `<footer>` in `Footer.tsx` to track `footerVisible` state. Back-to-top FAB now hides when footer is 10% visible. `FloatingMobileCTA.tsx` already had this logic.
 
 ### Canonical URL + Mobile Polish (Mar 5, 2026)
 Branch: `feat/canonical-and-mobile-polish` (pushed, NOT merged)
