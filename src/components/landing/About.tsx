@@ -12,10 +12,19 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+interface CardAccent {
+  bar: string;
+  iconBg: string;
+  iconText: string;
+  hoverBorder: string;
+  hoverShadow: string;
+}
+
 interface AboutFeature {
   icon: LucideIcon;
   title: string;
   description: string;
+  accent: CardAccent;
 }
 
 const features: AboutFeature[] = [
@@ -23,24 +32,52 @@ const features: AboutFeature[] = [
     icon: ShieldCheck,
     title: "Safety-First Culture",
     description: `Over ${formatLargeNumberProse(totalOshaManHours)} OSHA-tracked man-hours since ${oshaFirstYear} with zero lost-time incidents. Our EMR rating of 0.76 puts us 24% better than the industry average — a direct reflection of our commitment to planning, training, and accountability.`,
+    accent: {
+      bar: "from-blue-500/60 via-blue-400/40",
+      iconBg: "bg-blue-500/10 border-blue-500/30",
+      iconText: "text-blue-400",
+      hoverBorder: "hover:border-blue-500/30",
+      hoverShadow: "hover:shadow-blue-500/5",
+    },
   },
   {
     icon: Clock,
     title: "Emergency Response",
     description:
       "When a job calls for it, we scale — staffing dozens of insulators across dual 12-hour shifts, 7 days a week, with the capacity to run multiple outages simultaneously. Emergency repairs mobilized around the clock.",
+    accent: {
+      bar: "from-red-500/60 via-red-400/40",
+      iconBg: "bg-red-500/10 border-red-500/30",
+      iconText: "text-red-400",
+      hoverBorder: "hover:border-red-500/30",
+      hoverShadow: "hover:shadow-red-500/5",
+    },
   },
   {
     icon: Award,
     title: "Proven Track Record",
     description:
       "From a year-round presence at Henry Ford Hospital to Ford\u2019s new World Headquarters \u2014 our project list includes Michigan\u2019s most recognized names. Contractors and facility managers choose RMI because we deliver on schedule, by design, and on budget.",
+    accent: {
+      bar: "from-amber-500/60 via-amber-400/40",
+      iconBg: "bg-amber-500/10 border-amber-500/30",
+      iconText: "text-amber-400",
+      hoverBorder: "hover:border-amber-500/30",
+      hoverShadow: "hover:shadow-amber-500/5",
+    },
   },
   {
     icon: Users,
     title: "Union-Trained Workforce",
     description:
       "Proud to employ Local 25 insulators — OSHA 10/30-hour certified, CPR and first aid trained, and backed by years of hands-on field experience in commercial and industrial environments. Every crew member brings the skill and professionalism that comes from rigorous union apprenticeship training.",
+    accent: {
+      bar: "from-emerald-500/60 via-emerald-400/40",
+      iconBg: "bg-emerald-500/10 border-emerald-500/30",
+      iconText: "text-emerald-400",
+      hoverBorder: "hover:border-emerald-500/30",
+      hoverShadow: "hover:shadow-emerald-500/5",
+    },
   },
 ];
 
@@ -73,20 +110,21 @@ export default function About() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
+            const { accent } = feature;
 
             return (
               <div
                 key={index}
-                className="relative overflow-hidden bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 hover:border-accent-500/30 hover:bg-neutral-800/55 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 h-full flex flex-col"
+                className={`relative overflow-hidden bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 hover:from-neutral-800/60 hover:to-neutral-800/40 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 ${accent.hoverBorder} hover:shadow-lg ${accent.hoverShadow} hover:-translate-y-1 transition-all duration-300 h-full flex flex-col`}
               >
                 {/* Accent bar */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-accent-500/60 via-accent-400/40 to-transparent" />
+                <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${accent.bar} to-transparent`} />
 
                 {/* Icon + Title row */}
                 <div className="flex items-center gap-3 mb-3 min-h-[48px]">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-accent-500/10 border border-accent-500/30 flex-shrink-0">
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${accent.iconBg} flex-shrink-0`}>
                     <IconComponent
-                      className="w-5 h-5 text-accent-400"
+                      className={`w-5 h-5 ${accent.iconText}`}
                       strokeWidth={1.5}
                       aria-hidden="true"
                     />
