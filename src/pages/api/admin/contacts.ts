@@ -1,153 +1,227 @@
 import type { APIRoute } from "astro";
 import { sql } from "@vercel/postgres";
-import crypto from "crypto";
 import { getPostgresEnv } from "../../../lib/db-env";
+import { isAdminAuthorized } from "../../../lib/admin-auth";
 
-// Prevent prerendering - API routes must be server-side only
 export const prerender = false;
 
-// Simple admin authentication check
-function isAuthorized(request: Request): boolean {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader) return false;
+const SECURITY_HEADERS = {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store",
+  "X-Content-Type-Options": "nosniff",
+};
 
-  const adminKey = import.meta.env.ADMIN_API_KEY;
-  if (!adminKey) {
-    // If no admin key is set, deny access
-    return false;
-  }
+const VALID_STATUSES = ["new", "contacted", "archived"] as const;
+type LeadStatus = (typeof VALID_STATUSES)[number];
 
-  // Enforce exact Bearer scheme with no extra whitespace
-  if (!/^Bearer [^\s]+$/.test(authHeader)) {
-    return false;
-  }
+function isValidStatus(s: unknown): s is LeadStatus {
+  return typeof s === "string" && VALID_STATUSES.includes(s as LeadStatus);
+}
 
-  const token = authHeader.substring(7);
-  const tokenBuffer = Buffer.from(token);
-  const adminBuffer = Buffer.from(adminKey);
-  if (tokenBuffer.length !== adminBuffer.length) {
-    return false;
-  }
+function unauthorizedResponse(): Response {
+  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    status: 401,
+    headers: {
+      ...SECURITY_HEADERS,
+      "WWW-Authenticate": 'Bearer realm="admin"',
+    },
+  });
+}
 
-  return crypto.timingSafeEqual(tokenBuffer, adminBuffer);
+function dbNotConfiguredResponse(): Response {
+  return new Response(
+    JSON.stringify({ error: "Database not configured" }),
+    { status: 500, headers: SECURITY_HEADERS }
+  );
 }
 
 export const GET: APIRoute = async ({ request }) => {
-  // Check authorization
-  if (!isAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: {
-        "Content-Type": "application/json",
-        "WWW-Authenticate": 'Bearer realm="admin"',
-        "Cache-Control": "no-store",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
-  }
+  if (!isAdminAuthorized(request)) return unauthorizedResponse();
 
   const { url: postgresUrl } = getPostgresEnv();
-  if (!postgresUrl) {
-    return new Response(JSON.stringify({ error: "Database not configured" }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
-  }
+  if (!postgresUrl) return dbNotConfiguredResponse();
 
   try {
-    // Parse query parameters
     const url = new URL(request.url);
-    const limitParam = parseInt(url.searchParams.get("limit") || "50", 10);
+
+    // Parse pagination
+    const limitParam = parseInt(url.searchParams.get("limit") || "20", 10);
     const offsetParam = parseInt(url.searchParams.get("offset") || "0", 10);
     const limit = Number.isFinite(limitParam)
       ? Math.min(Math.max(limitParam, 1), 100)
-      : 50;
+      : 20;
     const offset = Number.isFinite(offsetParam)
       ? Math.min(Math.max(offsetParam, 0), 10000)
       : 0;
-    const sourceParam = url.searchParams.get("source");
-    const source =
-      sourceParam === "contact" || sourceParam === null
-        ? sourceParam
-        : null;
 
-    if (sourceParam !== null && source === null) {
-      return new Response(JSON.stringify({ error: "Invalid input" }), {
-        status: 400,
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-store",
-          "X-Content-Type-Options": "nosniff",
-        },
-      });
+    // Parse filters
+    const statusParam = url.searchParams.get("status");
+    const searchParam = url.searchParams.get("search");
+
+    // Build WHERE clauses
+    const conditions: string[] = [];
+    const values: unknown[] = [];
+    let paramIndex = 1;
+
+    if (statusParam && isValidStatus(statusParam)) {
+      conditions.push(`status = $${paramIndex}`);
+      values.push(statusParam);
+      paramIndex++;
     }
 
-    // Build query
-    let result;
-    let countResult;
-
-    if (source) {
-      result = await sql`
-        SELECT id, created_at, name, email, phone, message, source, metadata
-        FROM contacts
-        WHERE source = ${source}
-        ORDER BY created_at DESC
-        LIMIT ${limit}
-        OFFSET ${offset}
-      `;
-      countResult = await sql`
-        SELECT COUNT(*) as total FROM contacts WHERE source = ${source}
-      `;
-    } else {
-      result = await sql`
-        SELECT id, created_at, name, email, phone, message, source, metadata
-        FROM contacts
-        ORDER BY created_at DESC
-        LIMIT ${limit}
-        OFFSET ${offset}
-      `;
-      countResult = await sql`
-        SELECT COUNT(*) as total FROM contacts
-      `;
+    if (searchParam && searchParam.trim().length > 0) {
+      const searchTerm = `%${searchParam.trim().toLowerCase()}%`;
+      conditions.push(
+        `(LOWER(name) LIKE $${paramIndex} OR LOWER(COALESCE(email, '')) LIKE $${paramIndex} OR LOWER(COALESCE(phone, '')) LIKE $${paramIndex})`
+      );
+      values.push(searchTerm);
+      paramIndex++;
     }
+
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    // Query
+    const queryText = `
+      SELECT id, created_at, name, email, phone, message, source, metadata, status, notes, updated_at
+      FROM contacts
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+    values.push(limit, offset);
+
+    const countText = `SELECT COUNT(*) as total FROM contacts ${whereClause}`;
+    const countValues = values.slice(0, -2);
+
+    const [result, countResult] = await Promise.all([
+      sql.query(queryText, values),
+      sql.query(countText, countValues),
+    ]);
 
     const total = parseInt(countResult.rows[0]?.total || "0", 10);
 
     return new Response(
       JSON.stringify({
         contacts: result.rows,
-        pagination: {
-          total,
-          limit,
-          offset,
-          hasMore: offset + limit < total,
-        },
+        pagination: { total, limit, offset, hasMore: offset + limit < total },
       }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "no-store",
-          "X-Content-Type-Options": "nosniff",
-        },
-      }
+      { status: 200, headers: SECURITY_HEADERS }
     );
   } catch (error) {
     console.error(
       "Admin contacts fetch error:",
       error instanceof Error ? error.message : "Unknown error"
     );
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-store",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
+    return new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: SECURITY_HEADERS }
+    );
+  }
+};
+
+export const PATCH: APIRoute = async ({ request }) => {
+  if (!isAdminAuthorized(request)) return unauthorizedResponse();
+
+  const { url: postgresUrl } = getPostgresEnv();
+  if (!postgresUrl) return dbNotConfiguredResponse();
+
+  try {
+    const body = await request.json();
+    const { id, status, notes } = body as {
+      id?: unknown;
+      status?: unknown;
+      notes?: unknown;
+    };
+
+    if (!id || typeof id !== "string") {
+      return new Response(
+        JSON.stringify({ error: "Contact ID is required" }),
+        { status: 400, headers: SECURITY_HEADERS }
+      );
+    }
+
+    // Validate UUID format
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        id
+      )
+    ) {
+      return new Response(
+        JSON.stringify({ error: "Invalid contact ID format" }),
+        { status: 400, headers: SECURITY_HEADERS }
+      );
+    }
+
+    if (status !== undefined && !isValidStatus(status)) {
+      return new Response(
+        JSON.stringify({
+          error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
+        }),
+        { status: 400, headers: SECURITY_HEADERS }
+      );
+    }
+
+    if (notes !== undefined && typeof notes !== "string") {
+      return new Response(
+        JSON.stringify({ error: "Notes must be a string" }),
+        { status: 400, headers: SECURITY_HEADERS }
+      );
+    }
+
+    // Build dynamic update
+    const setClauses: string[] = ["updated_at = NOW()"];
+    const updateValues: unknown[] = [];
+    let idx = 1;
+
+    if (status !== undefined) {
+      setClauses.push(`status = $${idx}`);
+      updateValues.push(status);
+      idx++;
+    }
+
+    if (notes !== undefined) {
+      setClauses.push(`notes = $${idx}`);
+      updateValues.push(notes);
+      idx++;
+    }
+
+    if (setClauses.length === 1) {
+      return new Response(
+        JSON.stringify({ error: "No fields to update" }),
+        { status: 400, headers: SECURITY_HEADERS }
+      );
+    }
+
+    updateValues.push(id);
+    const updateQuery = `
+      UPDATE contacts
+      SET ${setClauses.join(", ")}
+      WHERE id = $${idx}
+      RETURNING id, status, notes, updated_at
+    `;
+
+    const result = await sql.query(updateQuery, updateValues);
+
+    if (result.rows.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Contact not found" }),
+        { status: 404, headers: SECURITY_HEADERS }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({ ok: true, contact: result.rows[0] }),
+      { status: 200, headers: SECURITY_HEADERS }
+    );
+  } catch (error) {
+    console.error(
+      "Admin contact update error:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    return new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: SECURITY_HEADERS }
+    );
   }
 };

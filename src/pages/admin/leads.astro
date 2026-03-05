@@ -1,0 +1,12 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import LeadsTable from '../../components/admin/LeadsTable.tsx';
+
+export const prerender = false;
+
+const statusParam = Astro.url.searchParams.get('status') || '';
+---
+
+<AdminLayout title="Lead Management">
+  <LeadsTable initialStatus={statusParam} client:load />
+</AdminLayout>

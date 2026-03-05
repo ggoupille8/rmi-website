@@ -1,21 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@vercel/postgres", () => ({
-  sql: vi.fn(),
+  sql: {
+    query: vi.fn(),
+  },
 }));
 
 vi.mock("../../../../lib/db-env", () => ({
   getPostgresEnv: vi.fn(),
 }));
 
-import { GET } from "../contacts";
+vi.mock("../../../../lib/admin-auth", () => ({
+  isAdminAuthorized: vi.fn(),
+}));
+
+import { GET, PATCH } from "../contacts";
 import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../../lib/db-env";
+import { isAdminAuthorized } from "../../../../lib/admin-auth";
 
-const mockedSql = vi.mocked(sql);
+const mockedQuery = vi.mocked(sql.query);
 const mockedGetPostgresEnv = vi.mocked(getPostgresEnv);
-
-const ADMIN_KEY = "test-admin-secret-key";
+const mockedIsAdminAuthorized = vi.mocked(isAdminAuthorized);
 
 function createRequest(
   params?: Record<string, string>,
@@ -34,6 +40,14 @@ function createRequest(
   return new Request(url.toString(), { headers });
 }
 
+function createPatchRequest(body: Record<string, unknown>): Request {
+  return new Request("http://localhost:4321/api/admin/contacts", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 function createContext(request: Request) {
   return { request } as unknown as Parameters<typeof GET>[0];
 }
@@ -46,11 +60,12 @@ async function parseResponse(response: Response) {
 }
 
 function setupDefaults() {
+  mockedIsAdminAuthorized.mockReturnValue(true);
   mockedGetPostgresEnv.mockReturnValue({
     url: "postgres://test",
     source: "POSTGRES_URL",
   });
-  mockedSql.mockResolvedValue({
+  mockedQuery.mockResolvedValue({
     rows: [],
     command: "",
     rowCount: 0,
@@ -61,12 +76,12 @@ function setupDefaults() {
 
 describe("GET /api/admin/contacts", () => {
   beforeEach(() => {
-    vi.stubEnv("ADMIN_API_KEY", ADMIN_KEY);
     setupDefaults();
   });
 
   describe("authentication", () => {
-    it("returns 401 when no auth header is provided", async () => {
+    it("returns 401 when not authorized", async () => {
+      mockedIsAdminAuthorized.mockReturnValue(false);
       const request = createRequest();
       const { status, body } = await parseResponse(
         await GET(createContext(request))
@@ -75,40 +90,8 @@ describe("GET /api/admin/contacts", () => {
       expect(body.error).toBe("Unauthorized");
     });
 
-    it("returns 401 for invalid Bearer token", async () => {
-      const request = createRequest({}, `Bearer wrong-key`);
-      const { status } = await parseResponse(
-        await GET(createContext(request))
-      );
-      expect(status).toBe(401);
-    });
-
-    it("returns 401 when ADMIN_API_KEY is not configured", async () => {
-      vi.stubEnv("ADMIN_API_KEY", "");
-      const request = createRequest({}, `Bearer ${ADMIN_KEY}`);
-      const { status } = await parseResponse(
-        await GET(createContext(request))
-      );
-      expect(status).toBe(401);
-    });
-
-    it("returns 401 for malformed auth header (no Bearer prefix)", async () => {
-      const request = createRequest({}, ADMIN_KEY);
-      const { status } = await parseResponse(
-        await GET(createContext(request))
-      );
-      expect(status).toBe(401);
-    });
-
-    it("returns 401 for Bearer with extra whitespace", async () => {
-      const request = createRequest({}, `Bearer  ${ADMIN_KEY}`);
-      const { status } = await parseResponse(
-        await GET(createContext(request))
-      );
-      expect(status).toBe(401);
-    });
-
     it("includes WWW-Authenticate header on 401", async () => {
+      mockedIsAdminAuthorized.mockReturnValue(false);
       const request = createRequest();
       const response = await GET(createContext(request));
       expect(response.headers.get("WWW-Authenticate")).toBe(
@@ -120,7 +103,7 @@ describe("GET /api/admin/contacts", () => {
   describe("database", () => {
     it("returns 500 when database is not configured", async () => {
       mockedGetPostgresEnv.mockReturnValue({ url: null, source: null });
-      const request = createRequest({}, `Bearer ${ADMIN_KEY}`);
+      const request = createRequest();
       const { status, body } = await parseResponse(
         await GET(createContext(request))
       );
@@ -129,12 +112,12 @@ describe("GET /api/admin/contacts", () => {
     });
 
     it("returns 500 on database query error", async () => {
-      mockedSql.mockRejectedValue(new Error("Query failed"));
+      mockedQuery.mockRejectedValue(new Error("Query failed"));
       const consoleSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => {});
 
-      const request = createRequest({}, `Bearer ${ADMIN_KEY}`);
+      const request = createRequest();
       const { status, body } = await parseResponse(
         await GET(createContext(request))
       );
@@ -148,20 +131,19 @@ describe("GET /api/admin/contacts", () => {
   describe("successful queries", () => {
     it("returns contacts with default pagination", async () => {
       const mockContacts = [
-        { id: "1", name: "John", email: "john@test.com" },
-        { id: "2", name: "Jane", email: "jane@test.com" },
+        { id: "1", name: "John", email: "john@test.com", status: "new" },
+        { id: "2", name: "Jane", email: "jane@test.com", status: "new" },
       ];
 
-      // First call: data query
-      mockedSql.mockResolvedValueOnce({
+      // First call: data query, Second call: count query
+      mockedQuery.mockResolvedValueOnce({
         rows: mockContacts,
         command: "",
         rowCount: 2,
         oid: 0,
         fields: [],
       });
-      // Second call: count query
-      mockedSql.mockResolvedValueOnce({
+      mockedQuery.mockResolvedValueOnce({
         rows: [{ total: "2" }],
         command: "",
         rowCount: 1,
@@ -169,7 +151,7 @@ describe("GET /api/admin/contacts", () => {
         fields: [],
       });
 
-      const request = createRequest({}, `Bearer ${ADMIN_KEY}`);
+      const request = createRequest();
       const { status, body } = await parseResponse(
         await GET(createContext(request))
       );
@@ -180,20 +162,20 @@ describe("GET /api/admin/contacts", () => {
 
       const pagination = body.pagination as Record<string, unknown>;
       expect(pagination.total).toBe(2);
-      expect(pagination.limit).toBe(50);
+      expect(pagination.limit).toBe(20);
       expect(pagination.offset).toBe(0);
       expect(pagination.hasMore).toBe(false);
     });
 
     it("respects custom limit and offset", async () => {
-      mockedSql.mockResolvedValueOnce({
+      mockedQuery.mockResolvedValueOnce({
         rows: [{ id: "3" }],
         command: "",
         rowCount: 1,
         oid: 0,
         fields: [],
       });
-      mockedSql.mockResolvedValueOnce({
+      mockedQuery.mockResolvedValueOnce({
         rows: [{ total: "100" }],
         command: "",
         rowCount: 1,
@@ -201,10 +183,7 @@ describe("GET /api/admin/contacts", () => {
         fields: [],
       });
 
-      const request = createRequest(
-        { limit: "10", offset: "20" },
-        `Bearer ${ADMIN_KEY}`
-      );
+      const request = createRequest({ limit: "10", offset: "20" });
       const { status, body } = await parseResponse(
         await GET(createContext(request))
       );
@@ -217,14 +196,14 @@ describe("GET /api/admin/contacts", () => {
     });
 
     it("clamps limit to max 100", async () => {
-      mockedSql.mockResolvedValueOnce({
+      mockedQuery.mockResolvedValueOnce({
         rows: [],
         command: "",
         rowCount: 0,
         oid: 0,
         fields: [],
       });
-      mockedSql.mockResolvedValueOnce({
+      mockedQuery.mockResolvedValueOnce({
         rows: [{ total: "0" }],
         command: "",
         rowCount: 1,
@@ -232,10 +211,7 @@ describe("GET /api/admin/contacts", () => {
         fields: [],
       });
 
-      const request = createRequest(
-        { limit: "500" },
-        `Bearer ${ADMIN_KEY}`
-      );
+      const request = createRequest({ limit: "500" });
       const { body } = await parseResponse(
         await GET(createContext(request))
       );
@@ -243,15 +219,15 @@ describe("GET /api/admin/contacts", () => {
       expect(pagination.limit).toBe(100);
     });
 
-    it("filters by source=contact", async () => {
-      mockedSql.mockResolvedValueOnce({
+    it("filters by status", async () => {
+      mockedQuery.mockResolvedValueOnce({
         rows: [],
         command: "",
         rowCount: 0,
         oid: 0,
         fields: [],
       });
-      mockedSql.mockResolvedValueOnce({
+      mockedQuery.mockResolvedValueOnce({
         rows: [{ total: "0" }],
         command: "",
         rowCount: 1,
@@ -259,41 +235,108 @@ describe("GET /api/admin/contacts", () => {
         fields: [],
       });
 
-      const request = createRequest(
-        { source: "contact" },
-        `Bearer ${ADMIN_KEY}`
-      );
+      const request = createRequest({ status: "new" });
       const { status } = await parseResponse(
         await GET(createContext(request))
       );
       expect(status).toBe(200);
     });
-
-    it("returns 400 for invalid source parameter", async () => {
-      const request = createRequest(
-        { source: "invalid" },
-        `Bearer ${ADMIN_KEY}`
-      );
-      const { status, body } = await parseResponse(
-        await GET(createContext(request))
-      );
-      expect(status).toBe(400);
-      expect(body.error).toBe("Invalid input");
-    });
   });
 
   describe("security headers", () => {
     it("includes Cache-Control: no-store on all responses", async () => {
-      // 401 response
+      mockedIsAdminAuthorized.mockReturnValue(false);
       const request = createRequest();
       const response = await GET(createContext(request));
       expect(response.headers.get("Cache-Control")).toBe("no-store");
     });
 
     it("includes X-Content-Type-Options on 401", async () => {
+      mockedIsAdminAuthorized.mockReturnValue(false);
       const request = createRequest();
       const response = await GET(createContext(request));
       expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
     });
+  });
+});
+
+describe("PATCH /api/admin/contacts", () => {
+  beforeEach(() => {
+    setupDefaults();
+  });
+
+  it("returns 401 when not authorized", async () => {
+    mockedIsAdminAuthorized.mockReturnValue(false);
+    const request = createPatchRequest({ id: "123", status: "contacted" });
+    const { status } = await parseResponse(
+      await PATCH(createContext(request))
+    );
+    expect(status).toBe(401);
+  });
+
+  it("returns 400 when no ID provided", async () => {
+    const request = createPatchRequest({ status: "contacted" });
+    const { status, body } = await parseResponse(
+      await PATCH(createContext(request))
+    );
+    expect(status).toBe(400);
+    expect(body.error).toBe("Contact ID is required");
+  });
+
+  it("returns 400 for invalid status", async () => {
+    const request = createPatchRequest({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      status: "invalid",
+    });
+    const { status } = await parseResponse(
+      await PATCH(createContext(request))
+    );
+    expect(status).toBe(400);
+  });
+
+  it("returns 404 when contact not found", async () => {
+    mockedQuery.mockResolvedValueOnce({
+      rows: [],
+      command: "",
+      rowCount: 0,
+      oid: 0,
+      fields: [],
+    });
+
+    const request = createPatchRequest({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      status: "contacted",
+    });
+    const { status } = await parseResponse(
+      await PATCH(createContext(request))
+    );
+    expect(status).toBe(404);
+  });
+
+  it("updates status successfully", async () => {
+    mockedQuery.mockResolvedValueOnce({
+      rows: [
+        {
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          status: "contacted",
+          notes: null,
+          updated_at: "2026-03-05T00:00:00Z",
+        },
+      ],
+      command: "",
+      rowCount: 1,
+      oid: 0,
+      fields: [],
+    });
+
+    const request = createPatchRequest({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      status: "contacted",
+    });
+    const { status, body } = await parseResponse(
+      await PATCH(createContext(request))
+    );
+    expect(status).toBe(200);
+    expect(body.ok).toBe(true);
   });
 });
