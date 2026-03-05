@@ -208,7 +208,7 @@ export default function Services() {
         >
           {/* Backdrop — click to close */}
           <div
-            className={`absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-200 ${isVisible && !isClosing ? "opacity-100" : "opacity-0"}`}
+            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${isVisible && !isClosing ? "opacity-100" : "opacity-0"}`}
             onClick={closeModal}
           />
 
@@ -218,7 +218,7 @@ export default function Services() {
             role="dialog"
             aria-modal="true"
             aria-labelledby={`modal-${activeService}`}
-            className={`relative z-10 w-full mx-4 max-h-[85vh] overflow-hidden bg-neutral-900 backdrop-blur-md rounded-2xl border border-neutral-700/40 shadow-2xl shadow-black/50 transition-all duration-300 ease-out ${
+            className={`relative z-10 w-full mx-4 max-h-[85vh] overflow-hidden bg-neutral-900 backdrop-blur-md rounded-2xl border border-neutral-600/30 shadow-2xl shadow-black/40 ring-1 ring-blue-500/10 transition-all duration-300 ease-out ${
               activeServiceData && activeServiceData.images.length > 0
                 ? "max-w-[1000px]"
                 : "max-w-lg"
@@ -240,7 +240,7 @@ export default function Services() {
                       <button
                         type="button"
                         onClick={closeModal}
-                        className="absolute top-3 right-3 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        className="absolute top-3 right-3 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
                         aria-label="Close dialog"
                       >
                         <X className="w-5 h-5" aria-hidden="true" />
@@ -249,7 +249,7 @@ export default function Services() {
                   )}
 
                   {/* Right Panel — Text Content (40% on desktop, full width on mobile & no-image) */}
-                  <div className={`flex flex-col ${hasImages ? "md:w-[40%] md:border-l md:border-neutral-700/40" : "w-full"} overflow-y-auto`}>
+                  <div className={`flex flex-col ${hasImages ? "md:w-[40%] md:border-l md:border-blue-500/20" : "w-full"} overflow-y-auto`}>
                     {/* Close button for no-image modals */}
                     {!hasImages && (
                       <button
@@ -266,7 +266,7 @@ export default function Services() {
                       {/* Icon with accent glow */}
                       <div className="flex justify-center mb-4">
                         <div className="relative flex items-center justify-center">
-                          <div className={`absolute w-16 h-16 ${modalGlowColor} rounded-full blur-xl`} aria-hidden="true" />
+                          <div className={`absolute w-16 h-16 ${modalGlowColor} rounded-full blur-xl shadow-[0_0_15px_rgba(59,130,246,0.15)]`} aria-hidden="true" />
                           <Icon
                             className={`relative w-12 h-12 ${modalIconColor}`}
                             strokeWidth={1.5}
