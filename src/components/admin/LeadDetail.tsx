@@ -1,5 +1,60 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Mail, Save } from "lucide-react";
+import { X, Mail, Save, Send } from "lucide-react";
+
+interface GeoData {
+  country?: string;
+  state?: string;
+  city?: string;
+  zip?: string;
+  lat?: number;
+  lon?: number;
+  isp?: string;
+  org?: string;
+  asn?: string;
+}
+
+interface EnrichmentData {
+  emailDomain?: string | null;
+  hasMxRecords?: boolean;
+  isFreeMail?: boolean;
+  emailFormat?: "professional" | "generic" | "personal" | "suspicious";
+  companyWebsiteExists?: boolean | null;
+  companyWebsiteTitle?: string | null;
+  phoneValid?: boolean;
+  phoneAreaCode?: string | null;
+  phoneRegion?: string | null;
+  ipOrgMatch?: boolean | null;
+  legitimacyScore?: number;
+  quality?: "high" | "medium" | "low" | "spam";
+}
+
+interface LeadMetadata {
+  ip?: string;
+  userAgent?: string;
+  language?: string;
+  timezone?: string;
+  screenWidth?: number;
+  screenHeight?: number;
+  viewportWidth?: number;
+  viewportHeight?: number;
+  devicePixelRatio?: number;
+  isMobile?: boolean;
+  platform?: string;
+  referrer?: string;
+  pageUrl?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+  timeOnPageMs?: number;
+  elapsedMs?: number;
+  pageViews?: number;
+  connectionType?: string;
+  geo?: GeoData | null;
+  enrichment?: EnrichmentData | null;
+  [key: string]: unknown;
+}
 
 interface Contact {
   id: string;
@@ -12,6 +67,7 @@ interface Contact {
   status: string;
   notes: string | null;
   updated_at: string | null;
+  metadata?: LeadMetadata | null;
 }
 
 interface Props {
@@ -26,11 +82,74 @@ const STATUS_OPTIONS = [
   { value: "archived", label: "Archived", color: "bg-neutral-600" },
 ];
 
+function parseUserAgent(ua: string): string {
+  let browser = "Unknown Browser";
+  let os = "Unknown OS";
+
+  // Browser detection
+  if (ua.includes("Edg/")) {
+    const m = ua.match(/Edg\/([\d.]+)/);
+    browser = `Edge ${m?.[1]?.split(".")[0] || ""}`.trim();
+  } else if (ua.includes("Chrome/") && !ua.includes("Edg/")) {
+    const m = ua.match(/Chrome\/([\d.]+)/);
+    browser = `Chrome ${m?.[1]?.split(".")[0] || ""}`.trim();
+  } else if (ua.includes("Firefox/")) {
+    const m = ua.match(/Firefox\/([\d.]+)/);
+    browser = `Firefox ${m?.[1]?.split(".")[0] || ""}`.trim();
+  } else if (ua.includes("Safari/") && !ua.includes("Chrome/")) {
+    const m = ua.match(/Version\/([\d.]+)/);
+    browser = `Safari ${m?.[1]?.split(".")[0] || ""}`.trim();
+  }
+
+  // OS detection
+  if (ua.includes("Windows NT 10")) os = "Windows 10/11";
+  else if (ua.includes("Windows NT")) os = "Windows";
+  else if (ua.includes("Mac OS X")) os = "macOS";
+  else if (ua.includes("Android")) os = "Android";
+  else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+  else if (ua.includes("Linux")) os = "Linux";
+
+  return `${browser} — ${os}`;
+}
+
+function formatTimeOnPage(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
+function formatReferrerSource(referrer: string | undefined | null): string {
+  if (!referrer) return "Direct Visit";
+  try {
+    const hostname = new URL(referrer).hostname.replace("www.", "");
+    const sources: Record<string, string> = {
+      "google.com": "Google Search",
+      "google.co.uk": "Google Search",
+      "bing.com": "Bing Search",
+      "linkedin.com": "LinkedIn",
+      "facebook.com": "Facebook",
+      "instagram.com": "Instagram",
+      "twitter.com": "Twitter/X",
+      "x.com": "Twitter/X",
+      "youtube.com": "YouTube",
+      "rmi-llc.net": "Internal Navigation",
+    };
+    return sources[hostname] || hostname;
+  } catch {
+    return referrer;
+  }
+}
+
 export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
   const [status, setStatus] = useState(contact.status);
   const [notes, setNotes] = useState(contact.notes || "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [forwarding, setForwarding] = useState(false);
+  const [forwarded, setForwarded] = useState(false);
+  const [forwardError, setForwardError] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Auto-save notes after 1s of inactivity
@@ -80,6 +199,31 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
     saveTimeoutRef.current = setTimeout(() => {
       handleSave(status, value);
     }, 1000);
+  };
+
+  const handleForward = async () => {
+    setForwarding(true);
+    setForwardError(false);
+    try {
+      const res = await fetch("/api/admin/forward-lead", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contactId: contact.id }),
+      });
+      if (res.ok) {
+        setForwarded(true);
+        // Auto-update status to "contacted"
+        setStatus("contacted");
+        onUpdate(contact.id, "contacted", notes || null);
+      } else {
+        setForwardError(true);
+      }
+    } catch {
+      setForwardError(true);
+    } finally {
+      setForwarding(false);
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -174,6 +318,16 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
             </div>
           </div>
 
+          {/* Lead Quality */}
+          {contact.metadata?.enrichment && (
+            <VerificationSection enrichment={contact.metadata.enrichment} />
+          )}
+
+          {/* Intelligence */}
+          {contact.metadata && (
+            <IntelligenceSection metadata={contact.metadata} />
+          )}
+
           {/* Status */}
           <div>
             <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1.5">
@@ -234,6 +388,29 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
 
           {/* Actions */}
           <div className="flex flex-col gap-2 pt-2 border-t border-neutral-800">
+            {/* Forward to Sales */}
+            <button
+              type="button"
+              onClick={handleForward}
+              disabled={forwarding || forwarded}
+              className={`inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                forwarded
+                  ? "bg-green-600/20 text-green-400 border border-green-600/30 cursor-default"
+                  : forwardError
+                    ? "bg-red-600/20 text-red-400 border border-red-600/30 hover:bg-red-600/30"
+                    : "bg-accent-600 hover:bg-accent-500 text-white"
+              } disabled:opacity-60`}
+            >
+              <Send size={15} />
+              {forwarding
+                ? "Sending..."
+                : forwarded
+                  ? "Forwarded to Sales"
+                  : forwardError
+                    ? "Retry Forward"
+                    : "Forward to Sales"}
+            </button>
+
             {mailtoHref && (
               <a
                 href={mailtoHref}
@@ -263,6 +440,291 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
             )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+export function QualityBadge({
+  quality,
+  score,
+  size = "md",
+}: {
+  quality: string;
+  score?: number;
+  size?: "sm" | "md";
+}) {
+  const config: Record<string, { dot: string; text: string; bg: string; label: string }> = {
+    high: {
+      dot: "bg-green-400",
+      text: "text-green-400",
+      bg: "bg-green-600/15 border-green-600/30",
+      label: "High Quality",
+    },
+    medium: {
+      dot: "bg-yellow-400",
+      text: "text-yellow-400",
+      bg: "bg-yellow-600/15 border-yellow-600/30",
+      label: "Medium Quality",
+    },
+    low: {
+      dot: "bg-red-400",
+      text: "text-red-400",
+      bg: "bg-red-600/15 border-red-600/30",
+      label: "Low Quality",
+    },
+    spam: {
+      dot: "bg-neutral-500",
+      text: "text-neutral-500",
+      bg: "bg-neutral-700/30 border-neutral-700",
+      label: "Spam",
+    },
+  };
+  const c = config[quality] || config.medium;
+
+  if (size === "sm") {
+    return (
+      <span
+        className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium rounded border ${c.bg} ${c.text}`}
+        title={score != null ? `Score: ${score}/100` : undefined}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
+        {score != null ? score : c.label}
+      </span>
+    );
+  }
+
+  return (
+    <div
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border ${c.bg}`}
+    >
+      <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
+      <span className={`text-sm font-semibold ${c.text}`}>
+        {c.label.toUpperCase()}
+      </span>
+      {score != null && (
+        <span className="text-sm text-neutral-400">
+          (Score: {score}/100)
+        </span>
+      )}
+    </div>
+  );
+}
+
+function VerificationSection({ enrichment }: { enrichment: EnrichmentData }) {
+  const checks: { label: string; pass: boolean | null; detail?: string }[] = [];
+
+  if (enrichment.hasMxRecords != null) {
+    checks.push({
+      label: "Email domain verified (MX records active)",
+      pass: enrichment.hasMxRecords,
+    });
+  }
+
+  if (enrichment.isFreeMail != null) {
+    checks.push({
+      label: enrichment.isFreeMail
+        ? "Free email provider"
+        : `Company email domain (${enrichment.emailDomain || ""})`,
+      pass: !enrichment.isFreeMail,
+    });
+  }
+
+  if (enrichment.emailFormat) {
+    const formatLabel: Record<string, string> = {
+      professional: "Professional email format",
+      generic: "Generic email format (info@, admin@, etc.)",
+      personal: "Personal email format",
+      suspicious: "Suspicious email format",
+    };
+    checks.push({
+      label: formatLabel[enrichment.emailFormat] || enrichment.emailFormat,
+      pass: enrichment.emailFormat === "professional",
+    });
+  }
+
+  if (enrichment.companyWebsiteExists != null) {
+    checks.push({
+      label: enrichment.companyWebsiteExists
+        ? `Company website exists${enrichment.companyWebsiteTitle ? ` (${enrichment.companyWebsiteTitle})` : ""}`
+        : "Company website not found",
+      pass: enrichment.companyWebsiteExists,
+    });
+  }
+
+  if (enrichment.phoneValid != null) {
+    const detail =
+      enrichment.phoneAreaCode && enrichment.phoneRegion
+        ? `${enrichment.phoneAreaCode} — ${enrichment.phoneRegion}`
+        : enrichment.phoneAreaCode
+          ? `Area code: ${enrichment.phoneAreaCode}`
+          : undefined;
+    checks.push({
+      label: enrichment.phoneValid
+        ? "Valid phone number"
+        : "Phone not provided or invalid",
+      pass: enrichment.phoneValid,
+      detail,
+    });
+  }
+
+  if (enrichment.ipOrgMatch != null) {
+    checks.push({
+      label: enrichment.ipOrgMatch
+        ? "IP org matches company name"
+        : "IP org doesn't match company name",
+      pass: enrichment.ipOrgMatch,
+    });
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-neutral-500 uppercase tracking-wider font-semibold">
+        Lead Quality
+      </p>
+      {enrichment.quality && (
+        <QualityBadge
+          quality={enrichment.quality}
+          score={enrichment.legitimacyScore}
+        />
+      )}
+      {checks.length > 0 && (
+        <div className="bg-neutral-950 border border-neutral-800 rounded-md p-3 space-y-1.5">
+          {checks.map((check, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className="text-sm mt-px shrink-0">
+                {check.pass === true ? (
+                  <span className="text-green-400">&#10003;</span>
+                ) : check.pass === false ? (
+                  <span className="text-red-400">&#10007;</span>
+                ) : (
+                  <span className="text-yellow-400">&#9888;</span>
+                )}
+              </span>
+              <div>
+                <p className="text-xs text-neutral-300">{check.label}</p>
+                {check.detail && (
+                  <p className="text-[11px] text-neutral-500">{check.detail}</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IntelligenceSection({ metadata }: { metadata: LeadMetadata }) {
+  const geo = metadata.geo;
+  const hasGeo = geo && (geo.city || geo.state || geo.country);
+  const hasDevice = metadata.userAgent;
+  const hasSource = metadata.referrer !== undefined || metadata.utmSource;
+  const hasNetwork = metadata.ip || metadata.timezone;
+  const hasAny = hasGeo || hasDevice || hasSource || hasNetwork;
+
+  if (!hasAny) return null;
+
+  const timeMs = metadata.timeOnPageMs ?? metadata.elapsedMs;
+
+  const utmParts: string[] = [];
+  if (metadata.utmSource) utmParts.push(`source=${metadata.utmSource}`);
+  if (metadata.utmMedium) utmParts.push(`medium=${metadata.utmMedium}`);
+  if (metadata.utmCampaign) utmParts.push(`campaign=${metadata.utmCampaign}`);
+
+  const labelClass = "text-[11px] text-neutral-500 uppercase tracking-wider";
+  const valueClass = "text-sm text-neutral-300";
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-neutral-500 uppercase tracking-wider font-semibold">
+        Intelligence
+      </p>
+      <div className="bg-neutral-950 border border-neutral-800 rounded-md p-3 space-y-3">
+        {/* Location */}
+        {hasGeo && (
+          <div>
+            <p className={labelClass}>Location</p>
+            <p className={valueClass}>
+              {[geo.city, geo.state, geo.country].filter(Boolean).join(", ")}
+              {geo.zip ? ` ${geo.zip}` : ""}
+            </p>
+            {geo.org && geo.org !== geo.isp && (
+              <p className="text-sm text-accent-400 font-medium">
+                Org: {geo.org}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Device */}
+        {hasDevice && (
+          <div>
+            <p className={labelClass}>Device</p>
+            <p className={valueClass}>
+              {metadata.isMobile ? "Mobile" : "Desktop"} —{" "}
+              {parseUserAgent(metadata.userAgent || "")}
+            </p>
+            {metadata.screenWidth && metadata.screenHeight && (
+              <p className="text-xs text-neutral-500">
+                Screen: {metadata.screenWidth}x{metadata.screenHeight}
+                {metadata.viewportWidth && metadata.viewportHeight
+                  ? ` — Viewport: ${metadata.viewportWidth}x${metadata.viewportHeight}`
+                  : ""}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Source */}
+        {hasSource && (
+          <div>
+            <p className={labelClass}>Source</p>
+            <p className={valueClass}>
+              {formatReferrerSource(metadata.referrer)}
+            </p>
+            {utmParts.length > 0 && (
+              <p className="text-xs text-neutral-500">
+                UTM: {utmParts.join(", ")}
+              </p>
+            )}
+            <div className="flex gap-4 mt-0.5">
+              {timeMs != null && timeMs > 0 && (
+                <p className="text-xs text-neutral-500">
+                  Time on page: {formatTimeOnPage(timeMs)}
+                </p>
+              )}
+              {metadata.pageViews != null && (
+                <p className="text-xs text-neutral-500">
+                  Page views: {metadata.pageViews}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Network */}
+        {hasNetwork && (
+          <div>
+            <p className={labelClass}>Network</p>
+            {metadata.ip && (
+              <p className="text-xs text-neutral-500">IP: {metadata.ip}</p>
+            )}
+            {geo?.isp && (
+              <p className="text-xs text-neutral-500">ISP: {geo.isp}</p>
+            )}
+            {metadata.timezone && (
+              <p className="text-xs text-neutral-500">
+                Timezone: {metadata.timezone}
+              </p>
+            )}
+            {metadata.language && (
+              <p className="text-xs text-neutral-500">
+                Language: {metadata.language}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

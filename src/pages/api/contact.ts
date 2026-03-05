@@ -8,6 +8,8 @@ import {
   FIELD_LIMITS,
 } from "../../lib/validation";
 import { contactRateLimiter, getClientIP } from "../../lib/rate-limiter";
+import { getGeoFromIp } from "../../lib/geo-lookup";
+import { enrichLead } from "../../lib/lead-enrichment";
 
 // src/pages/api/contact.ts
 export const prerender = false;
@@ -21,25 +23,14 @@ interface ContactRequest {
   message: string;
   source?: string;
   timestamp?: string;
-  metadata?: {
-    elapsedMs?: number;
-    fastSubmit?: boolean;
-  };
+  metadata?: Record<string, unknown>;
 }
 
 async function saveContact(
   data: ContactRequest,
   clientIP: string | null,
-  userAgent: string | null
+  fullMetadata: Record<string, unknown>
 ): Promise<string> {
-  const metadata = {
-    ip: clientIP || null,
-    userAgent: userAgent || null,
-    timestamp: data.timestamp || null,
-    elapsedMs: data.metadata?.elapsedMs ?? null,
-    fastSubmit: data.metadata?.fastSubmit ?? null,
-  };
-
   try {
     const emailVal = data.email.trim() || null;
     const phoneVal = data.phone.trim() || null;
@@ -47,7 +38,7 @@ async function saveContact(
       INSERT INTO contacts (name, email, phone, message, source, metadata)
       VALUES (${data.name.trim()}, ${emailVal}, ${phoneVal}, ${
       data.message.trim()
-    }, ${data.source?.trim() || "contact"}, ${JSON.stringify(metadata)})
+    }, ${data.source?.trim() || "contact"}, ${JSON.stringify(fullMetadata)})
       RETURNING id
     `;
     return result.rows[0]?.id || "";
@@ -213,17 +204,17 @@ export const POST: APIRoute = async ({ request }) => {
   const source = typeof obj.source === "string" ? obj.source.trim() : "contact";
   const timestamp =
     typeof obj.timestamp === "string" ? obj.timestamp : undefined;
-  const metadataObj =
+  const clientMetadata =
     typeof obj.metadata === "object" && obj.metadata !== null
       ? (obj.metadata as Record<string, unknown>)
       : {};
   const elapsedMs =
-    typeof metadataObj.elapsedMs === "number" && metadataObj.elapsedMs >= 0
-      ? metadataObj.elapsedMs
+    typeof clientMetadata.elapsedMs === "number" && clientMetadata.elapsedMs >= 0
+      ? clientMetadata.elapsedMs
       : undefined;
   const fastSubmit =
-    typeof metadataObj.fastSubmit === "boolean"
-      ? metadataObj.fastSubmit
+    typeof clientMetadata.fastSubmit === "boolean"
+      ? clientMetadata.fastSubmit
       : undefined;
 
   // Honeypot: accept request but do not store
@@ -275,13 +266,68 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
+  let savedContactId: string;
+
   try {
     const userAgent = request.headers.get("user-agent");
-    await saveContact(
-      { name, email, phone, message, source, timestamp, metadata: { elapsedMs, fastSubmit } },
+
+    // IP geolocation lookup (non-blocking — null on failure)
+    const geo = await getGeoFromIp(clientIP || "");
+
+    // Merge client-side metadata with server-side data
+    const fullMetadata: Record<string, unknown> = {
+      ...clientMetadata,
+      ip: clientIP || null,
+      userAgent: userAgent || null,
+      timestamp: timestamp || null,
+      elapsedMs: elapsedMs ?? null,
+      fastSubmit: fastSubmit ?? null,
+      geo: geo || null,
+    };
+
+    savedContactId = await saveContact(
+      { name, email, phone, message, source, timestamp, metadata: clientMetadata },
       clientIP,
-      userAgent
+      fullMetadata
     );
+
+    // Run lead enrichment (non-blocking for user, but we await to store results)
+    const company =
+      typeof obj.company === "string" ? obj.company.trim() : "";
+    const timeOnPageMs =
+      typeof clientMetadata.timeOnPageMs === "number"
+        ? clientMetadata.timeOnPageMs
+        : typeof clientMetadata.elapsedMs === "number"
+          ? clientMetadata.elapsedMs
+          : null;
+    const honeypot =
+      typeof obj.website === "string" && obj.website.trim().length > 0;
+
+    try {
+      const enrichment = await enrichLead({
+        email,
+        phone,
+        company,
+        message,
+        timeOnPageMs,
+        ipOrg: geo?.org || null,
+        honeypot,
+      });
+
+      // Update the contact metadata with enrichment results
+      const enrichedMetadata = { ...fullMetadata, enrichment };
+      await sql`
+        UPDATE contacts
+        SET metadata = ${JSON.stringify(enrichedMetadata)}
+        WHERE id = ${savedContactId}
+      `;
+    } catch (enrichError) {
+      console.error(
+        "Lead enrichment failed:",
+        enrichError instanceof Error ? enrichError.message : "Unknown error"
+      );
+      // Enrichment failure is non-critical — contact is already saved
+    }
   } catch {
     return new Response(
       JSON.stringify({ ok: false, error: "Server error" }),

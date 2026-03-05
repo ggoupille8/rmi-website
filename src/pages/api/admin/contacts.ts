@@ -56,7 +56,10 @@ export const GET: APIRoute = async ({ request }) => {
 
     // Parse filters
     const statusParam = url.searchParams.get("status");
+    const qualityParam = url.searchParams.get("quality");
     const searchParam = url.searchParams.get("search");
+
+    const VALID_QUALITIES = ["high", "medium", "low", "spam"] as const;
 
     // Build WHERE clauses
     const conditions: string[] = [];
@@ -66,6 +69,17 @@ export const GET: APIRoute = async ({ request }) => {
     if (statusParam && isValidStatus(statusParam)) {
       conditions.push(`status = $${paramIndex}`);
       values.push(statusParam);
+      paramIndex++;
+    }
+
+    if (
+      qualityParam &&
+      VALID_QUALITIES.includes(qualityParam as (typeof VALID_QUALITIES)[number])
+    ) {
+      conditions.push(
+        `metadata->'enrichment'->>'quality' = $${paramIndex}`
+      );
+      values.push(qualityParam);
       paramIndex++;
     }
 
