@@ -8,7 +8,13 @@ _No active tasks._
 
 ## Completed
 
-25 sprints completed (Feb 26 – Mar 5, 2026). See git log for full history.
+26 sprints completed (Feb 26 – Mar 5, 2026). See git log for full history.
+
+### Modal Visual Polish (Mar 5, 2026)
+Branch: `feat/modal-visual-polish` (pushed, NOT merged)
+
+1. **fix: fill modal image panel with object-cover and add counter gradient** — Changed `ImageSlideshow.tsx`: replaced `object-cover md:object-contain` with `object-cover object-center` at all breakpoints (eliminates black bars). Changed container bg from `bg-black` to `bg-neutral-950`. Moved counter from below image to absolute-positioned overlay on a `bg-gradient-to-t from-black/60` gradient. Counter styled with `text-sm font-medium text-white/70 tracking-wide tabular-nums`. Arrow buttons upgraded to frosted glass (`bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/10`).
+2. **feat: add glass effects, glow border, and backdrop blur to service modals** — Changed `Services.tsx`: backdrop overlay from `bg-black/40 backdrop-blur-md` to `bg-black/60 backdrop-blur-sm`. Modal border enhanced with `border-neutral-600/30 ring-1 ring-blue-500/10`. Panel divider accent changed to `border-blue-500/20`. Close button upgraded to matching frosted glass. Service icon glow enhanced with `shadow-[0_0_15px_rgba(59,130,246,0.15)]`.
 
 ### Sprint 2: Service Card Tiers + Polish (Mar 5, 2026)
 Branch: `feat/sprint-2-service-tiers` (pushed, NOT merged)
