@@ -1,0 +1,65 @@
+import type { APIRoute } from "astro";
+import { sql } from "@vercel/postgres";
+import { getPostgresEnv } from "../../../lib/db-env";
+import { isAdminAuthorized } from "../../../lib/admin-auth";
+
+export const prerender = false;
+
+const SECURITY_HEADERS = {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store",
+  "X-Content-Type-Options": "nosniff",
+};
+
+export const GET: APIRoute = async ({ request }) => {
+  if (!isAdminAuthorized(request)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: {
+        ...SECURITY_HEADERS,
+        "WWW-Authenticate": 'Bearer realm="admin"',
+      },
+    });
+  }
+
+  const { url: postgresUrl } = getPostgresEnv();
+  if (!postgresUrl) {
+    return new Response(
+      JSON.stringify({ error: "Database not configured" }),
+      { status: 500, headers: SECURITY_HEADERS }
+    );
+  }
+
+  try {
+    const [totalRes, newRes, contactedRes, archivedRes, monthRes, lastRes] =
+      await Promise.all([
+        sql`SELECT COUNT(*) as count FROM contacts`,
+        sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'new'`,
+        sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'contacted'`,
+        sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'archived'`,
+        sql`SELECT COUNT(*) as count FROM contacts WHERE created_at >= date_trunc('month', CURRENT_DATE)`,
+        sql`SELECT created_at FROM contacts ORDER BY created_at DESC LIMIT 1`,
+      ]);
+
+    return new Response(
+      JSON.stringify({
+        total: parseInt(totalRes.rows[0]?.count || "0", 10),
+        new: parseInt(newRes.rows[0]?.count || "0", 10),
+        contacted: parseInt(contactedRes.rows[0]?.count || "0", 10),
+        archived: parseInt(archivedRes.rows[0]?.count || "0", 10),
+        thisMonth: parseInt(monthRes.rows[0]?.count || "0", 10),
+        lastSubmission: lastRes.rows[0]?.created_at ?? null,
+      }),
+      { status: 200, headers: SECURITY_HEADERS }
+    );
+  } catch (error) {
+    console.error(
+      "Admin stats error:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    return new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: SECURITY_HEADERS }
+    );
+  }
+};
