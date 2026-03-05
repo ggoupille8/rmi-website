@@ -11,7 +11,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Leads", href: "/admin/leads", icon: Users },
-  { label: "Media", href: "#", icon: Image, disabled: true },
+  { label: "Media", href: "/admin/media", icon: Image },
 ];
 
 interface Props {

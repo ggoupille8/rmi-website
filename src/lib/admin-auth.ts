@@ -54,7 +54,7 @@ export function verifySessionToken(token: string): boolean {
 export function getSessionCookie(token: string, isProduction: boolean): string {
   const parts = [
     `${COOKIE_NAME}=${token}`,
-    "Path=/admin",
+    "Path=/",
     "HttpOnly",
     "SameSite=Strict",
     `Max-Age=${8 * 60 * 60}`,
@@ -66,7 +66,7 @@ export function getSessionCookie(token: string, isProduction: boolean): string {
 }
 
 export function getClearSessionCookie(): string {
-  return `${COOKIE_NAME}=; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=0`;
+  return `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`;
 }
 
 export function getTokenFromCookies(
