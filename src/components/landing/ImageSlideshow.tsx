@@ -73,7 +73,7 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
 
   return (
     <div
-      className="relative flex flex-col bg-black h-full"
+      className="relative flex flex-col bg-neutral-950 h-full"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
@@ -112,7 +112,7 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
                   alt={image.alt}
                   width="960"
                   height="720"
-                  className="absolute inset-0 w-full h-full object-cover md:object-contain"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
                   style={{ objectPosition: focusPoint }}
                   loading={isActive ? "eager" : "lazy"}
                   draggable={false}
@@ -128,7 +128,7 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
             <button
               type="button"
               onClick={goPrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
               aria-label="Previous image"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -138,7 +138,7 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
             <button
               type="button"
               onClick={goNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
               aria-label="Next image"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -147,16 +147,16 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
             </button>
           </>
         )}
-      </div>
 
-      {/* Photo counter — "3 / 20" format */}
-      {hasMultiple && (
-        <div className="flex-shrink-0 py-2 text-center">
-          <span className="text-sm text-neutral-400 tabular-nums">
-            {currentIndex + 1} / {count}
-          </span>
-        </div>
-      )}
+        {/* Bottom gradient + counter */}
+        {hasMultiple && (
+          <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/60 to-transparent h-[60px] flex items-end justify-center pb-2">
+            <span className="text-sm font-medium text-white/70 tracking-wide tabular-nums">
+              {currentIndex + 1} / {count}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
