@@ -56,8 +56,8 @@ export default function About() {
           <h2
             id="about-heading"
             className="font-bold tracking-wider text-white uppercase text-xl sm:text-2xl lg:text-3xl"
-            aria-label={`Why Choose ${companyName}`}
           >
+            <span className="sr-only">Why Choose {companyName}</span>
             <span aria-hidden="true">Why Choose{" "}<span className="hidden sm:inline">{companyName}</span><span className="sm:hidden">RMI</span></span>
           </h2>
           <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full" />
