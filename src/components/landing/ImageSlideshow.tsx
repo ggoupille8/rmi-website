@@ -1,21 +1,35 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { ServiceImage } from "../../content/site";
+import { getImageOverrides } from "../../lib/media-loader";
 
 interface ImageSlideshowProps {
   images: ServiceImage[];
+  serviceSlug?: string;
 }
 
 const SWIPE_THRESHOLD = 50;
 const AUTO_ADVANCE_MS = 5000;
 
-export default function ImageSlideshow({ images }: ImageSlideshowProps) {
+export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [overrides, setOverrides] = useState<Record<string, string>>({});
   const touchStartRef = useRef<number | null>(null);
   const touchDeltaRef = useRef(0);
   const autoAdvanceRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const count = images.length;
+
+  // Check for Blob image overrides
+  useEffect(() => {
+    if (!serviceSlug || count === 0) return;
+    const slots = images.map((_, i) => `service-${serviceSlug}-${i + 1}`);
+    getImageOverrides(slots).then((result) => {
+      if (Object.keys(result).length > 0) {
+        setOverrides(result);
+      }
+    });
+  }, [serviceSlug, count, images]);
   const hasMultiple = count > 1;
 
   const resetAutoAdvance = useCallback(() => {
@@ -102,6 +116,8 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
 
           const isActive = index === currentIndex;
           const focusPoint = image.focusPoint || "center center";
+          const overrideSlot = serviceSlug ? `service-${serviceSlug}-${index + 1}` : "";
+          const overrideUrl = overrideSlot ? overrides[overrideSlot] : undefined;
           return (
             <div
               key={image.src}
@@ -110,13 +126,9 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
               }`}
               aria-hidden={!isActive}
             >
-              <picture>
-                <source
-                  srcSet={`/images/services/${image.src}.webp`}
-                  type="image/webp"
-                />
+              {overrideUrl ? (
                 <img
-                  src={`/images/services/${image.src}.jpg`}
+                  src={overrideUrl}
                   alt={image.alt}
                   width="960"
                   height="720"
@@ -125,7 +137,24 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
                   loading={isActive ? "eager" : "lazy"}
                   draggable={false}
                 />
-              </picture>
+              ) : (
+                <picture>
+                  <source
+                    srcSet={`/images/services/${image.src}.webp`}
+                    type="image/webp"
+                  />
+                  <img
+                    src={`/images/services/${image.src}.jpg`}
+                    alt={image.alt}
+                    width="960"
+                    height="720"
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                    style={{ objectPosition: focusPoint }}
+                    loading={isActive ? "eager" : "lazy"}
+                    draggable={false}
+                  />
+                </picture>
+              )}
             </div>
           );
         })}
