@@ -90,7 +90,7 @@ test.describe("Mobile QA Fixes — 375×812", () => {
 
     test("hero images use .webp file extensions", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      const images = page.locator('section[aria-labelledby="hero-heading"] picture img');
+      const images = page.locator('section[aria-labelledby="hero-heading"] > div.absolute picture img');
       const count = await images.count();
       expect(count).toBeGreaterThan(0);
       for (let i = 0; i < count; i++) {
@@ -101,14 +101,14 @@ test.describe("Mobile QA Fixes — 375×812", () => {
 
     test("first hero image has fetchpriority=high and loading=eager", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      const firstImg = page.locator('section[aria-labelledby="hero-heading"] picture img').first();
+      const firstImg = page.locator('section[aria-labelledby="hero-heading"] > div.absolute picture img').first();
       await expect(firstImg).toHaveAttribute("fetchpriority", "high");
       await expect(firstImg).toHaveAttribute("loading", "eager");
     });
 
     test("other hero images have loading=lazy", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
-      const images = page.locator('section[aria-labelledby="hero-heading"] picture img');
+      const images = page.locator('section[aria-labelledby="hero-heading"] > div.absolute picture img');
       const count = await images.count();
       for (let i = 1; i < count; i++) {
         const loading = await images.nth(i).getAttribute("loading");
