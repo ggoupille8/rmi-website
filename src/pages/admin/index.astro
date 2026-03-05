@@ -1,23 +1,109 @@
 ---
-import '../../styles/global.css';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { sql } from '@vercel/postgres';
+import { getPostgresEnv } from '../../lib/db-env';
 
 export const prerender = false;
+
+// Fetch stats server-side
+let stats = { total: 0, newCount: 0, contactedCount: 0, archivedCount: 0, thisMonth: 0, lastSubmission: null as string | null };
+const { url: postgresUrl } = getPostgresEnv();
+
+if (postgresUrl) {
+  try {
+    const [totalRes, newRes, contactedRes, archivedRes, monthRes, lastRes] = await Promise.all([
+      sql`SELECT COUNT(*) as count FROM contacts`,
+      sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'new'`,
+      sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'contacted'`,
+      sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'archived'`,
+      sql`SELECT COUNT(*) as count FROM contacts WHERE created_at >= date_trunc('month', CURRENT_DATE)`,
+      sql`SELECT created_at FROM contacts ORDER BY created_at DESC LIMIT 1`,
+    ]);
+    stats = {
+      total: parseInt(totalRes.rows[0]?.count || '0', 10),
+      newCount: parseInt(newRes.rows[0]?.count || '0', 10),
+      contactedCount: parseInt(contactedRes.rows[0]?.count || '0', 10),
+      archivedCount: parseInt(archivedRes.rows[0]?.count || '0', 10),
+      thisMonth: parseInt(monthRes.rows[0]?.count || '0', 10),
+      lastSubmission: lastRes.rows[0]?.created_at ?? null,
+    };
+  } catch (error) {
+    console.error('Failed to fetch admin stats:', error instanceof Error ? error.message : 'Unknown error');
+  }
+}
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return 'No submissions';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
 ---
 
-<!doctype html>
-<html lang="en" class="h-full">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="noindex, nofollow" />
-    <title>Dashboard | RMI Admin</title>
-    <meta name="theme-color" content="#0a0a0a" />
-  </head>
-  <body class="h-full bg-neutral-950 text-neutral-100 flex items-center justify-center">
-    <div class="text-center">
-      <h1 class="text-2xl font-semibold mb-2">RMI Admin Dashboard</h1>
-      <p class="text-neutral-400 mb-4">Authenticated successfully.</p>
-      <p class="text-sm text-neutral-500">Full dashboard coming in Task 3.</p>
+<AdminLayout title="Dashboard">
+  <div class="max-w-5xl">
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
+      <!-- Total Leads -->
+      <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+        <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">Total Leads</p>
+        <p class="text-2xl font-bold text-neutral-100">{stats.total}</p>
+      </div>
+
+      <!-- New Leads -->
+      <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+        <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">New</p>
+        <p class="text-2xl font-bold text-primary-400">{stats.newCount}</p>
+      </div>
+
+      <!-- This Month -->
+      <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+        <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">This Month</p>
+        <p class="text-2xl font-bold text-neutral-100">{stats.thisMonth}</p>
+      </div>
+
+      <!-- Last Submission -->
+      <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+        <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">Last Submission</p>
+        <p class="text-sm font-medium text-neutral-300 mt-1">{formatDate(stats.lastSubmission)}</p>
+      </div>
     </div>
-  </body>
-</html>
+
+    <!-- Status Breakdown -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4 lg:p-5 mb-6">
+      <h2 class="text-sm font-semibold text-neutral-300 mb-3">Lead Status Breakdown</h2>
+      <div class="flex gap-6">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-primary-500"></span>
+          <span class="text-sm text-neutral-400">New: <strong class="text-neutral-200">{stats.newCount}</strong></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+          <span class="text-sm text-neutral-400">Contacted: <strong class="text-neutral-200">{stats.contactedCount}</strong></span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-neutral-600"></span>
+          <span class="text-sm text-neutral-400">Archived: <strong class="text-neutral-200">{stats.archivedCount}</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4 lg:p-5">
+      <h2 class="text-sm font-semibold text-neutral-300 mb-3">Quick Actions</h2>
+      <a
+        href="/admin/leads"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium rounded-md transition-colors"
+      >
+        View All Leads
+      </a>
+      {stats.newCount > 0 && (
+        <a
+          href="/admin/leads?status=new"
+          class="inline-flex items-center gap-2 px-4 py-2 ml-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-medium rounded-md transition-colors"
+        >
+          {stats.newCount} New {stats.newCount === 1 ? 'Lead' : 'Leads'}
+        </a>
+      )}
+    </div>
+  </div>
+</AdminLayout>
