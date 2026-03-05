@@ -264,16 +264,19 @@ export default function HeroFullWidth({
           >
             {/* Logo */}
             <h1 id="hero-heading" className="flex justify-center">
-              <img
-                src="/images/logo/rmi-logo-full.png"
-                alt={headline}
-                width="500"
-                height="200"
-                loading="eager"
-                decoding="async"
-                className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
-                style={{ filter: 'brightness(0) invert(1) drop-shadow(3px 3px 6px rgba(0,0,0,1)) drop-shadow(-1px -1px 4px rgba(0,0,0,0.8))' }}
-              />
+              <picture>
+                <source srcSet="/images/logo/rmi-logo-full.webp" type="image/webp" />
+                <img
+                  src="/images/logo/rmi-logo-full.png"
+                  alt={headline}
+                  width="500"
+                  height="200"
+                  loading="eager"
+                  decoding="async"
+                  className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
+                  style={{ filter: 'brightness(0) invert(1) drop-shadow(3px 3px 6px rgba(0,0,0,1)) drop-shadow(-1px -1px 4px rgba(0,0,0,0.8))' }}
+                />
+              </picture>
               <span className="sr-only">Resource Mechanical Insulation — Commercial &amp; Industrial Insulation Contractors in Michigan</span>
             </h1>
 
