@@ -26,7 +26,7 @@ const {
 } = Astro.props;
 
 const fullTitle = title.includes(companyName) ? title : `${title} | ${companyName}`;
-const siteUrl = Astro.site?.href || 'https://www.rmi-llc.net';
+const siteUrl = Astro.site?.href || 'https://rmi-llc.net';
 const ogImageUrl = new URL(ogImage, siteUrl).href;
 
 const localBusinessSchema = JSON.stringify({
@@ -73,7 +73,7 @@ const localBusinessSchema = JSON.stringify({
       "description": "24/7 Emergency Response Available"
     }
   ],
-  "logo": "https://www.rmi-llc.net/images/logo/rmi-logo-full.webp",
+  "logo": "https://rmi-llc.net/images/logo/rmi-logo-full.webp",
   "sameAs": [
     "https://www.linkedin.com/company/resource-mechanical-insulation",
     "https://www.facebook.com/ResourceMechanicalInsulation"
@@ -100,8 +100,8 @@ const serviceCatalogSchema = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "Resource Mechanical Insulation",
-  "url": "https://www.rmi-llc.net",
-  "logo": "https://www.rmi-llc.net/images/logo/rmi-logo-full.webp",
+  "url": "https://rmi-llc.net",
+  "logo": "https://rmi-llc.net/images/logo/rmi-logo-full.webp",
   "sameAs": [
     "https://www.linkedin.com/company/resource-mechanical-insulation",
     "https://www.facebook.com/ResourceMechanicalInsulation"
