@@ -229,6 +229,7 @@ export default function HeroFullWidth({
                 height="1080"
                 className={`w-full h-full object-cover ${heroImagePositions[index]}`}
                 loading={index === 0 ? "eager" : "lazy"}
+                decoding={index === 0 ? "sync" : "async"}
                 fetchPriority={index === 0 ? "high" : undefined}
                 style={
                   !prefersReducedMotion
@@ -262,6 +263,8 @@ export default function HeroFullWidth({
                 alt={headline}
                 width="500"
                 height="200"
+                loading="eager"
+                decoding="async"
                 className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
                 style={{ filter: 'brightness(0) invert(1) drop-shadow(3px 3px 6px rgba(0,0,0,1)) drop-shadow(-1px -1px 4px rgba(0,0,0,0.8))' }}
               />
@@ -350,7 +353,7 @@ export default function HeroFullWidth({
           </div>
 
           {/* Slideshow Dots */}
-          <div className="flex justify-center gap-2 pb-3" role="tablist" aria-label="Hero slideshow navigation">
+          <div className="flex justify-center gap-1 pb-3" role="tablist" aria-label="Hero slideshow navigation">
             {heroImages.map((_, idx) => (
               <button
                 key={idx}
@@ -359,15 +362,19 @@ export default function HeroFullWidth({
                   prevIndexRef.current = activeIndex;
                   setActiveIndex(idx);
                 }}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  idx === activeIndex
-                    ? "bg-white w-5"
-                    : "bg-white/40 w-2 hover:bg-white/60"
-                }`}
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center"
                 role="tab"
                 aria-selected={idx === activeIndex}
                 aria-label={`Go to slide ${idx + 1}`}
-              />
+              >
+                <span
+                  className={`block h-2 rounded-full transition-all duration-300 ${
+                    idx === activeIndex
+                      ? "bg-white w-5"
+                      : "bg-white/40 w-2 hover:bg-white/60"
+                  }`}
+                />
+              </button>
             ))}
           </div>
         </div>
