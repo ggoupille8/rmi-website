@@ -37,6 +37,16 @@
   }
 }
 
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes cta-pulse {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.04); }
+}
+
 @keyframes kenBurns {
   from {
     transform: scale(1);
