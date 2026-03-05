@@ -24,6 +24,21 @@ interface GeoData {
   org?: string;
 }
 
+interface EnrichmentData {
+  emailDomain?: string | null;
+  hasMxRecords?: boolean;
+  isFreeMail?: boolean;
+  emailFormat?: string;
+  companyWebsiteExists?: boolean | null;
+  companyWebsiteTitle?: string | null;
+  phoneValid?: boolean;
+  phoneAreaCode?: string | null;
+  phoneRegion?: string | null;
+  ipOrgMatch?: boolean | null;
+  legitimacyScore?: number;
+  quality?: string;
+}
+
 interface LeadMetadata {
   ip?: string;
   userAgent?: string;
@@ -39,6 +54,7 @@ interface LeadMetadata {
   screenWidth?: number;
   screenHeight?: number;
   geo?: GeoData | null;
+  enrichment?: EnrichmentData | null;
   [key: string]: unknown;
 }
 
@@ -66,6 +82,58 @@ function formatReferrerSource(referrer: string | undefined | null): string {
   }
 }
 
+function buildQualitySection(enrichment: EnrichmentData | null | undefined): string {
+  if (!enrichment || enrichment.legitimacyScore == null) return "";
+
+  const colorMap: Record<string, string> = {
+    high: "#22c55e",
+    medium: "#eab308",
+    low: "#ef4444",
+    spam: "#6b7280",
+  };
+  const labelMap: Record<string, string> = {
+    high: "HIGH QUALITY",
+    medium: "MEDIUM QUALITY",
+    low: "LOW QUALITY",
+    spam: "SPAM",
+  };
+
+  const quality = enrichment.quality || "medium";
+  const color = colorMap[quality] || colorMap.medium;
+  const label = labelMap[quality] || "UNKNOWN";
+
+  const checks: string[] = [];
+  const check = (pass: boolean | null | undefined, text: string) => {
+    if (pass === true) checks.push(`<span style="color:#22c55e;">&#10003;</span> ${escapeHtml(text)}`);
+    else if (pass === false) checks.push(`<span style="color:#ef4444;">&#10007;</span> ${escapeHtml(text)}`);
+  };
+
+  if (enrichment.hasMxRecords != null) {
+    check(enrichment.hasMxRecords, "Email domain verified (MX records)");
+  }
+  if (enrichment.isFreeMail != null) {
+    check(!enrichment.isFreeMail, enrichment.isFreeMail ? "Free email provider" : `Company email (${enrichment.emailDomain || ""})`);
+  }
+  if (enrichment.companyWebsiteExists != null) {
+    check(enrichment.companyWebsiteExists, enrichment.companyWebsiteExists ? `Company website exists${enrichment.companyWebsiteTitle ? ` (${enrichment.companyWebsiteTitle})` : ""}` : "Company website not found");
+  }
+  if (enrichment.phoneValid != null) {
+    const phoneDetail = enrichment.phoneAreaCode && enrichment.phoneRegion
+      ? ` (${enrichment.phoneAreaCode} — ${enrichment.phoneRegion})`
+      : "";
+    check(enrichment.phoneValid, enrichment.phoneValid ? `Valid phone${phoneDetail}` : "Phone invalid or not provided");
+  }
+
+  return `<div style="background:#1e293b;border-radius:8px;padding:24px;margin-bottom:16px;">
+    <h3 style="margin:0 0 12px;color:#9ca3af;font-size:12px;text-transform:uppercase;letter-spacing:1px;">Lead Quality</h3>
+    <div style="display:inline-block;background:${color}20;border:1px solid ${color}40;border-radius:6px;padding:6px 16px;margin-bottom:12px;">
+      <span style="color:${color};font-weight:700;font-size:14px;">${label}</span>
+      <span style="color:#9ca3af;font-size:13px;margin-left:8px;">(Score: ${enrichment.legitimacyScore}/100)</span>
+    </div>
+    ${checks.length > 0 ? `<div style="margin-top:8px;font-size:13px;line-height:2;color:#d1d5db;">${checks.join("<br>")}</div>` : ""}
+  </div>`;
+}
+
 function buildEmailHtml(contact: Record<string, unknown>): string {
   const name = escapeHtml(String(contact.name || ""));
   const email = escapeHtml(String(contact.email || "Not provided"));
@@ -84,6 +152,7 @@ function buildEmailHtml(contact: Record<string, unknown>): string {
 
   const meta = (contact.metadata || {}) as LeadMetadata;
   const geo = meta.geo;
+  const enrichment = meta.enrichment;
 
   // Build intelligence rows
   const intelRows: string[] = [];
@@ -140,6 +209,8 @@ function buildEmailHtml(contact: Record<string, unknown>): string {
   </div>`
       : ""
   }
+
+  ${buildQualitySection(enrichment)}
 
   <p style="text-align:center;margin-top:24px;">
     <a href="https://rmi-llc.net/admin/leads" style="display:inline-block;background:#3b82f6;color:#fff;padding:10px 24px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;">View in Admin Panel</a>

@@ -9,6 +9,7 @@ import {
 } from "../../lib/validation";
 import { contactRateLimiter, getClientIP } from "../../lib/rate-limiter";
 import { getGeoFromIp } from "../../lib/geo-lookup";
+import { enrichLead } from "../../lib/lead-enrichment";
 
 // src/pages/api/contact.ts
 export const prerender = false;
@@ -265,6 +266,8 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
+  let savedContactId: string;
+
   try {
     const userAgent = request.headers.get("user-agent");
 
@@ -282,11 +285,49 @@ export const POST: APIRoute = async ({ request }) => {
       geo: geo || null,
     };
 
-    await saveContact(
+    savedContactId = await saveContact(
       { name, email, phone, message, source, timestamp, metadata: clientMetadata },
       clientIP,
       fullMetadata
     );
+
+    // Run lead enrichment (non-blocking for user, but we await to store results)
+    const company =
+      typeof obj.company === "string" ? obj.company.trim() : "";
+    const timeOnPageMs =
+      typeof clientMetadata.timeOnPageMs === "number"
+        ? clientMetadata.timeOnPageMs
+        : typeof clientMetadata.elapsedMs === "number"
+          ? clientMetadata.elapsedMs
+          : null;
+    const honeypot =
+      typeof obj.website === "string" && obj.website.trim().length > 0;
+
+    try {
+      const enrichment = await enrichLead({
+        email,
+        phone,
+        company,
+        message,
+        timeOnPageMs,
+        ipOrg: geo?.org || null,
+        honeypot,
+      });
+
+      // Update the contact metadata with enrichment results
+      const enrichedMetadata = { ...fullMetadata, enrichment };
+      await sql`
+        UPDATE contacts
+        SET metadata = ${JSON.stringify(enrichedMetadata)}
+        WHERE id = ${savedContactId}
+      `;
+    } catch (enrichError) {
+      console.error(
+        "Lead enrichment failed:",
+        enrichError instanceof Error ? enrichError.message : "Unknown error"
+      );
+      // Enrichment failure is non-critical — contact is already saved
+    }
   } catch {
     return new Response(
       JSON.stringify({ ok: false, error: "Server error" }),

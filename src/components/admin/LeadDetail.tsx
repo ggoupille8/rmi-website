@@ -13,6 +13,21 @@ interface GeoData {
   asn?: string;
 }
 
+interface EnrichmentData {
+  emailDomain?: string | null;
+  hasMxRecords?: boolean;
+  isFreeMail?: boolean;
+  emailFormat?: "professional" | "generic" | "personal" | "suspicious";
+  companyWebsiteExists?: boolean | null;
+  companyWebsiteTitle?: string | null;
+  phoneValid?: boolean;
+  phoneAreaCode?: string | null;
+  phoneRegion?: string | null;
+  ipOrgMatch?: boolean | null;
+  legitimacyScore?: number;
+  quality?: "high" | "medium" | "low" | "spam";
+}
+
 interface LeadMetadata {
   ip?: string;
   userAgent?: string;
@@ -37,6 +52,7 @@ interface LeadMetadata {
   pageViews?: number;
   connectionType?: string;
   geo?: GeoData | null;
+  enrichment?: EnrichmentData | null;
   [key: string]: unknown;
 }
 
@@ -302,6 +318,11 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
             </div>
           </div>
 
+          {/* Lead Quality */}
+          {contact.metadata?.enrichment && (
+            <VerificationSection enrichment={contact.metadata.enrichment} />
+          )}
+
           {/* Intelligence */}
           {contact.metadata && (
             <IntelligenceSection metadata={contact.metadata} />
@@ -420,6 +441,176 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function QualityBadge({
+  quality,
+  score,
+  size = "md",
+}: {
+  quality: string;
+  score?: number;
+  size?: "sm" | "md";
+}) {
+  const config: Record<string, { dot: string; text: string; bg: string; label: string }> = {
+    high: {
+      dot: "bg-green-400",
+      text: "text-green-400",
+      bg: "bg-green-600/15 border-green-600/30",
+      label: "High Quality",
+    },
+    medium: {
+      dot: "bg-yellow-400",
+      text: "text-yellow-400",
+      bg: "bg-yellow-600/15 border-yellow-600/30",
+      label: "Medium Quality",
+    },
+    low: {
+      dot: "bg-red-400",
+      text: "text-red-400",
+      bg: "bg-red-600/15 border-red-600/30",
+      label: "Low Quality",
+    },
+    spam: {
+      dot: "bg-neutral-500",
+      text: "text-neutral-500",
+      bg: "bg-neutral-700/30 border-neutral-700",
+      label: "Spam",
+    },
+  };
+  const c = config[quality] || config.medium;
+
+  if (size === "sm") {
+    return (
+      <span
+        className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium rounded border ${c.bg} ${c.text}`}
+        title={score != null ? `Score: ${score}/100` : undefined}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
+        {score != null ? score : c.label}
+      </span>
+    );
+  }
+
+  return (
+    <div
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border ${c.bg}`}
+    >
+      <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
+      <span className={`text-sm font-semibold ${c.text}`}>
+        {c.label.toUpperCase()}
+      </span>
+      {score != null && (
+        <span className="text-sm text-neutral-400">
+          (Score: {score}/100)
+        </span>
+      )}
+    </div>
+  );
+}
+
+function VerificationSection({ enrichment }: { enrichment: EnrichmentData }) {
+  const checks: { label: string; pass: boolean | null; detail?: string }[] = [];
+
+  if (enrichment.hasMxRecords != null) {
+    checks.push({
+      label: "Email domain verified (MX records active)",
+      pass: enrichment.hasMxRecords,
+    });
+  }
+
+  if (enrichment.isFreeMail != null) {
+    checks.push({
+      label: enrichment.isFreeMail
+        ? "Free email provider"
+        : `Company email domain (${enrichment.emailDomain || ""})`,
+      pass: !enrichment.isFreeMail,
+    });
+  }
+
+  if (enrichment.emailFormat) {
+    const formatLabel: Record<string, string> = {
+      professional: "Professional email format",
+      generic: "Generic email format (info@, admin@, etc.)",
+      personal: "Personal email format",
+      suspicious: "Suspicious email format",
+    };
+    checks.push({
+      label: formatLabel[enrichment.emailFormat] || enrichment.emailFormat,
+      pass: enrichment.emailFormat === "professional",
+    });
+  }
+
+  if (enrichment.companyWebsiteExists != null) {
+    checks.push({
+      label: enrichment.companyWebsiteExists
+        ? `Company website exists${enrichment.companyWebsiteTitle ? ` (${enrichment.companyWebsiteTitle})` : ""}`
+        : "Company website not found",
+      pass: enrichment.companyWebsiteExists,
+    });
+  }
+
+  if (enrichment.phoneValid != null) {
+    const detail =
+      enrichment.phoneAreaCode && enrichment.phoneRegion
+        ? `${enrichment.phoneAreaCode} — ${enrichment.phoneRegion}`
+        : enrichment.phoneAreaCode
+          ? `Area code: ${enrichment.phoneAreaCode}`
+          : undefined;
+    checks.push({
+      label: enrichment.phoneValid
+        ? "Valid phone number"
+        : "Phone not provided or invalid",
+      pass: enrichment.phoneValid,
+      detail,
+    });
+  }
+
+  if (enrichment.ipOrgMatch != null) {
+    checks.push({
+      label: enrichment.ipOrgMatch
+        ? "IP org matches company name"
+        : "IP org doesn't match company name",
+      pass: enrichment.ipOrgMatch,
+    });
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-neutral-500 uppercase tracking-wider font-semibold">
+        Lead Quality
+      </p>
+      {enrichment.quality && (
+        <QualityBadge
+          quality={enrichment.quality}
+          score={enrichment.legitimacyScore}
+        />
+      )}
+      {checks.length > 0 && (
+        <div className="bg-neutral-950 border border-neutral-800 rounded-md p-3 space-y-1.5">
+          {checks.map((check, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className="text-sm mt-px shrink-0">
+                {check.pass === true ? (
+                  <span className="text-green-400">&#10003;</span>
+                ) : check.pass === false ? (
+                  <span className="text-red-400">&#10007;</span>
+                ) : (
+                  <span className="text-yellow-400">&#9888;</span>
+                )}
+              </span>
+              <div>
+                <p className="text-xs text-neutral-300">{check.label}</p>
+                {check.detail && (
+                  <p className="text-[11px] text-neutral-500">{check.detail}</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
