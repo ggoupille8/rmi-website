@@ -18,11 +18,19 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
   const count = images.length;
   const hasMultiple = count > 1;
 
+  const resetAutoAdvance = useCallback(() => {
+    if (autoAdvanceRef.current) clearInterval(autoAdvanceRef.current);
+    autoAdvanceRef.current = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % count);
+    }, AUTO_ADVANCE_MS);
+  }, [count]);
+
   const goTo = useCallback(
     (index: number) => {
       setCurrentIndex(((index % count) + count) % count);
+      resetAutoAdvance();
     },
-    [count]
+    [count, resetAutoAdvance]
   );
 
   const goNext = useCallback(() => goTo(currentIndex + 1), [goTo, currentIndex]);
@@ -97,7 +105,7 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
           return (
             <div
               key={image.src}
-              className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
                 isActive ? "opacity-100 z-10" : "opacity-0 z-0"
               }`}
               aria-hidden={!isActive}
