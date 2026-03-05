@@ -156,7 +156,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-3 pt-3 border-t border-neutral-700/30 flex items-center justify-center">
           <p className="text-sm text-neutral-400">
-            &copy; <span className="text-neutral-500">{currentYear}</span> {companyNameFull}. All rights reserved.
+            &copy; <span className="text-neutral-400">{currentYear}</span> {companyNameFull}. All rights reserved.
           </p>
         </div>
       </div>

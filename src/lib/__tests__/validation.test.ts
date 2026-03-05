@@ -251,14 +251,15 @@ describe("validation utilities", () => {
       expect(result.valid).toBe(true);
     });
 
-    it("accepts phone-only contact without email", () => {
+    it("rejects phone-only contact without email", () => {
       const result = validateContactForm({
         name: "John Doe",
         email: "",
         phone: "555-123-4567",
         message: "Test message.",
       });
-      expect(result.valid).toBe(true);
+      expect(result.valid).toBe(false);
+      expect(result.errors.email).toBeDefined();
     });
 
     it("handles null/undefined input", () => {
