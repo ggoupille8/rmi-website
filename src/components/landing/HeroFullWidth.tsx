@@ -170,6 +170,7 @@ export default function HeroFullWidth({
 }: HeroFullWidthProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const prevIndexRef = useRef(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -180,15 +181,22 @@ export default function HeroFullWidth({
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
+  const startAutoAdvance = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
       setActiveIndex((prev) => {
         prevIndexRef.current = prev;
         return (prev + 1) % heroImages.length;
       });
     }, SLIDE_DURATION);
-    return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    startAutoAdvance();
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [startAutoAdvance]);
 
   return (
     <ErrorBoundary fallback={<div className="min-h-[100dvh] bg-neutral-950" />}>
@@ -233,11 +241,9 @@ export default function HeroFullWidth({
                 fetchPriority={index === 0 ? "high" : undefined}
                 style={
                   !prefersReducedMotion
-                    ? isActive
+                    ? isActive || isPrev
                       ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-in-out forwards`, transformOrigin: heroImageOrigins[index] }
-                      : isPrev
-                        ? { transform: "scale(1.05)", filter: "brightness(1.05)", transformOrigin: heroImageOrigins[index] }
-                        : { transform: "scale(1)", filter: "brightness(1)" }
+                      : { transform: "scale(1)", filter: "brightness(1)" }
                     : { transform: "scale(1)", filter: "brightness(1)" }
                 }
               />
@@ -361,6 +367,7 @@ export default function HeroFullWidth({
                 onClick={() => {
                   prevIndexRef.current = activeIndex;
                   setActiveIndex(idx);
+                  startAutoAdvance();
                 }}
                 className="min-w-[44px] min-h-[44px] flex items-center justify-center"
                 role="tab"
