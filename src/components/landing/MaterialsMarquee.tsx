@@ -1,6 +1,8 @@
 import { materials } from "../../content/site";
 
-const pillClass = "inline-block px-3 py-1.5 sm:px-5 sm:py-2.5 mx-1.5 sm:mx-2 text-neutral-300 text-xs sm:text-sm whitespace-nowrap border border-neutral-600/50 rounded-full";
+const pillClass = "inline-block px-3 py-1.5 sm:px-5 sm:py-2.5 mx-1.5 sm:mx-2 text-neutral-300 text-xs sm:text-sm whitespace-nowrap border border-neutral-600/30 rounded-lg bg-neutral-700/30";
+
+const fadeMask = "linear-gradient(to right, transparent, black clamp(58px, 10vw, 144px), black calc(100% - clamp(58px, 10vw, 144px)), transparent)";
 
 export default function MaterialsMarquee() {
   // Double the materials for seamless loop
@@ -13,10 +15,20 @@ export default function MaterialsMarquee() {
 
   return (
     <section
-      className="relative py-8 sm:py-10 lg:py-12 overflow-hidden bg-neutral-800 border-t border-neutral-600/30"
+      className="relative py-8 sm:py-10 lg:py-12 overflow-hidden bg-gradient-to-b from-neutral-800 via-neutral-900/50 to-neutral-800 border-t border-b border-neutral-700/30"
       role="region"
       aria-label="Materials we work with"
     >
+
+      {/* Dot pattern overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.02) 1px, transparent 1px)",
+          backgroundSize: "16px 16px",
+        }}
+        aria-hidden="true"
+      />
 
       {/* Header */}
       <div className="container-custom mb-4">
@@ -37,8 +49,8 @@ export default function MaterialsMarquee() {
         aria-hidden="true"
         aria-live="off"
         style={{
-          maskImage: "linear-gradient(to right, transparent, black clamp(48px, 8vw, 120px), black calc(100% - clamp(48px, 8vw, 120px)), transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(48px, 8vw, 120px), black calc(100% - clamp(48px, 8vw, 120px)), transparent)",
+          maskImage: fadeMask,
+          WebkitMaskImage: fadeMask,
         }}
       >
         <div className="service-ticker overflow-hidden">
@@ -60,8 +72,8 @@ export default function MaterialsMarquee() {
         className="relative mt-3 sm:mt-4 overflow-hidden"
         aria-hidden="true"
         style={{
-          maskImage: "linear-gradient(to right, transparent, black clamp(48px, 8vw, 120px), black calc(100% - clamp(48px, 8vw, 120px)), transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(48px, 8vw, 120px), black calc(100% - clamp(48px, 8vw, 120px)), transparent)",
+          maskImage: fadeMask,
+          WebkitMaskImage: fadeMask,
         }}
       >
         <div className="service-ticker overflow-hidden">
