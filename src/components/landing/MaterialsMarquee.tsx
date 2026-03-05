@@ -41,7 +41,7 @@ export default function MaterialsMarquee() {
           WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(48px, 8vw, 120px), black calc(100% - clamp(48px, 8vw, 120px)), transparent)",
         }}
       >
-        <div className="service-ticker">
+        <div className="service-ticker overflow-hidden">
           <div className="service-ticker__track">
             {duplicatedMaterials.map((material, index) => (
               <span
@@ -64,7 +64,7 @@ export default function MaterialsMarquee() {
           WebkitMaskImage: "linear-gradient(to right, transparent, black clamp(48px, 8vw, 120px), black calc(100% - clamp(48px, 8vw, 120px)), transparent)",
         }}
       >
-        <div className="service-ticker">
+        <div className="service-ticker overflow-hidden">
           <div className="service-ticker__track" style={{ animationDirection: "reverse" }}>
             {duplicatedRow2.map((material, index) => (
               <span

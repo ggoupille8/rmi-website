@@ -5,7 +5,7 @@ import sitemap from "@astrojs/sitemap";
 import vercel from "@astrojs/vercel";
 
 // https://astro.build/config
-const site = "https://www.rmi-llc.net";
+const site = "https://rmi-llc.net";
 
 export default defineConfig({
   site,

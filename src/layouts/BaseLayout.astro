@@ -26,7 +26,7 @@ const {
 } = Astro.props;
 
 const fullTitle = title.includes(companyName) ? title : `${title} | ${companyName}`;
-const siteUrl = Astro.site?.href || 'https://www.rmi-llc.net';
+const siteUrl = Astro.site?.href || 'https://rmi-llc.net';
 const ogImageUrl = new URL(ogImage, siteUrl).href;
 
 const localBusinessSchema = JSON.stringify({
@@ -73,7 +73,7 @@ const localBusinessSchema = JSON.stringify({
       "description": "24/7 Emergency Response Available"
     }
   ],
-  "logo": "https://www.rmi-llc.net/images/logo/rmi-logo-full.webp",
+  "logo": "https://rmi-llc.net/images/logo/rmi-logo-full.webp",
   "sameAs": [
     "https://www.linkedin.com/company/resource-mechanical-insulation",
     "https://www.facebook.com/ResourceMechanicalInsulation"
@@ -100,8 +100,8 @@ const serviceCatalogSchema = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "Resource Mechanical Insulation",
-  "url": "https://www.rmi-llc.net",
-  "logo": "https://www.rmi-llc.net/images/logo/rmi-logo-full.webp",
+  "url": "https://rmi-llc.net",
+  "logo": "https://rmi-llc.net/images/logo/rmi-logo-full.webp",
   "sameAs": [
     "https://www.linkedin.com/company/resource-mechanical-insulation",
     "https://www.facebook.com/ResourceMechanicalInsulation"
@@ -319,7 +319,7 @@ const serviceSchemas = JSON.stringify([
     <script type="application/ld+json" set:html={serviceCatalogSchema} />
     <script type="application/ld+json" set:html={serviceSchemas} />
   </head>
-  <body class="h-full">
+  <body class="h-full overflow-x-hidden">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600">
       Skip to main content
     </a>
