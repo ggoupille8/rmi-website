@@ -8,6 +8,7 @@ import {
   FIELD_LIMITS,
 } from "../../lib/validation";
 import { contactRateLimiter, getClientIP } from "../../lib/rate-limiter";
+import { getGeoFromIp } from "../../lib/geo-lookup";
 
 // src/pages/api/contact.ts
 export const prerender = false;
@@ -21,25 +22,14 @@ interface ContactRequest {
   message: string;
   source?: string;
   timestamp?: string;
-  metadata?: {
-    elapsedMs?: number;
-    fastSubmit?: boolean;
-  };
+  metadata?: Record<string, unknown>;
 }
 
 async function saveContact(
   data: ContactRequest,
   clientIP: string | null,
-  userAgent: string | null
+  fullMetadata: Record<string, unknown>
 ): Promise<string> {
-  const metadata = {
-    ip: clientIP || null,
-    userAgent: userAgent || null,
-    timestamp: data.timestamp || null,
-    elapsedMs: data.metadata?.elapsedMs ?? null,
-    fastSubmit: data.metadata?.fastSubmit ?? null,
-  };
-
   try {
     const emailVal = data.email.trim() || null;
     const phoneVal = data.phone.trim() || null;
@@ -47,7 +37,7 @@ async function saveContact(
       INSERT INTO contacts (name, email, phone, message, source, metadata)
       VALUES (${data.name.trim()}, ${emailVal}, ${phoneVal}, ${
       data.message.trim()
-    }, ${data.source?.trim() || "contact"}, ${JSON.stringify(metadata)})
+    }, ${data.source?.trim() || "contact"}, ${JSON.stringify(fullMetadata)})
       RETURNING id
     `;
     return result.rows[0]?.id || "";
@@ -213,17 +203,17 @@ export const POST: APIRoute = async ({ request }) => {
   const source = typeof obj.source === "string" ? obj.source.trim() : "contact";
   const timestamp =
     typeof obj.timestamp === "string" ? obj.timestamp : undefined;
-  const metadataObj =
+  const clientMetadata =
     typeof obj.metadata === "object" && obj.metadata !== null
       ? (obj.metadata as Record<string, unknown>)
       : {};
   const elapsedMs =
-    typeof metadataObj.elapsedMs === "number" && metadataObj.elapsedMs >= 0
-      ? metadataObj.elapsedMs
+    typeof clientMetadata.elapsedMs === "number" && clientMetadata.elapsedMs >= 0
+      ? clientMetadata.elapsedMs
       : undefined;
   const fastSubmit =
-    typeof metadataObj.fastSubmit === "boolean"
-      ? metadataObj.fastSubmit
+    typeof clientMetadata.fastSubmit === "boolean"
+      ? clientMetadata.fastSubmit
       : undefined;
 
   // Honeypot: accept request but do not store
@@ -277,10 +267,25 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const userAgent = request.headers.get("user-agent");
+
+    // IP geolocation lookup (non-blocking — null on failure)
+    const geo = await getGeoFromIp(clientIP || "");
+
+    // Merge client-side metadata with server-side data
+    const fullMetadata: Record<string, unknown> = {
+      ...clientMetadata,
+      ip: clientIP || null,
+      userAgent: userAgent || null,
+      timestamp: timestamp || null,
+      elapsedMs: elapsedMs ?? null,
+      fastSubmit: fastSubmit ?? null,
+      geo: geo || null,
+    };
+
     await saveContact(
-      { name, email, phone, message, source, timestamp, metadata: { elapsedMs, fastSubmit } },
+      { name, email, phone, message, source, timestamp, metadata: clientMetadata },
       clientIP,
-      userAgent
+      fullMetadata
     );
   } catch {
     return new Response(

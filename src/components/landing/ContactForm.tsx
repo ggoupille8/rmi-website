@@ -30,8 +30,11 @@ export default function ContactForm({
   const formRef = useRef<HTMLFormElement>(null);
 
   // Signal that React has hydrated (used by Playwright tests)
+  // Track page views in session for lead intelligence
   useEffect(() => {
     formRef.current?.setAttribute("data-hydrated", "true");
+    const views = parseInt(sessionStorage.getItem("rmi_views") || "0", 10) + 1;
+    sessionStorage.setItem("rmi_views", views.toString());
   }, []);
 
   // Update projectType when preselectedProjectType prop changes or URL param is present
@@ -201,6 +204,35 @@ export default function ContactForm({
     const elapsedMs = Date.now() - mountedAtRef.current;
     const fastSubmit = elapsedMs < 800;
 
+    // Collect browser/device metadata for lead intelligence
+    const searchParams = new URLSearchParams(window.location.search);
+    const nav = navigator as Record<string, unknown>;
+    const conn = nav.connection as Record<string, unknown> | undefined;
+    const clientMetadata = {
+      elapsedMs,
+      fastSubmit,
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      screenWidth: screen.width,
+      screenHeight: screen.height,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      devicePixelRatio: window.devicePixelRatio,
+      isMobile: /Mobi|Android/i.test(navigator.userAgent),
+      platform: navigator.platform,
+      referrer: document.referrer || null,
+      pageUrl: window.location.href,
+      utmSource: searchParams.get("utm_source"),
+      utmMedium: searchParams.get("utm_medium"),
+      utmCampaign: searchParams.get("utm_campaign"),
+      utmTerm: searchParams.get("utm_term"),
+      utmContent: searchParams.get("utm_content"),
+      timeOnPageMs: elapsedMs,
+      pageViews: parseInt(sessionStorage.getItem("rmi_views") || "1", 10),
+      connectionType: (conn?.effectiveType as string) || null,
+    };
+
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -216,10 +248,7 @@ export default function ContactForm({
           serviceType: formData.projectType.trim(),
           website: formData.website, // Should be empty
           timestamp: Date.now(), // Client timestamp at submission time
-          metadata: {
-            elapsedMs,
-            fastSubmit,
-          },
+          metadata: clientMetadata,
         }),
       });
 
@@ -555,6 +584,10 @@ export default function ContactForm({
               >
                 {isSubmitting ? "Sending..." : "Send Message"}
               </button>
+              <p className="mt-2 text-[11px] text-neutral-500 text-center leading-tight">
+                By submitting, you agree that we may collect device and browsing
+                information to improve our services.
+              </p>
             </div>
           </form>
         </div>
