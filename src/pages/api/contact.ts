@@ -247,19 +247,18 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  // Require at least email or phone
+  // Require email
   const hasEmail = email.length > 0;
-  const hasPhone = phone.length > 0;
-  if (!hasEmail && !hasPhone) {
-    return new Response(JSON.stringify({ ok: false, error: "Email or phone is required" }), {
+  if (!hasEmail) {
+    return new Response(JSON.stringify({ ok: false, error: "Email is required", field: "email" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  // If email is provided, it must be valid format
-  if (hasEmail && (!isValidEmail(email) || email.length > FIELD_LIMITS.MAX_EMAIL_LENGTH)) {
-    return new Response(JSON.stringify({ ok: false, error: "Invalid email format" }), {
+  // Email must be valid format
+  if (!isValidEmail(email) || email.length > FIELD_LIMITS.MAX_EMAIL_LENGTH) {
+    return new Response(JSON.stringify({ ok: false, error: "Invalid email format", field: "email" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });

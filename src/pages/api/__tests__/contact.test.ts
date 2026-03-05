@@ -186,7 +186,7 @@ describe("POST /api/contact", () => {
     expect(body.error).toBe("Invalid input");
   });
 
-  it("returns 400 when neither email nor phone is provided", async () => {
+  it("returns 400 when email is not provided", async () => {
     const { status, body } = await parseResponse(
       await POST(
         createContext(
@@ -195,7 +195,8 @@ describe("POST /api/contact", () => {
       )
     );
     expect(status).toBe(400);
-    expect(body.error).toBe("Email or phone is required");
+    expect(body.error).toBe("Email is required");
+    expect(body.field).toBe("email");
   });
 
   it("returns 400 for invalid email format", async () => {
@@ -210,7 +211,7 @@ describe("POST /api/contact", () => {
     expect(body.error).toBe("Invalid email format");
   });
 
-  it("accepts submission with phone only (no email)", async () => {
+  it("returns 400 with phone only (no email)", async () => {
     const { status, body } = await parseResponse(
       await POST(
         createContext(
@@ -223,8 +224,8 @@ describe("POST /api/contact", () => {
         )
       )
     );
-    expect(status).toBe(200);
-    expect(body.ok).toBe(true);
+    expect(status).toBe(400);
+    expect(body.error).toBe("Email is required");
   });
 
   it("returns 500 when database verify fails", async () => {

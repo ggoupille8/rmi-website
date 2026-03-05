@@ -112,7 +112,8 @@ export default function ContactForm({
         if (value.trim().length < 2) return "Name must be at least 2 characters";
         return undefined;
       case "email":
-        if (value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()))
+        if (!value.trim()) return "Please enter your email address";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()))
           return "Please enter a valid email address";
         return undefined;
       case "phone":
@@ -157,9 +158,8 @@ export default function ContactForm({
     await Promise.resolve();
     setSubmitStatus("idle");
 
-    // Validate required fields: Name, Email-or-Phone, Project Type, Project Details
+    // Validate required fields: Name, Email, Project Type, Project Details
     const errors: typeof fieldErrors = {};
-    const needsContact = !formData.email.trim() && !formData.phone.trim();
 
     const nameErr = validateField("name", formData.name);
     if (nameErr) errors.name = nameErr;
@@ -176,18 +176,18 @@ export default function ContactForm({
     const messageErr = validateField("message", formData.message);
     if (messageErr) errors.message = messageErr;
 
-    const hasErrors = Object.keys(errors).length > 0 || needsContact;
+    const hasErrors = Object.keys(errors).length > 0;
 
     if (hasErrors) {
       setFieldErrors(errors);
-      setContactError(needsContact);
+      setContactError(false);
       setIsSubmitting(false);
 
       // Scroll to first error field smoothly (top-to-bottom order)
       setTimeout(() => {
         const firstErrorField = errors.name
           ? nameInputRef.current
-          : (needsContact || errors.email)
+          : errors.email
             ? emailInputRef.current
             : errors.projectType
               ? projectTypeRef.current
@@ -362,6 +362,7 @@ export default function ContactForm({
                   type="email"
                   id="email"
                   name="email"
+                  required
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}

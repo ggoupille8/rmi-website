@@ -131,18 +131,15 @@ export function validateContactForm(data: unknown): ContactValidationResult {
     errors.name = `Name must be ${FIELD_LIMITS.MAX_NAME_LENGTH} characters or less`;
   }
 
-  // Email or phone required (at least one)
+  // Email is required
   const hasEmail = isNonEmptyString(email);
-  const hasPhone = isNonEmptyString(phone);
 
-  if (!hasEmail && !hasPhone) {
-    errors.email = "Email or phone is required";
-  } else if (hasEmail) {
-    if (email.length > FIELD_LIMITS.MAX_EMAIL_LENGTH) {
-      errors.email = `Email must be ${FIELD_LIMITS.MAX_EMAIL_LENGTH} characters or less`;
-    } else if (!isValidEmail(email)) {
-      errors.email = "Invalid email format";
-    }
+  if (!hasEmail) {
+    errors.email = "Email is required";
+  } else if (email.length > FIELD_LIMITS.MAX_EMAIL_LENGTH) {
+    errors.email = `Email must be ${FIELD_LIMITS.MAX_EMAIL_LENGTH} characters or less`;
+  } else if (!isValidEmail(email)) {
+    errors.email = "Invalid email format";
   }
 
   // Required field: message

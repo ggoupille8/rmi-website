@@ -114,7 +114,7 @@ describe("ContactForm component", () => {
       });
     });
 
-    it("shows error when email and phone are both empty", async () => {
+    it("shows error when email is empty", async () => {
       const user = userEvent.setup();
       render(<ContactForm />);
 
@@ -132,10 +132,10 @@ describe("ContactForm component", () => {
       // Submit
       await user.click(screen.getByRole("button", { name: /send message/i }));
 
-      // Should show error for email/phone - check for the error alert
+      // Should show error for email - check for the error alert
       await waitFor(() => {
         expect(
-          screen.getByText(/please provide an email or phone/i)
+          screen.getByText(/please enter your email address/i)
         ).toBeInTheDocument();
       });
     });
@@ -182,7 +182,7 @@ describe("ContactForm component", () => {
       });
     });
 
-    it("accepts valid phone number instead of email", async () => {
+    it("rejects phone-only submission without email", async () => {
       const user = userEvent.setup();
       render(<ContactForm />);
 
@@ -200,7 +200,9 @@ describe("ContactForm component", () => {
       await user.click(screen.getByRole("button", { name: /send message/i }));
 
       await waitFor(() => {
-        expect(fetchMock).toHaveBeenCalled();
+        expect(
+          screen.getByText(/please enter your email address/i)
+        ).toBeInTheDocument();
       });
     });
 
