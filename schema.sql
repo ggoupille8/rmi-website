@@ -36,3 +36,22 @@ CREATE TABLE IF NOT EXISTS contacts (
 CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_contacts_source ON contacts(source);
 CREATE INDEX IF NOT EXISTS idx_contacts_status ON contacts(status);
+
+-- Media table (image overrides for landing page slots)
+CREATE TABLE IF NOT EXISTS media (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slot VARCHAR(100) UNIQUE NOT NULL,       -- e.g., "hero-1", "service-pipe-insulation-1", "project-henry-ford"
+  category VARCHAR(50) NOT NULL,           -- "hero", "service", "project", "cta", "logo"
+  blob_url TEXT NOT NULL,                  -- Vercel Blob URL
+  file_name VARCHAR(255) NOT NULL,         -- Original filename for reference
+  file_size INTEGER NOT NULL,              -- Bytes
+  width INTEGER,                           -- Image dimensions (optional)
+  height INTEGER,                          -- Image dimensions (optional)
+  alt_text TEXT,                           -- Alt text for accessibility
+  uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Index for common media queries
+CREATE INDEX IF NOT EXISTS idx_media_category ON media(category);
+CREATE INDEX IF NOT EXISTS idx_media_slot ON media(slot);
