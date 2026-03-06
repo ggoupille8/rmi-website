@@ -53,7 +53,7 @@ export const GET: APIRoute = async ({ request }) => {
     let result;
     if (category && isValidCategory(category)) {
       result = await sql.query(
-        `SELECT id, slot, category, blob_url, file_name, file_size, width, height, alt_text, uploaded_at, updated_at
+        `SELECT id, slot, category, blob_url, file_name, file_size, width, height, alt_text, variants, uploaded_at, updated_at
          FROM media
          WHERE category = $1
          ORDER BY slot ASC`,
@@ -61,7 +61,7 @@ export const GET: APIRoute = async ({ request }) => {
       );
     } else {
       result = await sql.query(
-        `SELECT id, slot, category, blob_url, file_name, file_size, width, height, alt_text, uploaded_at, updated_at
+        `SELECT id, slot, category, blob_url, file_name, file_size, width, height, alt_text, variants, uploaded_at, updated_at
          FROM media
          ORDER BY category ASC, slot ASC`
       );
@@ -94,13 +94,14 @@ export const POST: APIRoute = async ({ request }) => {
     await ensureMediaTable();
 
     const body = await request.json();
-    const { slot, category, blobUrl, fileName, fileSize, altText } = body as {
+    const { slot, category, blobUrl, fileName, fileSize, altText, variants } = body as {
       slot?: unknown;
       category?: unknown;
       blobUrl?: unknown;
       fileName?: unknown;
       fileSize?: unknown;
       altText?: unknown;
+      variants?: unknown;
     };
 
     // Validate required fields
@@ -143,28 +144,40 @@ export const POST: APIRoute = async ({ request }) => {
 
     const altTextValue =
       altText !== undefined && typeof altText === "string" ? altText : null;
+    const variantsValue =
+      variants !== undefined && typeof variants === "object" && variants !== null
+        ? JSON.stringify(variants)
+        : null;
 
-    // Upsert — if slot already exists, update it (and delete old blob)
+    // Upsert — if slot already exists, update it (and delete old blobs)
     const existing = await sql.query(
-      `SELECT id, blob_url FROM media WHERE slot = $1`,
+      `SELECT id, blob_url, variants FROM media WHERE slot = $1`,
       [slot.trim()]
     );
 
     if (existing.rows.length > 0) {
       const oldBlobUrl = existing.rows[0].blob_url;
-      // Delete old blob file
-      try {
-        await del(oldBlobUrl);
-      } catch {
-        // Non-critical — old blob may already be deleted
+      const oldVariants = existing.rows[0].variants as Record<string, string> | null;
+
+      // Delete old blob files (primary + all variants)
+      const urlsToDelete = [oldBlobUrl];
+      if (oldVariants) {
+        urlsToDelete.push(...Object.values(oldVariants));
+      }
+      for (const url of urlsToDelete) {
+        try {
+          await del(url);
+        } catch {
+          // Non-critical — old blob may already be deleted
+        }
       }
 
       const result = await sql.query(
         `UPDATE media
-         SET blob_url = $1, file_name = $2, file_size = $3, alt_text = $4, updated_at = NOW()
-         WHERE slot = $5
-         RETURNING id, slot, category, blob_url, file_name, file_size, alt_text, uploaded_at, updated_at`,
-        [blobUrl, fileName, fileSize, altTextValue, slot.trim()]
+         SET blob_url = $1, file_name = $2, file_size = $3, alt_text = $4, variants = $5::jsonb, updated_at = NOW()
+         WHERE slot = $6
+         RETURNING id, slot, category, blob_url, file_name, file_size, alt_text, variants, uploaded_at, updated_at`,
+        [blobUrl, fileName, fileSize, altTextValue, variantsValue, slot.trim()]
       );
 
       return new Response(
@@ -175,10 +188,10 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Insert new record
     const result = await sql.query(
-      `INSERT INTO media (slot, category, blob_url, file_name, file_size, alt_text)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, slot, category, blob_url, file_name, file_size, alt_text, uploaded_at, updated_at`,
-      [slot.trim(), category, blobUrl, fileName, fileSize, altTextValue]
+      `INSERT INTO media (slot, category, blob_url, file_name, file_size, alt_text, variants)
+       VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
+       RETURNING id, slot, category, blob_url, file_name, file_size, alt_text, variants, uploaded_at, updated_at`,
+      [slot.trim(), category, blobUrl, fileName, fileSize, altTextValue, variantsValue]
     );
 
     return new Response(
@@ -331,7 +344,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     // Fetch the record to get blob URL before deleting
     const existing = await sql.query(
-      `SELECT id, blob_url FROM media WHERE id = $1`,
+      `SELECT id, blob_url, variants FROM media WHERE id = $1`,
       [id]
     );
 
@@ -343,15 +356,22 @@ export const DELETE: APIRoute = async ({ request }) => {
     }
 
     const blobUrl = existing.rows[0].blob_url;
+    const existingVariants = existing.rows[0].variants as Record<string, string> | null;
 
     // Delete from database
     await sql.query(`DELETE FROM media WHERE id = $1`, [id]);
 
-    // Delete from Vercel Blob
-    try {
-      await del(blobUrl);
-    } catch {
-      // Non-critical — blob may already be deleted
+    // Delete all blobs (primary + variants)
+    const urlsToDelete = [blobUrl];
+    if (existingVariants) {
+      urlsToDelete.push(...Object.values(existingVariants));
+    }
+    for (const url of urlsToDelete) {
+      try {
+        await del(url);
+      } catch {
+        // Non-critical — blob may already be deleted
+      }
     }
 
     return new Response(

@@ -67,6 +67,7 @@ export default function ImageUploader({
       setState("uploading");
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("slot", slot);
 
       const uploadRes = await fetch("/api/admin/upload", {
         method: "POST",
@@ -82,6 +83,7 @@ export default function ImageUploader({
         url: string;
         size: number;
         fileName: string;
+        variants?: Record<string, string>;
       };
 
       // Step 2: Assign to slot in database
@@ -96,6 +98,7 @@ export default function ImageUploader({
           fileName: uploadData.fileName,
           fileSize: uploadData.size,
           altText: altText.trim() || null,
+          variants: uploadData.variants,
         }),
       });
 

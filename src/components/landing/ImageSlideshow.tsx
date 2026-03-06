@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { ServiceImage } from "../../content/site";
-import { getImageOverrides } from "../../lib/media-loader";
+import { getMediaOverrides } from "../../lib/media-loader";
+import type { MediaOverride } from "../../lib/media-loader";
 
 interface ImageSlideshowProps {
   images: ServiceImage[];
@@ -13,7 +14,7 @@ const AUTO_ADVANCE_MS = 5000;
 export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [overrides, setOverrides] = useState<Record<string, string>>({});
+  const [overrides, setOverrides] = useState<Record<string, MediaOverride>>({});
   const touchStartRef = useRef<number | null>(null);
   const touchDeltaRef = useRef(0);
   const autoAdvanceRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -24,7 +25,7 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
   useEffect(() => {
     if (!serviceSlug || count === 0) return;
     const slots = images.map((_, i) => `service-${serviceSlug}-${i + 1}`);
-    getImageOverrides(slots).then((result) => {
+    getMediaOverrides(slots).then((result) => {
       if (Object.keys(result).length > 0) {
         setOverrides(result);
       }
@@ -117,7 +118,9 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
           const isActive = index === currentIndex;
           const focusPoint = image.focusPoint || "center center";
           const overrideSlot = serviceSlug ? `service-${serviceSlug}-${index + 1}` : "";
-          const overrideUrl = overrideSlot ? overrides[overrideSlot] : undefined;
+          const override = overrideSlot ? overrides[overrideSlot] : undefined;
+          const overrideUrl = override?.url;
+          const variants = override?.variants;
           return (
             <div
               key={image.src}
@@ -129,6 +132,10 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
               {overrideUrl ? (
                 <img
                   src={overrideUrl}
+                  srcSet={variants && Object.keys(variants).length > 1
+                    ? Object.entries(variants).map(([k, v]) => `${v} ${k.replace("w", "")}w`).join(", ")
+                    : undefined}
+                  sizes={variants && Object.keys(variants).length > 1 ? "(max-width: 768px) 100vw, 50vw" : undefined}
                   alt={image.alt}
                   width="960"
                   height="720"

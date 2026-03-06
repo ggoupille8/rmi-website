@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroHeadline, heroTagline } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
 import { ErrorBoundary } from "../ErrorBoundary";
-import { getImageOverrides } from "../../lib/media-loader";
+import { getMediaOverrides } from "../../lib/media-loader";
+import type { MediaOverride } from "../../lib/media-loader";
 
 const defaultHeroImages = [
   "/images/hero/hero-1.webp",
@@ -175,6 +176,7 @@ export default function HeroFullWidth({
   tagline = heroTagline,
 }: HeroFullWidthProps) {
   const [heroImages, setHeroImages] = useState(defaultHeroImages);
+  const [heroOverrides, setHeroOverrides] = useState<Record<string, MediaOverride>>({});
   const [activeIndex, setActiveIndex] = useState(0);
   const prevIndexRef = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -183,10 +185,11 @@ export default function HeroFullWidth({
   // Check for Blob image overrides on mount
   useEffect(() => {
     const slots = defaultHeroImages.map((_, i) => `hero-${i + 1}`);
-    getImageOverrides(slots).then((overrides) => {
+    getMediaOverrides(slots).then((overrides) => {
       if (Object.keys(overrides).length === 0) return;
+      setHeroOverrides(overrides);
       setHeroImages((prev) =>
-        prev.map((src, i) => overrides[`hero-${i + 1}`] || src)
+        prev.map((src, i) => overrides[`hero-${i + 1}`]?.url || src)
       );
     });
   }, []);
@@ -236,9 +239,16 @@ export default function HeroFullWidth({
             style={{ zIndex: isActive ? 2 : isPrev ? 1 : 0 }}
             aria-hidden="true"
           >
-            {isExternalUrl(src) ? (
+            {isExternalUrl(src) ? (() => {
+              const override = heroOverrides[`hero-${index + 1}`];
+              const variants = override?.variants;
+              return (
               <img
                 src={src}
+                srcSet={variants && Object.keys(variants).length > 1
+                  ? Object.entries(variants).map(([k, v]) => `${v} ${k.replace("w", "")}w`).join(", ")
+                  : undefined}
+                sizes={variants && Object.keys(variants).length > 1 ? "100vw" : undefined}
                 alt={heroImageAlts[index]}
                 width="1920"
                 height="1080"
@@ -252,7 +262,8 @@ export default function HeroFullWidth({
                     : { transform: "scale(1)", filter: "brightness(1)" }
                 }
               />
-            ) : (
+              );
+            })() : (
               <picture>
                 <source
                   srcSet={`${src.replace(/\.(webp|jpe?g)$/i, "-480w.webp")} 480w, ${src.replace(/\.(webp|jpe?g)$/i, "-960w.webp")} 960w, ${src.replace(/\.(webp|jpe?g)$/i, ".webp")} 1920w`}
