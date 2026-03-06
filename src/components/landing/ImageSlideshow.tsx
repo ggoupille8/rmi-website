@@ -14,6 +14,7 @@ const AUTO_ADVANCE_MS = 5000;
 export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [overrides, setOverrides] = useState<Record<string, MediaOverride>>({});
   const touchStartRef = useRef<number | null>(null);
   const touchDeltaRef = useRef(0);
@@ -31,6 +32,11 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
       }
     });
   }, [serviceSlug, count, images]);
+  // Reset loaded state when slide changes
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [currentIndex]);
+
   const hasMultiple = count > 1;
 
   const resetAutoAdvance = useCallback(() => {
@@ -106,6 +112,10 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
       {/* Image container — object-cover on mobile (fills space, crops edges),
            object-contain on desktop (shows full image in side panel) */}
       <div className="relative flex-1 min-h-[280px] md:min-h-[400px]">
+        {/* Skeleton placeholder — shows until active image loads */}
+        {!imageLoaded && (
+          <div className="absolute inset-0 z-[5] bg-neutral-800 animate-pulse" />
+        )}
         {images.map((image, index) => {
           // Only render current slide and its immediate neighbors (3 max)
           const distance = Math.min(
@@ -125,8 +135,8 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
             <div
               key={image.src}
               className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                isActive ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}
+                isActive ? "z-10" : "opacity-0 z-0"
+              } ${isActive && imageLoaded ? "opacity-100" : isActive ? "opacity-0" : ""}`}
               aria-hidden={!isActive}
             >
               {overrideUrl ? (
@@ -141,7 +151,9 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
                   height="720"
                   className="absolute inset-0 w-full h-full object-cover object-center"
                   style={{ objectPosition: focusPoint }}
-                  loading={isActive ? "eager" : "lazy"}
+                  loading="eager"
+                  decoding="async"
+                  onLoad={isActive ? () => setImageLoaded(true) : undefined}
                   draggable={false}
                 />
               ) : (
@@ -157,7 +169,9 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
                     height="720"
                     className="absolute inset-0 w-full h-full object-cover object-center"
                     style={{ objectPosition: focusPoint }}
-                    loading={isActive ? "eager" : "lazy"}
+                    loading="eager"
+                    decoding="async"
+                    onLoad={isActive ? () => setImageLoaded(true) : undefined}
                     draggable={false}
                   />
                 </picture>

@@ -46,6 +46,19 @@ export default function Services() {
   const modalRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
+  // Prefetch first image of each service on mount (low-priority, idle fetch)
+  useEffect(() => {
+    services.forEach((service) => {
+      if (service.images?.[0]) {
+        const link = document.createElement("link");
+        link.rel = "prefetch";
+        link.as = "image";
+        link.href = `/images/services/${service.images[0].src}.webp`;
+        document.head.appendChild(link);
+      }
+    });
+  }, []);
+
   const activeServiceData = activeService
     ? services.find((s) => s.anchorId === activeService)
     : null;
@@ -62,10 +75,18 @@ export default function Services() {
 
   const openModal = (anchorId: string, buttonEl: HTMLButtonElement) => {
     triggerRef.current = buttonEl;
-    setActiveService(anchorId);
 
-    // Track which service was clicked
+    // Preload the first image immediately (high-priority, parallel with modal animation)
     const service = services.find((s) => s.anchorId === anchorId);
+    if (service?.images?.[0]) {
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "image";
+      link.href = `/images/services/${service.images[0].src}.webp`;
+      document.head.appendChild(link);
+    }
+
+    setActiveService(anchorId);
     if (typeof window !== "undefined" && typeof window.gtag === "function") {
       window.gtag("event", "service_view", {
         event_category: "Engagement",
