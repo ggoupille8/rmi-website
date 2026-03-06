@@ -11,7 +11,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { sql } from "@vercel/postgres";
 import { getGeoData, type GeoResult } from "./ipGeo";
-import { sendLeadEmail } from "./emailTemplate";
+import { sendLeadEmail, sendApprovalEmail } from "./emailTemplate";
+import { generateResponseDraft } from "./leadResponseDraft";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -529,7 +530,7 @@ async function writeLeadIntelligence(
 // Global enrichment timeout
 // ---------------------------------------------------------------------------
 
-const ENRICHMENT_TIMEOUT_MS = 15_000;
+const ENRICHMENT_TIMEOUT_MS = 25_000;
 
 // ---------------------------------------------------------------------------
 // Core enrichment logic (called within timeout wrapper)
@@ -620,6 +621,75 @@ async function doEnrichment(
       "Lead email send failed:",
       error instanceof Error ? error.message : "Unknown error"
     );
+  }
+
+  // Step 6 — Generate AI response draft + send approval email (legit leads only)
+  const isLegitLead =
+    botScore < 50 &&
+    withinBudget &&
+    claudeResult?.leadQuality !== "spam" &&
+    !claudeResult?.disposableEmail &&
+    contact.email !== "test@example.com";
+
+  if (isLegitLead) {
+    try {
+      const draft = await generateResponseDraft({
+        name: contact.name,
+        email: contact.email,
+        phone: contact.phone || undefined,
+        company: contact.company || undefined,
+        projectType: claudeResult?.projectType || contact.serviceType || undefined,
+        message: contact.message || undefined,
+        enrichment: claudeResult
+          ? {
+              aiSummary: claudeResult.aiSummary || undefined,
+              companyInfo: claudeResult.companyContext || undefined,
+              urgencyLevel: claudeResult.urgencySignal || undefined,
+            }
+          : undefined,
+      });
+
+      // Save draft to lead_drafts table
+      try {
+        await sql`
+          INSERT INTO lead_drafts (contact_id, draft_subject, draft_body, status)
+          VALUES (${contactId}::uuid, ${draft.subject}, ${draft.body}, 'pending')
+        `;
+      } catch (dbError) {
+        console.error(
+          "Failed to save draft to DB:",
+          dbError instanceof Error ? dbError.message : "Unknown error"
+        );
+      }
+
+      // Send approval email to Graham
+      const adminEmail = import.meta.env.ADMIN_EMAIL ?? "ggoupille@rmi-llc.net";
+      try {
+        await sendApprovalEmail({
+          to: adminEmail,
+          lead: {
+            name: contact.name,
+            email: contact.email,
+            phone: contact.phone || undefined,
+            company: contact.company || undefined,
+            serviceType: contact.serviceType || undefined,
+            message: contact.message || undefined,
+          },
+          enrichment: claudeResult,
+          draft,
+        });
+      } catch (emailError) {
+        console.error(
+          "Approval email send failed:",
+          emailError instanceof Error ? emailError.message : "Unknown error"
+        );
+      }
+    } catch (draftError) {
+      console.error(
+        "Draft generation pipeline failed:",
+        draftError instanceof Error ? draftError.message : "Unknown error"
+      );
+    }
   }
 }
 
