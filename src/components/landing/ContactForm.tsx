@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { flushSync } from "react-dom";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { phoneTel, phoneDisplay, email as siteEmail } from "../../content/site";
+import { collectIntelligence } from "../../lib/intelligenceCollector";
 
 declare global {
   interface Window {
@@ -28,6 +29,14 @@ export default function ContactForm({
   });
   const mountedAtRef = useRef(Date.now());
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Behavioral intelligence tracking refs
+  const firstKeyTimeRef = useRef<number | null>(null);
+  const firstFocusTimeRef = useRef<number | null>(null);
+  const editCountRef = useRef(0);
+  const pasteDetectedRef = useRef(false);
+  const idlePeriodsRef = useRef(0);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Signal that React has hydrated (used by Playwright tests)
   // Track page views in session for lead intelligence
@@ -146,6 +155,37 @@ export default function ContactForm({
     }
   };
 
+  // Behavioral tracking: first focus on any form field
+  const handleFieldFocus = useCallback(() => {
+    if (firstFocusTimeRef.current === null) {
+      firstFocusTimeRef.current = Date.now();
+    }
+  }, []);
+
+  // Behavioral tracking: first keydown + idle period detection
+  const handleFieldKeyDown = useCallback(() => {
+    if (firstKeyTimeRef.current === null) {
+      firstKeyTimeRef.current = Date.now();
+    }
+    // Reset idle timer — if >10s pass without a keystroke, count an idle period
+    if (idleTimerRef.current !== null) {
+      clearTimeout(idleTimerRef.current);
+    }
+    idleTimerRef.current = setTimeout(() => {
+      idlePeriodsRef.current++;
+    }, 10_000);
+  }, []);
+
+  // Behavioral tracking: count field edits (changes after initial input)
+  const handleFieldEdit = useCallback(() => {
+    editCountRef.current++;
+  }, []);
+
+  // Behavioral tracking: paste detection on email/phone fields
+  const handlePaste = useCallback(() => {
+    pasteDetectedRef.current = true;
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -233,6 +273,25 @@ export default function ContactForm({
       connectionType: (conn?.effectiveType as string) || null,
     };
 
+    // Collect behavioral intelligence — never block form submission
+    let intelligenceJson: string | undefined;
+    try {
+      const pageLoadTime = window.__rmiPageLoadTime ?? performance.timing?.navigationStart ?? Date.now();
+      const intelligence = collectIntelligence({
+        timeToFirstKeyMs: firstKeyTimeRef.current ? firstKeyTimeRef.current - pageLoadTime : 0,
+        timeOnFormMs: firstFocusTimeRef.current ? Date.now() - firstFocusTimeRef.current : 0,
+        fieldEditCount: editCountRef.current,
+        messageLength: formData.message.length,
+        optionalFieldsFilled: [formData.company].filter(Boolean).length,
+        pasteDetected: pasteDetectedRef.current,
+        idlePeriods: idlePeriodsRef.current,
+        submissionSpeedMs: Date.now() - pageLoadTime,
+      });
+      intelligenceJson = JSON.stringify(intelligence);
+    } catch {
+      // Silent failure — intelligence is non-critical
+    }
+
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -249,6 +308,7 @@ export default function ContactForm({
           website: formData.website, // Should be empty
           timestamp: Date.now(), // Client timestamp at submission time
           metadata: clientMetadata,
+          intelligence: intelligenceJson,
         }),
       });
 
@@ -346,8 +406,10 @@ export default function ContactForm({
                   required
                   autoComplete="name"
                   value={formData.name}
-                  onChange={handleChange}
+                  onChange={(e) => { handleChange(e); handleFieldEdit(); }}
                   onBlur={handleBlur}
+                  onFocus={handleFieldFocus}
+                  onKeyDown={handleFieldKeyDown}
                   className={fieldErrors.name ? inputError : inputNormal}
                   aria-invalid={fieldErrors.name ? "true" : "false"}
                   aria-describedby={fieldErrors.name ? "name-error" : undefined}
@@ -371,7 +433,9 @@ export default function ContactForm({
                   name="company"
                   autoComplete="organization"
                   value={formData.company}
-                  onChange={handleChange}
+                  onChange={(e) => { handleChange(e); handleFieldEdit(); }}
+                  onFocus={handleFieldFocus}
+                  onKeyDown={handleFieldKeyDown}
                   className={inputNormal}
                 />
               </div>
@@ -394,8 +458,11 @@ export default function ContactForm({
                   required
                   autoComplete="email"
                   value={formData.email}
-                  onChange={handleChange}
+                  onChange={(e) => { handleChange(e); handleFieldEdit(); }}
                   onBlur={handleBlur}
+                  onFocus={handleFieldFocus}
+                  onKeyDown={handleFieldKeyDown}
+                  onPaste={handlePaste}
                   className={fieldErrors.email || contactError ? inputError : inputNormal}
                   aria-invalid={fieldErrors.email || contactError ? "true" : "false"}
                   aria-describedby={fieldErrors.email ? "email-error" : contactError ? "contact-error" : undefined}
@@ -424,8 +491,11 @@ export default function ContactForm({
                   name="phone"
                   autoComplete="tel"
                   value={formData.phone}
-                  onChange={handleChange}
+                  onChange={(e) => { handleChange(e); handleFieldEdit(); }}
                   onBlur={handleBlur}
+                  onFocus={handleFieldFocus}
+                  onKeyDown={handleFieldKeyDown}
+                  onPaste={handlePaste}
                   className={fieldErrors.phone || contactError ? inputError : inputNormal}
                   aria-invalid={fieldErrors.phone || contactError ? "true" : "false"}
                   aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
@@ -452,8 +522,9 @@ export default function ContactForm({
                 name="projectType"
                 autoComplete="off"
                 value={formData.projectType}
-                onChange={handleChange}
+                onChange={(e) => { handleChange(e); handleFieldEdit(); }}
                 onBlur={handleBlur}
+                onFocus={handleFieldFocus}
                 className={`${fieldErrors.projectType ? inputError : inputNormal} appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%239ca3af%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3E%3C/svg%3E')] bg-[length:1.25em_1.25em] bg-[right_0.5rem_center] bg-no-repeat pr-8`}
                 aria-invalid={fieldErrors.projectType ? "true" : "false"}
                 aria-describedby={fieldErrors.projectType ? "projectType-error" : undefined}
@@ -487,8 +558,10 @@ export default function ContactForm({
                 autoComplete="off"
                 rows={3}
                 value={formData.message}
-                onChange={handleChange}
+                onChange={(e) => { handleChange(e); handleFieldEdit(); }}
                 onBlur={handleBlur}
+                onFocus={handleFieldFocus}
+                onKeyDown={handleFieldKeyDown}
                 onInput={(e) => {
                   const textarea = e.currentTarget;
                   textarea.style.height = "auto";

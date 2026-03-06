@@ -305,6 +305,9 @@ const serviceSchemas = JSON.stringify([
       <meta name="google-site-verification" content={import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION} />
     )}
 
+    <!-- Page load timestamp for intelligence collector -->
+    <script is:inline>window.__rmiPageLoadTime = Date.now();</script>
+
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7CW99VN6T3" is:inline></script>
     <script is:inline>
