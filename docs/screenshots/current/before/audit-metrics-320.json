@@ -1,11 +1,11 @@
 {
   "viewport": "320px",
   "hasHorizontalOverflow": false,
-  "scrollWidth": 305,
+  "scrollWidth": 320,
   "clientWidth": 320,
   "smallTouchTargets": [
     "[unknown] a(\"Skip to main content\") 1x1",
-    "[HEADER] a(\"Resource Mechanical Insulation — go to top\") 71x40"
+    "[HEADER] a(\"\") 71x40"
   ],
   "smallTouchTargetCount": 2,
   "smallText": [
@@ -37,7 +37,8 @@
     "[SECTION] span(\"Acoustic Control (MLV)\") fontSize=12px",
     "[SECTION] span(\"Pipe Supports\") fontSize=12px",
     "[SECTION] span(\"Banding Systems\") fontSize=12px",
-    "[SECTION] span(\"Mastics, Tapes, and Sundries\") fontSize=12px"
+    "[SECTION] span(\"Mastics, Tapes, and Sundries\") fontSize=12px",
+    "[contact-heading] p(\"By submitting, you agree that we may collect devic\") fontSize=11px"
   ],
-  "smallTextCount": 29
+  "smallTextCount": 30
 }

@@ -187,14 +187,14 @@ test.describe("Mobile QA Fixes — 375×812", () => {
   // ── Services Cards (Issue 7) ────────────────────────────────────────────
 
   test.describe("Services Cards", () => {
-    test("service cards have justify-center at mobile viewport", async ({ page }) => {
+    test("service cards have justify-start at mobile viewport", async ({ page }) => {
       await page.goto("/", { waitUntil: "networkidle" });
       const serviceButtons = page.locator('section[aria-labelledby="services-heading"] button');
       const count = await serviceButtons.count();
       expect(count).toBeGreaterThan(0);
       for (let i = 0; i < count; i++) {
         const classList = await serviceButtons.nth(i).getAttribute("class");
-        expect(classList, `Service card ${i} should have justify-center`).toContain("justify-center");
+        expect(classList, `Service card ${i} should have justify-start`).toContain("justify-start");
       }
     });
   });
@@ -336,16 +336,16 @@ test.describe("Desktop cross-check — 1440×900", () => {
     await expect(page.locator('a.nav-link[data-nav-section="contact"]')).toBeVisible();
   });
 
-  test("service cards are left-aligned (justify-start) on desktop via sm: class", async ({ page }) => {
+  test("service cards are left-aligned (justify-start) on desktop", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
     const serviceButtons = page.locator('section[aria-labelledby="services-heading"] button');
     const count = await serviceButtons.count();
     expect(count).toBeGreaterThan(0);
 
-    // At desktop (>= 640px), sm:justify-start should apply
+    // Service cards use justify-start at all viewports
     for (let i = 0; i < count; i++) {
       const classList = await serviceButtons.nth(i).getAttribute("class");
-      expect(classList, `Service card ${i} should have sm:justify-start`).toContain("sm:justify-start");
+      expect(classList, `Service card ${i} should have justify-start`).toContain("justify-start");
       // Verify the computed style is actually start/flex-start
       const justifyContent = await serviceButtons.nth(i).evaluate((el) => {
         return window.getComputedStyle(el).justifyContent;
