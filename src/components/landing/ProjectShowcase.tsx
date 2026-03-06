@@ -97,7 +97,7 @@ export default function ProjectShowcase() {
                 <h3 className="text-lg font-semibold text-white transition-colors duration-200 group-hover:text-blue-400">
                   {project.title}
                 </h3>
-                <p className="mt-1 text-sm text-neutral-300 line-clamp-3">
+                <p className="mt-1 text-sm text-neutral-300">
                   {project.description}
                 </p>
               </div>
