@@ -9,6 +9,7 @@ import {
 import { getClientIP } from "../../lib/rate-limiter";
 import { enrichLeadAsync } from "../../lib/leadEnrichment";
 import type { IntelligencePayload, ContactRecord } from "../../lib/leadEnrichment";
+import { checkAndEnforceBlacklist } from "../../lib/ipBlacklist";
 
 export const prerender = false;
 
@@ -145,43 +146,125 @@ function parseIntelligence(
   if (!metadata || typeof metadata !== "object") return null;
 
   try {
+    // Helper to safely extract typed values
+    const str = (key: string): string | undefined =>
+      typeof metadata[key] === "string" ? (metadata[key] as string) : undefined;
+    const num = (key: string): number | undefined =>
+      typeof metadata[key] === "number" ? (metadata[key] as number) : undefined;
+    const bool = (key: string): boolean | undefined =>
+      typeof metadata[key] === "boolean" ? (metadata[key] as boolean) : undefined;
+
     return {
-      userAgent: typeof metadata.userAgent === "string" ? metadata.userAgent : undefined,
-      language: typeof metadata.language === "string" ? metadata.language : undefined,
-      platform: typeof metadata.platform === "string" ? metadata.platform : undefined,
-      screenWidth: typeof metadata.screenWidth === "number" ? metadata.screenWidth : undefined,
-      screenHeight: typeof metadata.screenHeight === "number" ? metadata.screenHeight : undefined,
-      viewportWidth: typeof metadata.viewportWidth === "number" ? metadata.viewportWidth : undefined,
-      viewportHeight: typeof metadata.viewportHeight === "number" ? metadata.viewportHeight : undefined,
-      devicePixelRatio: typeof metadata.devicePixelRatio === "number" ? metadata.devicePixelRatio : undefined,
-      colorDepth: typeof metadata.colorDepth === "number" ? metadata.colorDepth : undefined,
-      touchSupport: typeof metadata.touchSupport === "boolean" ? metadata.touchSupport : undefined,
-      hardwareConcurrency: typeof metadata.hardwareConcurrency === "number" ? metadata.hardwareConcurrency : undefined,
-      deviceMemory: typeof metadata.deviceMemory === "number" ? metadata.deviceMemory : undefined,
-      isMobile: typeof metadata.isMobile === "boolean" ? metadata.isMobile : undefined,
-      connectionType: typeof metadata.connectionType === "string" ? metadata.connectionType : undefined,
-      connectionDownlink: typeof metadata.connectionDownlink === "number" ? metadata.connectionDownlink : undefined,
-      saveDataMode: typeof metadata.saveDataMode === "boolean" ? metadata.saveDataMode : undefined,
-      referrer: typeof metadata.referrer === "string" ? metadata.referrer : undefined,
-      pageUrl: typeof metadata.pageUrl === "string" ? metadata.pageUrl : undefined,
-      utmSource: typeof metadata.utmSource === "string" ? metadata.utmSource : undefined,
-      utmMedium: typeof metadata.utmMedium === "string" ? metadata.utmMedium : undefined,
-      utmCampaign: typeof metadata.utmCampaign === "string" ? metadata.utmCampaign : undefined,
-      timeOnPageMs: typeof metadata.timeOnPageMs === "number" ? metadata.timeOnPageMs : undefined,
-      elapsedMs: typeof metadata.elapsedMs === "number" ? metadata.elapsedMs : undefined,
-      submissionSpeedMs: typeof metadata.elapsedMs === "number" ? metadata.elapsedMs : undefined,
-      timeToFirstKeyMs: typeof metadata.timeToFirstKeyMs === "number" ? metadata.timeToFirstKeyMs : undefined,
-      timeOnFormMs: typeof metadata.timeOnFormMs === "number" ? metadata.timeOnFormMs : undefined,
-      scrollDepthPct: typeof metadata.scrollDepthPct === "number" ? metadata.scrollDepthPct : undefined,
-      fieldEditCount: typeof metadata.fieldEditCount === "number" ? metadata.fieldEditCount : undefined,
-      optionalFieldsFilled: typeof metadata.optionalFieldsFilled === "number" ? metadata.optionalFieldsFilled : undefined,
-      pasteDetected: typeof metadata.pasteDetected === "boolean" ? metadata.pasteDetected : undefined,
-      tabBlurCount: typeof metadata.tabBlurCount === "number" ? metadata.tabBlurCount : undefined,
-      idlePeriods: typeof metadata.idlePeriods === "number" ? metadata.idlePeriods : undefined,
-      returnVisitor: typeof metadata.returnVisitor === "boolean" ? metadata.returnVisitor : undefined,
-      pageViews: typeof metadata.pageViews === "number" ? metadata.pageViews : undefined,
-      timezone: typeof metadata.timezone === "string" ? metadata.timezone : undefined,
-      timezoneOffset: typeof metadata.timezoneOffset === "number" ? metadata.timezoneOffset : undefined,
+      // Existing fields
+      userAgent: str("userAgent"),
+      language: str("language"),
+      platform: str("platform"),
+      screenWidth: num("screenWidth"),
+      screenHeight: num("screenHeight"),
+      viewportWidth: num("viewportWidth"),
+      viewportHeight: num("viewportHeight"),
+      devicePixelRatio: num("devicePixelRatio"),
+      colorDepth: num("colorDepth"),
+      touchSupport: bool("touchSupport"),
+      hardwareConcurrency: num("hardwareConcurrency"),
+      deviceMemory: num("deviceMemory"),
+      isMobile: bool("isMobile"),
+      connectionType: str("connectionType"),
+      connectionDownlink: num("connectionDownlink"),
+      saveDataMode: bool("saveDataMode"),
+      referrer: str("referrer"),
+      pageUrl: str("pageUrl"),
+      utmSource: str("utmSource"),
+      utmMedium: str("utmMedium"),
+      utmCampaign: str("utmCampaign"),
+      timeOnPageMs: num("timeOnPageMs"),
+      elapsedMs: num("elapsedMs"),
+      submissionSpeedMs: num("elapsedMs"),
+      timeToFirstKeyMs: num("timeToFirstKeyMs"),
+      timeOnFormMs: num("timeOnFormMs"),
+      scrollDepthPct: num("scrollDepthPct"),
+      fieldEditCount: num("fieldEditCount"),
+      optionalFieldsFilled: num("optionalFieldsFilled"),
+      pasteDetected: bool("pasteDetected"),
+      tabBlurCount: num("tabBlurCount"),
+      idlePeriods: num("idlePeriods"),
+      returnVisitor: bool("returnVisitor"),
+      pageViews: num("pageViews"),
+      timezone: str("timezone"),
+      timezoneOffset: num("timezoneOffset"),
+
+      // === NEW — expanded intelligence fields ===
+      // Browser fingerprint
+      browserLanguages: Array.isArray(metadata.browserLanguages) ? metadata.browserLanguages as string[] : undefined,
+      browserDoNotTrack: str("browserDoNotTrack") ?? null,
+      browserMaxTouchPoints: num("browserMaxTouchPoints"),
+      browserWebdriver: bool("browserWebdriver"),
+
+      // Screen & display
+      screenOrientation: str("screenOrientation"),
+      screenAvailWidth: num("screenAvailWidth"),
+      screenAvailHeight: num("screenAvailHeight"),
+
+      // Timezone & locale
+      locale: str("locale"),
+
+      // Network deep
+      networkEffectiveType: str("networkEffectiveType"),
+      networkRtt: num("networkRtt"),
+      networkSaveData: bool("networkSaveData"),
+
+      // Performance timing
+      perfPageLoadMs: num("perfPageLoadMs"),
+      perfDomReadyMs: num("perfDomReadyMs"),
+      perfDnsLookupMs: num("perfDnsLookupMs"),
+      perfTcpConnectMs: num("perfTcpConnectMs"),
+      perfTtfbMs: num("perfTtfbMs"),
+      perfEntriesCount: num("perfEntriesCount"),
+
+      // Page context
+      pageTitle: str("pageTitle"),
+      pageHistoryLength: num("pageHistoryLength"),
+      pageReferrer: str("pageReferrer"),
+
+      // Media capabilities
+      hasWebcam: bool("hasWebcam"),
+      hasMicrophone: bool("hasMicrophone"),
+      mediaDeviceCount: num("mediaDeviceCount"),
+
+      // Storage probing
+      storageLocalAvailable: bool("storageLocalAvailable"),
+      storageSessionAvailable: bool("storageSessionAvailable"),
+      storageIndexedDbAvailable: bool("storageIndexedDbAvailable"),
+
+      // Canvas fingerprint
+      canvasFingerprint: str("canvasFingerprint"),
+
+      // WebGL
+      webglVendor: str("webglVendor"),
+      webglRenderer: str("webglRenderer"),
+
+      // Font detection
+      installedFontsHash: str("installedFontsHash"),
+
+      // Advanced behavioral
+      mouseMoveCount: num("mouseMoveCount"),
+      mouseClickCount: num("mouseClickCount"),
+      keyPressCount: num("keyPressCount"),
+      touchEventCount: num("touchEventCount"),
+      formFieldFocusOrder: Array.isArray(metadata.formFieldFocusOrder) ? metadata.formFieldFocusOrder as string[] : undefined,
+      formFieldTimeMs: typeof metadata.formFieldTimeMs === "object" && metadata.formFieldTimeMs !== null
+        ? metadata.formFieldTimeMs as Record<string, number>
+        : undefined,
+      formCorrectionsCount: num("formCorrectionsCount"),
+      scrollDirectionChanges: num("scrollDirectionChanges"),
+      maxScrollSpeed: num("maxScrollSpeed"),
+      timeToFirstInteractionMs: num("timeToFirstInteractionMs"),
+      pageVisibilityChanges: num("pageVisibilityChanges"),
+
+      // Submission meta
+      submittedAtUtc: str("submittedAtUtc"),
+      formCompletionTimeMs: num("formCompletionTimeMs"),
+      submissionMethod: str("submissionMethod"),
     };
   } catch {
     return null;
@@ -256,6 +339,22 @@ export const POST: APIRoute = async ({ request }) => {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  // --- IP blacklist check (pre-processing) ---
+  if (clientIP) {
+    try {
+      const blacklistCheck = await checkAndEnforceBlacklist(clientIP, preBotScore);
+      if (blacklistCheck.blocked) {
+        // Silently swallow — return 200 so they think it went through
+        return new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    } catch {
+      // Fail open — if blacklist check errors, allow the request
+    }
   }
 
   // --- Input validation ---
@@ -350,7 +449,18 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   // --- Parse intelligence payload ---
-  const intelligencePayload = parseIntelligence(clientMetadata);
+  // Merge metadata with the full intelligence collector payload (sent as JSON string)
+  let mergedMetadata = { ...clientMetadata };
+  const rawIntelligence = typeof obj.intelligence === "string" ? obj.intelligence : null;
+  if (rawIntelligence) {
+    try {
+      const parsed = JSON.parse(rawIntelligence) as Record<string, unknown>;
+      mergedMetadata = { ...mergedMetadata, ...parsed };
+    } catch {
+      // Invalid intelligence JSON — use metadata only
+    }
+  }
+  const intelligencePayload = parseIntelligence(mergedMetadata);
 
   // --- Insert contact record ---
   let savedContactId: string;

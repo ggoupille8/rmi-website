@@ -235,6 +235,56 @@ function buildEmailHtml(params: LeadEmailParams): string {
     .map((c) => `${checkIcon(c.pass)} ${escapeHtml(c.label)}`)
     .join("&nbsp;&nbsp;&nbsp;&nbsp;");
 
+  // === EXPANDED INTELLIGENCE ===
+  // GPU / Canvas / Font
+  const gpuRenderer = intelligence?.webglRenderer ?? null;
+  const canvasFp = intelligence?.canvasFingerprint ?? null;
+  const fontHash = intelligence?.installedFontsHash ?? null;
+
+  // Timezone comparison
+  const browserTz = intelligence?.timezone ?? null;
+  const ipTz = geo?.timezone ?? null;
+  const tzMismatch = browserTz && ipTz && browserTz !== ipTz;
+
+  // Advanced behavioral
+  const mouseMoves = intelligence?.mouseMoveCount ?? null;
+  const keystrokes = intelligence?.keyPressCount ?? null;
+  const touchEvents = intelligence?.touchEventCount ?? null;
+  const fieldOrder = intelligence?.formFieldFocusOrder ?? null;
+  const completionTimeMs = intelligence?.formCompletionTimeMs ?? null;
+  const corrections = intelligence?.formCorrectionsCount ?? null;
+  const scrollSpeed = intelligence?.maxScrollSpeed ?? null;
+
+  // Risk signals
+  const isWebdriver = intelligence?.browserWebdriver ?? false;
+  const dntHeader = intelligence?.browserDoNotTrack ?? null;
+  const storageLocal = intelligence?.storageLocalAvailable ?? null;
+  const storageSession = intelligence?.storageSessionAvailable ?? null;
+  const storageIdb = intelligence?.storageIndexedDbAvailable ?? null;
+
+  // Red flags
+  const redFlags: string[] = [];
+  const yellowFlags: string[] = [];
+
+  if (isWebdriver) redFlags.push("WebDriver detected (automated browser)");
+  if ((mouseMoves === 0 || mouseMoves === null) && (touchEvents === 0 || touchEvents === null)) {
+    redFlags.push("No mouse/touch interaction detected");
+  }
+  if (completionTimeMs !== null && completionTimeMs > 0 && completionTimeMs < 3000) {
+    redFlags.push(`Form completed in ${(completionTimeMs / 1000).toFixed(1)}s (impossibly fast)`);
+  }
+  if (tzMismatch) {
+    yellowFlags.push(`TZ mismatch: browser=${browserTz}, IP=${ipTz} (possible VPN)`);
+  }
+  if (scrollSpeed !== null && scrollSpeed > 10000) {
+    yellowFlags.push(`Scroll speed ${Math.round(scrollSpeed)} px/s (inhuman)`);
+  }
+
+  const flagsHtml = [
+    ...redFlags.map(f => `<div style="color:#ef4444;font-size:13px;">&#9888; ${escapeHtml(f)}</div>`),
+    ...yellowFlags.map(f => `<div style="color:#f59e0b;font-size:13px;">&#9888; ${escapeHtml(f)}</div>`),
+  ].join("");
+
   // Timestamp
   const now = new Date();
   const timeStr = now.toLocaleString("en-US", {
@@ -307,6 +357,13 @@ function buildEmailHtml(params: LeadEmailParams): string {
     <div style="color:#e2e8f0;font-size:14px;line-height:1.5;font-style:italic;">&ldquo;${escapeHtml(claudeResult.aiSummary)}&rdquo;</div>
   </div>` : ""}
 
+  ${flagsHtml ? `
+  <!-- Red Flags -->
+  <div style="margin-bottom:16px;background:#1c1917;border:1px solid #78350f;border-radius:6px;padding:10px;">
+    <div style="color:#f59e0b;font-size:12px;font-weight:700;margin-bottom:6px;">&#9888; FLAGS</div>
+    ${flagsHtml}
+  </div>` : ""}
+
   <!-- Signals -->
   <div style="margin-bottom:16px;">
     <div style="color:#94a3b8;font-size:12px;font-weight:600;margin-bottom:6px;">Signals:</div>
@@ -330,7 +387,20 @@ function buildEmailHtml(params: LeadEmailParams): string {
     <div style="color:#94a3b8;font-size:12px;font-weight:600;margin-bottom:4px;">Device:</div>
     <div style="color:#e2e8f0;font-size:14px;">${deviceLabel} &middot; ${browserStr} &middot; ${osStr}</div>
     ${hwInfo.length > 0 ? `<div style="color:#94a3b8;font-size:13px;">${hwInfo.join(" &middot; ")}</div>` : ""}
+    ${gpuRenderer ? `<div style="color:#94a3b8;font-size:13px;">GPU: ${escapeHtml(gpuRenderer)}</div>` : ""}
+    ${canvasFp ? `<div style="color:#94a3b8;font-size:13px;">Canvas: ${escapeHtml(canvasFp)}</div>` : ""}
+    ${fontHash ? `<div style="color:#94a3b8;font-size:13px;">Fonts: ${escapeHtml(fontHash)}</div>` : ""}
   </div>
+
+  <!-- Location -->
+  ${browserTz ? `
+  <div style="margin-bottom:16px;">
+    <div style="color:#94a3b8;font-size:12px;font-weight:600;margin-bottom:4px;">Location:</div>
+    <div style="color:#e2e8f0;font-size:14px;">
+      Browser TZ: ${escapeHtml(browserTz)}${ipTz ? ` &middot; IP TZ: ${escapeHtml(ipTz)}` : ""}
+      ${tzMismatch ? ` <span style="color:#f59e0b;font-weight:600;">(MISMATCH)</span>` : ""}
+    </div>
+  </div>` : ""}
 
   <!-- Behavior -->
   <div style="margin-bottom:16px;">
@@ -339,6 +409,24 @@ function buildEmailHtml(params: LeadEmailParams): string {
       ${timeOnPage} on page &middot; ${scrollDepth} scroll depth<br/>
       First key: ${firstKey} &middot; Form time: ${formTime}<br/>
       Came from: ${escapeHtml(sourceLabel)}
+    </div>
+    <div style="color:#94a3b8;font-size:13px;margin-top:4px;">
+      ${mouseMoves !== null ? `Mouse: ${mouseMoves} moves` : ""}${keystrokes !== null ? ` &middot; ${keystrokes} keys` : ""}${corrections !== null ? ` &middot; ${corrections} corrections` : ""}
+    </div>
+    ${fieldOrder && fieldOrder.length > 0 ? `<div style="color:#94a3b8;font-size:13px;">Focus order: ${fieldOrder.map(f => escapeHtml(f)).join(" &rarr; ")}</div>` : ""}
+    ${completionTimeMs !== null && completionTimeMs > 0 ? `<div style="color:${completionTimeMs < 3000 ? '#ef4444' : '#94a3b8'};font-size:13px;">Completion: ${formatDuration(completionTimeMs)}</div>` : ""}
+    ${scrollSpeed !== null ? `<div style="color:${scrollSpeed > 10000 ? '#f59e0b' : '#94a3b8'};font-size:13px;">Max scroll: ${Math.round(scrollSpeed)} px/s</div>` : ""}
+  </div>
+
+  <!-- Risk Signals -->
+  <div style="margin-bottom:16px;">
+    <div style="color:#94a3b8;font-size:12px;font-weight:600;margin-bottom:4px;">Risk Signals:</div>
+    <div style="color:#e2e8f0;font-size:14px;">
+      ${isWebdriver ? `<span style="color:#ef4444;font-weight:600;">WebDriver: YES</span>` : `${checkIcon(true)} WebDriver: No`}
+      &nbsp;&nbsp;
+      ${dntHeader === "1" ? "DNT: On" : "DNT: Off"}
+      &nbsp;&nbsp;
+      Storage: ${storageLocal ? "LS" : "<s>LS</s>"} / ${storageSession ? "SS" : "<s>SS</s>"} / ${storageIdb ? "IDB" : "<s>IDB</s>"}
     </div>
   </div>
 

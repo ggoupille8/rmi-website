@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { flushSync } from "react-dom";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { phoneTel, phoneDisplay, email as siteEmail } from "../../content/site";
-import { collectIntelligence } from "../../lib/intelligenceCollector";
+import { collectIntelligence, detectMediaDevices } from "../../lib/intelligenceCollector";
 
 declare global {
   interface Window {
@@ -287,6 +287,15 @@ export default function ContactForm({
         idlePeriods: idlePeriodsRef.current,
         submissionSpeedMs: Date.now() - pageLoadTime,
       });
+      // Async media device detection — merge into payload
+      try {
+        const mediaDevices = await detectMediaDevices();
+        intelligence.hasWebcam = mediaDevices.hasWebcam;
+        intelligence.hasMicrophone = mediaDevices.hasMicrophone;
+        intelligence.mediaDeviceCount = mediaDevices.mediaDeviceCount;
+      } catch {
+        // Silent — media detection is non-critical
+      }
       intelligenceJson = JSON.stringify(intelligence);
     } catch {
       // Silent failure — intelligence is non-critical

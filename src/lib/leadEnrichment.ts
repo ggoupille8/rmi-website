@@ -13,6 +13,7 @@ import { sql } from "@vercel/postgres";
 import { getGeoData, type GeoResult } from "./ipGeo";
 import { sendLeadEmail, sendApprovalEmail } from "./emailTemplate";
 import { generateResponseDraft } from "./leadResponseDraft";
+import { checkAndEnforceBlacklist } from "./ipBlacklist";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -74,6 +75,77 @@ export interface IntelligencePayload {
   // Timezone
   timezone?: string;
   timezoneOffset?: number;
+
+  // === Expanded intelligence fields ===
+  // Browser fingerprint
+  browserLanguages?: string[];
+  browserDoNotTrack?: string | null;
+  browserMaxTouchPoints?: number;
+  browserWebdriver?: boolean;
+
+  // Screen & display
+  screenOrientation?: string;
+  screenAvailWidth?: number;
+  screenAvailHeight?: number;
+
+  // Locale
+  locale?: string;
+
+  // Network deep
+  networkEffectiveType?: string;
+  networkRtt?: number;
+  networkSaveData?: boolean;
+
+  // Performance timing
+  perfPageLoadMs?: number;
+  perfDomReadyMs?: number;
+  perfDnsLookupMs?: number;
+  perfTcpConnectMs?: number;
+  perfTtfbMs?: number;
+  perfEntriesCount?: number;
+
+  // Page context
+  pageTitle?: string;
+  pageHistoryLength?: number;
+  pageReferrer?: string;
+
+  // Media capabilities
+  hasWebcam?: boolean;
+  hasMicrophone?: boolean;
+  mediaDeviceCount?: number;
+
+  // Storage probing
+  storageLocalAvailable?: boolean;
+  storageSessionAvailable?: boolean;
+  storageIndexedDbAvailable?: boolean;
+
+  // Canvas fingerprint
+  canvasFingerprint?: string;
+
+  // WebGL
+  webglVendor?: string;
+  webglRenderer?: string;
+
+  // Font detection
+  installedFontsHash?: string;
+
+  // Advanced behavioral
+  mouseMoveCount?: number;
+  mouseClickCount?: number;
+  keyPressCount?: number;
+  touchEventCount?: number;
+  formFieldFocusOrder?: string[];
+  formFieldTimeMs?: Record<string, number>;
+  formCorrectionsCount?: number;
+  scrollDirectionChanges?: number;
+  maxScrollSpeed?: number;
+  timeToFirstInteractionMs?: number;
+  pageVisibilityChanges?: number;
+
+  // Submission meta
+  submittedAtUtc?: string;
+  formCompletionTimeMs?: number;
+  submissionMethod?: string;
 }
 
 export interface ClaudeEnrichment {
@@ -258,6 +330,33 @@ function computeBotScore(
     ) {
       score += 10;
     }
+
+    // NEW: WebDriver flag (navigator.webdriver = true means automation)
+    if (intelligence.browserWebdriver === true) {
+      score += 40;
+    }
+
+    // NEW: No mouse AND no touch events = no human interaction
+    if (
+      (intelligence.mouseMoveCount ?? 0) === 0 &&
+      (intelligence.touchEventCount ?? 0) === 0
+    ) {
+      score += 15;
+    }
+
+    // NEW: Inhuman scroll speed (>10000 px/sec)
+    if ((intelligence.maxScrollSpeed ?? 0) > 10000) {
+      score += 10;
+    }
+
+    // NEW: Form completed impossibly fast (<3 seconds)
+    if (
+      intelligence.formCompletionTimeMs !== undefined &&
+      intelligence.formCompletionTimeMs > 0 &&
+      intelligence.formCompletionTimeMs < 3000
+    ) {
+      score += 15;
+    }
   }
 
   // Datacenter IP
@@ -430,6 +529,87 @@ async function writeLeadIntelligence(
       })()
     : null;
 
+  // Build expanded JSONB columns
+  const browserFingerprint = intelligence ? JSON.stringify({
+    languages: intelligence.browserLanguages ?? [],
+    doNotTrack: intelligence.browserDoNotTrack ?? null,
+    maxTouchPoints: intelligence.browserMaxTouchPoints ?? 0,
+    webdriver: intelligence.browserWebdriver ?? false,
+    cookieEnabled: true,
+    pdfViewer: true,
+  }) : null;
+
+  const screenInfo = intelligence ? JSON.stringify({
+    orientation: intelligence.screenOrientation ?? "unknown",
+    availWidth: intelligence.screenAvailWidth ?? null,
+    availHeight: intelligence.screenAvailHeight ?? null,
+  }) : null;
+
+  const timezoneInfo = intelligence ? JSON.stringify({
+    timezone: intelligence.timezone ?? null,
+    offset: intelligence.timezoneOffset ?? null,
+    locale: intelligence.locale ?? null,
+  }) : null;
+
+  const networkDeep = intelligence ? JSON.stringify({
+    effectiveType: intelligence.networkEffectiveType ?? "unknown",
+    rtt: intelligence.networkRtt ?? null,
+    saveData: intelligence.networkSaveData ?? false,
+  }) : null;
+
+  const performanceTiming = intelligence ? JSON.stringify({
+    pageLoadMs: intelligence.perfPageLoadMs ?? null,
+    domReadyMs: intelligence.perfDomReadyMs ?? null,
+    dnsLookupMs: intelligence.perfDnsLookupMs ?? null,
+    tcpConnectMs: intelligence.perfTcpConnectMs ?? null,
+    ttfbMs: intelligence.perfTtfbMs ?? null,
+    entriesCount: intelligence.perfEntriesCount ?? null,
+  }) : null;
+
+  const pageContext = intelligence ? JSON.stringify({
+    url: intelligence.pageUrl ?? null,
+    title: intelligence.pageTitle ?? null,
+    historyLength: intelligence.pageHistoryLength ?? null,
+    referrer: intelligence.pageReferrer ?? null,
+  }) : null;
+
+  const mediaCapabilities = intelligence ? JSON.stringify({
+    hasWebcam: intelligence.hasWebcam ?? false,
+    hasMicrophone: intelligence.hasMicrophone ?? false,
+    deviceCount: intelligence.mediaDeviceCount ?? 0,
+  }) : null;
+
+  const storageProbes = intelligence ? JSON.stringify({
+    localStorage: intelligence.storageLocalAvailable ?? false,
+    sessionStorage: intelligence.storageSessionAvailable ?? false,
+    indexedDB: intelligence.storageIndexedDbAvailable ?? false,
+  }) : null;
+
+  const webglInfo = intelligence ? JSON.stringify({
+    vendor: intelligence.webglVendor ?? "unknown",
+    renderer: intelligence.webglRenderer ?? "unknown",
+  }) : null;
+
+  const advancedBehavioral = intelligence ? JSON.stringify({
+    mouseMoveCount: intelligence.mouseMoveCount ?? 0,
+    mouseClickCount: intelligence.mouseClickCount ?? 0,
+    keyPressCount: intelligence.keyPressCount ?? 0,
+    touchEventCount: intelligence.touchEventCount ?? 0,
+    formFieldFocusOrder: intelligence.formFieldFocusOrder ?? [],
+    formFieldTimeMs: intelligence.formFieldTimeMs ?? {},
+    formCorrectionsCount: intelligence.formCorrectionsCount ?? 0,
+    scrollDirectionChanges: intelligence.scrollDirectionChanges ?? 0,
+    maxScrollSpeed: intelligence.maxScrollSpeed ?? 0,
+    timeToFirstInteractionMs: intelligence.timeToFirstInteractionMs ?? -1,
+    pageVisibilityChanges: intelligence.pageVisibilityChanges ?? 0,
+  }) : null;
+
+  const submissionMeta = intelligence ? JSON.stringify({
+    submittedAtUtc: intelligence.submittedAtUtc ?? null,
+    formCompletionTimeMs: intelligence.formCompletionTimeMs ?? null,
+    submissionMethod: intelligence.submissionMethod ?? "unknown",
+  }) : null;
+
   try {
     await sql`
       INSERT INTO lead_intelligence (
@@ -454,6 +634,10 @@ async function writeLeadIntelligence(
         location_mentioned, scope_signals, ai_flags,
         company_verified, company_verify_source, company_context,
         email_domain_type, email_mx_valid, disposable_email,
+        browser_fingerprint, screen_info, timezone_info, network_deep,
+        performance_timing, page_context, media_capabilities, storage_probes,
+        canvas_fingerprint, webgl_info, font_hash,
+        advanced_behavioral, submission_meta,
         enriched_at, enrichment_version
       ) VALUES (
         ${contactId},
@@ -495,7 +679,11 @@ async function writeLeadIntelligence(
         ${claudeResult?.companyVerified ?? null}, ${claudeResult?.companyVerifySource ?? null},
         ${claudeResult?.companyContext ?? null},
         ${claudeResult?.emailDomainType ?? null}, ${null}, ${claudeResult?.disposableEmail ?? false},
-        ${new Date().toISOString()}, ${"2.0"}
+        ${browserFingerprint}::jsonb, ${screenInfo}::jsonb, ${timezoneInfo}::jsonb, ${networkDeep}::jsonb,
+        ${performanceTiming}::jsonb, ${pageContext}::jsonb, ${mediaCapabilities}::jsonb, ${storageProbes}::jsonb,
+        ${intelligence?.canvasFingerprint ?? null}, ${webglInfo}::jsonb, ${intelligence?.installedFontsHash ?? null},
+        ${advancedBehavioral}::jsonb, ${submissionMeta}::jsonb,
+        ${new Date().toISOString()}, ${"3.0"}
       )
     `;
   } catch (error) {
@@ -589,6 +777,24 @@ async function doEnrichment(
 
   // Step 3 — Compute bot score
   const botScore = computeBotScore(intelligence, geoData, withinBudget ? claudeResult : null);
+
+  // Step 3b — Post-enrichment blacklist check (with real bot score)
+  if (clientIp) {
+    try {
+      const postCheck = await checkAndEnforceBlacklist(clientIp, botScore);
+      if (postCheck.blocked) {
+        // Already blocked — still write intelligence for evidence, but skip email/draft
+        try {
+          await writeLeadIntelligence(contactId, contact, intelligence, geoData, claudeResult, botScore);
+        } catch {
+          // Non-critical
+        }
+        return;
+      }
+    } catch {
+      // Fail open
+    }
+  }
 
   // Step 4 — Write to lead_intelligence table
   try {
