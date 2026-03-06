@@ -50,7 +50,7 @@ test.describe("Functionality Tests", () => {
 
     const href = await phoneLink.getAttribute("href");
     expect(href).toContain("tel:");
-    expect(href).toContain("419");
+    expect(href).toContain("248");
   });
 
   test("should have working email link", async ({ page }) => {
