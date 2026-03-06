@@ -76,7 +76,7 @@ export interface IntelligencePayload {
 }
 
 export interface ClaudeEnrichment {
-  leadQuality: "hot" | "warm" | "cold" | "spam";
+  leadQuality: "hot" | "warm" | "cold" | "spam" | "unknown";
   qualityReasoning: string;
   aiSummary: string;
   projectType: string;
@@ -90,6 +90,28 @@ export interface ClaudeEnrichment {
   companyContext: string;
   emailDomainType: string;
   disposableEmail: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Daily enrichment budget (in-memory counter — resets on cold start)
+// ---------------------------------------------------------------------------
+
+let enrichmentCount = 0;
+let enrichmentDate = new Date().toDateString();
+const DAILY_ENRICHMENT_LIMIT = 50; // 50 leads/day = ~$0.05/day max
+
+function checkEnrichmentBudget(): boolean {
+  const today = new Date().toDateString();
+  if (today !== enrichmentDate) {
+    enrichmentCount = 0;
+    enrichmentDate = today;
+  }
+  if (enrichmentCount >= DAILY_ENRICHMENT_LIMIT) {
+    console.warn(`Daily enrichment limit reached (${DAILY_ENRICHMENT_LIMIT}). Skipping AI analysis.`);
+    return false;
+  }
+  enrichmentCount++;
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -504,6 +526,104 @@ async function writeLeadIntelligence(
 }
 
 // ---------------------------------------------------------------------------
+// Global enrichment timeout
+// ---------------------------------------------------------------------------
+
+const ENRICHMENT_TIMEOUT_MS = 15_000;
+
+// ---------------------------------------------------------------------------
+// Core enrichment logic (called within timeout wrapper)
+// ---------------------------------------------------------------------------
+
+async function doEnrichment(
+  contactId: string,
+  contact: ContactRecord,
+  intelligence: IntelligencePayload | null,
+  clientIp: string
+): Promise<void> {
+  // Step 1 — Parallel data gathering (race against 8s timeout)
+  const geoPromise = getGeoData(clientIp);
+  const geoTimeoutPromise = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), 8000)
+  );
+
+  const [geoSettled] = await Promise.allSettled([
+    Promise.race([geoPromise, geoTimeoutPromise]),
+  ]);
+
+  const geoData: GeoResult | null =
+    geoSettled.status === "fulfilled" ? (geoSettled.value as GeoResult | null) : null;
+
+  // Step 2 — Call Claude AI for enrichment (if within daily budget)
+  let claudeResult: ClaudeEnrichment | null = null;
+  const withinBudget = checkEnrichmentBudget();
+
+  if (!withinBudget) {
+    claudeResult = {
+      leadQuality: "unknown",
+      qualityReasoning: "Daily enrichment limit reached — manual review needed",
+      aiSummary: "Daily enrichment limit reached — manual review needed",
+      projectType: "unknown",
+      urgencySignal: "unknown",
+      facilityType: "unknown",
+      locationMentioned: "",
+      scopeSignals: "",
+      aiFlags: "daily_limit_reached",
+      companyVerified: false,
+      companyVerifySource: "",
+      companyContext: "",
+      emailDomainType: "unknown",
+      disposableEmail: false,
+    };
+  } else {
+    try {
+      claudeResult = await callClaudeEnrichment(contact, geoData, intelligence);
+    } catch (error) {
+      console.error(
+        "Claude enrichment step failed:",
+        error instanceof Error ? error.message : "Unknown error"
+      );
+    }
+  }
+
+  // Step 3 — Compute bot score
+  const botScore = computeBotScore(intelligence, geoData, withinBudget ? claudeResult : null);
+
+  // Step 4 — Write to lead_intelligence table
+  try {
+    await writeLeadIntelligence(
+      contactId,
+      contact,
+      intelligence,
+      geoData,
+      claudeResult,
+      botScore
+    );
+  } catch (error) {
+    console.error(
+      "lead_intelligence write failed:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+  }
+
+  // Step 5 — Send admin email
+  try {
+    await sendLeadEmail({
+      contact,
+      intelligence,
+      geo: geoData,
+      claudeResult: withinBudget ? claudeResult : null,
+      botScore,
+    });
+  } catch (error) {
+    console.error(
+      "Lead email send failed:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main orchestrator — called fire-and-forget from contact.ts
 // ---------------------------------------------------------------------------
 
@@ -513,71 +633,35 @@ export async function enrichLeadAsync(
   intelligence: IntelligencePayload | null,
   clientIp: string
 ): Promise<void> {
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("Enrichment timeout exceeded")), ENRICHMENT_TIMEOUT_MS)
+  );
+
   try {
-    // Step 1 — Parallel data gathering (race against 8s timeout)
-    const geoPromise = getGeoData(clientIp);
-    const timeoutPromise = new Promise<null>((resolve) =>
-      setTimeout(() => resolve(null), 8000)
+    await Promise.race([
+      doEnrichment(contactId, contact, intelligence, clientIp),
+      timeoutPromise,
+    ]);
+  } catch (error) {
+    console.error(
+      "Enrichment pipeline failed or timed out:",
+      error instanceof Error ? error.message : "Unknown error"
     );
 
-    const [geoSettled] = await Promise.allSettled([
-      Promise.race([geoPromise, timeoutPromise]),
-    ]);
-
-    const geoData: GeoResult | null =
-      geoSettled.status === "fulfilled" ? (geoSettled.value as GeoResult | null) : null;
-
-    // Step 2 — Call Claude AI for enrichment
-    let claudeResult: ClaudeEnrichment | null = null;
-    try {
-      claudeResult = await callClaudeEnrichment(contact, geoData, intelligence);
-    } catch (error) {
-      console.error(
-        "Claude enrichment step failed:",
-        error instanceof Error ? error.message : "Unknown error"
-      );
-    }
-
-    // Step 3 — Compute bot score
-    const botScore = computeBotScore(intelligence, geoData, claudeResult);
-
-    // Step 4 — Write to lead_intelligence table
-    try {
-      await writeLeadIntelligence(
-        contactId,
-        contact,
-        intelligence,
-        geoData,
-        claudeResult,
-        botScore
-      );
-    } catch (error) {
-      console.error(
-        "lead_intelligence write failed:",
-        error instanceof Error ? error.message : "Unknown error"
-      );
-    }
-
-    // Step 5 — Send admin email
+    // On timeout/failure, still attempt to send a basic email
     try {
       await sendLeadEmail({
         contact,
         intelligence,
-        geo: geoData,
-        claudeResult,
-        botScore,
+        geo: null,
+        claudeResult: null,
+        botScore: 0,
       });
-    } catch (error) {
+    } catch (emailError) {
       console.error(
-        "Lead email send failed:",
-        error instanceof Error ? error.message : "Unknown error"
+        "Fallback email send failed:",
+        emailError instanceof Error ? emailError.message : "Unknown error"
       );
     }
-  } catch (error) {
-    // Top-level catch — enrichment must NEVER throw to caller
-    console.error(
-      "Enrichment pipeline failed:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
   }
 }
