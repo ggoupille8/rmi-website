@@ -95,6 +95,8 @@ test.describe("Functionality Tests", () => {
   test("should show validation errors for empty form submission", async ({
     page,
   }) => {
+    // Scroll form into view — client:visible only hydrates when visible
+    await page.locator('#contact').scrollIntoViewIfNeeded();
     // Wait for React to hydrate the form (prevents native GET submission)
     await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 10000 });
 

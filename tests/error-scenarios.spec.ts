@@ -6,6 +6,9 @@ async function fillLandingContactForm(
   page: import("@playwright/test").Page,
   data: { name: string; email: string; message: string }
 ) {
+  // Scroll form into view first — ContactForm uses client:visible so it
+  // only hydrates once the IntersectionObserver fires.
+  await page.locator('#contact').scrollIntoViewIfNeeded();
   // Wait for React to hydrate the form (prevents native GET submission)
   await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 10000 });
   await page.fill("#name", data.name);
