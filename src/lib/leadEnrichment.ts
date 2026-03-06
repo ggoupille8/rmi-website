@@ -715,13 +715,42 @@ async function writeLeadIntelligence(
 }
 
 // ---------------------------------------------------------------------------
-// Global enrichment timeout
+// Per-step timeout helper
 // ---------------------------------------------------------------------------
 
-const ENRICHMENT_TIMEOUT_MS = 25_000;
+const CLAUDE_API_TIMEOUT_MS = 15_000;
+const EMAIL_TIMEOUT_MS = 10_000;
+const DB_WRITE_TIMEOUT_MS = 8_000;
+
+/**
+ * Wraps a promise with a timeout. On timeout, resolves with `fallback`
+ * instead of rejecting — this ensures one slow step never crashes the pipeline.
+ */
+async function withTimeout<T>(
+  label: string,
+  promise: Promise<T>,
+  timeoutMs: number,
+  fallback: T
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timer = setTimeout(() => {
+      console.warn(`[enrichment] ${label} timed out after ${timeoutMs}ms — using fallback`);
+      resolve(fallback);
+    }, timeoutMs);
+  });
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    return result;
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+}
 
 // ---------------------------------------------------------------------------
-// Core enrichment logic (called within timeout wrapper)
+// Core enrichment logic — each step is independently fault-tolerant.
+// No global timeout: individual steps use withTimeout() so a slow step
+// degrades gracefully instead of killing subsequent steps.
 // ---------------------------------------------------------------------------
 
 async function doEnrichment(
@@ -729,21 +758,21 @@ async function doEnrichment(
   contact: ContactRecord,
   intelligence: IntelligencePayload | null,
   clientIp: string
-): Promise<void> {
-  // Step 1 — Parallel data gathering (race against 8s timeout)
-  const geoPromise = getGeoData(clientIp);
-  const geoTimeoutPromise = new Promise<null>((resolve) =>
-    setTimeout(() => resolve(null), 8000)
+): Promise<{ adminEmailSent: boolean }> {
+  let adminEmailSent = false;
+
+  // Step 1 — Geo data (8s timeout, fallback to null)
+  const geoData = await withTimeout(
+    "geo lookup",
+    getGeoData(clientIp).catch((err) => {
+      console.error("Geo lookup failed:", err instanceof Error ? err.message : "Unknown error");
+      return null;
+    }),
+    8_000,
+    null
   );
 
-  const [geoSettled] = await Promise.allSettled([
-    Promise.race([geoPromise, geoTimeoutPromise]),
-  ]);
-
-  const geoData: GeoResult | null =
-    geoSettled.status === "fulfilled" ? (geoSettled.value as GeoResult | null) : null;
-
-  // Step 2 — Call Claude AI for enrichment (if within daily budget)
+  // Step 2 — Claude AI enrichment (15s timeout, if within daily budget)
   let claudeResult: ClaudeEnrichment | null = null;
   const withinBudget = checkEnrichmentBudget();
 
@@ -765,14 +794,15 @@ async function doEnrichment(
       disposableEmail: false,
     };
   } else {
-    try {
-      claudeResult = await callClaudeEnrichment(contact, geoData, intelligence);
-    } catch (error) {
-      console.error(
-        "Claude enrichment step failed:",
-        error instanceof Error ? error.message : "Unknown error"
-      );
-    }
+    claudeResult = await withTimeout(
+      "Claude enrichment",
+      callClaudeEnrichment(contact, geoData, intelligence).catch((err) => {
+        console.error("Claude enrichment failed:", err instanceof Error ? err.message : "Unknown error");
+        return null;
+      }),
+      CLAUDE_API_TIMEOUT_MS,
+      null
+    );
   }
 
   // Step 3 — Compute bot score
@@ -783,51 +813,50 @@ async function doEnrichment(
     try {
       const postCheck = await checkAndEnforceBlacklist(clientIp, botScore);
       if (postCheck.blocked) {
-        // Already blocked — still write intelligence for evidence, but skip email/draft
         try {
           await writeLeadIntelligence(contactId, contact, intelligence, geoData, claudeResult, botScore);
         } catch {
           // Non-critical
         }
-        return;
+        return { adminEmailSent };
       }
     } catch {
       // Fail open
     }
   }
 
-  // Step 4 — Write to lead_intelligence table
-  try {
-    await writeLeadIntelligence(
-      contactId,
-      contact,
-      intelligence,
-      geoData,
-      claudeResult,
-      botScore
-    );
-  } catch (error) {
-    console.error(
-      "lead_intelligence write failed:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
-  }
+  // Step 4 — Write to lead_intelligence table (8s timeout)
+  await withTimeout(
+    "lead_intelligence write",
+    writeLeadIntelligence(contactId, contact, intelligence, geoData, claudeResult, botScore).catch((err) => {
+      console.error("lead_intelligence write failed:", err instanceof Error ? err.message : "Unknown error");
+    }),
+    DB_WRITE_TIMEOUT_MS,
+    undefined
+  );
 
-  // Step 5 — Send admin email
-  try {
-    await sendLeadEmail({
+  // Step 5 — Send admin email (10s timeout)
+  // Returns true only if the email API call actually resolved (not timed out)
+  adminEmailSent = await withTimeout(
+    "admin email",
+    sendLeadEmail({
       contact,
       intelligence,
       geo: geoData,
       claudeResult: withinBudget ? claudeResult : null,
       botScore,
-    });
-  } catch (error) {
-    console.error(
-      "Lead email send failed:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
-  }
+    })
+      .then(() => true)
+      .catch((error) => {
+        console.error(
+          "Lead email send failed:",
+          error instanceof Error ? error.message : "Unknown error"
+        );
+        return false;
+      }),
+    EMAIL_TIMEOUT_MS,
+    false
+  );
 
   // Step 6 — Generate AI response draft + send approval email (legit leads only)
   const isLegitLead =
@@ -838,8 +867,14 @@ async function doEnrichment(
     contact.email !== "test@example.com";
 
   if (isLegitLead) {
-    try {
-      const draft = await generateResponseDraft({
+    // 6a — Generate draft (15s timeout, fallback to generic draft)
+    const fallbackDraft = {
+      subject: "Re: Your insulation project inquiry",
+      body: "(Draft generation timed out — please reply manually)",
+    };
+    const draft = await withTimeout(
+      "draft generation",
+      generateResponseDraft({
         name: contact.name,
         email: contact.email,
         phone: contact.phone || undefined,
@@ -853,54 +888,63 @@ async function doEnrichment(
               urgencyLevel: claudeResult.urgencySignal || undefined,
             }
           : undefined,
-      });
+      }),
+      CLAUDE_API_TIMEOUT_MS,
+      fallbackDraft
+    );
 
-      // Save draft to lead_drafts table
-      try {
-        await sql`
-          INSERT INTO lead_drafts (contact_id, draft_subject, draft_body, status)
-          VALUES (${contactId}::uuid, ${draft.subject}, ${draft.body}, 'pending')
-        `;
-      } catch (dbError) {
+    // 6b — Save draft to DB (8s timeout)
+    await withTimeout(
+      "draft DB save",
+      sql`
+        INSERT INTO lead_drafts (contact_id, draft_subject, draft_body, status)
+        VALUES (${contactId}::uuid, ${draft.subject}, ${draft.body}, 'pending')
+      `.catch((dbError) => {
         console.error(
           "Failed to save draft to DB:",
           dbError instanceof Error ? dbError.message : "Unknown error"
         );
-      }
+      }),
+      DB_WRITE_TIMEOUT_MS,
+      undefined
+    );
 
-      // Send approval email to Graham
-      const adminEmail = import.meta.env.ADMIN_EMAIL ?? "ggoupille@rmi-llc.net";
-      try {
-        await sendApprovalEmail({
-          to: adminEmail,
-          lead: {
-            name: contact.name,
-            email: contact.email,
-            phone: contact.phone || undefined,
-            company: contact.company || undefined,
-            serviceType: contact.serviceType || undefined,
-            message: contact.message || undefined,
-          },
-          enrichment: claudeResult,
-          draft,
-        });
-      } catch (emailError) {
+    // 6c — Send approval email (10s timeout)
+    const adminEmail = import.meta.env.ADMIN_EMAIL ?? "ggoupille@rmi-llc.net";
+    await withTimeout(
+      "approval email",
+      sendApprovalEmail({
+        to: adminEmail,
+        lead: {
+          name: contact.name,
+          email: contact.email,
+          phone: contact.phone || undefined,
+          company: contact.company || undefined,
+          serviceType: contact.serviceType || undefined,
+          message: contact.message || undefined,
+        },
+        enrichment: claudeResult,
+        draft,
+      }).catch((emailError) => {
         console.error(
           "Approval email send failed:",
           emailError instanceof Error ? emailError.message : "Unknown error"
         );
-      }
-    } catch (draftError) {
-      console.error(
-        "Draft generation pipeline failed:",
-        draftError instanceof Error ? draftError.message : "Unknown error"
-      );
-    }
+      }),
+      EMAIL_TIMEOUT_MS,
+      undefined
+    );
   }
+
+  return { adminEmailSent };
 }
 
 // ---------------------------------------------------------------------------
-// Main orchestrator — called fire-and-forget from contact.ts
+// Main orchestrator — called fire-and-forget from contact.ts.
+//
+// No global timeout: each step inside doEnrichment has its own timeout via
+// withTimeout(), so a slow step degrades gracefully (uses a fallback value)
+// instead of killing the entire pipeline and subsequent steps.
 // ---------------------------------------------------------------------------
 
 export async function enrichLeadAsync(
@@ -909,22 +953,41 @@ export async function enrichLeadAsync(
   intelligence: IntelligencePayload | null,
   clientIp: string
 ): Promise<void> {
-  const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("Enrichment timeout exceeded")), ENRICHMENT_TIMEOUT_MS)
-  );
-
   try {
-    await Promise.race([
-      doEnrichment(contactId, contact, intelligence, clientIp),
-      timeoutPromise,
-    ]);
+    const { adminEmailSent } = await doEnrichment(
+      contactId,
+      contact,
+      intelligence,
+      clientIp
+    );
+
+    // If doEnrichment completed but the admin email step failed,
+    // send a bare-minimum notification so no lead is lost.
+    if (!adminEmailSent) {
+      console.warn("[enrichment] Admin email was not sent during pipeline — sending fallback");
+      try {
+        await sendLeadEmail({
+          contact,
+          intelligence,
+          geo: null,
+          claudeResult: null,
+          botScore: 0,
+        });
+      } catch (emailError) {
+        console.error(
+          "Fallback email send failed:",
+          emailError instanceof Error ? emailError.message : "Unknown error"
+        );
+      }
+    }
   } catch (error) {
+    // doEnrichment should never throw (all steps are wrapped in try/catch),
+    // but if something truly unexpected happens, send a basic notification.
     console.error(
-      "Enrichment pipeline failed or timed out:",
+      "Enrichment pipeline unexpected failure:",
       error instanceof Error ? error.message : "Unknown error"
     );
 
-    // On timeout/failure, still attempt to send a basic email
     try {
       await sendLeadEmail({
         contact,
