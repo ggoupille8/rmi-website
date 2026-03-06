@@ -329,6 +329,26 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
+  // --- Dedup check: reject identical submissions within 5 minutes ---
+  try {
+    const recentDuplicate = await sql`
+      SELECT id FROM contacts
+      WHERE email = ${email}
+        AND name = ${name}
+        AND message = ${message}
+        AND created_at > NOW() - INTERVAL '5 minutes'
+      LIMIT 1
+    `;
+    if (recentDuplicate.rows.length > 0) {
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  } catch {
+    // If dedup check fails, allow the request (fail open)
+  }
+
   // --- Parse intelligence payload ---
   const intelligencePayload = parseIntelligence(clientMetadata);
 

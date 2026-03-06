@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Search, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
-import LeadDetail, { QualityBadge } from "./LeadDetail";
+import LeadDetail from "./LeadDetail";
 
 interface ContactMetadata {
   enrichment?: {
@@ -44,14 +44,6 @@ const STATUS_BADGE: Record<string, string> = {
   archived: "bg-neutral-700/50 text-neutral-500 border-neutral-700",
 };
 
-const QUALITY_FILTERS = [
-  { value: "", label: "All Quality" },
-  { value: "high", label: "High", dot: "bg-green-400" },
-  { value: "medium", label: "Medium", dot: "bg-yellow-400" },
-  { value: "low", label: "Low", dot: "bg-red-400" },
-  { value: "spam", label: "Spam", dot: "bg-neutral-500" },
-];
-
 const PAGE_SIZE = 20;
 
 interface Props {
@@ -67,7 +59,6 @@ export default function LeadsTable({ initialStatus }: Props) {
     hasMore: false,
   });
   const [statusFilter, setStatusFilter] = useState(initialStatus || "");
-  const [qualityFilter, setQualityFilter] = useState("");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -81,7 +72,6 @@ export default function LeadsTable({ initialStatus }: Props) {
       params.set("limit", String(PAGE_SIZE));
       params.set("offset", String(page * PAGE_SIZE));
       if (statusFilter) params.set("status", statusFilter);
-      if (qualityFilter) params.set("quality", qualityFilter);
       if (search) params.set("search", search);
 
       const res = await fetch(`/api/admin/contacts?${params}`);
@@ -95,7 +85,7 @@ export default function LeadsTable({ initialStatus }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter, qualityFilter, search]);
+  }, [page, statusFilter, search]);
 
   useEffect(() => {
     fetchContacts();
@@ -112,11 +102,6 @@ export default function LeadsTable({ initialStatus }: Props) {
 
   const handleStatusFilter = (value: string) => {
     setStatusFilter(value);
-    setPage(0);
-  };
-
-  const handleQualityFilter = (value: string) => {
-    setQualityFilter(value);
     setPage(0);
   };
 
@@ -161,27 +146,6 @@ export default function LeadsTable({ initialStatus }: Props) {
                   : "text-neutral-500 hover:text-neutral-300"
               }`}
             >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Quality filter */}
-        <div className="flex gap-1 bg-neutral-900 border border-neutral-800 rounded-md p-0.5">
-          {QUALITY_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              type="button"
-              onClick={() => handleQualityFilter(f.value)}
-              className={`flex items-center gap-1 px-2 py-1.5 text-sm rounded transition-colors ${
-                qualityFilter === f.value
-                  ? "bg-neutral-800 text-neutral-100"
-                  : "text-neutral-500 hover:text-neutral-300"
-              }`}
-            >
-              {f.dot && (
-                <span className={`w-1.5 h-1.5 rounded-full ${f.dot}`} />
-              )}
               {f.label}
             </button>
           ))}
@@ -243,17 +207,12 @@ export default function LeadsTable({ initialStatus }: Props) {
                     Phone
                   </th>
                   <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                    Quality
-                  </th>
-                  <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
                     Status
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {contacts.map((contact) => {
-                  const enrichment = contact.metadata?.enrichment;
-                  return (
+                {contacts.map((contact) => (
                     <tr
                       key={contact.id}
                       onClick={() => setSelectedContact(contact)}
@@ -272,17 +231,6 @@ export default function LeadsTable({ initialStatus }: Props) {
                         {contact.phone || "-"}
                       </td>
                       <td className="px-4 py-3">
-                        {enrichment?.quality ? (
-                          <QualityBadge
-                            quality={enrichment.quality}
-                            score={enrichment.legitimacyScore}
-                            size="sm"
-                          />
-                        ) : (
-                          <span className="text-xs text-neutral-600">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
                         <span
                           className={`inline-block px-2 py-0.5 text-xs font-medium rounded border ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
                         >
@@ -290,17 +238,14 @@ export default function LeadsTable({ initialStatus }: Props) {
                         </span>
                       </td>
                     </tr>
-                  );
-                })}
+                  ))}
               </tbody>
             </table>
           </div>
 
           {/* Mobile Cards */}
           <div className="md:hidden space-y-2">
-            {contacts.map((contact) => {
-              const mobileEnrichment = contact.metadata?.enrichment;
-              return (
+            {contacts.map((contact) => (
                 <button
                   key={contact.id}
                   type="button"
@@ -311,20 +256,11 @@ export default function LeadsTable({ initialStatus }: Props) {
                     <p className="text-sm font-medium text-neutral-200">
                       {contact.name}
                     </p>
-                    <div className="flex items-center gap-1.5">
-                      {mobileEnrichment?.quality && (
-                        <QualityBadge
-                          quality={mobileEnrichment.quality}
-                          score={mobileEnrichment.legitimacyScore}
-                          size="sm"
-                        />
-                      )}
-                      <span
-                        className={`inline-block px-2 py-0.5 text-[10px] font-medium rounded border ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
-                      >
-                        {contact.status}
-                      </span>
-                    </div>
+                    <span
+                      className={`inline-block px-2 py-0.5 text-[10px] font-medium rounded border ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
+                    >
+                      {contact.status}
+                    </span>
                   </div>
                   <p className="text-xs text-neutral-500">
                     {contact.email || contact.phone || "No contact info"}
@@ -333,8 +269,7 @@ export default function LeadsTable({ initialStatus }: Props) {
                     {formatDate(contact.created_at)}
                   </p>
                 </button>
-              );
-            })}
+              ))}
           </div>
 
           {/* Pagination */}
