@@ -417,6 +417,25 @@ function buildApprovalEmailHtml(params: ApprovalEmailParams): string {
   const mailtoBody = encodeURIComponent(draft.body);
   const sendMailto = `mailto:${encodeURIComponent(lead.email)}?subject=${mailtoSubject}&body=${mailtoBody}`;
 
+  // Build "Forward to Rich" mailto
+  const forwardSubject = encodeURIComponent(`FW: ${lead.name} - ${draft.subject}`);
+  const forwardBodyParts = [
+    `Rich — here's a lead that came in. Draft response below for reference.${lead.phone ? ` Give them a call at ${phoneFormatted || lead.phone}.` : ""}`,
+    "",
+    "--- Lead Info ---",
+    `Name: ${lead.name}`,
+    lead.email ? `Email: ${lead.email}` : "",
+    lead.phone ? `Phone: ${phoneFormatted || lead.phone}` : "",
+    lead.company ? `Company: ${lead.company}` : "",
+    lead.serviceType ? `Project Type: ${lead.serviceType}` : "",
+    "",
+    "--- AI Draft Response (for reference) ---",
+    `Subject: ${draft.subject}`,
+    "",
+    draft.body,
+  ].filter(Boolean).join("\n");
+  const forwardMailto = `mailto:rgoupille@rmi-llc.net?subject=${forwardSubject}&body=${encodeURIComponent(forwardBodyParts)}`;
+
   // Company verification line
   let companyLine = "";
   if (enrichment?.companyVerified) {
@@ -523,11 +542,22 @@ function buildApprovalEmailHtml(params: ApprovalEmailParams): string {
       </tr></table>
     </td>
   </tr></table>
+
+  <!-- Forward to Rich (secondary) -->
+  <table cellpadding="0" cellspacing="0" style="margin:12px auto 0;"><tr>
+    <td>
+      <table cellpadding="0" cellspacing="0"><tr>
+        <td style="border:2px solid #64748b;border-radius:6px;background:transparent;">
+          <a href="${forwardMailto}" style="display:inline-block;padding:10px 24px;color:#94a3b8;font-weight:600;font-size:14px;text-decoration:none;">Forward to Rich</a>
+        </td>
+      </tr></table>
+    </td>
+  </tr></table>
 </td></tr>
 
 <!-- FOOTER -->
 <tr><td style="padding:16px 24px 0;text-align:center;">
-  <div style="color:#64748b;font-size:11px;">Clicking "Send This Response" opens your email client with the draft pre-filled and addressed to the lead. Review, edit if needed, then hit send.</div>
+  <div style="color:#64748b;font-size:11px;">Clicking any button opens your email client with a draft pre-filled. Review, edit if needed, then hit send. Nothing sends automatically.</div>
 </td></tr>
 
 </table>
