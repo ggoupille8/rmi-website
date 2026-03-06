@@ -2,8 +2,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroHeadline, heroTagline } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
 import { ErrorBoundary } from "../ErrorBoundary";
-import { getMediaOverrides } from "../../lib/media-loader";
-import type { MediaOverride } from "../../lib/media-loader";
 
 const defaultHeroImages = [
   "/images/hero/hero-1.webp",
@@ -42,11 +40,6 @@ const heroImageOrigins = [
   "55% 40%",           // hero-5: zoom toward right-of-center
   "center 45%",        // hero-6: zoom toward center-upper subject
 ];
-
-// Check if a URL is a Blob/external URL (not a local static asset)
-function isExternalUrl(url: string): boolean {
-  return url.startsWith("http://") || url.startsWith("https://");
-}
 
 const SLIDE_DURATION = 12000; // 12s per image
 
@@ -175,24 +168,11 @@ export default function HeroFullWidth({
   headline = heroHeadline,
   tagline = heroTagline,
 }: HeroFullWidthProps) {
-  const [heroImages, setHeroImages] = useState(defaultHeroImages);
-  const [heroOverrides, setHeroOverrides] = useState<Record<string, MediaOverride>>({});
+  const heroImages = defaultHeroImages;
   const [activeIndex, setActiveIndex] = useState(0);
   const prevIndexRef = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  // Check for Blob image overrides on mount
-  useEffect(() => {
-    const slots = defaultHeroImages.map((_, i) => `hero-${i + 1}`);
-    getMediaOverrides(slots).then((overrides) => {
-      if (Object.keys(overrides).length === 0) return;
-      setHeroOverrides(overrides);
-      setHeroImages((prev) =>
-        prev.map((src, i) => overrides[`hero-${i + 1}`]?.url || src)
-      );
-    });
-  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -239,32 +219,7 @@ export default function HeroFullWidth({
             style={{ zIndex: isActive ? 2 : isPrev ? 1 : 0 }}
             aria-hidden="true"
           >
-            {isExternalUrl(src) ? (() => {
-              const override = heroOverrides[`hero-${index + 1}`];
-              const variants = override?.variants;
-              return (
-              <img
-                src={src}
-                srcSet={variants && Object.keys(variants).length > 1
-                  ? Object.entries(variants).map(([k, v]) => `${v} ${k.replace("w", "")}w`).join(", ")
-                  : undefined}
-                sizes={variants && Object.keys(variants).length > 1 ? "100vw" : undefined}
-                alt={heroImageAlts[index]}
-                width="1920"
-                height="1080"
-                className={`w-full h-full object-cover ${heroImagePositions[index]}`}
-                loading={index === 0 ? "eager" : "lazy"}
-                decoding={index === 0 ? "sync" : "async"}
-                fetchPriority={index === 0 ? "high" : undefined}
-                style={
-                  !prefersReducedMotion
-                    ? { animation: `kenBurns ${SLIDE_DURATION * 2}ms ease-in-out infinite alternate`, animationDelay: `${index * -(SLIDE_DURATION / 3)}ms`, transformOrigin: heroImageOrigins[index] }
-                    : { transform: "scale(1)", filter: "brightness(1)" }
-                }
-              />
-              );
-            })() : (
-              <picture>
+            <picture>
                 <source
                   srcSet={`${src.replace(/\.(webp|jpe?g)$/i, "-480w.webp")} 480w, ${src.replace(/\.(webp|jpe?g)$/i, "-960w.webp")} 960w, ${src.replace(/\.(webp|jpe?g)$/i, ".webp")} 1920w`}
                   sizes="100vw"
@@ -288,7 +243,6 @@ export default function HeroFullWidth({
                   }
                 />
               </picture>
-            )}
           </div>
           );
         })}

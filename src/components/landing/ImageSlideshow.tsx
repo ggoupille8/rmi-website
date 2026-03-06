@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { ServiceImage } from "../../content/site";
-import { getMediaOverrides } from "../../lib/media-loader";
-import type { MediaOverride } from "../../lib/media-loader";
 
 interface ImageSlideshowProps {
   images: ServiceImage[];
@@ -15,23 +13,12 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [overrides, setOverrides] = useState<Record<string, MediaOverride>>({});
   const touchStartRef = useRef<number | null>(null);
   const touchDeltaRef = useRef(0);
   const autoAdvanceRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const count = images.length;
 
-  // Check for Blob image overrides
-  useEffect(() => {
-    if (!serviceSlug || count === 0) return;
-    const slots = images.map((_, i) => `service-${serviceSlug}-${i + 1}`);
-    getMediaOverrides(slots).then((result) => {
-      if (Object.keys(result).length > 0) {
-        setOverrides(result);
-      }
-    });
-  }, [serviceSlug, count, images]);
   // Reset loaded state when slide changes
   useEffect(() => {
     setImageLoaded(false);
@@ -127,10 +114,6 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
 
           const isActive = index === currentIndex;
           const focusPoint = image.focusPoint || "center center";
-          const overrideSlot = serviceSlug ? `service-${serviceSlug}-${index + 1}` : "";
-          const override = overrideSlot ? overrides[overrideSlot] : undefined;
-          const overrideUrl = override?.url;
-          const variants = override?.variants;
           return (
             <div
               key={image.src}
@@ -139,13 +122,13 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
               } ${isActive && imageLoaded ? "opacity-100" : isActive ? "opacity-0" : ""}`}
               aria-hidden={!isActive}
             >
-              {overrideUrl ? (
+              <picture>
+                <source
+                  srcSet={`/images/services/${image.src}.webp`}
+                  type="image/webp"
+                />
                 <img
-                  src={overrideUrl}
-                  srcSet={variants && Object.keys(variants).length > 1
-                    ? Object.entries(variants).map(([k, v]) => `${v} ${k.replace("w", "")}w`).join(", ")
-                    : undefined}
-                  sizes={variants && Object.keys(variants).length > 1 ? "(max-width: 768px) 100vw, 50vw" : undefined}
+                  src={`/images/services/${image.src}.jpg`}
                   alt={image.alt}
                   width="960"
                   height="720"
@@ -156,26 +139,7 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
                   onLoad={isActive ? () => setImageLoaded(true) : undefined}
                   draggable={false}
                 />
-              ) : (
-                <picture>
-                  <source
-                    srcSet={`/images/services/${image.src}.webp`}
-                    type="image/webp"
-                  />
-                  <img
-                    src={`/images/services/${image.src}.jpg`}
-                    alt={image.alt}
-                    width="960"
-                    height="720"
-                    className="absolute inset-0 w-full h-full object-cover object-center"
-                    style={{ objectPosition: focusPoint }}
-                    loading="eager"
-                    decoding="async"
-                    onLoad={isActive ? () => setImageLoaded(true) : undefined}
-                    draggable={false}
-                  />
-                </picture>
-              )}
+              </picture>
             </div>
           );
         })}

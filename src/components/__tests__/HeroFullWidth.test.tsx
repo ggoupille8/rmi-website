@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 
-vi.mock("../../lib/media-loader", () => ({
-  getMediaOverrides: vi.fn().mockResolvedValue({}),
-}));
-
 // Mock IntersectionObserver
 const mockObserve = vi.fn();
 const mockDisconnect = vi.fn();

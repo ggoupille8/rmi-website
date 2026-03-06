@@ -2,10 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import type { ServiceImage } from "../../content/site";
 
-vi.mock("../../lib/media-loader", () => ({
-  getMediaOverrides: vi.fn().mockResolvedValue({}),
-}));
-
 import ImageSlideshow from "../landing/ImageSlideshow";
 
 const mockImages: ServiceImage[] = [
