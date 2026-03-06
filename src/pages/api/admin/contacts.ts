@@ -239,3 +239,60 @@ export const PATCH: APIRoute = async ({ request }) => {
     );
   }
 };
+
+export const DELETE: APIRoute = async ({ request }) => {
+  if (!isAdminAuthorized(request)) return unauthorizedResponse();
+
+  const { url: postgresUrl } = getPostgresEnv();
+  if (!postgresUrl) return dbNotConfiguredResponse();
+
+  try {
+    const url = new URL(request.url);
+    const id = url.searchParams.get("id");
+
+    if (!id || typeof id !== "string") {
+      return new Response(
+        JSON.stringify({ error: "Contact ID is required" }),
+        { status: 400, headers: SECURITY_HEADERS }
+      );
+    }
+
+    // Validate UUID format
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        id
+      )
+    ) {
+      return new Response(
+        JSON.stringify({ error: "Invalid contact ID format" }),
+        { status: 400, headers: SECURITY_HEADERS }
+      );
+    }
+
+    const result = await sql.query(
+      "DELETE FROM contacts WHERE id = $1 RETURNING id",
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Contact not found" }),
+        { status: 404, headers: SECURITY_HEADERS }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({ ok: true }),
+      { status: 200, headers: SECURITY_HEADERS }
+    );
+  } catch (error) {
+    console.error(
+      "Admin contact delete error:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    return new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: SECURITY_HEADERS }
+    );
+  }
+};

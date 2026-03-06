@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, RefreshCw, Trash2 } from "lucide-react";
 import LeadDetail from "./LeadDetail";
 
 interface ContactMetadata {
@@ -42,6 +42,12 @@ const STATUS_BADGE: Record<string, string> = {
   new: "bg-primary-600/20 text-primary-400 border-primary-600/30",
   contacted: "bg-green-600/20 text-green-400 border-green-600/30",
   archived: "bg-neutral-700/50 text-neutral-500 border-neutral-700",
+};
+
+const STATUS_CYCLE: Record<string, string> = {
+  new: "contacted",
+  contacted: "archived",
+  archived: "new",
 };
 
 const PAGE_SIZE = 20;
@@ -115,6 +121,58 @@ export default function LeadsTable({ initialStatus }: Props) {
       setSelectedContact((prev) =>
         prev ? { ...prev, status: newStatus, notes: newNotes } : null
       );
+    }
+  };
+
+  const cycleStatus = async (contact: Contact, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const oldStatus = contact.status;
+    const newStatus = STATUS_CYCLE[oldStatus] || "new";
+
+    // Optimistic update
+    setContacts((prev) =>
+      prev.map((c) => (c.id === contact.id ? { ...c, status: newStatus } : c))
+    );
+    if (selectedContact?.id === contact.id) {
+      setSelectedContact((prev) => (prev ? { ...prev, status: newStatus } : null));
+    }
+
+    try {
+      const res = await fetch("/api/admin/contacts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: contact.id, status: newStatus }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+    } catch {
+      // Revert on failure
+      setContacts((prev) =>
+        prev.map((c) => (c.id === contact.id ? { ...c, status: oldStatus } : c))
+      );
+      if (selectedContact?.id === contact.id) {
+        setSelectedContact((prev) => (prev ? { ...prev, status: oldStatus } : null));
+      }
+    }
+  };
+
+  const deleteContact = async (contact: Contact, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm(`Delete "${contact.name}" permanently?`)) return;
+
+    // Optimistic removal
+    const prevContacts = contacts;
+    setContacts((prev) => prev.filter((c) => c.id !== contact.id));
+    setPagination((prev) => ({ ...prev, total: prev.total - 1 }));
+
+    try {
+      const res = await fetch(`/api/admin/contacts?id=${contact.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+    } catch {
+      // Revert on failure
+      setContacts(prevContacts);
+      setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
     }
   };
 
@@ -209,6 +267,7 @@ export default function LeadsTable({ initialStatus }: Props) {
                   <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
                     Status
                   </th>
+                  <th className="w-10 px-2 py-2.5" />
                 </tr>
               </thead>
               <tbody>
@@ -231,11 +290,24 @@ export default function LeadsTable({ initialStatus }: Props) {
                         {contact.phone || "-"}
                       </td>
                       <td className="px-4 py-3">
-                        <span
-                          className={`inline-block px-2 py-0.5 text-xs font-medium rounded border ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
+                        <button
+                          type="button"
+                          onClick={(e) => cycleStatus(contact, e)}
+                          title={`Click to change to "${STATUS_CYCLE[contact.status] || "new"}"`}
+                          className={`inline-block px-2 py-0.5 text-xs font-medium rounded border cursor-pointer hover:opacity-80 transition-opacity ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
                         >
                           {contact.status}
-                        </span>
+                        </button>
+                      </td>
+                      <td className="px-2 py-3">
+                        <button
+                          type="button"
+                          onClick={(e) => deleteContact(contact, e)}
+                          title="Delete lead"
+                          className="p-1.5 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -246,21 +318,33 @@ export default function LeadsTable({ initialStatus }: Props) {
           {/* Mobile Cards */}
           <div className="md:hidden space-y-2">
             {contacts.map((contact) => (
-                <button
+                <div
                   key={contact.id}
-                  type="button"
                   onClick={() => setSelectedContact(contact)}
-                  className="w-full text-left bg-neutral-900 border border-neutral-800 rounded-lg p-3 hover:bg-neutral-800/60 transition-colors"
+                  className="w-full text-left bg-neutral-900 border border-neutral-800 rounded-lg p-3 hover:bg-neutral-800/60 transition-colors cursor-pointer"
                 >
                   <div className="flex items-start justify-between mb-1">
                     <p className="text-sm font-medium text-neutral-200">
                       {contact.name}
                     </p>
-                    <span
-                      className={`inline-block px-2 py-0.5 text-[10px] font-medium rounded border ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
-                    >
-                      {contact.status}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(e) => cycleStatus(contact, e)}
+                        title={`Click to change to "${STATUS_CYCLE[contact.status] || "new"}"`}
+                        className={`inline-block px-2 py-0.5 text-[10px] font-medium rounded border cursor-pointer hover:opacity-80 transition-opacity ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
+                      >
+                        {contact.status}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => deleteContact(contact, e)}
+                        title="Delete lead"
+                        className="p-1 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-xs text-neutral-500">
                     {contact.email || contact.phone || "No contact info"}
@@ -268,7 +352,7 @@ export default function LeadsTable({ initialStatus }: Props) {
                   <p className="text-xs text-neutral-600 mt-1">
                     {formatDate(contact.created_at)}
                   </p>
-                </button>
+                </div>
               ))}
           </div>
 
