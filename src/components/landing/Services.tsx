@@ -252,7 +252,7 @@ export default function Services() {
               const modalGlowColor = "bg-blue-500/20";
               const hasImages = activeServiceData.images.length > 0;
               return (
-                <div className={`flex h-full ${hasImages ? "flex-col md:flex-row" : "flex-col"}`} style={hasImages ? { height: "85vh", maxHeight: "85vh" } : undefined}>
+                <div className={`flex h-full min-h-0 ${hasImages ? "flex-col md:flex-row" : "flex-col"}`} style={hasImages ? { height: "85vh", maxHeight: "85vh" } : undefined}>
                   {/* Left Panel — Image Slideshow (60% on desktop) */}
                   {hasImages && (
                     <div className="relative md:w-[60%] flex-shrink-0 max-h-[40vh] md:max-h-none overflow-hidden rounded-t-2xl md:rounded-t-none md:rounded-l-2xl">
@@ -273,7 +273,7 @@ export default function Services() {
                   )}
 
                   {/* Right Panel — Text Content (40% on desktop, full width on mobile & no-image) */}
-                  <div className={`flex flex-col ${hasImages ? "md:w-[40%] md:border-l md:border-blue-500/20" : "w-full"} overflow-y-auto`}>
+                  <div className={`flex flex-col min-h-0 ${hasImages ? "md:w-[40%] md:border-l md:border-blue-500/20" : "w-full"} overflow-y-auto`}>
                     {/* Close button for no-image modals */}
                     {!hasImages && (
                       <button
