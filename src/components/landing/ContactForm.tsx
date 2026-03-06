@@ -525,15 +525,15 @@ export default function ContactForm({
                 onChange={(e) => { handleChange(e); handleFieldEdit(); }}
                 onBlur={handleBlur}
                 onFocus={handleFieldFocus}
-                className={`${fieldErrors.projectType ? inputError : inputNormal} appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%239ca3af%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3E%3C/svg%3E')] bg-[length:1.25em_1.25em] bg-[right_0.5rem_center] bg-no-repeat pr-8`}
+                className={`${fieldErrors.projectType ? inputError : inputNormal} appearance-none cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3E%3Cpath stroke=%27%239ca3af%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3E%3C/svg%3E')] bg-[length:1.25em_1.25em] bg-[right_0.5rem_center] bg-no-repeat pr-8`}
                 aria-invalid={fieldErrors.projectType ? "true" : "false"}
                 aria-describedby={fieldErrors.projectType ? "projectType-error" : undefined}
               >
-                <option value="">Select a project type...</option>
-                <option value="installation">Insulation Services</option>
-                <option value="materials">Materials</option>
-                <option value="pipe-supports">Pipe Supports Pricing</option>
-                <option value="other">Other</option>
+                <option value="" className="bg-neutral-800 text-neutral-400">Select a project type...</option>
+                <option value="installation" className="bg-neutral-800 text-white">Insulation Services</option>
+                <option value="materials" className="bg-neutral-800 text-white">Materials</option>
+                <option value="pipe-supports" className="bg-neutral-800 text-white">Pipe Supports Pricing</option>
+                <option value="other" className="bg-neutral-800 text-white">Other</option>
               </select>
               {fieldErrors.projectType && (
                 <div id="projectType-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">

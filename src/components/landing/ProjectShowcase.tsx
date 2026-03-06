@@ -58,7 +58,7 @@ export default function ProjectShowcase() {
               key={project.title}
               className="group overflow-hidden rounded-xl bg-white/5 border border-white/5 hover:border-blue-500/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 ease-out"
             >
-              <div className="relative overflow-hidden rounded-t-xl border-b-2 border-blue-500/0 group-hover:border-blue-500 transition-all duration-300">
+              <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl border-b-2 border-blue-500/0 group-hover:border-blue-500 transition-all duration-300">
                 {overrideUrl ? (
                   <img
                     src={overrideUrl}
@@ -68,8 +68,8 @@ export default function ProjectShowcase() {
                     sizes={variants && Object.keys(variants).length > 1 ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" : undefined}
                     alt={project.alt}
                     width="960"
-                    height="720"
-                    className="w-full aspect-[4/3] object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                    height="540"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                     loading="lazy"
                     decoding="async"
                   />
@@ -84,8 +84,8 @@ export default function ProjectShowcase() {
                     src={`${project.image}-960w.webp`}
                     alt={project.alt}
                     width="960"
-                    height="720"
-                    className="w-full aspect-[4/3] object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                    height="540"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                     loading="lazy"
                     decoding="async"
                   />
@@ -97,7 +97,7 @@ export default function ProjectShowcase() {
                 <h3 className="text-lg font-semibold text-white transition-colors duration-200 group-hover:text-blue-400">
                   {project.title}
                 </h3>
-                <p className="mt-1 text-sm text-neutral-300 line-clamp-4 sm:line-clamp-none">
+                <p className="mt-1 text-sm text-neutral-300 line-clamp-3">
                   {project.description}
                 </p>
               </div>
