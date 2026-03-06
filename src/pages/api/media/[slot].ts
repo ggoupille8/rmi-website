@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../lib/db-env";
+import { ensureMediaTable } from "../../../lib/ensure-media-table";
 
 export const prerender = false;
 
@@ -27,8 +28,10 @@ export const GET: APIRoute = async ({ params }) => {
   }
 
   try {
+    await ensureMediaTable();
+
     const result = await sql.query(
-      `SELECT blob_url, alt_text FROM media WHERE slot = $1`,
+      `SELECT blob_url, alt_text, variants FROM media WHERE slot = $1`,
       [slot.trim()]
     );
 
@@ -41,10 +44,15 @@ export const GET: APIRoute = async ({ params }) => {
       });
     }
 
-    const { blob_url, alt_text } = result.rows[0];
+    const { blob_url, alt_text, variants } = result.rows[0];
+
+    const body: Record<string, unknown> = { url: blob_url, altText: alt_text };
+    if (variants) {
+      body.variants = variants;
+    }
 
     return new Response(
-      JSON.stringify({ url: blob_url, altText: alt_text }),
+      JSON.stringify(body),
       {
         status: 200,
         headers: {
