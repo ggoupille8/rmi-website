@@ -3,6 +3,7 @@ import { sql } from "@vercel/postgres";
 import { del } from "@vercel/blob";
 import { getPostgresEnv } from "../../../lib/db-env";
 import { isAdminAuthorized } from "../../../lib/admin-auth";
+import { ensureMediaTable } from "../../../lib/ensure-media-table";
 
 export const prerender = false;
 
@@ -44,6 +45,8 @@ export const GET: APIRoute = async ({ request }) => {
   if (!postgresUrl) return dbNotConfiguredResponse();
 
   try {
+    await ensureMediaTable();
+
     const url = new URL(request.url);
     const category = url.searchParams.get("category");
 
@@ -88,6 +91,8 @@ export const POST: APIRoute = async ({ request }) => {
   if (!postgresUrl) return dbNotConfiguredResponse();
 
   try {
+    await ensureMediaTable();
+
     const body = await request.json();
     const { slot, category, blobUrl, fileName, fileSize, altText } = body as {
       slot?: unknown;
@@ -200,6 +205,8 @@ export const PATCH: APIRoute = async ({ request }) => {
   if (!postgresUrl) return dbNotConfiguredResponse();
 
   try {
+    await ensureMediaTable();
+
     const body = await request.json();
     const { id, altText, blobUrl } = body as {
       id?: unknown;
@@ -300,6 +307,8 @@ export const DELETE: APIRoute = async ({ request }) => {
   if (!postgresUrl) return dbNotConfiguredResponse();
 
   try {
+    await ensureMediaTable();
+
     const body = await request.json();
     const { id } = body as { id?: unknown };
 

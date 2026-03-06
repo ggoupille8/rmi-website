@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS media (
   width INTEGER,                           -- Image dimensions (optional)
   height INTEGER,                          -- Image dimensions (optional)
   alt_text TEXT,                           -- Alt text for accessibility
+  variants JSONB,                          -- Responsive variant URLs: {"480w": "url", "960w": "url", "1920w": "url"}
   uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
