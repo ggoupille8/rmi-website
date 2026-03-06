@@ -133,7 +133,7 @@ export default function Footer() {
         </div>
 
         {/* Social Links */}
-        <div className="mt-3 pt-3 border-t border-neutral-700/30 bg-neutral-800/20 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 rounded-lg flex justify-center gap-5">
+        <div className="mt-3 pt-3 border-t border-neutral-700/30 bg-neutral-800/20 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 flex justify-center gap-5">
           <a
             href="https://www.linkedin.com/company/resource-mechanical-insulation"
             target="_blank"
