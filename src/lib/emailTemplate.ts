@@ -378,10 +378,186 @@ export async function sendLeadEmail(params: LeadEmailParams): Promise<void> {
   const subject = buildSubjectLine(params.contact, params.claudeResult, params.geo);
   const html = buildEmailHtml(params);
 
+  const adminEmail = import.meta.env.ADMIN_EMAIL ?? "ggoupille@rmi-llc.net";
+
   await resend.emails.send({
     from: fromEmail,
-    to: "ggoupille8@gmail.com",
+    to: adminEmail,
     subject,
     html,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Approval email — sends AI-drafted response to Graham for review
+// ---------------------------------------------------------------------------
+
+export interface ApprovalEmailParams {
+  to: string;
+  lead: {
+    name: string;
+    email: string;
+    phone?: string;
+    company?: string;
+    serviceType?: string;
+    message?: string;
+  };
+  enrichment: ClaudeEnrichment | null;
+  draft: { subject: string; body: string };
+}
+
+function buildApprovalEmailHtml(params: ApprovalEmailParams): string {
+  const { lead, enrichment, draft } = params;
+
+  const badge = qualityBadge(enrichment?.leadQuality);
+  const phoneFormatted = lead.phone ? formatPhone(lead.phone) : null;
+
+  // Build mailto: link with pre-filled draft
+  const mailtoSubject = encodeURIComponent(draft.subject);
+  const mailtoBody = encodeURIComponent(draft.body);
+  const sendMailto = `mailto:${encodeURIComponent(lead.email)}?subject=${mailtoSubject}&body=${mailtoBody}`;
+
+  // Company verification line
+  let companyLine = "";
+  if (enrichment?.companyVerified) {
+    companyLine = `${checkIcon(true)} Verified — ${escapeHtml(enrichment.companyContext || lead.company || "")}`;
+  } else if (lead.company) {
+    companyLine = `${checkIcon(false)} Not verified — ${escapeHtml(lead.company)}`;
+  } else {
+    companyLine = '<span style="color:#94a3b8;">No company provided</span>';
+  }
+
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/></head>
+<body style="margin:0;padding:0;background:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:16px;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+<!-- HEADER -->
+<tr><td style="background:#1e293b;border-radius:8px 8px 0 0;padding:16px 24px;border:1px solid #334155;border-bottom:none;">
+  <table cellpadding="0" cellspacing="0" style="width:100%;"><tr>
+    <td>
+      <span style="color:#f8fafc;font-weight:700;font-size:16px;">AI Draft Ready for Review</span>
+    </td>
+    <td align="right">
+      <span style="background:${badge.bg};border:1px solid ${badge.color};border-radius:20px;padding:4px 14px;color:${badge.color};font-weight:700;font-size:12px;letter-spacing:0.5px;">&bull; ${badge.label}</span>
+    </td>
+  </tr></table>
+</td></tr>
+
+<!-- PANEL 1: LEAD CONTEXT -->
+<tr><td style="background:#1a1a2e;border:1px solid #2d2d44;padding:24px;">
+  <div style="color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Lead Info</div>
+
+  <table cellpadding="0" cellspacing="0" style="width:100%;font-size:14px;color:#e2e8f0;">
+    <tr><td style="padding:4px 0;color:#94a3b8;width:80px;">Name:</td>
+        <td style="padding:4px 0;font-weight:600;">${escapeHtml(lead.name)}</td></tr>
+    <tr><td style="padding:4px 0;color:#94a3b8;">Email:</td>
+        <td style="padding:4px 0;"><a href="mailto:${escapeHtml(lead.email)}" style="color:#60a5fa;text-decoration:none;">${escapeHtml(lead.email)}</a></td></tr>
+    ${lead.phone ? `<tr><td style="padding:4px 0;color:#94a3b8;">Phone:</td>
+        <td style="padding:4px 0;"><a href="tel:${escapeHtml(lead.phone.replace(/\D/g, ""))}" style="color:#60a5fa;text-decoration:none;">${escapeHtml(phoneFormatted || lead.phone)}</a></td></tr>` : ""}
+    ${lead.company ? `<tr><td style="padding:4px 0;color:#94a3b8;">Company:</td>
+        <td style="padding:4px 0;">${companyLine}</td></tr>` : ""}
+    ${lead.serviceType ? `<tr><td style="padding:4px 0;color:#94a3b8;">Type:</td>
+        <td style="padding:4px 0;">${escapeHtml(lead.serviceType)}</td></tr>` : ""}
+  </table>
+
+  ${lead.message ? `
+  <div style="margin-top:12px;">
+    <div style="color:#94a3b8;font-size:12px;margin-bottom:4px;">Their message:</div>
+    <div style="background:#0f172a;border:1px solid #1e293b;border-radius:6px;padding:10px;color:#cbd5e1;font-size:13px;line-height:1.5;white-space:pre-wrap;">${escapeHtml(lead.message)}</div>
+  </div>` : ""}
+
+  ${enrichment?.aiSummary ? `
+  <div style="margin-top:12px;">
+    <div style="color:#94a3b8;font-size:12px;margin-bottom:4px;">AI Analysis:</div>
+    <div style="color:#e2e8f0;font-size:13px;font-style:italic;line-height:1.4;">&ldquo;${escapeHtml(enrichment.aiSummary)}&rdquo;</div>
+  </div>` : ""}
+</td></tr>
+
+<!-- SPACER -->
+<tr><td style="height:8px;"></td></tr>
+
+<!-- PANEL 2: DRAFT RESPONSE -->
+<tr><td style="background:#0f2a1a;border:2px solid #22c55e;border-radius:8px;padding:24px;">
+  <div style="color:#22c55e;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">Draft Response — Review Before Sending</div>
+
+  <div style="margin-bottom:8px;">
+    <span style="color:#94a3b8;font-size:12px;">Subject:</span>
+    <span style="color:#f8fafc;font-size:14px;font-weight:600;margin-left:8px;">${escapeHtml(draft.subject)}</span>
+  </div>
+
+  <div style="background:#0a1f12;border:1px solid #166534;border-radius:6px;padding:16px;color:#e2e8f0;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(draft.body)}</div>
+</td></tr>
+
+<!-- SPACER -->
+<tr><td style="height:16px;"></td></tr>
+
+<!-- ACTION BUTTONS -->
+<tr><td style="text-align:center;padding:0 24px;">
+  <table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>
+    <!-- Send This Response -->
+    <td style="padding-right:12px;">
+      <table cellpadding="0" cellspacing="0"><tr>
+        <td style="background:#22c55e;border-radius:6px;">
+          <a href="${sendMailto}" style="display:inline-block;padding:12px 24px;color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;">Send This Response</a>
+        </td>
+      </tr></table>
+    </td>
+    <!-- Edit & Send -->
+    <td style="padding-right:12px;">
+      <table cellpadding="0" cellspacing="0"><tr>
+        <td style="background:#2563eb;border-radius:6px;">
+          <a href="${sendMailto}" style="display:inline-block;padding:12px 24px;color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;">Edit &amp; Send</a>
+        </td>
+      </tr></table>
+    </td>
+    <!-- View in Dashboard -->
+    <td>
+      <table cellpadding="0" cellspacing="0"><tr>
+        <td style="background:#334155;border-radius:6px;">
+          <a href="https://rmi-llc.net/admin/leads" style="display:inline-block;padding:12px 24px;color:#e2e8f0;font-weight:600;font-size:14px;text-decoration:none;">View in Dashboard</a>
+        </td>
+      </tr></table>
+    </td>
+  </tr></table>
+</td></tr>
+
+<!-- FOOTER -->
+<tr><td style="padding:16px 24px 0;text-align:center;">
+  <div style="color:#64748b;font-size:11px;">Clicking "Send This Response" opens your email client with the draft pre-filled and addressed to the lead. Review, edit if needed, then hit send.</div>
+</td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}
+
+export async function sendApprovalEmail(params: ApprovalEmailParams): Promise<void> {
+  const apiKey = import.meta.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn("RESEND_API_KEY not set — skipping approval email");
+    return;
+  }
+
+  const resend = new Resend(apiKey);
+  const fromEmail = import.meta.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev";
+  const quality = params.enrichment?.leadQuality ?? "new";
+  const tag = quality === "hot" ? "[HOT]"
+    : quality === "warm" ? "[WARM]"
+    : quality === "cold" ? "[COLD]"
+    : "[NEW]";
+
+  const subject = `${tag} Draft ready — ${params.lead.name}${params.lead.company ? ` (${params.lead.company})` : ""}`;
+
+  await resend.emails.send({
+    from: fromEmail,
+    to: params.to,
+    subject,
+    html: buildApprovalEmailHtml(params),
   });
 }
