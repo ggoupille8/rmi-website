@@ -4,8 +4,8 @@ import userEvent from "@testing-library/user-event";
 import ContactForm from "../landing/ContactForm";
 
 vi.mock("../../content/site", () => ({
-  phoneTel: "tel:+14197056153",
-  phoneDisplay: "419-705-6153",
+  phoneTel: "tel:+12483795156",
+  phoneDisplay: "248-379-5156",
   email: "fab@rmi-llc.net",
   companyNameFull: "Resource Mechanical Insulation, LLC",
   address: {

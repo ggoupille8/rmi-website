@@ -10,9 +10,9 @@ export const EXPECTED = {
   companyName: "Resource Mechanical Insulation",
   companyNameFull: "Resource Mechanical Insulation, LLC",
   email: "fab@rmi-llc.net",
-  phone: "419-705-6153",
-  phoneE164: "+14197056153",
-  phoneTel: "tel:+14197056153",
+  phone: "248-379-5156",
+  phoneE164: "+12483795156",
+  phoneTel: "tel:+12483795156",
   serviceArea: "Michigan and surrounding areas.",
   address: {
     street: "11677 Wayne Road, Suite 112",
