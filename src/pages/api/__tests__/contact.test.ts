@@ -5,41 +5,35 @@ vi.mock("@vercel/postgres", () => ({
   sql: vi.fn(),
 }));
 
-vi.mock("@sendgrid/mail", () => ({
-  default: {
-    setApiKey: vi.fn(),
-    send: vi.fn(),
-  },
-}));
-
 vi.mock("../../../lib/db-env", () => ({
   getPostgresEnv: vi.fn(),
 }));
 
 vi.mock("../../../lib/rate-limiter", () => ({
-  contactRateLimiter: {
-    check: vi.fn(),
-  },
   getClientIP: vi.fn(),
+}));
+
+vi.mock("../../../lib/leadEnrichment", () => ({
+  enrichLeadAsync: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { POST, ALL } from "../contact";
 import { sql } from "@vercel/postgres";
-import sgMail from "@sendgrid/mail";
 import { getPostgresEnv } from "../../../lib/db-env";
-import { contactRateLimiter, getClientIP } from "../../../lib/rate-limiter";
+import { getClientIP } from "../../../lib/rate-limiter";
+import { enrichLeadAsync } from "../../../lib/leadEnrichment";
 
 const mockedSql = vi.mocked(sql);
-const mockedSgMail = vi.mocked(sgMail);
 const mockedGetPostgresEnv = vi.mocked(getPostgresEnv);
-const mockedRateLimiter = vi.mocked(contactRateLimiter);
 const mockedGetClientIP = vi.mocked(getClientIP);
+const mockedEnrichLeadAsync = vi.mocked(enrichLeadAsync);
 
 function createRequest(body: unknown, headers?: Record<string, string>): Request {
   return new Request("http://localhost:4321/api/contact", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       ...headers,
     },
     body: JSON.stringify(body),
@@ -57,25 +51,36 @@ async function parseResponse(response: Response) {
   };
 }
 
-// Standard setup: DB configured, rate limit OK, table exists, DB ready
+// Standard setup: DB configured, table exists, DB ready, rate limit OK
 function setupDefaults() {
   mockedGetPostgresEnv.mockReturnValue({
     url: "postgres://test",
     source: "POSTGRES_URL",
   });
-  mockedRateLimiter.check.mockReturnValue({ allowed: true, remaining: 4 });
   mockedGetClientIP.mockReturnValue("127.0.0.1");
 
+  // Default: all sql calls succeed
   // checkContactsTable: sql`SELECT to_regclass(...)` → table exists
   // verifyDatabaseReady: sql`SELECT 1`
+  // checkDbRateLimit: sql`SELECT COUNT(*)` → count 0 (not rate limited)
   // saveContact: sql`INSERT INTO contacts...`
-  mockedSql.mockResolvedValue({
-    rows: [{ contacts: "contacts", id: "test-uuid" }],
-    command: "",
-    rowCount: 1,
-    oid: 0,
-    fields: [],
-  });
+  mockedSql
+    .mockResolvedValueOnce({
+      rows: [{ contacts: "contacts" }],
+      command: "", rowCount: 1, oid: 0, fields: [],
+    })
+    .mockResolvedValueOnce({
+      rows: [{ "?column?": 1 }],
+      command: "", rowCount: 1, oid: 0, fields: [],
+    })
+    .mockResolvedValueOnce({
+      rows: [{ cnt: "0" }],
+      command: "", rowCount: 1, oid: 0, fields: [],
+    })
+    .mockResolvedValueOnce({
+      rows: [{ id: "test-uuid" }],
+      command: "", rowCount: 1, oid: 0, fields: [],
+    });
 }
 
 const validBody = {
@@ -83,13 +88,12 @@ const validBody = {
   email: "john@example.com",
   phone: "555-123-4567",
   message: "Test message for contact form.",
+  metadata: { elapsedMs: 10000 },
 };
 
 describe("POST /api/contact", () => {
   beforeEach(() => {
-    vi.stubEnv("SENDGRID_API_KEY", "test-sendgrid-key");
-    vi.stubEnv("QUOTE_TO_EMAIL", "test@rmi-llc.net");
-    vi.stubEnv("QUOTE_FROM_EMAIL", "no-reply@test.com");
+    vi.clearAllMocks();
     setupDefaults();
   });
 
@@ -97,7 +101,10 @@ describe("POST /api/contact", () => {
     const request = new Request("http://localhost:4321/api/contact", {
       method: "POST",
       body: "not json",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+      },
     });
     const { status, body } = await parseResponse(
       await POST(createContext(request))
@@ -117,34 +124,44 @@ describe("POST /api/contact", () => {
   });
 
   it("returns 500 when contacts table is missing", async () => {
-    // First sql call (checkContactsTable) returns no table
+    mockedSql.mockReset();
     mockedSql.mockResolvedValueOnce({
       rows: [{ contacts: null }],
-      command: "",
-      rowCount: 1,
-      oid: 0,
-      fields: [],
+      command: "", rowCount: 1, oid: 0, fields: [],
     });
 
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const { status, body } = await parseResponse(
       await POST(createContext(createRequest(validBody)))
     );
     expect(status).toBe(500);
     expect(body.error).toBe("Database schema missing");
+    consoleSpy.mockRestore();
   });
 
-  it("returns 429 when rate limited", async () => {
-    mockedRateLimiter.check.mockReturnValue({
-      allowed: false,
-      remaining: 0,
-      retryAfter: 45,
+  it("returns 429 when rate limited (DB-backed)", async () => {
+    mockedSql.mockReset();
+    // checkContactsTable: success
+    mockedSql.mockResolvedValueOnce({
+      rows: [{ contacts: "contacts" }],
+      command: "", rowCount: 1, oid: 0, fields: [],
+    });
+    // verifyDatabaseReady: success
+    mockedSql.mockResolvedValueOnce({
+      rows: [{ "?column?": 1 }],
+      command: "", rowCount: 1, oid: 0, fields: [],
+    });
+    // checkDbRateLimit: count >= 3 → rate limited
+    mockedSql.mockResolvedValueOnce({
+      rows: [{ cnt: "3" }],
+      command: "", rowCount: 1, oid: 0, fields: [],
     });
 
     const response = await POST(createContext(createRequest(validBody)));
     expect(response.status).toBe(429);
-    expect(response.headers.get("Retry-After")).toBe("45");
+    expect(response.headers.get("Retry-After")).toBe("3600");
     const body = (await response.json()) as Record<string, unknown>;
-    expect(body.error).toBe("Too many requests");
+    expect(body.error).toContain("Too many requests");
   });
 
   it("returns 200 silently when honeypot is filled", async () => {
@@ -155,9 +172,6 @@ describe("POST /api/contact", () => {
     );
     expect(status).toBe(200);
     expect(body.ok).toBe(true);
-    // Should NOT save to database
-    // checkContactsTable is called, but saveContact should NOT be
-    // The honeypot check happens after table check, so sql is called for table check
   });
 
   it("returns 400 when name is empty", async () => {
@@ -176,21 +190,22 @@ describe("POST /api/contact", () => {
     expect(body.error).toBe("Invalid input");
   });
 
-  it("returns 400 when name exceeds length limit", async () => {
+  it("truncates name to 100 chars and accepts submission", async () => {
     const { status, body } = await parseResponse(
       await POST(
-        createContext(createRequest({ ...validBody, name: "A".repeat(101) }))
+        createContext(createRequest({ ...validBody, name: "A".repeat(150) }))
       )
     );
-    expect(status).toBe(400);
-    expect(body.error).toBe("Invalid input");
+    // Spec says truncate, not reject — name is sliced to 100 chars
+    expect(status).toBe(200);
+    expect(body.ok).toBe(true);
   });
 
   it("returns 400 when email is not provided", async () => {
     const { status, body } = await parseResponse(
       await POST(
         createContext(
-          createRequest({ name: "John", message: "Hello", email: "", phone: "" })
+          createRequest({ name: "John", message: "Hello", email: "", phone: "", metadata: { elapsedMs: 10000 } })
         )
       )
     );
@@ -220,6 +235,7 @@ describe("POST /api/contact", () => {
             phone: "555-123-4567",
             message: "Hello",
             email: "",
+            metadata: { elapsedMs: 10000 },
           })
         )
       )
@@ -229,15 +245,13 @@ describe("POST /api/contact", () => {
   });
 
   it("returns 500 when database verify fails", async () => {
-    // First call: checkContactsTable succeeds
+    mockedSql.mockReset();
+    // checkContactsTable: success
     mockedSql.mockResolvedValueOnce({
       rows: [{ contacts: "contacts" }],
-      command: "",
-      rowCount: 1,
-      oid: 0,
-      fields: [],
+      command: "", rowCount: 1, oid: 0, fields: [],
     });
-    // Second call: verifyDatabaseReady fails
+    // verifyDatabaseReady: failure
     mockedSql.mockRejectedValueOnce(new Error("Connection refused"));
 
     const { status, body } = await parseResponse(
@@ -248,21 +262,21 @@ describe("POST /api/contact", () => {
   });
 
   it("returns 500 when saveContact fails", async () => {
+    mockedSql.mockReset();
     // checkContactsTable: success
     mockedSql.mockResolvedValueOnce({
       rows: [{ contacts: "contacts" }],
-      command: "",
-      rowCount: 1,
-      oid: 0,
-      fields: [],
+      command: "", rowCount: 1, oid: 0, fields: [],
     });
     // verifyDatabaseReady: success
     mockedSql.mockResolvedValueOnce({
       rows: [{ "?column?": 1 }],
-      command: "",
-      rowCount: 1,
-      oid: 0,
-      fields: [],
+      command: "", rowCount: 1, oid: 0, fields: [],
+    });
+    // checkDbRateLimit: not limited
+    mockedSql.mockResolvedValueOnce({
+      rows: [{ cnt: "0" }],
+      command: "", rowCount: 1, oid: 0, fields: [],
     });
     // saveContact: failure
     mockedSql.mockRejectedValueOnce(new Error("Insert failed"));
@@ -284,8 +298,19 @@ describe("POST /api/contact", () => {
     expect(body.ok).toBe(true);
   });
 
-  it("succeeds even when email send fails", async () => {
-    mockedSgMail.send.mockRejectedValueOnce(new Error("SendGrid error"));
+  it("fires enrichment async after successful save", async () => {
+    await POST(createContext(createRequest(validBody)));
+    // enrichLeadAsync is called fire-and-forget
+    expect(mockedEnrichLeadAsync).toHaveBeenCalledWith(
+      "test-uuid",
+      expect.objectContaining({ name: "John Doe", email: "john@example.com" }),
+      expect.any(Object),
+      "127.0.0.1"
+    );
+  });
+
+  it("returns 200 even if enrichment would fail", async () => {
+    mockedEnrichLeadAsync.mockRejectedValueOnce(new Error("Enrichment error"));
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const { status, body } = await parseResponse(
@@ -293,7 +318,6 @@ describe("POST /api/contact", () => {
     );
     expect(status).toBe(200);
     expect(body.ok).toBe(true);
-
     consoleSpy.mockRestore();
   });
 
@@ -311,8 +335,6 @@ describe("POST /api/contact", () => {
     };
 
     await POST(createContext(createRequest(bodyWithMetadata)));
-
-    // sql should be called for INSERT with the metadata values
     expect(mockedSql).toHaveBeenCalled();
   });
 });
