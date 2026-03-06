@@ -1,7 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import ProjectShowcase from "../landing/ProjectShowcase";
 import { projectHighlights } from "../../content/site";
+
+vi.mock("../../lib/media-loader", () => ({
+  getMediaOverrides: vi.fn().mockResolvedValue({}),
+}));
 
 describe("ProjectShowcase", () => {
   it("renders section with aria-labelledby", () => {

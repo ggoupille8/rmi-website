@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { projectHighlights } from "../../content/site";
 import { ErrorBoundary } from "../ErrorBoundary";
-import { getImageOverrides } from "../../lib/media-loader";
+import { getMediaOverrides } from "../../lib/media-loader";
+import type { MediaOverride } from "../../lib/media-loader";
 
 // Map project image paths to slot names for override lookup
 const projectSlotMap: Record<string, string> = {
@@ -11,11 +12,11 @@ const projectSlotMap: Record<string, string> = {
 };
 
 export default function ProjectShowcase() {
-  const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
+  const [imageOverrides, setImageOverrides] = useState<Record<string, MediaOverride>>({});
 
   useEffect(() => {
     const slots = Object.values(projectSlotMap);
-    getImageOverrides(slots).then((overrides) => {
+    getMediaOverrides(slots).then((overrides) => {
       if (Object.keys(overrides).length > 0) {
         setImageOverrides(overrides);
       }
@@ -49,7 +50,9 @@ export default function ProjectShowcase() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-4 lg:gap-5">
           {projectHighlights.map((project) => {
             const slot = projectSlotMap[project.image];
-            const overrideUrl = slot ? imageOverrides[slot] : undefined;
+            const override = slot ? imageOverrides[slot] : undefined;
+            const overrideUrl = override?.url;
+            const variants = override?.variants;
             return (
             <div
               key={project.title}
@@ -59,6 +62,10 @@ export default function ProjectShowcase() {
                 {overrideUrl ? (
                   <img
                     src={overrideUrl}
+                    srcSet={variants && Object.keys(variants).length > 1
+                      ? Object.entries(variants).map(([k, v]) => `${v} ${k.replace("w", "")}w`).join(", ")
+                      : undefined}
+                    sizes={variants && Object.keys(variants).length > 1 ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" : undefined}
                     alt={project.alt}
                     width="960"
                     height="720"

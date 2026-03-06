@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { put } from "@vercel/blob";
 import { isAdminAuthorized } from "../../../lib/admin-auth";
+import { processImage, validateImage } from "../../../lib/imageProcessor";
 
 export const prerender = false;
 
@@ -32,6 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const formData = await request.formData();
     const file = formData.get("file");
+    const slot = formData.get("slot");
 
     if (!file || !(file instanceof File)) {
       return new Response(
@@ -60,28 +62,65 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Generate a clean filename with timestamp
-    const ext = file.name.split(".").pop()?.toLowerCase() || "webp";
+    // Read file into buffer for processing
+    const arrayBuffer = await file.arrayBuffer();
+    const imageBuffer = Buffer.from(arrayBuffer);
+
+    // Validate image magic bytes
+    const validation = validateImage(imageBuffer);
+    if (!validation.valid) {
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { status: 400, headers: SECURITY_HEADERS }
+      );
+    }
+
+    // Generate a clean base name
     const safeName = file.name
       .replace(/\.[^.]+$/, "")
       .replace(/[^a-zA-Z0-9-_]/g, "-")
       .toLowerCase()
       .slice(0, 50);
     const timestamp = Date.now();
-    const blobPath = `media/${safeName}-${timestamp}.${ext}`;
+    const slotPrefix = typeof slot === "string" && slot.trim()
+      ? slot.trim()
+      : safeName;
+    const basePath = `media/${slotPrefix}-${timestamp}`;
 
-    // Upload to Vercel Blob
-    const blob = await put(blobPath, file, {
-      access: "public",
-      contentType: file.type,
-    });
+    // Process image — generate responsive WebP variants
+    const result = await processImage(imageBuffer);
+
+    // Upload all variants to Vercel Blob
+    const variantUrls: Record<string, string> = {};
+    let primaryUrl = "";
+
+    for (const variant of result.variants) {
+      const blobPath = `${basePath}-${variant.variant}.webp`;
+      const blob = await put(blobPath, variant.buffer, {
+        access: "public",
+        contentType: "image/webp",
+      });
+      variantUrls[variant.variant] = blob.url;
+    }
+
+    // The primary URL is the largest variant
+    const largestVariant = result.variants[result.variants.length - 1];
+    primaryUrl = variantUrls[largestVariant.variant];
 
     return new Response(
       JSON.stringify({
-        url: blob.url,
+        url: primaryUrl,
+        variants: variantUrls,
         size: file.size,
-        contentType: file.type,
+        contentType: "image/webp",
         fileName: file.name,
+        width: result.originalWidth,
+        height: result.originalHeight,
+        originalFormat: result.originalFormat,
+        variantCount: result.variants.length,
+        variantSizes: Object.fromEntries(
+          result.variants.map((v) => [v.variant, v.sizeBytes])
+        ),
       }),
       { status: 200, headers: SECURITY_HEADERS }
     );
