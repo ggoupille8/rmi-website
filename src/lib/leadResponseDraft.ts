@@ -79,12 +79,23 @@ ${lead.enrichment?.urgencyLevel ? `Urgency: ${lead.enrichment.urgencyLevel}` : "
 Return ONLY a JSON object with "subject" and "body" fields. No markdown, no backticks.`;
 
   try {
-    const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 500,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userPrompt }],
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12_000);
+
+    let response: Anthropic.Messages.Message;
+    try {
+      response = await client.messages.create(
+        {
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 500,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userPrompt }],
+        },
+        { signal: controller.signal }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     const text =
       response.content[0].type === "text" ? response.content[0].text : "";
@@ -93,13 +104,15 @@ Return ONLY a JSON object with "subject" and "body" fields. No markdown, no back
     const parsed: { subject: string; body: string } = JSON.parse(cleaned);
     return { subject: parsed.subject, body: parsed.body };
   } catch (error) {
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    const isTimeout = msg.includes("abort");
     console.error(
-      "Draft generation failed:",
-      error instanceof Error ? error.message : "Unknown error"
+      `Draft generation ${isTimeout ? "timed out" : "failed"}:`,
+      msg
     );
     return {
       subject: "Re: Your insulation project inquiry",
-      body: "(Draft generation failed — see server logs)",
+      body: `(Draft generation ${isTimeout ? "timed out" : "failed"} — please reply manually)`,
     };
   }
 }
