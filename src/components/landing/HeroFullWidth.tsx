@@ -230,12 +230,8 @@ export default function HeroFullWidth({
           return (
           <div
             key={src}
-            className={`absolute inset-0 ease-in-out ${
-              isActive
-                ? "transition-opacity duration-[2000ms] opacity-100"
-                : isPrev
-                ? "transition-opacity duration-[2000ms] opacity-0"
-                : "transition-opacity duration-[0ms] opacity-0"
+            className={`absolute inset-0 transition-opacity duration-[2000ms] ease-in-out ${
+              isActive ? "opacity-100" : "opacity-0"
             }`}
             style={{ zIndex: isActive ? 2 : isPrev ? 1 : 0 }}
             aria-hidden="true"
@@ -252,9 +248,7 @@ export default function HeroFullWidth({
                 fetchPriority={index === 0 ? "high" : undefined}
                 style={
                   !prefersReducedMotion
-                    ? isActive || isPrev
-                      ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-in-out forwards`, transformOrigin: heroImageOrigins[index] }
-                      : { transform: "scale(1)", filter: "brightness(1)" }
+                    ? { animation: `kenBurns ${SLIDE_DURATION * 2}ms ease-in-out infinite alternate`, animationDelay: `${index * -(SLIDE_DURATION / 3)}ms`, transformOrigin: heroImageOrigins[index] }
                     : { transform: "scale(1)", filter: "brightness(1)" }
                 }
               />
@@ -278,9 +272,7 @@ export default function HeroFullWidth({
                   fetchPriority={index === 0 ? "high" : undefined}
                   style={
                     !prefersReducedMotion
-                      ? isActive || isPrev
-                        ? { animation: `kenBurns ${SLIDE_DURATION}ms ease-in-out forwards`, transformOrigin: heroImageOrigins[index] }
-                        : { transform: "scale(1)", filter: "brightness(1)" }
+                      ? { animation: `kenBurns ${SLIDE_DURATION * 2}ms ease-in-out infinite alternate`, animationDelay: `${index * -(SLIDE_DURATION / 3)}ms`, transformOrigin: heroImageOrigins[index] }
                       : { transform: "scale(1)", filter: "brightness(1)" }
                   }
                 />
