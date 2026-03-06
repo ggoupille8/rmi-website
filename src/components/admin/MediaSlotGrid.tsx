@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Upload, RotateCcw, Edit3, Loader2 } from "lucide-react";
+import { Upload, RotateCcw, Undo2, Edit3, Loader2, Clock } from "lucide-react";
 import ImageUploader from "./ImageUploader";
 
 interface SlotDefinition {
@@ -16,34 +16,70 @@ interface MediaRecord {
   file_name: string;
   alt_text: string | null;
   uploaded_at: string;
+  updated_at?: string;
+}
+
+interface AuditEntry {
+  id: string;
+  slot: string;
+  action: string;
+  previous_blob_url: string | null;
+  performed_at: string;
 }
 
 interface MediaSlotGridProps {
   slots: SlotDefinition[];
   overrides: Record<string, MediaRecord>;
+  auditHistory: Record<string, AuditEntry | null>;
   onRefresh: () => void;
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHrs = Math.floor(diffMin / 60);
+  const diffDays = Math.floor(diffHrs / 24);
+
+  if (diffSec < 60) return "Just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHrs < 24) return `${diffHrs}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export default function MediaSlotGrid({
   slots,
   overrides,
+  auditHistory,
   onRefresh,
 }: MediaSlotGridProps) {
   const [uploadingSlot, setUploadingSlot] = useState<SlotDefinition | null>(null);
   const [editingAlt, setEditingAlt] = useState<string | null>(null);
   const [altText, setAltText] = useState("");
   const [reverting, setReverting] = useState<string | null>(null);
+  const [undoing, setUndoing] = useState<string | null>(null);
   const [savingAlt, setSavingAlt] = useState(false);
 
-  const handleRevert = async (slotName: string) => {
-    const record = overrides[slotName];
+  const handleRevertToDefault = async (slotDef: SlotDefinition) => {
+    const record = overrides[slotDef.slot];
     if (!record) return;
 
-    if (!window.confirm("Revert to the default image? The uploaded image will be deleted.")) {
+    if (
+      !window.confirm(
+        "Revert to the original default image? The custom image is preserved and you can undo this."
+      )
+    ) {
       return;
     }
 
-    setReverting(slotName);
+    setReverting(slotDef.slot);
     try {
       const res = await fetch("/api/admin/media", {
         method: "DELETE",
@@ -59,6 +95,30 @@ export default function MediaSlotGrid({
       alert(err instanceof Error ? err.message : "Failed to revert image");
     } finally {
       setReverting(null);
+    }
+  };
+
+  const handleUndo = async (slotDef: SlotDefinition) => {
+    setUndoing(slotDef.slot);
+    try {
+      const res = await fetch("/api/admin/media-audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "undo",
+          slot: slotDef.slot,
+          category: slotDef.category,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Undo failed" }));
+        throw new Error(data.error || "Failed to undo");
+      }
+      onRefresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to undo");
+    } finally {
+      setUndoing(null);
     }
   };
 
@@ -101,6 +161,9 @@ export default function MediaSlotGrid({
           const isCustom = !!record;
           const imageSrc = isCustom ? record.blob_url : slotDef.defaultImage;
           const isReverting = reverting === slotDef.slot;
+          const isUndoing = undoing === slotDef.slot;
+          const lastAudit = auditHistory[slotDef.slot];
+          const hasHistory = !!lastAudit;
 
           return (
             <div
@@ -138,8 +201,16 @@ export default function MediaSlotGrid({
                   </p>
                 )}
 
+                {/* Last changed timestamp */}
+                {lastAudit && (
+                  <p className="flex items-center gap-1 text-[10px] text-neutral-600 mt-1">
+                    <Clock size={10} />
+                    Changed {formatRelativeTime(lastAudit.performed_at)}
+                  </p>
+                )}
+
                 {/* Action buttons */}
-                <div className="flex gap-2 mt-3">
+                <div className="flex flex-wrap gap-2 mt-3">
                   <button
                     type="button"
                     onClick={() => setUploadingSlot(slotDef)}
@@ -148,32 +219,53 @@ export default function MediaSlotGrid({
                     <Upload size={12} />
                     Upload New
                   </button>
+
+                  {/* Undo — visible when there's history */}
+                  {hasHistory && (
+                    <button
+                      type="button"
+                      onClick={() => handleUndo(slotDef)}
+                      disabled={isUndoing}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-amber-400 hover:bg-amber-500/10 rounded transition-colors disabled:opacity-50"
+                      title="Undo last change"
+                    >
+                      {isUndoing ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <Undo2 size={12} />
+                      )}
+                      Undo
+                    </button>
+                  )}
+
                   {isCustom && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => handleRevert(slotDef.slot)}
-                        disabled={isReverting}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors disabled:opacity-50"
-                      >
-                        {isReverting ? (
-                          <Loader2 size={12} className="animate-spin" />
-                        ) : (
-                          <RotateCcw size={12} />
-                        )}
-                        Revert
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleEditAlt(slotDef.slot)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-primary-400 hover:bg-primary-500/10 rounded transition-colors"
-                      >
-                        <Edit3 size={12} />
-                        Alt
-                      </button>
-                    </>
+                    <button
+                      type="button"
+                      onClick={() => handleEditAlt(slotDef.slot)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-primary-400 hover:bg-primary-500/10 rounded transition-colors"
+                    >
+                      <Edit3 size={12} />
+                      Alt
+                    </button>
                   )}
                 </div>
+
+                {/* Revert to Default — text link, only when custom override exists */}
+                {isCustom && (
+                  <button
+                    type="button"
+                    onClick={() => handleRevertToDefault(slotDef)}
+                    disabled={isReverting}
+                    className="flex items-center gap-1.5 mt-2 text-[11px] text-neutral-500 hover:text-red-400 transition-colors disabled:opacity-50"
+                  >
+                    {isReverting ? (
+                      <Loader2 size={10} className="animate-spin" />
+                    ) : (
+                      <RotateCcw size={10} />
+                    )}
+                    Revert to Default
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -194,9 +286,14 @@ export default function MediaSlotGrid({
       {/* Alt text edit modal */}
       {editingAlt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70" onClick={() => setEditingAlt(null)} />
+          <div
+            className="absolute inset-0 bg-black/70"
+            onClick={() => setEditingAlt(null)}
+          />
           <div className="relative bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-sm shadow-2xl p-5">
-            <h3 className="text-base font-semibold text-white mb-3">Edit Alt Text</h3>
+            <h3 className="text-base font-semibold text-white mb-3">
+              Edit Alt Text
+            </h3>
             <input
               type="text"
               value={altText}

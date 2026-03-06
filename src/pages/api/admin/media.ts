@@ -1,9 +1,9 @@
 import type { APIRoute } from "astro";
 import { sql } from "@vercel/postgres";
-import { del } from "@vercel/blob";
 import { getPostgresEnv } from "../../../lib/db-env";
 import { isAdminAuthorized } from "../../../lib/admin-auth";
 import { ensureMediaTable } from "../../../lib/ensure-media-table";
+import { ensureAuditTable } from "../../../lib/ensure-audit-table";
 
 export const prerender = false;
 
@@ -92,6 +92,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     await ensureMediaTable();
+    await ensureAuditTable();
 
     const body = await request.json();
     const { slot, category, blobUrl, fileName, fileSize, altText, variants } = body as {
@@ -149,28 +150,17 @@ export const POST: APIRoute = async ({ request }) => {
         ? JSON.stringify(variants)
         : null;
 
-    // Upsert — if slot already exists, update it (and delete old blobs)
+    // Upsert — if slot already exists, update it (preserve old blobs for audit trail)
     const existing = await sql.query(
-      `SELECT id, blob_url, variants FROM media WHERE slot = $1`,
+      `SELECT id, blob_url, file_name, variants FROM media WHERE slot = $1`,
       [slot.trim()]
     );
 
     if (existing.rows.length > 0) {
-      const oldBlobUrl = existing.rows[0].blob_url;
-      const oldVariants = existing.rows[0].variants as Record<string, string> | null;
+      const oldBlobUrl = existing.rows[0].blob_url as string;
+      const oldFileName = existing.rows[0].file_name as string;
 
-      // Delete old blob files (primary + all variants)
-      const urlsToDelete = [oldBlobUrl];
-      if (oldVariants) {
-        urlsToDelete.push(...Object.values(oldVariants));
-      }
-      for (const url of urlsToDelete) {
-        try {
-          await del(url);
-        } catch {
-          // Non-critical — old blob may already be deleted
-        }
-      }
+      // DO NOT delete old blobs — preserve them for audit trail / undo
 
       const result = await sql.query(
         `UPDATE media
@@ -178,6 +168,13 @@ export const POST: APIRoute = async ({ request }) => {
          WHERE slot = $6
          RETURNING id, slot, category, blob_url, file_name, file_size, alt_text, variants, uploaded_at, updated_at`,
         [blobUrl, fileName, fileSize, altTextValue, variantsValue, slot.trim()]
+      );
+
+      // Write audit log entry
+      await sql.query(
+        `INSERT INTO media_audit_log (slot, action, previous_blob_url, previous_filename, new_blob_url, new_filename)
+         VALUES ($1, 'upload', $2, $3, $4, $5)`,
+        [slot.trim(), oldBlobUrl, oldFileName, blobUrl, fileName]
       );
 
       return new Response(
@@ -192,6 +189,13 @@ export const POST: APIRoute = async ({ request }) => {
        VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
        RETURNING id, slot, category, blob_url, file_name, file_size, alt_text, variants, uploaded_at, updated_at`,
       [slot.trim(), category, blobUrl, fileName, fileSize, altTextValue, variantsValue]
+    );
+
+    // Write audit log entry for first upload
+    await sql.query(
+      `INSERT INTO media_audit_log (slot, action, new_blob_url, new_filename, notes)
+       VALUES ($1, 'upload', $2, $3, 'First upload to slot')`,
+      [slot.trim(), blobUrl, fileName]
     );
 
     return new Response(
@@ -312,7 +316,7 @@ export const PATCH: APIRoute = async ({ request }) => {
   }
 };
 
-/** DELETE /api/admin/media — remove an image from a slot (reverts to static fallback) */
+/** DELETE /api/admin/media — remove override from a slot (reverts to static fallback, preserves blob) */
 export const DELETE: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) return unauthorizedResponse();
 
@@ -321,6 +325,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
   try {
     await ensureMediaTable();
+    await ensureAuditTable();
 
     const body = await request.json();
     const { id } = body as { id?: unknown };
@@ -344,7 +349,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     // Fetch the record to get blob URL before deleting
     const existing = await sql.query(
-      `SELECT id, blob_url, variants FROM media WHERE id = $1`,
+      `SELECT id, slot, blob_url, file_name, variants FROM media WHERE id = $1`,
       [id]
     );
 
@@ -355,24 +360,21 @@ export const DELETE: APIRoute = async ({ request }) => {
       );
     }
 
-    const blobUrl = existing.rows[0].blob_url;
-    const existingVariants = existing.rows[0].variants as Record<string, string> | null;
+    const { slot, blob_url: blobUrl, file_name: fileName } = existing.rows[0] as {
+      slot: string;
+      blob_url: string;
+      file_name: string;
+    };
 
-    // Delete from database
+    // Delete from database (but DO NOT delete blobs — preserve for audit trail / undo)
     await sql.query(`DELETE FROM media WHERE id = $1`, [id]);
 
-    // Delete all blobs (primary + variants)
-    const urlsToDelete = [blobUrl];
-    if (existingVariants) {
-      urlsToDelete.push(...Object.values(existingVariants));
-    }
-    for (const url of urlsToDelete) {
-      try {
-        await del(url);
-      } catch {
-        // Non-critical — blob may already be deleted
-      }
-    }
+    // Write audit log entry
+    await sql.query(
+      `INSERT INTO media_audit_log (slot, action, previous_blob_url, previous_filename, notes)
+       VALUES ($1, 'delete', $2, $3, 'Reverted to default image')`,
+      [slot, blobUrl, fileName]
+    );
 
     return new Response(
       JSON.stringify({ ok: true }),
