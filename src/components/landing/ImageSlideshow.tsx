@@ -80,8 +80,13 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
 
   const handleTouchEnd = () => {
     if (Math.abs(touchDeltaRef.current) > SWIPE_THRESHOLD) {
-      if (touchDeltaRef.current < 0) goNext();
-      else goPrev();
+      // Directly change the slide without the pause/unpause in changeSlide,
+      // since touch handlers manage their own pause timing
+      const next = touchDeltaRef.current < 0 ? currentIndex + 1 : currentIndex - 1;
+      setCurrentIndex(prev => {
+        prevIndexRef.current = prev;
+        return ((next % count) + count) % count;
+      });
     }
     touchStartRef.current = null;
     touchDeltaRef.current = 0;
