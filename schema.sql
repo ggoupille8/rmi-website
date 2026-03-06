@@ -363,3 +363,31 @@ CREATE TABLE IF NOT EXISTS sync_runs (
 
 CREATE INDEX IF NOT EXISTS idx_sync_status     ON sync_runs(status);
 CREATE INDEX IF NOT EXISTS idx_sync_started_at ON sync_runs(started_at);
+
+-- Media audit log — tracks every media change for full audit trail
+CREATE TABLE IF NOT EXISTS media_audit_log (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  -- What changed
+  slot              VARCHAR(50) NOT NULL,        -- e.g. "hero-1", "project-henry-ford"
+  action            VARCHAR(20) NOT NULL,        -- 'upload', 'revert', 'delete', 'restore'
+
+  -- Before state
+  previous_blob_url TEXT,                        -- URL of the image BEFORE the change (null for first upload)
+  previous_filename VARCHAR(255),
+
+  -- After state
+  new_blob_url      TEXT,                        -- URL of the image AFTER the change (null for delete)
+  new_filename      VARCHAR(255),
+
+  -- Who and when
+  performed_by      VARCHAR(100) DEFAULT 'admin',
+  performed_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+  -- Notes
+  notes             TEXT                         -- optional context
+);
+
+CREATE INDEX IF NOT EXISTS idx_mal_slot ON media_audit_log(slot);
+CREATE INDEX IF NOT EXISTS idx_mal_action ON media_audit_log(action);
+CREATE INDEX IF NOT EXISTS idx_mal_performed_at ON media_audit_log(performed_at DESC);

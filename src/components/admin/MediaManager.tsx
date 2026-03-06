@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 import MediaSlotGrid from "./MediaSlotGrid";
+import MediaAuditLog from "./MediaAuditLog";
 
 interface MediaRecord {
   id: string;
@@ -19,6 +20,14 @@ interface SlotDefinition {
   label: string;
   defaultImage: string;
   category: string;
+}
+
+interface AuditEntry {
+  id: string;
+  slot: string;
+  action: string;
+  previous_blob_url: string | null;
+  performed_at: string;
 }
 
 // Hero image slots
@@ -82,6 +91,7 @@ const tabs = [
   { id: "hero", label: "Hero Images" },
   { id: "service", label: "Service Photos" },
   { id: "project", label: "Project Photos" },
+  { id: "audit", label: "Audit Log" },
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
@@ -89,6 +99,7 @@ type TabId = (typeof tabs)[number]["id"];
 export default function MediaManager() {
   const [activeTab, setActiveTab] = useState<TabId>("hero");
   const [media, setMedia] = useState<MediaRecord[]>([]);
+  const [auditHistory, setAuditHistory] = useState<Record<string, AuditEntry | null>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -106,13 +117,35 @@ export default function MediaManager() {
     }
   }, []);
 
+  const fetchAuditHistory = useCallback(async () => {
+    try {
+      // Fetch recent audit entries (enough to cover all slots)
+      const res = await fetch("/api/admin/media-audit?limit=200");
+      if (!res.ok) return;
+      const data = (await res.json()) as { logs: AuditEntry[] };
+
+      // Build a map of slot → most recent audit entry
+      const history: Record<string, AuditEntry | null> = {};
+      for (const entry of data.logs) {
+        if (!history[entry.slot]) {
+          history[entry.slot] = entry;
+        }
+      }
+      setAuditHistory(history);
+    } catch {
+      // Non-critical — audit history is informational
+    }
+  }, []);
+
   useEffect(() => {
     fetchMedia();
-  }, [fetchMedia]);
+    fetchAuditHistory();
+  }, [fetchMedia, fetchAuditHistory]);
 
   const handleRefresh = () => {
     setLoading(true);
     fetchMedia();
+    fetchAuditHistory();
   };
 
   // Build override map from media records
@@ -131,6 +164,8 @@ export default function MediaManager() {
       case "service":
         // Return all service slots, grouped
         return serviceGroups.flatMap(buildServiceSlots);
+      case "audit":
+        return [];
     }
   };
 
@@ -157,61 +192,72 @@ export default function MediaManager() {
             </button>
           ))}
         </div>
-        <div className="ml-auto">
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
-            Refresh
-          </button>
-        </div>
+        {activeTab !== "audit" && (
+          <div className="ml-auto">
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
+              Refresh
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Error state */}
-      {error && (
-        <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-300 mb-6">
-          {error}
-        </div>
-      )}
-
-      {/* Loading state */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={24} className="animate-spin text-neutral-500" />
-        </div>
+      {/* Audit Log tab */}
+      {activeTab === "audit" ? (
+        <MediaAuditLog />
       ) : (
         <>
-          {/* Service photos: show grouped sections */}
-          {activeTab === "service" ? (
-            <div className="space-y-8">
-              {serviceGroups.map((group) => {
-                const slots = buildServiceSlots(group);
-                return (
-                  <div key={group.slug}>
-                    <h3 className="text-base font-semibold text-neutral-200 mb-3 flex items-center gap-2">
-                      {group.title}
-                      <span className="text-xs text-neutral-500 font-normal">
-                        {group.imageCount} photos
-                      </span>
-                    </h3>
-                    <MediaSlotGrid
-                      slots={slots}
-                      overrides={overrides}
-                      onRefresh={handleRefresh}
-                    />
-                  </div>
-                );
-              })}
+          {/* Error state */}
+          {error && (
+            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-300 mb-6">
+              {error}
+            </div>
+          )}
+
+          {/* Loading state */}
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 size={24} className="animate-spin text-neutral-500" />
             </div>
           ) : (
-            <MediaSlotGrid
-              slots={getSlots()}
-              overrides={overrides}
-              onRefresh={handleRefresh}
-            />
+            <>
+              {/* Service photos: show grouped sections */}
+              {activeTab === "service" ? (
+                <div className="space-y-8">
+                  {serviceGroups.map((group) => {
+                    const slots = buildServiceSlots(group);
+                    return (
+                      <div key={group.slug}>
+                        <h3 className="text-base font-semibold text-neutral-200 mb-3 flex items-center gap-2">
+                          {group.title}
+                          <span className="text-xs text-neutral-500 font-normal">
+                            {group.imageCount} photos
+                          </span>
+                        </h3>
+                        <MediaSlotGrid
+                          slots={slots}
+                          overrides={overrides}
+                          auditHistory={auditHistory}
+                          onRefresh={handleRefresh}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <MediaSlotGrid
+                  slots={getSlots()}
+                  overrides={overrides}
+                  auditHistory={auditHistory}
+                  onRefresh={handleRefresh}
+                />
+              )}
+            </>
           )}
         </>
       )}
