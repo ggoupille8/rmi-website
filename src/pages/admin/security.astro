@@ -1,0 +1,10 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import IPBlacklist from '../../components/admin/IPBlacklist.tsx';
+
+export const prerender = false;
+---
+
+<AdminLayout title="Security">
+  <IPBlacklist client:load />
+</AdminLayout>

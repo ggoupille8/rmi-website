@@ -162,6 +162,21 @@ CREATE TABLE IF NOT EXISTS lead_intelligence (
   email_mx_valid        BOOLEAN,
   disposable_email      BOOLEAN DEFAULT FALSE,
 
+  -- Expanded intelligence (JSONB columns)
+  browser_fingerprint   JSONB,
+  screen_info           JSONB,
+  timezone_info         JSONB,
+  network_deep          JSONB,
+  performance_timing    JSONB,
+  page_context          JSONB,
+  media_capabilities    JSONB,
+  storage_probes        JSONB,
+  canvas_fingerprint    VARCHAR(20),
+  webgl_info            JSONB,
+  font_hash             VARCHAR(20),
+  advanced_behavioral   JSONB,
+  submission_meta       JSONB,
+
   -- Metadata
   enriched_at           TIMESTAMP WITH TIME ZONE,
   enrichment_version    VARCHAR(10) DEFAULT '1.0',
@@ -405,3 +420,18 @@ CREATE TABLE IF NOT EXISTS lead_drafts (
 
 CREATE INDEX IF NOT EXISTS idx_ld_contact_id ON lead_drafts(contact_id);
 CREATE INDEX IF NOT EXISTS idx_ld_status ON lead_drafts(status);
+
+-- IP blacklist — auto-ban and manual block support
+CREATE TABLE IF NOT EXISTS ip_blacklist (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  ip_address      VARCHAR(45) NOT NULL,
+  reason          TEXT NOT NULL,
+  blocked_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  expires_at      TIMESTAMP WITH TIME ZONE,  -- null = permanent
+  auto_banned     BOOLEAN DEFAULT FALSE,     -- true = system banned, false = manual
+  submission_count INTEGER DEFAULT 0,        -- how many times they tried after being banned
+  metadata        JSONB                      -- store the last intelligence payload for evidence
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ipb_ip ON ip_blacklist(ip_address);
+CREATE INDEX IF NOT EXISTS idx_ipb_expires ON ip_blacklist(expires_at);
