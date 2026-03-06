@@ -699,6 +699,8 @@ test.describe("Form Loading State", () => {
 
   test("submit with empty form shows validation errors, button stays enabled", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
+    // Scroll form into view — client:visible only hydrates when visible
+    await page.locator('#contact').scrollIntoViewIfNeeded();
     // Wait for React hydration
     await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 15000 });
 
@@ -730,6 +732,8 @@ test.describe("Form Loading State", () => {
     });
 
     await page.goto("/", { waitUntil: "networkidle" });
+    // Scroll form into view — client:visible only hydrates when visible
+    await page.locator('#contact').scrollIntoViewIfNeeded();
     await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 15000 });
 
     // Fill all required fields
@@ -761,6 +765,8 @@ test.describe("Form Loading State", () => {
     });
 
     await page.goto("/", { waitUntil: "networkidle" });
+    // Scroll form into view — client:visible only hydrates when visible
+    await page.locator('#contact').scrollIntoViewIfNeeded();
     await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 15000 });
 
     // Fill all required fields
@@ -833,6 +839,8 @@ test.describe("Focus Indicators", () => {
 
   test("form input shows visible focus indicator when tabbed to", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
+    // Scroll form into view — client:visible only hydrates when visible
+    await page.locator('#contact').scrollIntoViewIfNeeded();
     await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 15000 });
 
     // Focus the name input via keyboard
@@ -856,6 +864,8 @@ test.describe("Focus Indicators", () => {
 
   test("submit button shows visible focus indicator when tabbed to", async ({ page }) => {
     await page.goto("/", { waitUntil: "networkidle" });
+    // Scroll form into view — client:visible only hydrates when visible
+    await page.locator('#contact').scrollIntoViewIfNeeded();
     await page.locator('form[data-hydrated="true"]').waitFor({ state: "attached", timeout: 15000 });
 
     // Tab to the submit button
