@@ -22,7 +22,7 @@ export default function ProjectShowcase() {
         </div>
 
         {/* Subtitle */}
-        <p className="text-center text-neutral-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-4">
+        <p className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-4">
           Projects we've contributed to across Michigan
         </p>
 

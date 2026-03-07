@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address, footerDescription, siteDescription } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address, footerDescription } from "../../content/site";
 import { Phone, Mail, MapPin, ArrowUp } from "lucide-react";
 import { ErrorBoundary } from "../ErrorBoundary";
 

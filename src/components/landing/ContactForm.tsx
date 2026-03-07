@@ -386,7 +386,7 @@ export default function ContactForm({
             Get a Quote
           </h2>
           <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto" />
-          <p className="mt-3 text-neutral-400 text-sm sm:text-base text-center">
+          <p className="mt-3 text-neutral-300 text-sm sm:text-base text-center">
             Tell us what you need.
           </p>
 
