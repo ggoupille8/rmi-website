@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address, footerDescription, siteDescription } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email, companyNameFull, address, footerDescription } from "../../content/site";
 import { Phone, Mail, MapPin, ArrowUp } from "lucide-react";
 import { ErrorBoundary } from "../ErrorBoundary";
 
@@ -63,31 +63,31 @@ export default function Footer() {
             <nav className="flex flex-col items-center md:items-start gap-1" aria-label="Footer navigation">
               <a
                 href="#services"
-                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="inline-flex items-center text-neutral-300 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Services
               </a>
               <a
                 href="#about"
-                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="inline-flex items-center text-neutral-300 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 About
               </a>
               <a
                 href="#projects"
-                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="inline-flex items-center text-neutral-300 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Projects
               </a>
               <a
                 href="#contact"
-                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="inline-flex items-center text-neutral-300 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Contact
               </a>
               <a
                 href="#contact"
-                className="inline-flex items-center text-neutral-400 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="inline-flex items-center text-neutral-300 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Request a Quote
               </a>
@@ -99,7 +99,7 @@ export default function Footer() {
             <h3 className="text-lg font-bold text-white mb-2 sm:mb-3">
               Contact
             </h3>
-            <div className="space-y-0 inline-flex flex-col items-center md:items-start">
+            <div className="inline-flex flex-col items-center md:items-start">
               <a
                 href={phoneTel}
                 className="group flex items-center gap-2 text-white hover:text-accent-400 transition-all duration-200 text-sm min-h-[44px] sm:min-h-0 sm:py-1.5"
@@ -133,7 +133,7 @@ export default function Footer() {
         </div>
 
         {/* Social Links */}
-        <div className="mt-3 pt-3 border-t border-neutral-700/30 bg-neutral-800/20 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 flex justify-center gap-5">
+        <nav aria-label="Social media links" className="mt-3 pt-3 border-t border-neutral-700/30 bg-neutral-800/20 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 flex justify-center gap-5">
           <a
             href="https://www.linkedin.com/company/resource-mechanical-insulation"
             target="_blank"
@@ -157,12 +157,12 @@ export default function Footer() {
             </svg>
           </a>
           {/* Google Business icon — add back when GBP is claimed and verified */}
-        </div>
+        </nav>
 
         {/* Bottom Bar */}
         <div className="mt-3 pt-3 border-t border-neutral-700/30 flex items-center justify-center">
           <p className="text-sm text-neutral-400">
-            &copy; <span className="text-neutral-400">{currentYear}</span> {companyNameFull}. All rights reserved.
+            &copy; {currentYear} {companyNameFull}. All rights reserved.
           </p>
         </div>
       </div>
@@ -171,6 +171,7 @@ export default function Footer() {
       <button
         type="button"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        tabIndex={showBackToTop && !footerVisible ? 0 : -1}
         className={`fixed bottom-6 right-6 z-40 flex items-center justify-center w-11 h-11 rounded-full bg-neutral-800/90 border border-neutral-600/50 text-neutral-300 hover:text-white hover:bg-neutral-700 shadow-lg backdrop-blur-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 ${
           showBackToTop && !footerVisible
             ? "opacity-100 translate-y-0 pointer-events-auto"

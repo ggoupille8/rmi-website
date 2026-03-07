@@ -91,6 +91,7 @@ export default function ContactForm({
   const [contactError, setContactError] = useState(false); // email-or-phone group error
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
   const projectTypeRef = useRef<HTMLSelectElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
 
@@ -232,9 +233,11 @@ export default function ContactForm({
           ? nameInputRef.current
           : errors.email
             ? emailInputRef.current
-            : errors.projectType
-              ? projectTypeRef.current
-              : messageRef.current;
+            : errors.phone
+              ? phoneInputRef.current
+              : errors.projectType
+                ? projectTypeRef.current
+                : messageRef.current;
         firstErrorField?.scrollIntoView({ behavior: "smooth", block: "center" });
         firstErrorField?.focus();
       }, 0);
@@ -356,8 +359,8 @@ export default function ContactForm({
   };
 
   const inputBase =
-    "block w-full rounded-md shadow-sm text-base px-3 py-2 border bg-neutral-800 text-white placeholder:text-neutral-400 leading-relaxed min-w-0 min-h-[48px] hover:border-neutral-500/50 focus:ring-1 focus:ring-accent-500/20 transition-colors duration-200";
-  const inputNormal = `${inputBase} border-neutral-600 focus:border-accent-500/50`;
+    "block w-full rounded-md shadow-sm text-base px-3 py-2 border bg-neutral-800 text-white placeholder:text-neutral-400 leading-relaxed min-w-0 min-h-[48px] hover:border-neutral-500/50 focus:ring-1 transition-colors duration-200";
+  const inputNormal = `${inputBase} border-neutral-600 focus:border-accent-500/50 focus:ring-accent-500/20`;
   const inputError = `${inputBase} border-red-500 focus:border-red-500 focus:ring-red-500`;
 
   return (
@@ -381,12 +384,12 @@ export default function ContactForm({
         <div className="max-w-2xl mx-auto">
           <h2
             id="contact-heading"
-            className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase tracking-tight text-center"
+            className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase tracking-wider text-center"
           >
             Get a Quote
           </h2>
           <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto" />
-          <p className="mt-3 text-neutral-400 text-sm sm:text-base text-center">
+          <p className="mt-3 text-neutral-300 text-sm sm:text-base text-center">
             Tell us what you need.
           </p>
 
@@ -495,6 +498,7 @@ export default function ContactForm({
                   Phone
                 </label>
                 <input
+                  ref={phoneInputRef}
                   type="tel"
                   id="phone"
                   name="phone"
@@ -666,7 +670,7 @@ export default function ContactForm({
               >
                 {isSubmitting ? "Sending..." : "Send Message"}
               </button>
-              <p className="mt-2 text-[11px] text-neutral-500 text-center leading-tight">
+              <p className="mt-2 text-xs text-neutral-400 text-center leading-tight">
                 By submitting, you agree that we may collect device and browsing
                 information to improve our services.
               </p>

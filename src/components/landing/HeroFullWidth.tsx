@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroHeadline, heroTagline } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroTagline } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
 import { ErrorBoundary } from "../ErrorBoundary";
 
@@ -44,7 +44,6 @@ const heroImageOrigins = [
 const SLIDE_DURATION = 12000; // 12s per image
 
 interface HeroFullWidthProps {
-  headline?: string;
   tagline?: string;
 }
 
@@ -165,7 +164,6 @@ function AnimatedStat({
 }
 
 export default function HeroFullWidth({
-  headline = heroHeadline,
   tagline = heroTagline,
 }: HeroFullWidthProps) {
   const heroImages = defaultHeroImages;
@@ -227,7 +225,7 @@ export default function HeroFullWidth({
                 />
                 <img
                   src={src}
-                  srcSet={`${src.replace(/\.webp$/, "-480w.webp")} 480w, ${src.replace(/\.webp$/, "-960w.webp")} 960w, ${src} 1920w`}
+                  srcSet={`${src.replace(/\.(webp|jpe?g)$/i, "-480w.webp")} 480w, ${src.replace(/\.(webp|jpe?g)$/i, "-960w.webp")} 960w, ${src} 1920w`}
                   sizes="100vw"
                   alt={heroImageAlts[index]}
                   width="1920"
@@ -263,12 +261,12 @@ export default function HeroFullWidth({
                 <source srcSet="/images/logo/rmi-logo-full.webp" type="image/webp" />
                 <img
                   src="/images/logo/rmi-logo-full.png"
-                  alt={headline}
+                  alt=""
                   width="500"
                   height="200"
                   loading="eager"
-                  decoding="async"
-                  className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
+                  decoding="sync"
+                  className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto"
                   style={{ filter: 'brightness(0) invert(1) drop-shadow(3px 3px 6px rgba(0,0,0,1)) drop-shadow(-1px -1px 4px rgba(0,0,0,0.8))' }}
                 />
               </picture>
@@ -357,7 +355,7 @@ export default function HeroFullWidth({
           </div>
 
           {/* Slideshow Dots */}
-          <div className="flex justify-center gap-1 pb-3" role="tablist" aria-label="Hero slideshow navigation">
+          <div className="flex justify-center gap-1 pb-3" role="group" aria-label="Hero slideshow navigation">
             {heroImages.map((_, idx) => (
               <button
                 key={idx}
@@ -368,8 +366,7 @@ export default function HeroFullWidth({
                   startAutoAdvance();
                 }}
                 className="min-w-[44px] min-h-[44px] flex items-center justify-center"
-                role="tab"
-                aria-selected={idx === activeIndex}
+                aria-current={idx === activeIndex ? "true" : undefined}
                 aria-label={`Go to slide ${idx + 1}`}
               >
                 <span

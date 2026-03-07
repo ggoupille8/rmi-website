@@ -4,12 +4,12 @@ export default function CTABanner() {
   return (
     <section
       id="cta-banner"
-      className="relative z-10 min-h-[350px] md:min-h-[400px] flex items-center justify-center bg-gradient-to-r from-neutral-900 via-blue-950 to-neutral-900 bg-[length:200%_200%] animate-[gradient-shift_8s_ease_infinite] border-t border-b border-blue-500/30"
+      className="relative z-10 min-h-[350px] md:min-h-[400px] flex items-center justify-center bg-gradient-to-r from-neutral-900 via-blue-950 to-neutral-900 bg-[length:200%_100%] animate-[gradient-shift_8s_ease_infinite] border-t border-b border-accent-500/30"
       aria-labelledby="cta-heading"
     >
       {/* Dot pattern texture overlay */}
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:20px_20px]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgb(var(--color-accent-500)/0.03)_1px,transparent_1px)] bg-[size:20px_20px]"
         aria-hidden="true"
       />
 
@@ -24,11 +24,11 @@ export default function CTABanner() {
         <div className="mt-6">
           <a
             href="#contact"
-            className="btn-primary relative w-full sm:w-auto sm:min-w-[280px] px-10 py-3.5 text-lg font-bold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 ring-1 ring-blue-400/20"
+            className="btn-primary relative w-full sm:w-auto sm:min-w-[280px] px-10 py-3.5 text-lg font-bold shadow-lg shadow-accent-500/20 hover:shadow-accent-500/30 ring-1 ring-accent-400/20"
           >
             {/* Subtle pulse ring */}
             <span
-              className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-blue-400/20 animate-[cta-pulse_3s_ease-in-out_infinite]"
+              className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-accent-400/20 animate-[cta-pulse_3s_ease-in-out_infinite]"
               aria-hidden="true"
             />
             {ctaBannerButton}

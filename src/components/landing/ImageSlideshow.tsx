@@ -150,7 +150,7 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
                   alt={image.alt}
                   width="960"
                   height="720"
-                  className="absolute inset-0 w-full h-full object-cover object-center"
+                  className="absolute inset-0 w-full h-full object-cover"
                   style={{ objectPosition: focusPoint }}
                   loading="eager"
                   decoding="async"

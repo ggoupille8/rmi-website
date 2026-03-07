@@ -101,28 +101,28 @@ export default function About() {
         </div>
 
         {/* Subtitle */}
-        <p className="text-center text-neutral-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-4">
+        <p className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-4">
           Here&rsquo;s what sets us apart from other insulation contractors.
         </p>
 
 
         {/* Feature Cards Grid — 1 col mobile, 2 col tablet, 4 col desktop */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-          {features.map((feature, index) => {
+          {features.map((feature) => {
             const IconComponent = feature.icon;
             const { accent } = feature;
 
             return (
               <div
-                key={index}
-                className={`relative overflow-hidden rounded-lg bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 hover:from-neutral-800/60 hover:to-neutral-800/40 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 ${accent.hoverBorder} hover:shadow-lg ${accent.hoverShadow} hover:-translate-y-1 transition-all duration-300 h-auto md:h-full flex flex-col`}
+                key={feature.title}
+                className={`relative overflow-hidden rounded-lg bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 hover:from-neutral-800/60 hover:to-neutral-800/40 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 ${accent.hoverBorder} hover:shadow-lg ${accent.hoverShadow} hover:-translate-y-1 transition-all duration-300 h-full flex flex-col`}
               >
                 {/* Accent bar */}
                 <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${accent.bar} to-transparent`} />
 
                 {/* Icon + Title row */}
                 <div className="flex items-center gap-3 mb-3 min-h-[48px]">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${accent.iconBg} flex-shrink-0`}>
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg border ${accent.iconBg} flex-shrink-0`}>
                     <IconComponent
                       className={`w-5 h-5 ${accent.iconText}`}
                       strokeWidth={1.5}

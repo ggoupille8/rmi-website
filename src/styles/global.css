@@ -271,13 +271,6 @@
   .service-ticker:hover .service-ticker__track {
     animation-play-state: paused;
   }
-  /* Spacing System - Consistent vertical rhythm */
-  .section-padding {
-    @apply py-12 sm:py-16 lg:py-20;
-  }
-  .section-padding-sm {
-    @apply py-8 sm:py-10 lg:py-12;
-  }
   /* Button System - Industrial, Strong Contrast */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-600 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-300 ease-in-out;
@@ -337,11 +330,5 @@
   .service-ticker__track {
     animation-duration: 120s !important;
     animation-iteration-count: infinite !important;
-  }
-}
-
-@supports not (min-height: 100dvh) {
-  .hero-dvh {
-    min-height: -webkit-fill-available;
   }
 }
