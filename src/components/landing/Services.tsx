@@ -314,7 +314,7 @@ export default function Services() {
                             closeModal();
                             setTimeout(() => {
                               document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
-                            }, 250);
+                            }, 350);
                           }}
                           className="btn-primary w-full text-center"
                         >

@@ -357,7 +357,7 @@ export default function HeroFullWidth({
           </div>
 
           {/* Slideshow Dots */}
-          <div className="flex justify-center gap-1 pb-3" role="tablist" aria-label="Hero slideshow navigation">
+          <div className="flex justify-center gap-1 pb-3" role="group" aria-label="Hero slideshow navigation">
             {heroImages.map((_, idx) => (
               <button
                 key={idx}
@@ -368,8 +368,7 @@ export default function HeroFullWidth({
                   startAutoAdvance();
                 }}
                 className="min-w-[44px] min-h-[44px] flex items-center justify-center"
-                role="tab"
-                aria-selected={idx === activeIndex}
+                aria-current={idx === activeIndex ? "true" : undefined}
                 aria-label={`Go to slide ${idx + 1}`}
               >
                 <span
