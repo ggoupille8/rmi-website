@@ -666,7 +666,7 @@ export default function ContactForm({
               >
                 {isSubmitting ? "Sending..." : "Send Message"}
               </button>
-              <p className="mt-2 text-[11px] text-neutral-500 text-center leading-tight">
+              <p className="mt-3 text-[11px] text-neutral-600 text-center leading-tight">
                 By submitting, you agree that we may collect device and browsing
                 information to improve our services.
               </p>
