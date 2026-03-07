@@ -46,19 +46,6 @@ export default function Services() {
   const modalRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
-  // Prefetch first image of each service on mount (low-priority, idle fetch)
-  useEffect(() => {
-    services.forEach((service) => {
-      if (service.images?.[0]) {
-        const link = document.createElement("link");
-        link.rel = "prefetch";
-        link.as = "image";
-        link.href = `/images/services/${service.images[0].src}.webp`;
-        document.head.appendChild(link);
-      }
-    });
-  }, []);
-
   const activeServiceData = activeService
     ? services.find((s) => s.anchorId === activeService)
     : null;
