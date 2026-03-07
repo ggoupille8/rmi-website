@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroHeadline, heroTagline } from "../../content/site";
+import { phoneTel, phoneDisplay, companyName, email, heroStats, formatLargeNumber, heroTagline } from "../../content/site";
 import { Phone, Mail } from "lucide-react";
 import { ErrorBoundary } from "../ErrorBoundary";
 
@@ -44,7 +44,6 @@ const heroImageOrigins = [
 const SLIDE_DURATION = 12000; // 12s per image
 
 interface HeroFullWidthProps {
-  headline?: string;
   tagline?: string;
 }
 
@@ -165,7 +164,6 @@ function AnimatedStat({
 }
 
 export default function HeroFullWidth({
-  headline = heroHeadline,
   tagline = heroTagline,
 }: HeroFullWidthProps) {
   const heroImages = defaultHeroImages;

@@ -171,6 +171,7 @@ export default function Footer() {
       <button
         type="button"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        tabIndex={showBackToTop && !footerVisible ? 0 : -1}
         className={`fixed bottom-6 right-6 z-40 flex items-center justify-center w-11 h-11 rounded-full bg-neutral-800/90 border border-neutral-600/50 text-neutral-300 hover:text-white hover:bg-neutral-700 shadow-lg backdrop-blur-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 ${
           showBackToTop && !footerVisible
             ? "opacity-100 translate-y-0 pointer-events-auto"

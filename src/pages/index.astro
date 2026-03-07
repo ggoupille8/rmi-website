@@ -9,7 +9,7 @@ import CTABanner from '../components/landing/CTABanner';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
 import FloatingMobileCTA from '../components/landing/FloatingMobileCTA';
-import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../content/site';
+import { heroTagline, siteTitle, siteDescription } from '../content/site';
 ---
 
 <BaseLayout
@@ -20,7 +20,6 @@ import { heroHeadline, heroTagline, siteTitle, siteDescription } from '../conten
   <div>
     <HeroFullWidth
       client:load
-      headline={heroHeadline}
       tagline={heroTagline}
     />
     <div id="services" class="scroll-mt-14">

@@ -221,6 +221,7 @@ export default function Services() {
           <div
             className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${isVisible && !isClosing ? "opacity-100" : "opacity-0"}`}
             onClick={closeModal}
+            aria-hidden="true"
           />
 
           {/* Modal Content */}
