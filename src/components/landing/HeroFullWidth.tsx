@@ -227,7 +227,7 @@ export default function HeroFullWidth({
                 />
                 <img
                   src={src}
-                  srcSet={`${src.replace(/\.webp$/, "-480w.webp")} 480w, ${src.replace(/\.webp$/, "-960w.webp")} 960w, ${src} 1920w`}
+                  srcSet={`${src.replace(/\.(webp|jpe?g)$/i, "-480w.webp")} 480w, ${src.replace(/\.(webp|jpe?g)$/i, "-960w.webp")} 960w, ${src} 1920w`}
                   sizes="100vw"
                   alt={heroImageAlts[index]}
                   width="1920"

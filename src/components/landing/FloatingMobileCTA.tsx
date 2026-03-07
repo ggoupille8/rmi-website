@@ -97,7 +97,7 @@ export default function FloatingMobileCTA() {
         paddingRight: "env(safe-area-inset-right, 0px)",
       }}
       aria-label="Quick contact actions"
-      aria-hidden={!isVisible}
+      aria-hidden={!isVisible ? true : undefined}
     >
       <div className="flex flex-col items-end gap-3 p-4 pb-6">
         {isExpanded && (
