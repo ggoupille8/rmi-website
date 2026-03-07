@@ -19,11 +19,11 @@ import {
 
 // Uniform card styling
 const cardStyle = {
-  border: "border-l-4 border-l-blue-500 hover:border-l-blue-400",
+  border: "border-l-4 border-l-accent-500 hover:border-l-accent-400",
   bg: "bg-neutral-900/60",
-  iconColor: "text-blue-500",
-  hoverIcon: "group-hover:text-blue-400",
-  glowColor: "hover:shadow-lg hover:shadow-blue-500/10",
+  iconColor: "text-accent-500",
+  hoverIcon: "group-hover:text-accent-400",
+  glowColor: "hover:shadow-lg hover:shadow-accent-500/10",
 };
 
 // Map service anchor IDs to icons
@@ -203,7 +203,7 @@ export default function Services() {
                   {service.title}
                 </span>
                 <ChevronRight
-                  className="w-4 h-4 text-neutral-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all duration-200 ml-auto flex-shrink-0"
+                  className="w-4 h-4 text-neutral-500 group-hover:text-accent-400 group-hover:translate-x-0.5 transition-all duration-200 ml-auto flex-shrink-0"
                   aria-hidden="true"
                 />
               </button>
