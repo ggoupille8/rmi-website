@@ -57,7 +57,7 @@ export default function Services() {
       setActiveService(null);
       setIsClosing(false);
       triggerRef.current?.focus();
-    }, 200);
+    }, 300);
   }, []);
 
   const openModal = (anchorId: string, buttonEl: HTMLButtonElement) => {

@@ -91,7 +91,7 @@ export default function FloatingMobileCTA() {
   return (
     <ErrorBoundary>
     <div
-      className={`fixed bottom-24 right-0 z-40 md:hidden pointer-events-none transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0 invisible"}`}
+      className={`fixed bottom-24 right-0 z-40 md:hidden pointer-events-none transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0"}`}
       style={{
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         paddingRight: "env(safe-area-inset-right, 0px)",
