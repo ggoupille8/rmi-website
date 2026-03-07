@@ -359,8 +359,8 @@ export default function ContactForm({
   };
 
   const inputBase =
-    "block w-full rounded-md shadow-sm text-base px-3 py-2 border bg-neutral-800 text-white placeholder:text-neutral-400 leading-relaxed min-w-0 min-h-[48px] hover:border-neutral-500/50 focus:ring-1 focus:ring-accent-500/20 transition-colors duration-200";
-  const inputNormal = `${inputBase} border-neutral-600 focus:border-accent-500/50`;
+    "block w-full rounded-md shadow-sm text-base px-3 py-2 border bg-neutral-800 text-white placeholder:text-neutral-400 leading-relaxed min-w-0 min-h-[48px] hover:border-neutral-500/50 focus:ring-1 transition-colors duration-200";
+  const inputNormal = `${inputBase} border-neutral-600 focus:border-accent-500/50 focus:ring-accent-500/20`;
   const inputError = `${inputBase} border-red-500 focus:border-red-500 focus:ring-red-500`;
 
   return (

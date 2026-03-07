@@ -4,7 +4,7 @@ export default function CTABanner() {
   return (
     <section
       id="cta-banner"
-      className="relative z-10 min-h-[350px] md:min-h-[400px] flex items-center justify-center bg-gradient-to-r from-neutral-900 via-blue-950 to-neutral-900 bg-[length:200%_200%] animate-[gradient-shift_8s_ease_infinite] border-t border-b border-accent-500/30"
+      className="relative z-10 min-h-[350px] md:min-h-[400px] flex items-center justify-center bg-gradient-to-r from-neutral-900 via-blue-950 to-neutral-900 bg-[length:200%_100%] animate-[gradient-shift_8s_ease_infinite] border-t border-b border-accent-500/30"
       aria-labelledby="cta-heading"
     >
       {/* Dot pattern texture overlay */}
