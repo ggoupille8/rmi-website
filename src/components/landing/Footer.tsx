@@ -99,7 +99,7 @@ export default function Footer() {
             <h3 className="text-lg font-bold text-white mb-2 sm:mb-3">
               Contact
             </h3>
-            <div className="space-y-0 inline-flex flex-col items-center md:items-start">
+            <div className="inline-flex flex-col items-center md:items-start">
               <a
                 href={phoneTel}
                 className="group flex items-center gap-2 text-white hover:text-accent-400 transition-all duration-200 text-sm min-h-[44px] sm:min-h-0 sm:py-1.5"

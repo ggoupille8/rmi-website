@@ -31,9 +31,9 @@ export default function ProjectShowcase() {
           {projectHighlights.map((project) => (
             <div
               key={project.title}
-              className="group overflow-hidden rounded-xl bg-white/5 border border-white/5 hover:border-blue-500/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 ease-out"
+              className="group overflow-hidden rounded-xl bg-white/5 border border-white/5 hover:border-accent-500/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-300 ease-out"
             >
-              <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl border-b-2 border-blue-500/0 group-hover:border-blue-500 transition-all duration-300">
+              <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl border-b-2 border-accent-500/0 group-hover:border-accent-500 transition-all duration-300">
                 <picture>
                   <source
                     srcSet={`${project.image}-480w.webp 480w, ${project.image}-960w.webp 960w`}
@@ -53,7 +53,7 @@ export default function ProjectShowcase() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
               <div className="px-5 py-4">
-                <h3 className="text-lg font-semibold text-white transition-colors duration-200 group-hover:text-blue-400">
+                <h3 className="text-lg font-semibold text-white transition-colors duration-200 group-hover:text-accent-400">
                   {project.title}
                 </h3>
                 <p className="mt-1 text-sm text-neutral-300">
