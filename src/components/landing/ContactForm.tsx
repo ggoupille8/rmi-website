@@ -381,7 +381,7 @@ export default function ContactForm({
         <div className="max-w-2xl mx-auto">
           <h2
             id="contact-heading"
-            className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase tracking-tight text-center"
+            className="text-xl sm:text-2xl lg:text-3xl font-bold text-white uppercase tracking-wider text-center"
           >
             Get a Quote
           </h2>

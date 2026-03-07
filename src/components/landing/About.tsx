@@ -114,7 +114,7 @@ export default function About() {
 
             return (
               <div
-                key={index}
+                key={feature.title}
                 className={`relative overflow-hidden rounded-lg bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 hover:from-neutral-800/60 hover:to-neutral-800/40 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 ${accent.hoverBorder} hover:shadow-lg ${accent.hoverShadow} hover:-translate-y-1 transition-all duration-300 h-auto md:h-full flex flex-col`}
               >
                 {/* Accent bar */}
