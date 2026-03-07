@@ -9,7 +9,7 @@ export default function CTABanner() {
     >
       {/* Dot pattern texture overlay */}
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:20px_20px]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgb(var(--color-accent-500)/0.03)_1px,transparent_1px)] bg-[size:20px_20px]"
         aria-hidden="true"
       />
 

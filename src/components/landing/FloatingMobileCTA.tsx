@@ -119,6 +119,7 @@ export default function FloatingMobileCTA() {
           </div>
         )}
         <button
+          type="button"
           onClick={() => setIsExpanded(!isExpanded)}
           className="pointer-events-auto flex items-center justify-center w-14 h-14 rounded-full bg-accent-600 text-white shadow-lg hover:bg-accent-700 hover:scale-110 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 min-w-[56px] min-h-[56px]"
           aria-label={isExpanded ? "Close contact menu" : "Open contact menu"}
