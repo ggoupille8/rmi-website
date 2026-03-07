@@ -267,7 +267,7 @@ export default function HeroFullWidth({
                   width="500"
                   height="200"
                   loading="eager"
-                  decoding="async"
+                  decoding="sync"
                   className="h-24 sm:h-32 lg:h-40 xl:h-48 w-auto brightness-0 invert"
                   style={{ filter: 'brightness(0) invert(1) drop-shadow(3px 3px 6px rgba(0,0,0,1)) drop-shadow(-1px -1px 4px rgba(0,0,0,0.8))' }}
                 />

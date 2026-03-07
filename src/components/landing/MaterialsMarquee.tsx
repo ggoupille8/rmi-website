@@ -44,10 +44,7 @@ export default function MaterialsMarquee() {
       {/* Scrolling marquee — Row 1 (left to right) */}
       <div
         className="relative overflow-hidden"
-        role="marquee"
-        aria-label="Materials we work with"
         aria-hidden="true"
-        aria-live="off"
         style={{
           maskImage: fadeMask,
           WebkitMaskImage: fadeMask,
