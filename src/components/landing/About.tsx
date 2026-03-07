@@ -122,7 +122,7 @@ export default function About() {
 
                 {/* Icon + Title row */}
                 <div className="flex items-center gap-3 mb-3 min-h-[48px]">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${accent.iconBg} flex-shrink-0`}>
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg border ${accent.iconBg} flex-shrink-0`}>
                     <IconComponent
                       className={`w-5 h-5 ${accent.iconText}`}
                       strokeWidth={1.5}

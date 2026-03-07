@@ -91,6 +91,7 @@ export default function ContactForm({
   const [contactError, setContactError] = useState(false); // email-or-phone group error
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
   const projectTypeRef = useRef<HTMLSelectElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
 
@@ -232,9 +233,11 @@ export default function ContactForm({
           ? nameInputRef.current
           : errors.email
             ? emailInputRef.current
-            : errors.projectType
-              ? projectTypeRef.current
-              : messageRef.current;
+            : errors.phone
+              ? phoneInputRef.current
+              : errors.projectType
+                ? projectTypeRef.current
+                : messageRef.current;
         firstErrorField?.scrollIntoView({ behavior: "smooth", block: "center" });
         firstErrorField?.focus();
       }, 0);
@@ -495,6 +498,7 @@ export default function ContactForm({
                   Phone
                 </label>
                 <input
+                  ref={phoneInputRef}
                   type="tel"
                   id="phone"
                   name="phone"
