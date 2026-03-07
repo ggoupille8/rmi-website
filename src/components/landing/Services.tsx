@@ -230,7 +230,7 @@ export default function Services() {
             role="dialog"
             aria-modal="true"
             aria-labelledby={`modal-${activeService}`}
-            className={`relative z-10 w-full mx-4 max-h-[85vh] overflow-hidden bg-neutral-900 backdrop-blur-md rounded-2xl border border-neutral-600/30 shadow-2xl shadow-black/40 ring-1 ring-blue-500/10 transition-all duration-300 ease-out ${
+            className={`relative z-10 w-full mx-4 max-h-[85vh] overflow-hidden bg-neutral-900 backdrop-blur-md rounded-2xl border border-neutral-600/30 shadow-2xl shadow-black/40 ring-1 ring-accent-500/10 transition-all duration-300 ease-out ${
               activeServiceData && activeServiceData.images.length > 0
                 ? "max-w-[1000px]"
                 : "max-w-lg"
@@ -239,8 +239,8 @@ export default function Services() {
           >
             {activeServiceData && (() => {
               const Icon = iconMap[activeServiceData.anchorId] || Droplets;
-              const modalIconColor = "text-blue-500";
-              const modalGlowColor = "bg-blue-500/20";
+              const modalIconColor = "text-accent-500";
+              const modalGlowColor = "bg-accent-500/20";
               const hasImages = activeServiceData.images.length > 0;
               return (
                 <div className={`flex h-full min-h-0 ${hasImages ? "flex-col md:flex-row" : "flex-col"}`} style={hasImages ? { height: "85vh", maxHeight: "85vh" } : undefined}>
@@ -264,7 +264,7 @@ export default function Services() {
                   )}
 
                   {/* Right Panel — Text Content (40% on desktop, full width on mobile & no-image) */}
-                  <div className={`flex flex-col min-h-0 ${hasImages ? "md:w-[40%] md:border-l md:border-blue-500/20" : "w-full"} overflow-y-auto`}>
+                  <div className={`flex flex-col min-h-0 ${hasImages ? "md:w-[40%] md:border-l md:border-accent-500/20" : "w-full"} overflow-y-auto`}>
                     {/* Close button for no-image modals */}
                     {!hasImages && (
                       <button
@@ -281,7 +281,7 @@ export default function Services() {
                       {/* Icon with accent glow */}
                       <div className="flex justify-center mb-4">
                         <div className="relative flex items-center justify-center">
-                          <div className={`absolute w-16 h-16 ${modalGlowColor} rounded-full blur-xl shadow-[0_0_15px_rgba(59,130,246,0.15)]`} aria-hidden="true" />
+                          <div className={`absolute w-16 h-16 ${modalGlowColor} rounded-full blur-xl`} aria-hidden="true" />
                           <Icon
                             className={`relative w-12 h-12 ${modalIconColor}`}
                             strokeWidth={1.5}
