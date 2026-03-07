@@ -79,11 +79,14 @@ export default function Services() {
     // Preload the first image immediately (high-priority, parallel with modal animation)
     const service = services.find((s) => s.anchorId === anchorId);
     if (service?.images?.[0]) {
-      const link = document.createElement("link");
-      link.rel = "preload";
-      link.as = "image";
-      link.href = `/images/services/${service.images[0].src}.webp`;
-      document.head.appendChild(link);
+      const href = `/images/services/${service.images[0].src}.webp`;
+      if (!document.querySelector(`link[rel="preload"][href="${href}"]`)) {
+        const link = document.createElement("link");
+        link.rel = "preload";
+        link.as = "image";
+        link.href = href;
+        document.head.appendChild(link);
+      }
     }
 
     setActiveService(anchorId);

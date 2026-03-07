@@ -12,37 +12,37 @@ const AUTO_ADVANCE_MS = 5000;
 export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
   const touchStartRef = useRef<number | null>(null);
   const touchDeltaRef = useRef(0);
   const autoAdvanceRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prevIndexRef = useRef<number>(0);
 
   const count = images.length;
 
-  // Reset loaded state when slide changes
-  useEffect(() => {
-    setImageLoaded(false);
-  }, [currentIndex]);
+  const markLoaded = useCallback((index: number) => {
+    setLoadedImages(prev => {
+      if (prev.has(index)) return prev;
+      const next = new Set(prev);
+      next.add(index);
+      return next;
+    });
+  }, []);
 
   const hasMultiple = count > 1;
 
-  const resetAutoAdvance = useCallback(() => {
-    if (autoAdvanceRef.current) clearInterval(autoAdvanceRef.current);
-    autoAdvanceRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % count);
-    }, AUTO_ADVANCE_MS);
+  const changeSlide = useCallback((newIndex: number) => {
+    setCurrentIndex(prev => {
+      prevIndexRef.current = prev;
+      return ((newIndex % count) + count) % count;
+    });
+    // Reset auto-advance timer via brief pause/unpause
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), 50);
   }, [count]);
 
-  const goTo = useCallback(
-    (index: number) => {
-      setCurrentIndex(((index % count) + count) % count);
-      resetAutoAdvance();
-    },
-    [count, resetAutoAdvance]
-  );
-
-  const goNext = useCallback(() => goTo(currentIndex + 1), [goTo, currentIndex]);
-  const goPrev = useCallback(() => goTo(currentIndex - 1), [goTo, currentIndex]);
+  const goNext = useCallback(() => changeSlide(currentIndex + 1), [changeSlide, currentIndex]);
+  const goPrev = useCallback(() => changeSlide(currentIndex - 1), [changeSlide, currentIndex]);
 
   // Auto-advance
   useEffect(() => {
@@ -55,7 +55,10 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
     }
 
     autoAdvanceRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % count);
+      setCurrentIndex((prev) => {
+        prevIndexRef.current = prev;
+        return (prev + 1) % count;
+      });
     }, AUTO_ADVANCE_MS);
 
     return () => {
@@ -77,8 +80,13 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
 
   const handleTouchEnd = () => {
     if (Math.abs(touchDeltaRef.current) > SWIPE_THRESHOLD) {
-      if (touchDeltaRef.current < 0) goNext();
-      else goPrev();
+      // Directly change the slide without the pause/unpause in changeSlide,
+      // since touch handlers manage their own pause timing
+      const next = touchDeltaRef.current < 0 ? currentIndex + 1 : currentIndex - 1;
+      setCurrentIndex(prev => {
+        prevIndexRef.current = prev;
+        return ((next % count) + count) % count;
+      });
     }
     touchStartRef.current = null;
     touchDeltaRef.current = 0;
@@ -100,26 +108,31 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
            object-contain on desktop (shows full image in side panel) */}
       <div className="relative flex-1 min-h-[280px] md:min-h-[400px]">
         {/* Skeleton placeholder — shows until active image loads */}
-        {!imageLoaded && (
-          <div className="absolute inset-0 z-[5] bg-neutral-800 animate-pulse" />
+        {!loadedImages.has(currentIndex) && (
+          <div className="absolute inset-0 z-[15] bg-neutral-800 animate-pulse" />
         )}
         {images.map((image, index) => {
-          // Only render current slide and its immediate neighbors (3 max)
+          // Render current slide and ±2 neighbors (5 max) for preloading
           const distance = Math.min(
             Math.abs(index - currentIndex),
             Math.abs(index - currentIndex + count),
             Math.abs(index - currentIndex - count)
           );
-          if (distance > 1) return null;
+          if (distance > 2) return null;
 
           const isActive = index === currentIndex;
+          const isPrev = index === prevIndexRef.current && index !== currentIndex;
           const focusPoint = image.focusPoint || "center center";
           return (
             <div
               key={image.src}
               className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                isActive ? "z-10" : "opacity-0 z-0"
-              } ${isActive && imageLoaded ? "opacity-100" : isActive ? "opacity-0" : ""}`}
+                isActive
+                  ? `z-20 ${loadedImages.has(index) ? "opacity-100" : "opacity-0"}`
+                  : isPrev
+                    ? "z-10 opacity-0"
+                    : "z-0 opacity-0"
+              }`}
               aria-hidden={!isActive}
             >
               <picture>
@@ -128,6 +141,11 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
                   type="image/webp"
                 />
                 <img
+                  ref={(el) => {
+                    if (el && el.complete && el.naturalWidth > 0) {
+                      markLoaded(index);
+                    }
+                  }}
                   src={`/images/services/${image.src}.jpg`}
                   alt={image.alt}
                   width="960"
@@ -136,7 +154,7 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
                   style={{ objectPosition: focusPoint }}
                   loading="eager"
                   decoding="async"
-                  onLoad={isActive ? () => setImageLoaded(true) : undefined}
+                  onLoad={() => markLoaded(index)}
                   draggable={false}
                 />
               </picture>
@@ -150,7 +168,7 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
             <button
               type="button"
               onClick={goPrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
               aria-label="Previous image"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -160,7 +178,7 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
             <button
               type="button"
               onClick={goNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/10 text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
               aria-label="Next image"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -172,7 +190,7 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
 
         {/* Bottom gradient + counter */}
         {hasMultiple && (
-          <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/60 to-transparent h-[60px] flex items-end justify-center pb-2">
+          <div className="absolute bottom-0 left-0 right-0 z-30 bg-gradient-to-t from-black/60 to-transparent h-[60px] flex items-end justify-center pb-2">
             <span className="text-sm font-medium text-white/70 tracking-wide tabular-nums">
               {currentIndex + 1} / {count}
             </span>
