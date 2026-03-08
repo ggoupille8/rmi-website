@@ -51,10 +51,21 @@ export const GET: APIRoute = async ({ request }) => {
   const startDate = `${Math.min(Math.max(days, 1), 365)}daysAgo`;
 
   try {
+    // Handle multiple possible formats of the private key from env vars
+    let formattedKey = privateKey;
+    // If key was JSON-stringified (double-escaped), handle that first
+    if (formattedKey.includes('\\\\n')) {
+      formattedKey = formattedKey.replace(/\\\\n/g, '\n');
+    }
+    // If key contains literal \n strings (common in Vercel env vars), replace with real newlines
+    if (formattedKey.includes('\\n')) {
+      formattedKey = formattedKey.replace(/\\n/g, '\n');
+    }
+
     const client = new BetaAnalyticsDataClient({
       credentials: {
         client_email: clientEmail,
-        private_key: privateKey.replace(/\\n/g, "\n"),
+        private_key: formattedKey,
       },
     });
 
@@ -174,15 +185,10 @@ export const GET: APIRoute = async ({ request }) => {
       { status: 200, headers: SECURITY_HEADERS }
     );
   } catch (error) {
-    console.error(
-      "GA4 API error:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error("GA4 API error:", errMsg);
     return new Response(
-      JSON.stringify({
-        error: "Failed to fetch analytics",
-        configured: true,
-      }),
+      JSON.stringify({ error: errMsg, configured: true }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
