@@ -142,6 +142,79 @@ function formatReferrerSource(referrer: string | undefined | null): string {
   }
 }
 
+function extractSignals(message: string): string[] {
+  const signals: string[] = [];
+  const lower = message.toLowerCase();
+
+  if (
+    lower.includes("emergency") ||
+    lower.includes("urgent") ||
+    lower.includes("asap") ||
+    lower.includes("immediately")
+  )
+    signals.push("ð´ Urgent");
+  if (
+    lower.includes("quote") ||
+    lower.includes("estimate") ||
+    lower.includes("bid") ||
+    lower.includes("price")
+  )
+    signals.push("ð° Requesting Quote");
+  if (
+    lower.includes("maintenance") ||
+    lower.includes("contract") ||
+    lower.includes("ongoing")
+  )
+    signals.push("ð Recurring Work");
+  if (
+    lower.includes("hospital") ||
+    lower.includes("medical") ||
+    lower.includes("healthcare")
+  )
+    signals.push("ð¥ Healthcare Facility");
+  if (
+    lower.includes("plant") ||
+    lower.includes("factory") ||
+    lower.includes("industrial") ||
+    lower.includes("manufacturing")
+  )
+    signals.push("ð­ Industrial");
+  if (
+    lower.includes("school") ||
+    lower.includes("university") ||
+    lower.includes("college")
+  )
+    signals.push("ð Education");
+  if (lower.includes("pipe") || lower.includes("piping"))
+    signals.push("ð§ Piping");
+  if (lower.includes("duct") || lower.includes("hvac"))
+    signals.push("ð¨ Ductwork/HVAC");
+  if (lower.includes("tank") || lower.includes("vessel"))
+    signals.push("ð¢ Equipment");
+  if (lower.includes("removable") || lower.includes("blanket"))
+    signals.push("ð§¤ Removable Covers");
+
+  return signals;
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
+      className="ml-1.5 text-[10px] text-neutral-600 hover:text-neutral-400 transition-colors"
+      title="Copy"
+    >
+      {copied ? "â" : "ð"}
+    </button>
+  );
+}
+
 export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
   const [status, setStatus] = useState(contact.status);
   const [notes, setNotes] = useState(contact.notes || "");
@@ -237,6 +310,13 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
     });
   };
 
+  const leadAge = Math.floor(
+    (Date.now() - new Date(contact.created_at).getTime()) /
+      (1000 * 60 * 60 * 24),
+  );
+  const isStale = leadAge > 3 && contact.status === "new";
+  const signals = extractSignals(contact.message);
+
   const mailtoHref = contact.email
     ? `mailto:${contact.email}?subject=${encodeURIComponent("RE: Your RMI Quote Request")}`
     : null;
@@ -276,6 +356,26 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
               <p className="text-sm font-medium text-neutral-100">
                 {contact.name}
               </p>
+              {contact.metadata?.company && (
+                <p className="text-sm text-accent-400 font-medium">
+                  {String(contact.metadata.company)}
+                </p>
+              )}
+              <div className="flex items-center gap-2 text-xs mt-1">
+                <span className="text-neutral-500">
+                  Submitted{" "}
+                  {leadAge === 0
+                    ? "today"
+                    : leadAge === 1
+                      ? "yesterday"
+                      : `${leadAge} days ago`}
+                </span>
+                {isStale && (
+                  <span className="px-1.5 py-0.5 rounded bg-red-600/15 text-red-400 border border-red-600/30 text-[10px] font-medium">
+                    STALE &mdash; needs follow-up
+                  </span>
+                )}
+              </div>
             </div>
 
             {contact.email && (
@@ -283,7 +383,7 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
                 <p className="text-xs text-neutral-500 uppercase tracking-wider mb-0.5">
                   Email
                 </p>
-                <p className="text-sm text-neutral-300">{contact.email}</p>
+                <p className="text-sm text-neutral-300">{contact.email} <CopyButton text={contact.email} /></p>
               </div>
             )}
 
@@ -292,7 +392,7 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
                 <p className="text-xs text-neutral-500 uppercase tracking-wider mb-0.5">
                   Phone
                 </p>
-                <p className="text-sm text-neutral-300">{contact.phone}</p>
+                <p className="text-sm text-neutral-300">{contact.phone} <CopyButton text={contact.phone} /></p>
               </div>
             )}
 
@@ -316,6 +416,18 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
                 {contact.message}
               </p>
             </div>
+            {signals.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {signals.map((s, i) => (
+                  <span
+                    key={i}
+                    className="px-2 py-0.5 text-[10px] rounded bg-neutral-800 text-neutral-300 border border-neutral-700"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Lead Quality */}
@@ -359,6 +471,14 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
             <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1.5">
               Notes
             </p>
+            {contact.notes && (
+              <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-md p-3 mb-2">
+                <p className="text-xs text-neutral-500 mb-1">Internal Notes</p>
+                <p className="text-sm text-neutral-300 whitespace-pre-wrap">
+                  {contact.notes}
+                </p>
+              </div>
+            )}
             <textarea
               value={notes}
               onChange={(e) => handleNotesChange(e.target.value)}
