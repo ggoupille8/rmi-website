@@ -14,6 +14,10 @@ vi.mock("../../../../lib/admin-auth", () => ({
   isAdminAuthorized: vi.fn(),
 }));
 
+vi.mock("../../../../lib/ensure-contacts-soft-delete", () => ({
+  ensureContactsSoftDelete: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { GET, PATCH } from "../contacts";
 import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../../lib/db-env";
