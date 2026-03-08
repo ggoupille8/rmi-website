@@ -20,11 +20,27 @@ interface OverviewData {
   newUsers: number;
 }
 
+interface TrafficSummary {
+  prospects: number;
+  suspicious: number;
+  bots: number;
+  botPercentage: number;
+}
+
 interface CityRow {
   city: string;
   region: string;
-  users: number;
+  visitors: number;
   engaged: number;
+  classification: "prospect" | "suspicious" | "bot";
+}
+
+interface TimelineEntry {
+  date: string;
+  city: string;
+  region: string;
+  engaged: number;
+  avgDuration: number;
 }
 
 interface ScreenResRow {
@@ -78,6 +94,9 @@ interface AnalyticsResponse {
   configured: boolean;
   days?: number;
   overview?: OverviewData;
+  trafficSummary?: TrafficSummary;
+  prospectActivity?: CityRow[];
+  engagedTimeline?: TimelineEntry[];
   cities?: CityRow[];
   screenResolutions?: ScreenResRow[];
   browserOS?: BrowserOSRow[];
@@ -159,6 +178,13 @@ function truncateUrl(url: string, maxLen: number): string {
   } catch {
     return url.slice(0, maxLen) + "...";
   }
+}
+
+function classificationBadge(classification: string | undefined | null): string {
+  if (classification === "prospect") return "bg-green-600/20 text-green-400";
+  if (classification === "suspicious") return "bg-yellow-600/15 text-yellow-400";
+  if (classification === "bot") return "bg-red-600/15 text-red-400";
+  return "bg-neutral-700 text-neutral-400";
 }
 
 // --- Skeleton components ---
@@ -294,42 +320,55 @@ function HourlyChart({ data }: { data: HourlyRow[] }) {
   const padT = 10;
   const padB = 24;
   const plotH = chartH - padT - padB;
+  const barX = (hour: number) => hour * (barW + gap);
 
   return (
-    <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
-      {allHours.map((h) => {
-        const x = h.hour * (barW + gap);
-        const ratio = h.engaged / maxEngaged;
-        const barH = Math.max(ratio * plotH, 1);
-        const opacity = Math.max(ratio * 0.8 + 0.2, 0.15);
-        const isBusinessHour = h.hour >= 8 && h.hour <= 17;
-        return (
-          <g key={h.hour}>
-            <rect
-              x={x} y={padT + plotH - barH}
-              width={barW} height={barH}
-              rx={2}
-              fill={isBusinessHour ? "#3b82f6" : "#6b7280"}
-              opacity={opacity}
-            />
-            <text
-              x={x + barW / 2} y={chartH - 4}
-              textAnchor="middle" fill="#737373" fontSize={9}
-            >
-              {h.hour === 0 ? "12a" : h.hour < 12 ? `${h.hour}a` : h.hour === 12 ? "12p" : `${h.hour - 12}p`}
-            </text>
-            {h.engaged > 0 && (
+    <div>
+      <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+        {/* Business hours background shading */}
+        <rect
+          x={barX(8)} y={0}
+          width={barX(17) - barX(8) + barW}
+          height={chartH - padB}
+          fill="#3b82f6"
+          opacity={0.03}
+          rx={4}
+        />
+        {allHours.map((h) => {
+          const x = barX(h.hour);
+          const ratio = h.engaged / maxEngaged;
+          const bH = Math.max(ratio * plotH, 1);
+          const barOpacity = Math.max(ratio * 0.8 + 0.2, 0.15);
+          const isBusinessHour = h.hour >= 8 && h.hour <= 17;
+          return (
+            <g key={h.hour}>
+              <rect
+                x={x} y={padT + plotH - bH}
+                width={barW} height={bH}
+                rx={2}
+                fill={isBusinessHour ? "#3b82f6" : "#6b7280"}
+                opacity={barOpacity}
+              />
               <text
-                x={x + barW / 2} y={padT + plotH - barH - 3}
-                textAnchor="middle" fill="#a3a3a3" fontSize={8}
+                x={x + barW / 2} y={chartH - 4}
+                textAnchor="middle" fill="#737373" fontSize={9}
               >
-                {h.engaged}
+                {h.hour === 0 ? "12a" : h.hour < 12 ? `${h.hour}a` : h.hour === 12 ? "12p" : `${h.hour - 12}p`}
               </text>
-            )}
-          </g>
-        );
-      })}
-    </svg>
+              {h.engaged > 0 && (
+                <text
+                  x={x + barW / 2} y={padT + plotH - bH - 3}
+                  textAnchor="middle" fill="#a3a3a3" fontSize={8}
+                >
+                  {h.engaged}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+      <p className="text-xs text-neutral-600 text-center mt-1">Business Hours (8AM-5PM EST)</p>
+    </div>
   );
 }
 
@@ -372,7 +411,7 @@ function DayOfWeekRow({ data }: { data: DayOfWeekRow[] }) {
 }
 
 function DeviceChart({ data }: { data: Device[] }) {
-  const total = data.reduce((sum, d) => sum + d.sessions, 0) || 1;
+  const total = data.reduce((sum, d) => sum + (d.sessions ?? 0), 0) || 1;
   const deviceColors: Record<string, string> = {
     desktop: "#3b82f6",
     mobile: "#22c55e",
@@ -382,7 +421,7 @@ function DeviceChart({ data }: { data: Device[] }) {
   return (
     <div className="space-y-3">
       {data.map((d) => {
-        const pct = ((d.sessions / total) * 100).toFixed(1);
+        const pct = (((d.sessions ?? 0) / total) * 100).toFixed(1);
         const color = deviceColors[d.device.toLowerCase()] || "#737373";
         return (
           <div key={d.device}>
@@ -528,6 +567,7 @@ export default function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(30);
+  const [classFilter, setClassFilter] = useState<string>("");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -595,36 +635,57 @@ export default function AnalyticsDashboard() {
         </button>
       </div>
 
+      {/* Traffic Summary Bar */}
+      {data?.trafficSummary && (
+        <div className="flex flex-wrap gap-3">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-green-600/20 text-green-400 border border-green-600/30">
+            {(data.trafficSummary.prospects ?? 0).toLocaleString()} Prospects
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-yellow-600/15 text-yellow-400 border border-yellow-600/30">
+            {(data.trafficSummary.suspicious ?? 0).toLocaleString()} Suspicious
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-red-600/15 text-red-400 border border-red-600/30">
+            {(data.trafficSummary.bots ?? 0).toLocaleString()} Bots
+          </span>
+          <span className="text-xs text-neutral-500 flex items-center">
+            {data.trafficSummary.botPercentage ?? 0}% noise
+          </span>
+        </div>
+      )}
+
       {/* Section 1: Visitor Intelligence — 4 stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {isLoading || !overview ? (
           [1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)
         ) : (
           <>
+            {/* Card 1: Prospects (or Real Visitors fallback) */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Users size={14} className="text-neutral-500" />
+                <Users size={14} className="text-green-500" />
                 <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Real Visitors
+                  {data?.trafficSummary ? "Prospects" : "Real Visitors"}
                 </span>
               </div>
-              <p className="text-2xl font-bold text-neutral-100">
-                {formatNumber(overview.users)}
+              <p className="text-2xl font-bold text-green-400">
+                {formatNumber(data?.trafficSummary?.prospects ?? overview.users)}
               </p>
             </div>
 
+            {/* Card 2: Engaged Sessions */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Target size={14} className={overview.engagementRate > 0.2 ? "text-green-500" : "text-neutral-500"} />
+                <Target size={14} className={(overview.engagementRate ?? 0) > 0.2 ? "text-green-500" : "text-neutral-500"} />
                 <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Engaged
+                  Engaged Sessions
                 </span>
               </div>
-              <p className={`text-2xl font-bold ${overview.engagementRate > 0.2 ? "text-green-400" : "text-neutral-100"}`}>
+              <p className={`text-2xl font-bold ${(overview.engagementRate ?? 0) > 0.2 ? "text-green-400" : "text-neutral-100"}`}>
                 {formatNumber(overview.engaged)}
               </p>
             </div>
 
+            {/* Card 3: Avg. Time on Site */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Clock size={14} className="text-neutral-500" />
@@ -637,20 +698,61 @@ export default function AnalyticsDashboard() {
               </p>
             </div>
 
+            {/* Card 4: Signal Ratio (or Engagement Rate fallback) */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp size={14} className="text-neutral-500" />
                 <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Engagement Rate
+                  {data?.trafficSummary ? "Signal Ratio" : "Engagement Rate"}
                 </span>
               </div>
-              <p className={`text-2xl font-bold ${overview.engagementRate > 0.2 ? "text-green-400" : "text-neutral-100"}`}>
-                {formatPercent(overview.engagementRate)}
-              </p>
+              {(() => {
+                const ts = data?.trafficSummary;
+                const signalRatio = ts
+                  ? (ts.prospects ?? 0) / Math.max((ts.prospects ?? 0) + (ts.suspicious ?? 0) + (ts.bots ?? 0), 1)
+                  : (overview.engagementRate ?? 0);
+                return (
+                  <p className={`text-2xl font-bold ${signalRatio > 0.2 ? "text-green-400" : "text-neutral-100"}`}>
+                    {ts
+                      ? `${(signalRatio * 100).toFixed(1)}%`
+                      : formatPercent(overview.engagementRate)}
+                  </p>
+                );
+              })()}
             </div>
           </>
         )}
       </div>
+
+      {/* Prospect Activity Feed */}
+      {data?.engagedTimeline && data.engagedTimeline.length > 0 && (
+        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-neutral-300 mb-3">Prospect Activity Feed</h3>
+          <div className="space-y-1.5">
+            {data.engagedTimeline.map((entry, i) => {
+              const entryIsMichigan = isMichiganCity(entry.region ?? "");
+              const durationMin = Math.floor((entry.avgDuration ?? 0) / 60);
+              const durationSec = Math.round((entry.avgDuration ?? 0) % 60);
+              const durationColor = (entry.avgDuration ?? 0) > 30 ? "text-green-400" : (entry.avgDuration ?? 0) > 10 ? "text-yellow-400" : "text-neutral-500";
+              const dateStr = entry.date ? `${entry.date.substring(4, 6)}/${entry.date.substring(6, 8)}` : "";
+              return (
+                <div key={i} className={`flex items-center gap-3 px-3 py-2 rounded-md border-l-2 ${entryIsMichigan ? "border-l-accent-500 bg-accent-500/5" : "border-l-neutral-700 bg-neutral-800/30"}`}>
+                  <span className="text-xs text-neutral-500 w-12 shrink-0">{dateStr}</span>
+                  <span className={`text-sm font-medium ${entryIsMichigan ? "text-accent-400" : "text-neutral-200"}`}>
+                    {entry.city}, {entry.region?.substring(0, 2).toUpperCase() || ""}
+                  </span>
+                  <span className="text-xs text-neutral-400">
+                    {entry.engaged ?? 0} engaged {(entry.engaged ?? 0) === 1 ? "session" : "sessions"}
+                  </span>
+                  <span className={`text-xs ml-auto ${durationColor}`}>
+                    avg {durationMin > 0 ? `${durationMin}m ` : ""}{durationSec}s
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Section 2 + 3: Geographic Intelligence + Visitor Fingerprint */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -659,34 +761,74 @@ export default function AnalyticsDashboard() {
           {isLoading ? (
             <SkeletonTable rows={6} />
           ) : (
-            <DataTable
-              columns={[
-                { label: "City" },
-                { label: "State" },
-                { label: "Visitors", align: "right" },
-                { label: "Engaged", align: "right" },
-              ]}
-              data={data?.cities || []}
-              renderRow={(city, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
-                >
-                  <td className={`py-1.5 px-2 ${isMichiganCity(city.region) ? "text-blue-400 font-medium" : "text-neutral-300"}`}>
-                    {city.city}
-                  </td>
-                  <td className={`py-1.5 px-2 text-sm ${isMichiganCity(city.region) ? "text-blue-400/70" : "text-neutral-500"}`}>
-                    {city.region}
-                  </td>
-                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                    {city.users}
-                  </td>
-                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                    {city.engaged}
-                  </td>
-                </tr>
-              )}
-            />
+            <>
+              <div className="flex gap-1 mb-2">
+                {["", "prospect", "suspicious", "bot"].map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setClassFilter(f)}
+                    className={`px-2 py-0.5 text-xs rounded ${
+                      classFilter === f
+                        ? "bg-neutral-700 text-white"
+                        : "text-neutral-500 hover:text-neutral-300"
+                    }`}
+                  >
+                    {f === "" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <DataTable
+                columns={[
+                  { label: "City" },
+                  { label: "State" },
+                  { label: "Class" },
+                  { label: "Visitors", align: "right" },
+                  { label: "Engaged", align: "right" },
+                ]}
+                data={(data?.cities || []).filter(
+                  (c) => !classFilter || c.classification === classFilter
+                )}
+                renderRow={(city, i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
+                  >
+                    <td
+                      className={`py-1.5 px-2 ${
+                        isMichiganCity(city.region ?? "")
+                          ? "text-blue-400 font-medium"
+                          : "text-neutral-300"
+                      }`}
+                    >
+                      {city.city}
+                    </td>
+                    <td
+                      className={`py-1.5 px-2 text-sm ${
+                        isMichiganCity(city.region ?? "")
+                          ? "text-blue-400/70"
+                          : "text-neutral-500"
+                      }`}
+                    >
+                      {city.region}
+                    </td>
+                    <td className="py-1.5 px-2">
+                      <span
+                        className={`px-1.5 py-0.5 text-[10px] rounded font-medium ${classificationBadge(city.classification)}`}
+                      >
+                        {city.classification ?? "unknown"}
+                      </span>
+                    </td>
+                    <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                      {(city.visitors ?? 0).toLocaleString()}
+                    </td>
+                    <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                      {(city.engaged ?? 0).toLocaleString()}
+                    </td>
+                  </tr>
+                )}
+              />
+            </>
           )}
         </Section>
 
@@ -711,7 +853,7 @@ export default function AnalyticsDashboard() {
                       {sr.resolution}
                     </td>
                     <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                      {sr.users}
+                      {(sr.users ?? 0).toLocaleString()}
                     </td>
                   </tr>
                 )}
@@ -738,7 +880,7 @@ export default function AnalyticsDashboard() {
                       {bo.browser} <span className="text-neutral-600">/</span> {bo.os}
                     </td>
                     <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                      {bo.users}
+                      {(bo.users ?? 0).toLocaleString()}
                     </td>
                   </tr>
                 )}
@@ -773,10 +915,10 @@ export default function AnalyticsDashboard() {
                     {sm.source}
                   </td>
                   <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                    {sm.sessions}
+                    {(sm.sessions ?? 0).toLocaleString()}
                   </td>
                   <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                    {sm.engaged}
+                    {(sm.engaged ?? 0).toLocaleString()}
                   </td>
                   <td className={`py-1.5 px-2 text-right tabular-nums ${engagementColor(sm.engagementRate)}`}>
                     <span className={`px-1.5 py-0.5 rounded text-xs ${engagementBg(sm.engagementRate)}`}>
@@ -841,7 +983,7 @@ export default function AnalyticsDashboard() {
                   {truncateUrl(ref.url, 60)}
                 </td>
                 <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                  {ref.sessions}
+                  {(ref.sessions ?? 0).toLocaleString()}
                 </td>
               </tr>
             )}
