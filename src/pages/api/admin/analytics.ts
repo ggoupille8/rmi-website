@@ -32,6 +32,17 @@ function rows(report: unknown): GA4Row[] {
   return (r?.rows as GA4Row[] | undefined) || [];
 }
 
+function classifyTraffic(
+  visitors: number,
+  engaged: number,
+): "prospect" | "suspicious" | "bot" {
+  if (visitors === 0) return "bot";
+  const ratio = engaged / visitors;
+  if (ratio > 0.3) return "prospect";
+  if (ratio > 0.05 || (engaged >= 2 && visitors <= 20)) return "suspicious";
+  return "bot";
+}
+
 export const GET: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -47,7 +58,7 @@ export const GET: APIRoute = async ({ request }) => {
   if (!propertyId || !clientEmail || !privateKey) {
     return new Response(
       JSON.stringify({ error: "GA4 not configured", configured: false }),
-      { status: 200, headers: SECURITY_HEADERS }
+      { status: 200, headers: SECURITY_HEADERS },
     );
   }
 
@@ -58,11 +69,11 @@ export const GET: APIRoute = async ({ request }) => {
   try {
     // Handle multiple possible formats of the private key from env vars
     let formattedKey = privateKey;
-    if (formattedKey.includes('\\\\n')) {
-      formattedKey = formattedKey.replace(/\\\\n/g, '\n');
+    if (formattedKey.includes("\\\\n")) {
+      formattedKey = formattedKey.replace(/\\\\n/g, "\n");
     }
-    if (formattedKey.includes('\\n')) {
-      formattedKey = formattedKey.replace(/\\n/g, '\n');
+    if (formattedKey.includes("\\n")) {
+      formattedKey = formattedKey.replace(/\\n/g, "\n");
     }
 
     const client = new BetaAnalyticsDataClient({
@@ -86,6 +97,7 @@ export const GET: APIRoute = async ({ request }) => {
       referrers,
       devices,
       dailyTrend,
+      engagedByDateCity,
     ] = await Promise.all([
       // 1. Overview (aggregate, no dimensions)
       client.runReport({
@@ -161,7 +173,9 @@ export const GET: APIRoute = async ({ request }) => {
         dateRanges,
         dimensions: [{ name: "dayOfWeek" }],
         metrics: [{ name: "totalUsers" }, { name: "engagedSessions" }],
-        orderBys: [{ dimension: { dimensionName: "dayOfWeek" }, desc: false }],
+        orderBys: [
+          { dimension: { dimensionName: "dayOfWeek" }, desc: false },
+        ],
       }),
 
       // 8. Full Referrer URLs
@@ -191,6 +205,19 @@ export const GET: APIRoute = async ({ request }) => {
         metrics: [{ name: "engagedSessions" }, { name: "totalUsers" }],
         orderBys: [{ dimension: { dimensionName: "date" }, desc: false }],
       }),
+
+      // 11. Engaged sessions by date + city (prospect activity timeline)
+      client.runReport({
+        property,
+        dateRanges: [{ startDate, endDate: "today" }],
+        dimensions: [{ name: "date" }, { name: "city" }, { name: "region" }],
+        metrics: [
+          { name: "engagedSessions" },
+          { name: "averageSessionDuration" },
+        ],
+        orderBys: [{ dimension: { dimensionName: "date" }, desc: true }],
+        limit: 50,
+      }),
     ]);
 
     const overviewRow = rows(overview[0])[0];
@@ -209,11 +236,61 @@ export const GET: APIRoute = async ({ request }) => {
         return city && city !== "(not set)";
       })
       .slice(0, 15)
+      .map((row) => {
+        const city = dimVal(row, 0);
+        const region = dimVal(row, 1);
+        const visitors = metricInt(row, 0);
+        const engaged = metricInt(row, 1);
+        return {
+          city,
+          region,
+          visitors,
+          engaged,
+          classification: classifyTraffic(visitors, engaged),
+        };
+      });
+
+    // Traffic summary from city classifications
+    const botVisitors = citiesData
+      .filter((c) => c.classification === "bot")
+      .reduce((s, c) => s + c.visitors, 0);
+    const suspiciousVisitors = citiesData
+      .filter((c) => c.classification === "suspicious")
+      .reduce((s, c) => s + c.visitors, 0);
+    const prospectVisitors = citiesData
+      .filter((c) => c.classification === "prospect")
+      .reduce((s, c) => s + c.visitors, 0);
+    const totalFromCities = botVisitors + suspiciousVisitors + prospectVisitors;
+
+    const trafficSummary = {
+      prospects: prospectVisitors,
+      suspicious: suspiciousVisitors,
+      bots: botVisitors,
+      botPercentage:
+        totalFromCities > 0
+          ? Math.round((botVisitors / totalFromCities) * 1000) / 10
+          : 0,
+    };
+
+    // Prospect activity: non-bot cities with engagement, sorted by engaged count
+    const prospectActivity = citiesData
+      .filter((c) => c.classification !== "bot" && c.engaged >= 1)
+      .sort((a, b) => b.engaged - a.engaged);
+
+    // Engaged timeline: sessions by date + city
+    const engagedTimeline = rows(engagedByDateCity[0])
+      .filter(
+        (row) =>
+          metricInt(row, 0) > 0 &&
+          dimVal(row, 0) !== "(not set)" &&
+          dimVal(row, 1) !== "(not set)",
+      )
       .map((row) => ({
-        city: dimVal(row, 0),
-        region: dimVal(row, 1),
-        users: metricInt(row, 0),
-        engaged: metricInt(row, 1),
+        date: dimVal(row, 0),
+        city: dimVal(row, 1),
+        region: dimVal(row, 2),
+        engaged: metricInt(row, 0),
+        avgDuration: metricFloat(row, 1),
       }));
 
     const screenResData = rows(screenRes[0]).map((row) => ({
@@ -275,6 +352,9 @@ export const GET: APIRoute = async ({ request }) => {
         days,
         overview: overviewData,
         cities: citiesData,
+        trafficSummary,
+        prospectActivity,
+        engagedTimeline,
         screenResolutions: screenResData,
         browserOS: browserOSData,
         sourceMedium: sourceMediumData,
@@ -284,14 +364,14 @@ export const GET: APIRoute = async ({ request }) => {
         devices: devicesData,
         daily: dailyData,
       }),
-      { status: 200, headers: SECURITY_HEADERS }
+      { status: 200, headers: SECURITY_HEADERS },
     );
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
     console.error("GA4 API error:", errMsg);
-    return new Response(
-      JSON.stringify({ error: errMsg, configured: true }),
-      { status: 500, headers: SECURITY_HEADERS }
-    );
+    return new Response(JSON.stringify({ error: errMsg, configured: true }), {
+      status: 500,
+      headers: SECURITY_HEADERS,
+    });
   }
 };
