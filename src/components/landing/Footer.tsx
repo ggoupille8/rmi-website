@@ -123,7 +123,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group flex items-start gap-2 text-white hover:text-accent-400 transition-all duration-200 text-sm min-h-[44px] sm:min-h-0 sm:py-1.5"
-                aria-label="View address on Google Maps"
+                aria-label="View our location on Google Maps"
               >
                 <MapPin className="w-3.5 h-3.5 text-accent-500 group-hover:drop-shadow-[0_0_6px_rgba(96,165,250,0.5)] flex-shrink-0 mt-0.5 transition-all duration-200" aria-hidden="true" />
                 <span>{address.full}</span>

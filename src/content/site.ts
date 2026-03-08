@@ -7,7 +7,7 @@ export const companyName = "Resource Mechanical Insulation";
 export const companyNameFull = "Resource Mechanical Insulation, LLC";
 
 // Contact Information
-export const email = "fab@rmi-llc.net";
+export const email = "info@rmi-llc.net";
 export const phone = "248-379-5156";
 export const phoneE164 = "+12483795156";
 export const phoneTel = `tel:${phoneE164}`;
