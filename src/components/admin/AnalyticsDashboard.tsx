@@ -1,33 +1,66 @@
 import { useState, useEffect, useCallback } from "react";
 import {
-  Eye,
   Users,
-  MousePointerClick,
-  TrendingDown,
+  Target,
+  Clock,
+  TrendingUp,
   RefreshCw,
   AlertCircle,
   Settings,
 } from "lucide-react";
 
+// --- Data interfaces ---
+
 interface OverviewData {
-  pageViews: number;
   users: number;
+  engaged: number;
+  avgDuration: number;
+  engagementRate: number;
   sessions: number;
-  avgSessionDuration: number;
-  bounceRate: number;
   newUsers: number;
 }
 
-interface TopPage {
-  path: string;
-  views: number;
+interface CityRow {
+  city: string;
+  region: string;
+  users: number;
+  engaged: number;
+}
+
+interface ScreenResRow {
+  resolution: string;
   users: number;
 }
 
-interface Referrer {
+interface BrowserOSRow {
+  browser: string;
+  os: string;
+  users: number;
+}
+
+interface SourceMediumRow {
   source: string;
   sessions: number;
+  engaged: number;
+  engagementRate: number;
+  avgDuration: number;
+}
+
+interface HourlyRow {
+  hour: string;
   users: number;
+  engaged: number;
+}
+
+interface DayOfWeekRow {
+  day: number;
+  users: number;
+  engaged: number;
+}
+
+interface ReferrerRow {
+  url: string;
+  sessions: number;
 }
 
 interface Device {
@@ -37,7 +70,7 @@ interface Device {
 
 interface DailyPoint {
   date: string;
-  views: number;
+  engaged: number;
   users: number;
 }
 
@@ -45,18 +78,26 @@ interface AnalyticsResponse {
   configured: boolean;
   days?: number;
   overview?: OverviewData;
-  topPages?: TopPage[];
-  referrers?: Referrer[];
+  cities?: CityRow[];
+  screenResolutions?: ScreenResRow[];
+  browserOS?: BrowserOSRow[];
+  sourceMedium?: SourceMediumRow[];
+  hourly?: HourlyRow[];
+  dayOfWeek?: DayOfWeekRow[];
+  referrers?: ReferrerRow[];
   devices?: Device[];
   daily?: DailyPoint[];
   error?: string;
 }
 
 const DATE_RANGES = [
+  { label: "1d", days: 1 },
   { label: "7d", days: 7 },
   { label: "30d", days: 30 },
   { label: "90d", days: 90 },
 ];
+
+// --- Formatters ---
 
 function formatDuration(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -70,11 +111,50 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
+function formatPercent(rate: number): string {
+  return `${(rate * 100).toFixed(1)}%`;
+}
+
 function formatDate(yyyymmdd: string): string {
   if (yyyymmdd.length !== 8) return yyyymmdd;
   const m = parseInt(yyyymmdd.slice(4, 6), 10);
   const d = parseInt(yyyymmdd.slice(6, 8), 10);
   return `${m}/${d}`;
+}
+
+function engagementColor(rate: number): string {
+  if (rate >= 0.3) return "text-green-400";
+  if (rate >= 0.1) return "text-yellow-400";
+  return "text-red-400";
+}
+
+function engagementBg(rate: number): string {
+  if (rate >= 0.3) return "bg-green-400/10";
+  if (rate >= 0.1) return "bg-yellow-400/10";
+  return "bg-red-400/10";
+}
+
+const MICHIGAN_KEYWORDS = ["michigan", "mi"];
+
+function isMichiganCity(region: string): boolean {
+  const lower = region.toLowerCase();
+  return MICHIGAN_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
+function truncateUrl(url: string, maxLen: number): string {
+  if (url.length <= maxLen) return url;
+  try {
+    const parsed = new URL(url);
+    const domain = parsed.hostname;
+    const path = parsed.pathname + parsed.search;
+    const remaining = maxLen - domain.length - 3;
+    if (remaining > 0 && path.length > remaining) {
+      return `${domain}${path.slice(0, remaining)}...`;
+    }
+    return `${domain}${path}`;
+  } catch {
+    return url.slice(0, maxLen) + "...";
+  }
 }
 
 // --- Skeleton components ---
@@ -88,11 +168,10 @@ function SkeletonCard() {
   );
 }
 
-function SkeletonTable() {
+function SkeletonTable({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 animate-pulse">
-      <div className="h-4 w-32 bg-neutral-800 rounded mb-4" />
-      {[1, 2, 3, 4, 5].map((i) => (
+    <div className="animate-pulse">
+      {Array.from({ length: rows }, (_, i) => (
         <div key={i} className="flex gap-4 mb-3">
           <div className="h-3 flex-1 bg-neutral-800 rounded" />
           <div className="h-3 w-12 bg-neutral-800 rounded" />
@@ -105,8 +184,7 @@ function SkeletonTable() {
 
 function SkeletonChart() {
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 animate-pulse">
-      <div className="h-4 w-40 bg-neutral-800 rounded mb-4" />
+    <div className="animate-pulse">
       <div className="h-48 bg-neutral-800 rounded" />
     </div>
   );
@@ -123,7 +201,7 @@ function DailyTrendChart({ data }: { data: DailyPoint[] }) {
     );
   }
 
-  const maxViews = Math.max(...data.map((d) => d.views), 1);
+  const maxVal = Math.max(...data.map((d) => d.engaged), 1);
   const chartW = 800;
   const chartH = 200;
   const padL = 45;
@@ -135,20 +213,18 @@ function DailyTrendChart({ data }: { data: DailyPoint[] }) {
 
   const points = data.map((d, i) => {
     const x = padL + (i / Math.max(data.length - 1, 1)) * plotW;
-    const y = padT + plotH - (d.views / maxViews) * plotH;
+    const y = padT + plotH - (d.engaged / maxVal) * plotH;
     return { x, y, ...d };
   });
 
   const polyline = points.map((p) => `${p.x},${p.y}`).join(" ");
   const areaPath = `M ${points[0].x},${padT + plotH} ${points.map((p) => `L ${p.x},${p.y}`).join(" ")} L ${points[points.length - 1].x},${padT + plotH} Z`;
 
-  // Y-axis gridlines
   const gridLines = 4;
   const gridValues = Array.from({ length: gridLines + 1 }, (_, i) =>
-    Math.round((maxViews / gridLines) * i)
+    Math.round((maxVal / gridLines) * i)
   );
 
-  // X-axis labels (show ~6 evenly spaced)
   const labelCount = Math.min(6, data.length);
   const labelIndices = Array.from({ length: labelCount }, (_, i) =>
     Math.round((i / (labelCount - 1)) * (data.length - 1))
@@ -160,75 +236,36 @@ function DailyTrendChart({ data }: { data: DailyPoint[] }) {
       className="w-full h-auto"
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* Grid lines */}
       {gridValues.map((val, i) => {
-        const y = padT + plotH - (val / maxViews) * plotH;
+        const y = padT + plotH - (val / maxVal) * plotH;
         return (
           <g key={i}>
             <line
-              x1={padL}
-              y1={y}
-              x2={chartW - padR}
-              y2={y}
-              stroke="#404040"
-              strokeWidth={0.5}
-              strokeDasharray="4,4"
+              x1={padL} y1={y} x2={chartW - padR} y2={y}
+              stroke="#404040" strokeWidth={0.5} strokeDasharray="4,4"
             />
-            <text
-              x={padL - 6}
-              y={y + 3}
-              textAnchor="end"
-              fill="#737373"
-              fontSize={10}
-            >
+            <text x={padL - 6} y={y + 3} textAnchor="end" fill="#737373" fontSize={10}>
               {formatNumber(val)}
             </text>
           </g>
         );
       })}
-
-      {/* Area fill */}
-      <path d={areaPath} fill="url(#areaGradient)" />
-
-      {/* Gradient definition */}
+      <path d={areaPath} fill="url(#engagedGradient)" />
       <defs>
-        <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-          <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02} />
+        <linearGradient id="engagedGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} />
+          <stop offset="100%" stopColor="#22c55e" stopOpacity={0.02} />
         </linearGradient>
       </defs>
-
-      {/* Line */}
       <polyline
-        points={polyline}
-        fill="none"
-        stroke="#3b82f6"
-        strokeWidth={2}
-        strokeLinejoin="round"
-        strokeLinecap="round"
+        points={polyline} fill="none" stroke="#22c55e"
+        strokeWidth={2} strokeLinejoin="round" strokeLinecap="round"
       />
-
-      {/* Data points */}
       {points.map((p, i) => (
-        <circle
-          key={i}
-          cx={p.x}
-          cy={p.y}
-          r={data.length <= 14 ? 3 : 1.5}
-          fill="#3b82f6"
-        />
+        <circle key={i} cx={p.x} cy={p.y} r={data.length <= 14 ? 3 : 1.5} fill="#22c55e" />
       ))}
-
-      {/* X-axis labels */}
       {labelIndices.map((idx) => (
-        <text
-          key={idx}
-          x={points[idx].x}
-          y={chartH - 5}
-          textAnchor="middle"
-          fill="#737373"
-          fontSize={10}
-        >
+        <text key={idx} x={points[idx].x} y={chartH - 5} textAnchor="middle" fill="#737373" fontSize={10}>
           {formatDate(data[idx].date)}
         </text>
       ))}
@@ -236,9 +273,102 @@ function DailyTrendChart({ data }: { data: DailyPoint[] }) {
   );
 }
 
+function HourlyChart({ data }: { data: HourlyRow[] }) {
+  // Fill in missing hours
+  const hourMap = new Map(data.map((d) => [parseInt(d.hour, 10), d]));
+  const allHours = Array.from({ length: 24 }, (_, i) => ({
+    hour: i,
+    users: hourMap.get(i)?.users || 0,
+    engaged: hourMap.get(i)?.engaged || 0,
+  }));
+
+  const maxEngaged = Math.max(...allHours.map((h) => h.engaged), 1);
+  const barW = 28;
+  const gap = 4;
+  const chartW = 24 * (barW + gap);
+  const chartH = 120;
+  const padT = 10;
+  const padB = 24;
+  const plotH = chartH - padT - padB;
+
+  return (
+    <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+      {allHours.map((h) => {
+        const x = h.hour * (barW + gap);
+        const ratio = h.engaged / maxEngaged;
+        const barH = Math.max(ratio * plotH, 1);
+        const opacity = Math.max(ratio * 0.8 + 0.2, 0.15);
+        const isBusinessHour = h.hour >= 8 && h.hour <= 17;
+        return (
+          <g key={h.hour}>
+            <rect
+              x={x} y={padT + plotH - barH}
+              width={barW} height={barH}
+              rx={2}
+              fill={isBusinessHour ? "#3b82f6" : "#6b7280"}
+              opacity={opacity}
+            />
+            <text
+              x={x + barW / 2} y={chartH - 4}
+              textAnchor="middle" fill="#737373" fontSize={9}
+            >
+              {h.hour === 0 ? "12a" : h.hour < 12 ? `${h.hour}a` : h.hour === 12 ? "12p" : `${h.hour - 12}p`}
+            </text>
+            {h.engaged > 0 && (
+              <text
+                x={x + barW / 2} y={padT + plotH - barH - 3}
+                textAnchor="middle" fill="#a3a3a3" fontSize={8}
+              >
+                {h.engaged}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function DayOfWeekRow({ data }: { data: DayOfWeekRow[] }) {
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dayMap = new Map(data.map((d) => [d.day, d]));
+  const allDays = Array.from({ length: 7 }, (_, i) => ({
+    day: i,
+    name: dayNames[i],
+    users: dayMap.get(i)?.users || 0,
+    engaged: dayMap.get(i)?.engaged || 0,
+  }));
+
+  const maxEngaged = Math.max(...allDays.map((d) => d.engaged), 1);
+
+  return (
+    <div className="flex gap-2">
+      {allDays.map((d) => {
+        const ratio = d.engaged / maxEngaged;
+        const isWeekday = d.day >= 1 && d.day <= 5;
+        const bgOpacity = Math.max(ratio * 0.6, 0.05);
+        return (
+          <div
+            key={d.day}
+            className="flex-1 text-center rounded-md py-2 px-1"
+            style={{
+              backgroundColor: isWeekday
+                ? `rgba(59, 130, 246, ${bgOpacity})`
+                : `rgba(107, 114, 128, ${bgOpacity})`,
+            }}
+          >
+            <div className="text-[10px] text-neutral-500 uppercase tracking-wider">{d.name}</div>
+            <div className="text-sm font-semibold text-neutral-200 mt-0.5">{d.engaged}</div>
+            <div className="text-[10px] text-neutral-500">{d.users} total</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function DeviceChart({ data }: { data: Device[] }) {
   const total = data.reduce((sum, d) => sum + d.sessions, 0) || 1;
-
   const deviceColors: Record<string, string> = {
     desktop: "#3b82f6",
     mobile: "#22c55e",
@@ -261,10 +391,7 @@ function DeviceChart({ data }: { data: Device[] }) {
             <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${pct}%`,
-                  backgroundColor: color,
-                }}
+                style={{ width: `${pct}%`, backgroundColor: color }}
               />
             </div>
           </div>
@@ -286,35 +413,22 @@ function NotConfiguredCard() {
             GA4 Analytics Not Configured
           </h3>
           <p className="text-sm text-neutral-400">
-            Set up Google Analytics 4 Data API access to view traffic analytics
-            here.
+            Set up Google Analytics 4 Data API access to view traffic analytics here.
           </p>
         </div>
       </div>
-
       <div className="bg-neutral-800/50 rounded-md p-4 text-sm text-neutral-300 space-y-3">
         <p className="font-medium text-neutral-200">Setup steps:</p>
         <ol className="list-decimal list-inside space-y-2 text-neutral-400">
-          <li>
-            Create a Google Cloud service account with GA4 Data API enabled
-          </li>
-          <li>
-            Grant the service account <strong>Viewer</strong> access to your GA4
-            property
-          </li>
+          <li>Create a Google Cloud service account with GA4 Data API enabled</li>
+          <li>Grant the service account <strong>Viewer</strong> access to your GA4 property</li>
           <li>Get the numeric Property ID from GA4 Admin &gt; Property Settings</li>
           <li>
             Add these environment variables in Vercel:
             <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-              <li>
-                <code className="text-primary-400">GA4_PROPERTY_ID</code>
-              </li>
-              <li>
-                <code className="text-primary-400">GA4_CLIENT_EMAIL</code>
-              </li>
-              <li>
-                <code className="text-primary-400">GA4_PRIVATE_KEY</code>
-              </li>
+              <li><code className="text-primary-400">GA4_PROPERTY_ID</code></li>
+              <li><code className="text-primary-400">GA4_CLIENT_EMAIL</code></li>
+              <li><code className="text-primary-400">GA4_PRIVATE_KEY</code></li>
             </ul>
           </li>
           <li>Redeploy the application</li>
@@ -326,21 +440,13 @@ function NotConfiguredCard() {
 
 // --- Error state ---
 
-function ErrorCard({
-  message,
-  onRetry,
-}: {
-  message: string;
-  onRetry: () => void;
-}) {
+function ErrorCard({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="bg-red-950/30 border border-red-900/50 rounded-lg p-4">
       <div className="flex items-start gap-3">
         <AlertCircle size={18} className="text-red-400 mt-0.5 flex-shrink-0" />
         <div className="flex-1">
-          <p className="text-sm font-medium text-red-300 mb-1">
-            Failed to load analytics
-          </p>
+          <p className="text-sm font-medium text-red-300 mb-1">Failed to load analytics</p>
           <p className="text-sm text-red-400/80">{message}</p>
         </div>
         <button
@@ -352,6 +458,61 @@ function ErrorCard({
           Retry
         </button>
       </div>
+    </div>
+  );
+}
+
+// --- Section wrapper ---
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+      <h3 className="text-sm font-medium text-neutral-300 mb-3">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+// --- Table helper ---
+
+function DataTable<T>({
+  columns,
+  data,
+  renderRow,
+}: {
+  columns: { label: string; align?: "left" | "right" }[];
+  data: T[];
+  renderRow: (item: T, index: number) => React.ReactNode;
+}) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-neutral-800">
+            {columns.map((col) => (
+              <th
+                key={col.label}
+                className={`py-2 px-2 text-xs font-medium text-neutral-500 uppercase tracking-wider ${
+                  col.align === "right" ? "text-right" : "text-left"
+                }`}
+              >
+                {col.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.length === 0 ? (
+            <tr>
+              <td colSpan={columns.length} className="py-4 text-center text-neutral-500">
+                No data
+              </td>
+            </tr>
+          ) : (
+            data.map((item, i) => renderRow(item, i))
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -388,41 +549,15 @@ export default function AnalyticsDashboard() {
     fetchData();
   }, [fetchData]);
 
-  // Not configured
   if (!loading && data && data.configured === false) {
     return <NotConfiguredCard />;
   }
 
-  // Error state
   if (!loading && error) {
     return <ErrorCard message={error} onRetry={fetchData} />;
   }
 
   const overview = data?.overview;
-  const statCards = overview
-    ? [
-        {
-          label: "Page Views",
-          value: formatNumber(overview.pageViews),
-          icon: Eye,
-        },
-        {
-          label: "Unique Visitors",
-          value: formatNumber(overview.users),
-          icon: Users,
-        },
-        {
-          label: "Sessions",
-          value: formatNumber(overview.sessions),
-          icon: MousePointerClick,
-        },
-        {
-          label: "Bounce Rate",
-          value: `${(overview.bounceRate * 100).toFixed(1)}%`,
-          icon: TrendingDown,
-        },
-      ]
-    : null;
 
   return (
     <div className="space-y-6">
@@ -455,182 +590,271 @@ export default function AnalyticsDashboard() {
         </button>
       </div>
 
-      {/* Overview stat cards */}
+      {/* Section 1: Visitor Intelligence — 4 stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {loading || !statCards
-          ? [1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)
-          : statCards.map((card) => (
-              <div
-                key={card.label}
-                className="bg-neutral-900 border border-neutral-800 rounded-lg p-4"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <card.icon size={14} className="text-neutral-500" />
-                  <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                    {card.label}
-                  </span>
-                </div>
-                <p className="text-2xl font-bold text-neutral-100">
-                  {card.value}
-                </p>
-              </div>
-            ))}
-      </div>
-
-      {/* Secondary stats row */}
-      {!loading && overview && (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-            <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-              Avg. Session Duration
-            </span>
-            <p className="text-lg font-semibold text-neutral-200 mt-1">
-              {formatDuration(overview.avgSessionDuration)}
-            </p>
-          </div>
-          <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-            <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-              New Users
-            </span>
-            <p className="text-lg font-semibold text-neutral-200 mt-1">
-              {formatNumber(overview.newUsers)}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Daily trend chart */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-neutral-300 mb-4">
-          Daily Page Views
-        </h3>
-        {loading ? (
-          <div className="h-48 bg-neutral-800 rounded animate-pulse" />
+        {loading || !overview ? (
+          [1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)
         ) : (
-          <DailyTrendChart data={data?.daily || []} />
+          <>
+            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Users size={14} className="text-neutral-500" />
+                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Real Visitors
+                </span>
+              </div>
+              <p className="text-2xl font-bold text-neutral-100">
+                {formatNumber(overview.users)}
+              </p>
+            </div>
+
+            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Target size={14} className={overview.engagementRate > 0.2 ? "text-green-500" : "text-neutral-500"} />
+                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Engaged
+                </span>
+              </div>
+              <p className={`text-2xl font-bold ${overview.engagementRate > 0.2 ? "text-green-400" : "text-neutral-100"}`}>
+                {formatNumber(overview.engaged)}
+              </p>
+            </div>
+
+            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock size={14} className="text-neutral-500" />
+                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Avg. Time on Site
+                </span>
+              </div>
+              <p className="text-2xl font-bold text-neutral-100">
+                {formatDuration(overview.avgDuration)}
+              </p>
+            </div>
+
+            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp size={14} className="text-neutral-500" />
+                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                  Engagement Rate
+                </span>
+              </div>
+              <p className={`text-2xl font-bold ${overview.engagementRate > 0.2 ? "text-green-400" : "text-neutral-100"}`}>
+                {formatPercent(overview.engagementRate)}
+              </p>
+            </div>
+          </>
         )}
       </div>
 
-      {/* Two-column: Top Pages + Traffic Sources */}
+      {/* Section 2 + 3: Geographic Intelligence + Visitor Fingerprint */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Top Pages */}
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-neutral-300 mb-3">
-            Top Pages
-          </h3>
+        {/* Geographic Intelligence */}
+        <Section title="Geographic Intelligence">
           {loading ? (
-            <SkeletonTable />
+            <SkeletonTable rows={6} />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-800">
-                    <th className="text-left py-2 pr-4 text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Page
-                    </th>
-                    <th className="text-right py-2 px-2 text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Views
-                    </th>
-                    <th className="text-right py-2 pl-2 text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Users
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(data?.topPages || []).map((page, i) => (
-                    <tr
-                      key={i}
-                      className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
-                    >
-                      <td className="py-2 pr-4 text-neutral-300 font-mono text-xs truncate max-w-[200px]">
-                        {page.path}
-                      </td>
-                      <td className="py-2 px-2 text-right text-neutral-400 tabular-nums">
-                        {page.views.toLocaleString()}
-                      </td>
-                      <td className="py-2 pl-2 text-right text-neutral-400 tabular-nums">
-                        {page.users.toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                  {(data?.topPages || []).length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="py-4 text-center text-neutral-500"
-                      >
-                        No data
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={[
+                { label: "City" },
+                { label: "State" },
+                { label: "Visitors", align: "right" },
+                { label: "Engaged", align: "right" },
+              ]}
+              data={data?.cities || []}
+              renderRow={(city, i) => (
+                <tr
+                  key={i}
+                  className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
+                >
+                  <td className={`py-1.5 px-2 ${isMichiganCity(city.region) ? "text-blue-400 font-medium" : "text-neutral-300"}`}>
+                    {city.city}
+                  </td>
+                  <td className={`py-1.5 px-2 text-sm ${isMichiganCity(city.region) ? "text-blue-400/70" : "text-neutral-500"}`}>
+                    {city.region}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                    {city.users}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                    {city.engaged}
+                  </td>
+                </tr>
+              )}
+            />
           )}
-        </div>
+        </Section>
 
-        {/* Traffic Sources */}
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-neutral-300 mb-3">
-            Traffic Sources
-          </h3>
-          {loading ? (
-            <SkeletonTable />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-800">
-                    <th className="text-left py-2 pr-4 text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Source
-                    </th>
-                    <th className="text-right py-2 px-2 text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Sessions
-                    </th>
-                    <th className="text-right py-2 pl-2 text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                      Users
-                    </th>
+        {/* Visitor Fingerprint */}
+        <div className="space-y-4">
+          <Section title="Screen Resolutions">
+            {loading ? (
+              <SkeletonTable rows={4} />
+            ) : (
+              <DataTable
+                columns={[
+                  { label: "Resolution" },
+                  { label: "Visitors", align: "right" },
+                ]}
+                data={data?.screenResolutions || []}
+                renderRow={(sr, i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
+                  >
+                    <td className="py-1.5 px-2 text-neutral-300 font-mono text-xs">
+                      {sr.resolution}
+                    </td>
+                    <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                      {sr.users}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {(data?.referrers || []).map((ref, i) => (
-                    <tr
-                      key={i}
-                      className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
-                    >
-                      <td className="py-2 pr-4 text-neutral-300 truncate max-w-[200px]">
-                        {ref.source}
-                      </td>
-                      <td className="py-2 px-2 text-right text-neutral-400 tabular-nums">
-                        {ref.sessions.toLocaleString()}
-                      </td>
-                      <td className="py-2 pl-2 text-right text-neutral-400 tabular-nums">
-                        {ref.users.toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                  {(data?.referrers || []).length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="py-4 text-center text-neutral-500"
-                      >
-                        No data
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+                )}
+              />
+            )}
+          </Section>
+
+          <Section title="Browser / OS">
+            {loading ? (
+              <SkeletonTable rows={4} />
+            ) : (
+              <DataTable
+                columns={[
+                  { label: "Browser / OS" },
+                  { label: "Visitors", align: "right" },
+                ]}
+                data={data?.browserOS || []}
+                renderRow={(bo, i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
+                  >
+                    <td className="py-1.5 px-2 text-neutral-300 text-xs">
+                      {bo.browser} <span className="text-neutral-600">/</span> {bo.os}
+                    </td>
+                    <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                      {bo.users}
+                    </td>
+                  </tr>
+                )}
+              />
+            )}
+          </Section>
         </div>
       </div>
 
-      {/* Device breakdown */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-neutral-300 mb-4">
-          Device Breakdown
-        </h3>
+      {/* Section 4: Traffic Source Intelligence */}
+      <Section title="Traffic Source Intelligence">
+        {loading ? (
+          <SkeletonTable rows={6} />
+        ) : (
+          <DataTable
+            columns={[
+              { label: "Source / Medium" },
+              { label: "Sessions", align: "right" },
+              { label: "Engaged", align: "right" },
+              { label: "Eng. Rate", align: "right" },
+              { label: "Avg Duration", align: "right" },
+            ]}
+            data={data?.sourceMedium || []}
+            renderRow={(sm, i) => {
+              const isDirect = sm.source === "(direct) / (none)";
+              return (
+                <tr
+                  key={i}
+                  className={`border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors ${isDirect ? "opacity-50" : ""}`}
+                >
+                  <td className="py-1.5 px-2 text-neutral-300 text-xs max-w-[200px] truncate">
+                    {sm.source}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                    {sm.sessions}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                    {sm.engaged}
+                  </td>
+                  <td className={`py-1.5 px-2 text-right tabular-nums ${engagementColor(sm.engagementRate)}`}>
+                    <span className={`px-1.5 py-0.5 rounded text-xs ${engagementBg(sm.engagementRate)}`}>
+                      {formatPercent(sm.engagementRate)}
+                    </span>
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums text-xs">
+                    {formatDuration(sm.avgDuration)}
+                  </td>
+                </tr>
+              );
+            }}
+          />
+        )}
+      </Section>
+
+      {/* Section 5: Time-of-Day Patterns */}
+      <Section title="Hourly Traffic Pattern">
+        {loading ? (
+          <SkeletonChart />
+        ) : (
+          <div className="space-y-1">
+            <div className="flex items-center gap-4 text-[10px] text-neutral-500 mb-2">
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-blue-500/60" /> Business hours (8a-5p)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-neutral-500/60" /> Off hours
+              </span>
+            </div>
+            <HourlyChart data={data?.hourly || []} />
+          </div>
+        )}
+      </Section>
+
+      {/* Day of Week */}
+      <Section title="Day of Week — Engaged Sessions">
+        {loading ? (
+          <SkeletonTable rows={1} />
+        ) : (
+          <DayOfWeekRow data={data?.dayOfWeek || []} />
+        )}
+      </Section>
+
+      {/* Section 6: Referrer Deep Dive */}
+      <Section title="Referrer URLs">
+        {loading ? (
+          <SkeletonTable rows={6} />
+        ) : (
+          <DataTable
+            columns={[
+              { label: "Referrer URL" },
+              { label: "Sessions", align: "right" },
+            ]}
+            data={data?.referrers || []}
+            renderRow={(ref, i) => (
+              <tr
+                key={i}
+                className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
+              >
+                <td className="py-1.5 px-2 text-neutral-300 font-mono text-xs max-w-[400px] truncate" title={ref.url}>
+                  {truncateUrl(ref.url, 60)}
+                </td>
+                <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                  {ref.sessions}
+                </td>
+              </tr>
+            )}
+          />
+        )}
+      </Section>
+
+      {/* Section 7: Daily Engaged Traffic Trend */}
+      <Section title="Daily Engaged Traffic">
+        {loading ? (
+          <SkeletonChart />
+        ) : (
+          <DailyTrendChart data={data?.daily || []} />
+        )}
+      </Section>
+
+      {/* Device Breakdown */}
+      <Section title="Device Breakdown">
         {loading ? (
           <div className="space-y-3 animate-pulse">
             {[1, 2, 3].map((i) => (
@@ -643,7 +867,7 @@ export default function AnalyticsDashboard() {
         ) : (
           <DeviceChart data={data?.devices || []} />
         )}
-      </div>
+      </Section>
     </div>
   );
 }
