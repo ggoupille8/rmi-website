@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../lib/db-env";
 import { isAdminAuthorized } from "../../../lib/admin-auth";
+import { ensureContactsSoftDelete } from "../../../lib/ensure-contacts-soft-delete";
 
 export const prerender = false;
 
@@ -42,6 +43,7 @@ export const GET: APIRoute = async ({ request }) => {
   if (!postgresUrl) return dbNotConfiguredResponse();
 
   try {
+    await ensureContactsSoftDelete();
     const url = new URL(request.url);
 
     // Parse pagination
@@ -141,6 +143,7 @@ export const PATCH: APIRoute = async ({ request }) => {
   if (!postgresUrl) return dbNotConfiguredResponse();
 
   try {
+    await ensureContactsSoftDelete();
     const body = await request.json();
     const { id, status, notes } = body as {
       id?: unknown;
@@ -247,6 +250,7 @@ export const DELETE: APIRoute = async ({ request }) => {
   if (!postgresUrl) return dbNotConfiguredResponse();
 
   try {
+    await ensureContactsSoftDelete();
     const url = new URL(request.url);
     const id = url.searchParams.get("id");
 
