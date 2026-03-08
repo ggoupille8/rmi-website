@@ -27,6 +27,11 @@ function metricFloat(row: GA4Row, index: number): number {
   return parseFloat(row.metricValues?.[index]?.value || "0");
 }
 
+function rows(report: unknown): GA4Row[] {
+  const r = report as { rows?: GA4Row[] } | undefined;
+  return (r?.rows as GA4Row[] | undefined) || [];
+}
+
 export const GET: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -53,11 +58,9 @@ export const GET: APIRoute = async ({ request }) => {
   try {
     // Handle multiple possible formats of the private key from env vars
     let formattedKey = privateKey;
-    // If key was JSON-stringified (double-escaped), handle that first
     if (formattedKey.includes('\\\\n')) {
       formattedKey = formattedKey.replace(/\\\\n/g, '\n');
     }
-    // If key contains literal \n strings (common in Vercel env vars), replace with real newlines
     if (formattedKey.includes('\\n')) {
       formattedKey = formattedKey.replace(/\\n/g, '\n');
     }
@@ -70,105 +73,199 @@ export const GET: APIRoute = async ({ request }) => {
     });
 
     const property = `properties/${propertyId}`;
+    const dateRanges = [{ startDate, endDate: "today" }];
 
-    const [overview, topPages, referrers, devices, dailyTrend] =
-      await Promise.all([
-        client.runReport({
-          property,
-          dateRanges: [{ startDate, endDate: "today" }],
-          metrics: [
-            { name: "screenPageViews" },
-            { name: "totalUsers" },
-            { name: "sessions" },
-            { name: "averageSessionDuration" },
-            { name: "bounceRate" },
-            { name: "newUsers" },
-          ],
-        }),
+    const [
+      overview,
+      cities,
+      screenRes,
+      browserOS,
+      sourceMedium,
+      hourly,
+      dayOfWeek,
+      referrers,
+      devices,
+      dailyTrend,
+    ] = await Promise.all([
+      // 1. Overview (aggregate, no dimensions)
+      client.runReport({
+        property,
+        dateRanges,
+        metrics: [
+          { name: "totalUsers" },
+          { name: "engagedSessions" },
+          { name: "averageSessionDuration" },
+          { name: "engagementRate" },
+          { name: "sessions" },
+          { name: "newUsers" },
+        ],
+      }),
 
-        client.runReport({
-          property,
-          dateRanges: [{ startDate, endDate: "today" }],
-          dimensions: [{ name: "pagePath" }],
-          metrics: [
-            { name: "screenPageViews" },
-            { name: "totalUsers" },
-          ],
-          orderBys: [
-            { metric: { metricName: "screenPageViews" }, desc: true },
-          ],
-          limit: 10,
-        }),
+      // 2. City + Region
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "city" }, { name: "region" }],
+        metrics: [{ name: "totalUsers" }, { name: "engagedSessions" }],
+        orderBys: [{ metric: { metricName: "engagedSessions" }, desc: true }],
+        limit: 20,
+      }),
 
-        client.runReport({
-          property,
-          dateRanges: [{ startDate, endDate: "today" }],
-          dimensions: [{ name: "sessionSource" }],
-          metrics: [{ name: "sessions" }, { name: "totalUsers" }],
-          orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
-          limit: 10,
-        }),
+      // 3. Screen Resolution
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "screenResolution" }],
+        metrics: [{ name: "totalUsers" }],
+        orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
+        limit: 10,
+      }),
 
-        client.runReport({
-          property,
-          dateRanges: [{ startDate, endDate: "today" }],
-          dimensions: [{ name: "deviceCategory" }],
-          metrics: [{ name: "sessions" }],
-          orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
-        }),
+      // 4. Browser + OS
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "browser" }, { name: "operatingSystem" }],
+        metrics: [{ name: "totalUsers" }],
+        orderBys: [{ metric: { metricName: "totalUsers" }, desc: true }],
+        limit: 10,
+      }),
 
-        client.runReport({
-          property,
-          dateRanges: [{ startDate, endDate: "today" }],
-          dimensions: [{ name: "date" }],
-          metrics: [
-            { name: "screenPageViews" },
-            { name: "totalUsers" },
-          ],
-          orderBys: [
-            { dimension: { dimensionName: "date" }, desc: false },
-          ],
-        }),
-      ]);
+      // 5. Source/Medium
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "sessionSourceMedium" }],
+        metrics: [
+          { name: "sessions" },
+          { name: "engagedSessions" },
+          { name: "engagementRate" },
+          { name: "averageSessionDuration" },
+        ],
+        orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+        limit: 15,
+      }),
 
-    const overviewRow = overview[0]?.rows?.[0] as GA4Row | undefined;
+      // 6. Hour of Day
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "hour" }],
+        metrics: [{ name: "totalUsers" }, { name: "engagedSessions" }],
+        orderBys: [{ dimension: { dimensionName: "hour" }, desc: false }],
+      }),
+
+      // 7. Day of Week
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "dayOfWeek" }],
+        metrics: [{ name: "totalUsers" }, { name: "engagedSessions" }],
+        orderBys: [{ dimension: { dimensionName: "dayOfWeek" }, desc: false }],
+      }),
+
+      // 8. Full Referrer URLs
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "pageReferrer" }],
+        metrics: [{ name: "sessions" }],
+        orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+        limit: 20,
+      }),
+
+      // 9. Device Category (kept from original)
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "deviceCategory" }],
+        metrics: [{ name: "sessions" }],
+        orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+      }),
+
+      // 10. Daily Trend (engagedSessions instead of screenPageViews)
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "date" }],
+        metrics: [{ name: "engagedSessions" }, { name: "totalUsers" }],
+        orderBys: [{ dimension: { dimensionName: "date" }, desc: false }],
+      }),
+    ]);
+
+    const overviewRow = rows(overview[0])[0];
     const overviewData = {
-      pageViews: overviewRow ? metricInt(overviewRow, 0) : 0,
-      users: overviewRow ? metricInt(overviewRow, 1) : 0,
-      sessions: overviewRow ? metricInt(overviewRow, 2) : 0,
-      avgSessionDuration: overviewRow ? metricFloat(overviewRow, 3) : 0,
-      bounceRate: overviewRow ? metricFloat(overviewRow, 4) : 0,
+      users: overviewRow ? metricInt(overviewRow, 0) : 0,
+      engaged: overviewRow ? metricInt(overviewRow, 1) : 0,
+      avgDuration: overviewRow ? metricFloat(overviewRow, 2) : 0,
+      engagementRate: overviewRow ? metricFloat(overviewRow, 3) : 0,
+      sessions: overviewRow ? metricInt(overviewRow, 4) : 0,
       newUsers: overviewRow ? metricInt(overviewRow, 5) : 0,
     };
 
-    const topPagesData = ((topPages[0]?.rows as GA4Row[] | undefined) || []).map(
-      (row) => ({
-        path: dimVal(row, 0),
-        views: metricInt(row, 0),
-        users: metricInt(row, 1),
+    const citiesData = rows(cities[0])
+      .filter((row) => {
+        const city = dimVal(row, 0);
+        return city && city !== "(not set)";
       })
-    );
+      .slice(0, 15)
+      .map((row) => ({
+        city: dimVal(row, 0),
+        region: dimVal(row, 1),
+        users: metricInt(row, 0),
+        engaged: metricInt(row, 1),
+      }));
 
-    const referrersData = (
-      (referrers[0]?.rows as GA4Row[] | undefined) || []
-    ).map((row) => ({
-      source: dimVal(row, 0) || "(direct)",
-      sessions: metricInt(row, 0),
-      users: metricInt(row, 1),
+    const screenResData = rows(screenRes[0]).map((row) => ({
+      resolution: dimVal(row, 0),
+      users: metricInt(row, 0),
     }));
 
-    const devicesData = (
-      (devices[0]?.rows as GA4Row[] | undefined) || []
-    ).map((row) => ({
+    const browserOSData = rows(browserOS[0]).map((row) => ({
+      browser: dimVal(row, 0),
+      os: dimVal(row, 1),
+      users: metricInt(row, 0),
+    }));
+
+    const sourceMediumData = rows(sourceMedium[0]).map((row) => ({
+      source: dimVal(row, 0),
+      sessions: metricInt(row, 0),
+      engaged: metricInt(row, 1),
+      engagementRate: metricFloat(row, 2),
+      avgDuration: metricFloat(row, 3),
+    }));
+
+    const hourlyData = rows(hourly[0]).map((row) => ({
+      hour: dimVal(row, 0),
+      users: metricInt(row, 0),
+      engaged: metricInt(row, 1),
+    }));
+
+    const dayOfWeekData = rows(dayOfWeek[0]).map((row) => ({
+      day: parseInt(dimVal(row, 0) || "0", 10),
+      users: metricInt(row, 0),
+      engaged: metricInt(row, 1),
+    }));
+
+    const referrersData = rows(referrers[0])
+      .filter((row) => {
+        const url = dimVal(row, 0);
+        return url && url !== "(not set)" && url !== "";
+      })
+      .slice(0, 15)
+      .map((row) => ({
+        url: dimVal(row, 0),
+        sessions: metricInt(row, 0),
+      }));
+
+    const devicesData = rows(devices[0]).map((row) => ({
       device: dimVal(row, 0) || "unknown",
       sessions: metricInt(row, 0),
     }));
 
-    const dailyData = (
-      (dailyTrend[0]?.rows as GA4Row[] | undefined) || []
-    ).map((row) => ({
+    const dailyData = rows(dailyTrend[0]).map((row) => ({
       date: dimVal(row, 0),
-      views: metricInt(row, 0),
+      engaged: metricInt(row, 0),
       users: metricInt(row, 1),
     }));
 
@@ -177,7 +274,12 @@ export const GET: APIRoute = async ({ request }) => {
         configured: true,
         days,
         overview: overviewData,
-        topPages: topPagesData,
+        cities: citiesData,
+        screenResolutions: screenResData,
+        browserOS: browserOSData,
+        sourceMedium: sourceMediumData,
+        hourly: hourlyData,
+        dayOfWeek: dayOfWeekData,
         referrers: referrersData,
         devices: devicesData,
         daily: dailyData,
