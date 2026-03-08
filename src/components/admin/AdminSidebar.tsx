@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Users, Image, Shield, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, BarChart3, Image, Shield, Menu, X } from "lucide-react";
 
 interface NavItem {
   label: string;
@@ -11,6 +11,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Leads", href: "/admin/leads", icon: Users },
+  { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Media", href: "/admin/media", icon: Image },
   { label: "Security", href: "/admin/security", icon: Shield },
 ];

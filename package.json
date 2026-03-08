@@ -36,6 +36,7 @@
     "@astrojs/sitemap": "^3.7.0",
     "@astrojs/tailwind": "^6.0.2",
     "@astrojs/vercel": "^9.0.4",
+    "@google-analytics/data": "^5.2.1",
     "@sendgrid/mail": "^8.1.6",
     "@vercel/analytics": "^1.6.1",
     "@vercel/blob": "^2.3.1",
