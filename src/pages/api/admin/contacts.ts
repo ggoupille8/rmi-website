@@ -62,7 +62,7 @@ export const GET: APIRoute = async ({ request }) => {
     const VALID_QUALITIES = ["high", "medium", "low", "spam"] as const;
 
     // Build WHERE clauses
-    const conditions: string[] = [];
+    const conditions: string[] = ['deleted_at IS NULL'];
     const values: unknown[] = [];
     let paramIndex = 1;
 
@@ -211,7 +211,7 @@ export const PATCH: APIRoute = async ({ request }) => {
     const updateQuery = `
       UPDATE contacts
       SET ${setClauses.join(", ")}
-      WHERE id = $${idx}
+      WHERE id = $${idx} AND deleted_at IS NULL
       RETURNING id, status, notes, updated_at
     `;
 
@@ -270,7 +270,7 @@ export const DELETE: APIRoute = async ({ request }) => {
     }
 
     const result = await sql.query(
-      "DELETE FROM contacts WHERE id = $1 RETURNING id",
+      "UPDATE contacts SET deleted_at = NOW(), deleted_by = 'admin', status = 'deleted' WHERE id = $1 AND deleted_at IS NULL RETURNING id, name, email",
       [id]
     );
 
@@ -280,6 +280,9 @@ export const DELETE: APIRoute = async ({ request }) => {
         { status: 404, headers: SECURITY_HEADERS }
       );
     }
+
+    const deleted = result.rows[0];
+    console.log('Lead soft-deleted:', { id: deleted.id, name: deleted.name, email: deleted.email, deleted_at: new Date().toISOString() });
 
     return new Response(
       JSON.stringify({ ok: true }),
