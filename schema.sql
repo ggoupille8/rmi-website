@@ -37,6 +37,11 @@ CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_contacts_source ON contacts(source);
 CREATE INDEX IF NOT EXISTS idx_contacts_status ON contacts(status);
 
+-- Soft delete columns (idempotent migration)
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
+CREATE INDEX IF NOT EXISTS idx_contacts_deleted_at ON contacts (deleted_at) WHERE deleted_at IS NULL;
+
 -- Media table (image overrides for landing page slots)
 CREATE TABLE IF NOT EXISTS media (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
