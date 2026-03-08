@@ -17,7 +17,7 @@ export default function MaterialsMarquee() {
     <section
       className="relative py-8 sm:py-10 lg:py-12 overflow-hidden bg-gradient-to-b from-neutral-800 via-neutral-900/50 to-neutral-800 border-t border-b border-neutral-700/30"
       role="region"
-      aria-label="Materials we work with"
+      aria-label="Materials and products we install"
     >
 
       {/* Dot pattern overlay */}
@@ -41,59 +41,58 @@ export default function MaterialsMarquee() {
         </p>
       </div>
 
-      {/* Scrolling marquee — Row 1 (left to right) */}
-      <div
-        className="relative overflow-hidden"
-        aria-hidden="true"
-        style={{
-          maskImage: fadeMask,
-          WebkitMaskImage: fadeMask,
-        }}
-      >
-        <div className="service-ticker overflow-hidden">
-          <div className="service-ticker__track">
-            {duplicatedMaterials.map((material, index) => (
-              <span
-                key={`r1-${material}-${index}`}
-                className={pillClass}
-              >
-                {material}
-              </span>
-            ))}
+      {/* Accessible materials list — read once by screen readers */}
+      <ul className="sr-only" aria-label="Materials we work with">
+        {materials.map((material, i) => (
+          <li key={i}>{material}</li>
+        ))}
+      </ul>
+
+      {/* Scrolling marquee — decorative, hidden from AT */}
+      <div aria-hidden="true">
+        {/* Row 1 (left to right) */}
+        <div
+          className="relative overflow-hidden"
+          style={{
+            maskImage: fadeMask,
+            WebkitMaskImage: fadeMask,
+          }}
+        >
+          <div className="service-ticker overflow-hidden">
+            <div className="service-ticker__track">
+              {duplicatedMaterials.map((material, index) => (
+                <span
+                  key={`r1-${material}-${index}`}
+                  className={pillClass}
+                >
+                  {material}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Scrolling marquee — Row 2 (right to left) */}
-      <div
-        className="relative mt-3 sm:mt-4 overflow-hidden"
-        aria-hidden="true"
-        style={{
-          maskImage: fadeMask,
-          WebkitMaskImage: fadeMask,
-        }}
-      >
-        <div className="service-ticker overflow-hidden">
-          <div className="service-ticker__track" style={{ animationDirection: "reverse" }}>
-            {duplicatedRow2.map((material, index) => (
-              <span
-                key={`r2-${material}-${index}`}
-                className={pillClass}
-              >
-                {material}
-              </span>
-            ))}
+        {/* Row 2 (right to left) */}
+        <div
+          className="relative mt-3 sm:mt-4 overflow-hidden"
+          style={{
+            maskImage: fadeMask,
+            WebkitMaskImage: fadeMask,
+          }}
+        >
+          <div className="service-ticker overflow-hidden">
+            <div className="service-ticker__track" style={{ animationDirection: "reverse" }}>
+              {duplicatedRow2.map((material, index) => (
+                <span
+                  key={`r2-${material}-${index}`}
+                  className={pillClass}
+                >
+                  {material}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Screen reader content */}
-      <div className="sr-only">
-        <ul>
-          {materials.map((material, index) => (
-            <li key={index}>{material}</li>
-          ))}
-        </ul>
       </div>
     </section>
   );

@@ -4,6 +4,31 @@
 
 _No active tasks._
 
+### Footer Touch Targets + Email Update (Mar 8, 2026)
+Branch: `feat/footer-touch-targets` (committed, NOT merged)
+
+**TASK 1 — Update Footer Email:** Changed `src/content/site.ts` line 10: `email = "info@rmi-llc.net"` (was `fab@`). Footer.tsx imports from site.ts — auto-updated.
+
+**TASK 2 — Update JSON-LD Email:** Changed `src/layouts/BaseLayout.astro` line 113: hardcoded `"email": "fab@rmi-llc.net"` in `serviceCatalogSchema` contactPoint → `"email": "info@rmi-llc.net"`. The `localBusinessSchema` uses imported `email` variable — auto-updated via Task 1.
+
+**TASK 3 — Verify All References:** Remaining `fab@` only in `ContactForm.test.tsx` (test data) and `quote.ts` (form submission fallback) — both excluded per spec.
+
+**TASK 4 — Quick Link Touch Targets:** Already implemented — all 5 quick links have `min-h-[44px] inline-flex items-center` with responsive `sm:min-h-0 sm:py-1.5`.
+
+**TASK 5 — Contact Link Touch Targets:** Already implemented — phone, email, and maps links all have `min-h-[44px]` and `flex items-center`.
+
+**TASK 6 — Maps aria-label:** Updated from `"View address on Google Maps"` to `"View our location on Google Maps"` per spec.
+
+**Verification:**
+- [x] Footer email → info@rmi-llc.net (href + display via site.ts)
+- [x] JSON-LD email → info@rmi-llc.net (both schemas)
+- [x] All non-form src/ references updated
+- [x] All footer links >= 44px touch target on mobile
+- [x] Maps link has aria-label
+- [x] Hover effects preserved
+- [x] Phone number unchanged (248-379-5156)
+- [x] `npm run build` passes — zero errors
+
 ---
 
 ## Completed
