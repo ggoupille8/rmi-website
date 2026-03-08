@@ -1,0 +1,10 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import AnalyticsDashboard from '../../components/admin/AnalyticsDashboard.tsx';
+
+export const prerender = false;
+---
+
+<AdminLayout title="Analytics">
+  <AnalyticsDashboard client:load />
+</AdminLayout>
