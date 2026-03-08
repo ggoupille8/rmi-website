@@ -167,6 +167,7 @@ export default function LeadsTable({ initialStatus }: Props) {
     try {
       const res = await fetch(`/api/admin/contacts?id=${contact.id}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error("Failed to delete");
     } catch {
