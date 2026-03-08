@@ -1,3 +1,4 @@
+import { useRef, useState, useEffect } from "react";
 import {
   companyName,
   totalOshaManHours,
@@ -82,6 +83,30 @@ const features: AboutFeature[] = [
 ];
 
 export default function About() {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(
+    typeof IntersectionObserver === "undefined"
+  );
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const el = gridRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       className="py-8 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-600/30"
@@ -94,8 +119,9 @@ export default function About() {
             id="about-heading"
             className="font-bold tracking-wider text-white uppercase text-xl sm:text-2xl lg:text-3xl"
           >
-            <span className="sr-only">Why Choose {companyName}</span>
-            <span aria-hidden="true">Why Choose{" "}<span className="hidden sm:inline">{companyName}</span><span className="sm:hidden">RMI</span></span>
+            Why Choose{' '}
+            <span className="hidden sm:inline">{companyName}</span>
+            <span className="sm:hidden">RMI</span>
           </h2>
           <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full" />
         </div>
@@ -107,15 +133,16 @@ export default function About() {
 
 
         {/* Feature Cards Grid — 1 col mobile, 2 col tablet, 4 col desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
-          {features.map((feature) => {
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+          {features.map((feature, index) => {
             const IconComponent = feature.icon;
             const { accent } = feature;
 
             return (
               <div
                 key={feature.title}
-                className={`relative overflow-hidden rounded-lg bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 hover:from-neutral-800/60 hover:to-neutral-800/40 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 ${accent.hoverBorder} hover:shadow-lg ${accent.hoverShadow} hover:-translate-y-1 transition-all duration-300 h-full flex flex-col`}
+                className={`relative overflow-hidden rounded-lg bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 hover:from-neutral-800/60 hover:to-neutral-800/40 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 ${accent.hoverBorder} hover:shadow-lg ${accent.hoverShadow} hover:-translate-y-1 transition-all duration-700 ease-out h-full flex flex-col ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                style={{ transitionDelay: `${index * 100}ms` }}
               >
                 {/* Accent bar */}
                 <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${accent.bar} to-transparent`} />
