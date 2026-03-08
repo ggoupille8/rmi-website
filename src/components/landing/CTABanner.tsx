@@ -4,9 +4,16 @@ export default function CTABanner() {
   return (
     <section
       id="cta-banner"
-      className="relative z-10 min-h-[350px] md:min-h-[400px] flex items-center justify-center bg-gradient-to-r from-neutral-900 via-blue-950 to-neutral-900 bg-[length:200%_100%] animate-[gradient-shift_8s_ease_infinite] border-t border-b border-accent-500/30"
+      className="relative z-10 min-h-[350px] md:min-h-[400px] flex items-center justify-center overflow-hidden bg-neutral-900 border-t border-b border-accent-500/30"
       aria-labelledby="cta-heading"
     >
+      {/* GPU-composited gradient animation */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 w-[200%] bg-gradient-to-r from-neutral-900 via-blue-950 to-neutral-900 animate-[gradient-pan_8s_ease_infinite] pointer-events-none"
+        style={{ willChange: 'transform' }}
+      />
+
       {/* Dot pattern texture overlay */}
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle,rgb(var(--color-accent-500)/0.03)_1px,transparent_1px)] bg-[size:20px_20px]"
