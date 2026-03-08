@@ -32,6 +32,14 @@ function rows(report: unknown): GA4Row[] {
   return (r?.rows as GA4Row[] | undefined) || [];
 }
 
+function classifyTraffic(visitors: number, engaged: number): "prospect" | "suspicious" | "bot" {
+  if (visitors === 0) return "bot";
+  const ratio = engaged / visitors;
+  if (ratio > 0.3) return "prospect";
+  if (ratio > 0.05 || (engaged >= 2 && visitors <= 20)) return "suspicious";
+  return "bot";
+}
+
 export const GET: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -86,6 +94,7 @@ export const GET: APIRoute = async ({ request }) => {
       referrers,
       devices,
       dailyTrend,
+      engagedTimeline,
     ] = await Promise.all([
       // 1. Overview (aggregate, no dimensions)
       client.runReport({
@@ -108,7 +117,7 @@ export const GET: APIRoute = async ({ request }) => {
         dimensions: [{ name: "city" }, { name: "region" }],
         metrics: [{ name: "totalUsers" }, { name: "engagedSessions" }],
         orderBys: [{ metric: { metricName: "engagedSessions" }, desc: true }],
-        limit: 20,
+        limit: 50,
       }),
 
       // 3. Screen Resolution
@@ -174,7 +183,7 @@ export const GET: APIRoute = async ({ request }) => {
         limit: 20,
       }),
 
-      // 9. Device Category (kept from original)
+      // 9. Device Category
       client.runReport({
         property,
         dateRanges,
@@ -183,13 +192,29 @@ export const GET: APIRoute = async ({ request }) => {
         orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
       }),
 
-      // 10. Daily Trend (engagedSessions instead of screenPageViews)
+      // 10. Daily Trend (engagedSessions)
       client.runReport({
         property,
         dateRanges,
         dimensions: [{ name: "date" }],
         metrics: [{ name: "engagedSessions" }, { name: "totalUsers" }],
         orderBys: [{ dimension: { dimensionName: "date" }, desc: false }],
+      }),
+
+      // 11. Engaged sessions by date + city (prospect activity timeline)
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "date" }, { name: "city" }, { name: "region" }],
+        metrics: [{ name: "engagedSessions" }, { name: "averageSessionDuration" }],
+        orderBys: [{ dimension: { dimensionName: "date" }, desc: true }],
+        limit: 50,
+        metricFilter: {
+          filter: {
+            fieldName: "engagedSessions",
+            numericFilter: { operation: "GREATER_THAN" as const, value: { int64Value: "0" } },
+          },
+        },
       }),
     ]);
 
@@ -203,17 +228,60 @@ export const GET: APIRoute = async ({ request }) => {
       newUsers: overviewRow ? metricInt(overviewRow, 5) : 0,
     };
 
+    // Cities with traffic classification
     const citiesData = rows(cities[0])
       .filter((row) => {
         const city = dimVal(row, 0);
         return city && city !== "(not set)";
       })
-      .slice(0, 15)
+      .map((row) => {
+        const visitors = metricInt(row, 0);
+        const engaged = metricInt(row, 1);
+        return {
+          city: dimVal(row, 0),
+          region: dimVal(row, 1),
+          users: visitors,
+          engaged,
+          classification: classifyTraffic(visitors, engaged),
+        };
+      });
+
+    // Prospect activity — non-bot cities with engagement
+    const prospectActivity = citiesData
+      .filter((c) => c.classification !== "bot" && c.engaged >= 1)
+      .sort((a, b) => b.engaged - a.engaged);
+
+    // Traffic summary counts
+    const totalUsers = overviewData.users;
+    const botCount = citiesData
+      .filter((c) => c.classification === "bot")
+      .reduce((sum, c) => sum + c.users, 0);
+    const suspiciousCount = citiesData
+      .filter((c) => c.classification === "suspicious")
+      .reduce((sum, c) => sum + c.users, 0);
+    const prospectCount = citiesData
+      .filter((c) => c.classification === "prospect")
+      .reduce((sum, c) => sum + c.users, 0);
+
+    const trafficSummary = {
+      prospects: prospectCount,
+      suspicious: suspiciousCount,
+      bots: botCount,
+      botPercentage: totalUsers > 0 ? (botCount / totalUsers) * 100 : 0,
+    };
+
+    // Engaged timeline — date + city rows for prospect activity feed
+    const engagedTimelineData = rows(engagedTimeline[0])
+      .filter((row) => {
+        const city = dimVal(row, 1);
+        return city && city !== "(not set)";
+      })
       .map((row) => ({
-        city: dimVal(row, 0),
-        region: dimVal(row, 1),
-        users: metricInt(row, 0),
-        engaged: metricInt(row, 1),
+        date: dimVal(row, 0),
+        city: dimVal(row, 1),
+        region: dimVal(row, 2),
+        engaged: metricInt(row, 0),
+        avgDuration: metricFloat(row, 1),
       }));
 
     const screenResData = rows(screenRes[0]).map((row) => ({
@@ -249,8 +317,8 @@ export const GET: APIRoute = async ({ request }) => {
 
     const referrersData = rows(referrers[0])
       .filter((row) => {
-        const url = dimVal(row, 0);
-        return url && url !== "(not set)" && url !== "";
+        const refUrl = dimVal(row, 0);
+        return refUrl && refUrl !== "(not set)" && refUrl !== "";
       })
       .slice(0, 15)
       .map((row) => ({
@@ -274,6 +342,9 @@ export const GET: APIRoute = async ({ request }) => {
         configured: true,
         days,
         overview: overviewData,
+        trafficSummary,
+        prospectActivity,
+        engagedTimeline: engagedTimelineData,
         cities: citiesData,
         screenResolutions: screenResData,
         browserOS: browserOSData,

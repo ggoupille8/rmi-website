@@ -3,7 +3,7 @@ import {
   Users,
   Target,
   Clock,
-  TrendingUp,
+  Shield,
   RefreshCw,
   AlertCircle,
   Settings,
@@ -20,11 +20,27 @@ interface OverviewData {
   newUsers: number;
 }
 
+interface TrafficSummary {
+  prospects: number;
+  suspicious: number;
+  bots: number;
+  botPercentage: number;
+}
+
 interface CityRow {
   city: string;
   region: string;
   users: number;
   engaged: number;
+  classification: "prospect" | "suspicious" | "bot";
+}
+
+interface TimelineRow {
+  date: string;
+  city: string;
+  region: string;
+  engaged: number;
+  avgDuration: number;
 }
 
 interface ScreenResRow {
@@ -78,6 +94,9 @@ interface AnalyticsResponse {
   configured: boolean;
   days?: number;
   overview?: OverviewData;
+  trafficSummary?: TrafficSummary;
+  prospectActivity?: CityRow[];
+  engagedTimeline?: TimelineRow[];
   cities?: CityRow[];
   screenResolutions?: ScreenResRow[];
   browserOS?: BrowserOSRow[];
@@ -96,6 +115,8 @@ const DATE_RANGES = [
   { label: "30d", days: 30 },
   { label: "90d", days: 90 },
 ];
+
+type ClassFilter = "all" | "prospect" | "suspicious" | "bot";
 
 // --- Formatters ---
 
@@ -124,6 +145,14 @@ function formatDate(yyyymmdd: string): string {
   return `${m}/${d}`;
 }
 
+function formatDateLong(yyyymmdd: string): string {
+  if (yyyymmdd.length !== 8) return yyyymmdd;
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const m = parseInt(yyyymmdd.slice(4, 6), 10) - 1;
+  const d = parseInt(yyyymmdd.slice(6, 8), 10);
+  return `${months[m]} ${d}`;
+}
+
 function engagementColor(rate: number | undefined | null): string {
   const r = rate ?? 0;
   if (r >= 0.3) return "text-green-400";
@@ -138,10 +167,16 @@ function engagementBg(rate: number | undefined | null): string {
   return "bg-red-400/10";
 }
 
+function durationColor(seconds: number): string {
+  if (seconds > 30) return "text-green-400";
+  if (seconds >= 10) return "text-yellow-400";
+  return "text-neutral-500";
+}
+
 const MICHIGAN_KEYWORDS = ["michigan", "mi"];
 
 function isMichiganCity(region: string): boolean {
-  const lower = region.toLowerCase();
+  const lower = (region ?? "").toLowerCase();
   return MICHIGAN_KEYWORDS.some((kw) => lower.includes(kw));
 }
 
@@ -159,6 +194,22 @@ function truncateUrl(url: string, maxLen: number): string {
   } catch {
     return url.slice(0, maxLen) + "...";
   }
+}
+
+// --- Classification badge ---
+
+function ClassBadge({ classification }: { classification: "prospect" | "suspicious" | "bot" }) {
+  const styles = {
+    prospect: "bg-green-600/20 text-green-400 border border-green-600/30",
+    suspicious: "bg-yellow-600/15 text-yellow-400 border border-yellow-600/30",
+    bot: "bg-red-600/15 text-red-400 border border-red-600/30",
+  };
+  const labels = { prospect: "Prospect", suspicious: "Suspicious", bot: "Bot" };
+  return (
+    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${styles[classification]}`}>
+      {labels[classification]}
+    </span>
+  );
 }
 
 // --- Skeleton components ---
@@ -235,22 +286,13 @@ function DailyTrendChart({ data }: { data: DailyPoint[] }) {
   );
 
   return (
-    <svg
-      viewBox={`0 0 ${chartW} ${chartH}`}
-      className="w-full h-auto"
-      preserveAspectRatio="xMidYMid meet"
-    >
+    <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
       {gridValues.map((val, i) => {
         const y = padT + plotH - (val / maxVal) * plotH;
         return (
           <g key={i}>
-            <line
-              x1={padL} y1={y} x2={chartW - padR} y2={y}
-              stroke="#404040" strokeWidth={0.5} strokeDasharray="4,4"
-            />
-            <text x={padL - 6} y={y + 3} textAnchor="end" fill="#737373" fontSize={10}>
-              {formatNumber(val)}
-            </text>
+            <line x1={padL} y1={y} x2={chartW - padR} y2={y} stroke="#404040" strokeWidth={0.5} strokeDasharray="4,4" />
+            <text x={padL - 6} y={y + 3} textAnchor="end" fill="#737373" fontSize={10}>{formatNumber(val)}</text>
           </g>
         );
       })}
@@ -261,10 +303,7 @@ function DailyTrendChart({ data }: { data: DailyPoint[] }) {
           <stop offset="100%" stopColor="#22c55e" stopOpacity={0.02} />
         </linearGradient>
       </defs>
-      <polyline
-        points={polyline} fill="none" stroke="#22c55e"
-        strokeWidth={2} strokeLinejoin="round" strokeLinecap="round"
-      />
+      <polyline points={polyline} fill="none" stroke="#22c55e" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
       {points.map((p, i) => (
         <circle key={i} cx={p.x} cy={p.y} r={data.length <= 14 ? 3 : 1.5} fill="#22c55e" />
       ))}
@@ -278,7 +317,6 @@ function DailyTrendChart({ data }: { data: DailyPoint[] }) {
 }
 
 function HourlyChart({ data }: { data: HourlyRow[] }) {
-  // Fill in missing hours
   const hourMap = new Map(data.map((d) => [parseInt(d.hour, 10), d]));
   const allHours = Array.from({ length: 24 }, (_, i) => ({
     hour: i,
@@ -305,24 +343,13 @@ function HourlyChart({ data }: { data: HourlyRow[] }) {
         const isBusinessHour = h.hour >= 8 && h.hour <= 17;
         return (
           <g key={h.hour}>
-            <rect
-              x={x} y={padT + plotH - barH}
-              width={barW} height={barH}
-              rx={2}
-              fill={isBusinessHour ? "#3b82f6" : "#6b7280"}
-              opacity={opacity}
-            />
-            <text
-              x={x + barW / 2} y={chartH - 4}
-              textAnchor="middle" fill="#737373" fontSize={9}
-            >
+            <rect x={x} y={padT + plotH - barH} width={barW} height={barH} rx={2}
+              fill={isBusinessHour ? "#3b82f6" : "#6b7280"} opacity={opacity} />
+            <text x={x + barW / 2} y={chartH - 4} textAnchor="middle" fill="#737373" fontSize={9}>
               {h.hour === 0 ? "12a" : h.hour < 12 ? `${h.hour}a` : h.hour === 12 ? "12p" : `${h.hour - 12}p`}
             </text>
             {h.engaged > 0 && (
-              <text
-                x={x + barW / 2} y={padT + plotH - barH - 3}
-                textAnchor="middle" fill="#a3a3a3" fontSize={8}
-              >
+              <text x={x + barW / 2} y={padT + plotH - barH - 3} textAnchor="middle" fill="#a3a3a3" fontSize={8}>
                 {h.engaged}
               </text>
             )}
@@ -333,7 +360,7 @@ function HourlyChart({ data }: { data: HourlyRow[] }) {
   );
 }
 
-function DayOfWeekRow({ data }: { data: DayOfWeekRow[] }) {
+function DayOfWeekDisplay({ data }: { data: DayOfWeekRow[] }) {
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const dayMap = new Map(data.map((d) => [d.day, d]));
   const allDays = Array.from({ length: 7 }, (_, i) => ({
@@ -352,15 +379,8 @@ function DayOfWeekRow({ data }: { data: DayOfWeekRow[] }) {
         const isWeekday = d.day >= 1 && d.day <= 5;
         const bgOpacity = Math.max(ratio * 0.6, 0.05);
         return (
-          <div
-            key={d.day}
-            className="flex-1 text-center rounded-md py-2 px-1"
-            style={{
-              backgroundColor: isWeekday
-                ? `rgba(59, 130, 246, ${bgOpacity})`
-                : `rgba(107, 114, 128, ${bgOpacity})`,
-            }}
-          >
+          <div key={d.day} className="flex-1 text-center rounded-md py-2 px-1"
+            style={{ backgroundColor: isWeekday ? `rgba(59, 130, 246, ${bgOpacity})` : `rgba(107, 114, 128, ${bgOpacity})` }}>
             <div className="text-[10px] text-neutral-500 uppercase tracking-wider">{d.name}</div>
             <div className="text-sm font-semibold text-neutral-200 mt-0.5">{d.engaged}</div>
             <div className="text-[10px] text-neutral-500">{d.users} total</div>
@@ -373,11 +393,7 @@ function DayOfWeekRow({ data }: { data: DayOfWeekRow[] }) {
 
 function DeviceChart({ data }: { data: Device[] }) {
   const total = data.reduce((sum, d) => sum + d.sessions, 0) || 1;
-  const deviceColors: Record<string, string> = {
-    desktop: "#3b82f6",
-    mobile: "#22c55e",
-    tablet: "#f59e0b",
-  };
+  const deviceColors: Record<string, string> = { desktop: "#3b82f6", mobile: "#22c55e", tablet: "#f59e0b" };
 
   return (
     <div className="space-y-3">
@@ -388,15 +404,10 @@ function DeviceChart({ data }: { data: Device[] }) {
           <div key={d.device}>
             <div className="flex items-center justify-between text-sm mb-1">
               <span className="text-neutral-300 capitalize">{d.device}</span>
-              <span className="text-neutral-400">
-                {pct}% ({(d.sessions ?? 0).toLocaleString()})
-              </span>
+              <span className="text-neutral-400">{pct}% ({(d.sessions ?? 0).toLocaleString()})</span>
             </div>
             <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${pct}%`, backgroundColor: color }}
-              />
+              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color }} />
             </div>
           </div>
         );
@@ -405,7 +416,7 @@ function DeviceChart({ data }: { data: Device[] }) {
   );
 }
 
-// --- Not Configured state ---
+// --- Not Configured / Error states ---
 
 function NotConfiguredCard() {
   return (
@@ -413,12 +424,8 @@ function NotConfiguredCard() {
       <div className="flex items-start gap-3 mb-4">
         <Settings size={20} className="text-neutral-400 mt-0.5 flex-shrink-0" />
         <div>
-          <h3 className="text-base font-semibold text-neutral-100 mb-1">
-            GA4 Analytics Not Configured
-          </h3>
-          <p className="text-sm text-neutral-400">
-            Set up Google Analytics 4 Data API access to view traffic analytics here.
-          </p>
+          <h3 className="text-base font-semibold text-neutral-100 mb-1">GA4 Analytics Not Configured</h3>
+          <p className="text-sm text-neutral-400">Set up Google Analytics 4 Data API access to view traffic analytics here.</p>
         </div>
       </div>
       <div className="bg-neutral-800/50 rounded-md p-4 text-sm text-neutral-300 space-y-3">
@@ -442,8 +449,6 @@ function NotConfiguredCard() {
   );
 }
 
-// --- Error state ---
-
 function ErrorCard({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="bg-red-950/30 border border-red-900/50 rounded-lg p-4">
@@ -453,13 +458,9 @@ function ErrorCard({ message, onRetry }: { message: string; onRetry: () => void 
           <p className="text-sm font-medium text-red-300 mb-1">Failed to load analytics</p>
           <p className="text-sm text-red-400/80">{message}</p>
         </div>
-        <button
-          type="button"
-          onClick={onRetry}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-300 hover:text-neutral-100 bg-neutral-800 hover:bg-neutral-700 rounded-md transition-colors"
-        >
-          <RefreshCw size={14} />
-          Retry
+        <button type="button" onClick={onRetry}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-300 hover:text-neutral-100 bg-neutral-800 hover:bg-neutral-700 rounded-md transition-colors">
+          <RefreshCw size={14} /> Retry
         </button>
       </div>
     </div>
@@ -468,10 +469,13 @@ function ErrorCard({ message, onRetry }: { message: string; onRetry: () => void 
 
 // --- Section wrapper ---
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, actions }: { title: string; children: React.ReactNode; actions?: React.ReactNode }) {
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-      <h3 className="text-sm font-medium text-neutral-300 mb-3">{title}</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-medium text-neutral-300">{title}</h3>
+        {actions}
+      </div>
       {children}
     </div>
   );
@@ -480,9 +484,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 // --- Table helper ---
 
 function DataTable<T>({
-  columns,
-  data,
-  renderRow,
+  columns, data, renderRow,
 }: {
   columns: { label: string; align?: "left" | "right" }[];
   data: T[];
@@ -494,12 +496,8 @@ function DataTable<T>({
         <thead>
           <tr className="border-b border-neutral-800">
             {columns.map((col) => (
-              <th
-                key={col.label}
-                className={`py-2 px-2 text-xs font-medium text-neutral-500 uppercase tracking-wider ${
-                  col.align === "right" ? "text-right" : "text-left"
-                }`}
-              >
+              <th key={col.label}
+                className={`py-2 px-2 text-xs font-medium text-neutral-500 uppercase tracking-wider ${col.align === "right" ? "text-right" : "text-left"}`}>
                 {col.label}
               </th>
             ))}
@@ -507,16 +505,45 @@ function DataTable<T>({
         </thead>
         <tbody>
           {data.length === 0 ? (
-            <tr>
-              <td colSpan={columns.length} className="py-4 text-center text-neutral-500">
-                No data
-              </td>
-            </tr>
+            <tr><td colSpan={columns.length} className="py-4 text-center text-neutral-500">No data</td></tr>
           ) : (
             data.map((item, i) => renderRow(item, i))
           )}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// --- Prospect Activity Feed ---
+
+function ProspectFeed({ data }: { data: TimelineRow[] }) {
+  if (data.length === 0) {
+    return <div className="text-sm text-neutral-500 py-4 text-center">No engaged prospect activity in this period</div>;
+  }
+
+  return (
+    <div className="space-y-1.5 max-h-[400px] overflow-y-auto pr-1">
+      {data.map((row, i) => {
+        const michigan = isMichiganCity(row.region);
+        return (
+          <div key={i}
+            className={`flex items-center gap-3 px-3 py-2 rounded-md border-l-2 bg-neutral-800/30 ${michigan ? "border-l-blue-500" : "border-l-neutral-700"}`}>
+            <span className="text-xs text-neutral-500 tabular-nums whitespace-nowrap w-12 flex-shrink-0">
+              {formatDateLong(row.date)}
+            </span>
+            <span className={`text-sm flex-1 min-w-0 truncate ${michigan ? "text-blue-400 font-medium" : "text-neutral-300"}`}>
+              {row.city}, {row.region}
+            </span>
+            <span className="text-xs text-neutral-400 tabular-nums whitespace-nowrap">
+              {row.engaged} session{row.engaged !== 1 ? "s" : ""}
+            </span>
+            <span className={`text-xs tabular-nums whitespace-nowrap ${durationColor(row.avgDuration)}`}>
+              {formatDuration(row.avgDuration)}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -528,6 +555,7 @@ export default function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(30);
+  const [cityFilter, setCityFilter] = useState<ClassFilter>("all");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -563,6 +591,11 @@ export default function AnalyticsDashboard() {
 
   const isLoading = loading || !data;
   const overview = data?.overview;
+  const summary = data?.trafficSummary;
+
+  const filteredCities = (data?.cities || []).filter(
+    (c) => cityFilter === "all" || c.classification === cityFilter
+  );
 
   return (
     <div className="space-y-6">
@@ -570,185 +603,178 @@ export default function AnalyticsDashboard() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 rounded-lg p-1">
           {DATE_RANGES.map((range) => (
-            <button
-              key={range.days}
-              type="button"
-              onClick={() => setDays(range.days)}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                days === range.days
-                  ? "bg-neutral-700 text-neutral-100 font-medium"
-                  : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
-              }`}
-            >
+            <button key={range.days} type="button" onClick={() => setDays(range.days)}
+              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${days === range.days ? "bg-neutral-700 text-neutral-100 font-medium" : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"}`}>
               {range.label}
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={fetchData}
-          disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-md transition-colors disabled:opacity-50"
-        >
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-          Refresh
+        <button type="button" onClick={fetchData} disabled={loading}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-md transition-colors disabled:opacity-50">
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
         </button>
       </div>
 
-      {/* Section 1: Visitor Intelligence — 4 stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {isLoading || !overview ? (
-          [1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)
-        ) : (
-          <>
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Users size={14} className="text-neutral-500" />
-                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Real Visitors
-                </span>
-              </div>
-              <p className="text-2xl font-bold text-neutral-100">
-                {formatNumber(overview.users)}
-              </p>
-            </div>
+      {/* Traffic Summary Bar */}
+      {!isLoading && summary && (
+        <div className="flex flex-wrap items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-600/20 text-green-400 border border-green-600/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+            {formatNumber(summary.prospects)} Prospects
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-600/15 text-yellow-400 border border-yellow-600/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
+            {formatNumber(summary.suspicious)} Suspicious
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-600/15 text-red-400 border border-red-600/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+            {formatNumber(summary.bots)} Bots
+          </span>
+          <span className="text-xs text-neutral-500 ml-auto">
+            {(summary.botPercentage ?? 0).toFixed(1)}% bot traffic
+          </span>
+        </div>
+      )}
 
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Target size={14} className={overview.engagementRate > 0.2 ? "text-green-500" : "text-neutral-500"} />
-                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Engaged
-                </span>
-              </div>
-              <p className={`text-2xl font-bold ${overview.engagementRate > 0.2 ? "text-green-400" : "text-neutral-100"}`}>
-                {formatNumber(overview.engaged)}
-              </p>
-            </div>
+      {/* Prospect Activity + Stat Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        {/* Prospect Activity Feed (60%) */}
+        <div className="lg:col-span-3">
+          <Section title="Prospect Activity">
+            {isLoading ? (
+              <SkeletonTable rows={6} />
+            ) : (
+              <ProspectFeed data={data?.engagedTimeline || []} />
+            )}
+          </Section>
+        </div>
 
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Clock size={14} className="text-neutral-500" />
-                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Avg. Time on Site
-                </span>
+        {/* Stat Cards (40%) */}
+        <div className="lg:col-span-2 grid grid-cols-2 gap-3 content-start">
+          {isLoading || !overview ? (
+            [1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)
+          ) : (
+            <>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Users size={14} className="text-green-500" />
+                  <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">Real Prospects</span>
+                </div>
+                <p className="text-2xl font-bold text-green-400">{formatNumber(summary?.prospects)}</p>
               </div>
-              <p className="text-2xl font-bold text-neutral-100">
-                {formatDuration(overview.avgDuration)}
-              </p>
-            </div>
 
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <TrendingUp size={14} className="text-neutral-500" />
-                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-                  Engagement Rate
-                </span>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target size={14} className="text-neutral-500" />
+                  <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">Engaged Sessions</span>
+                </div>
+                <p className="text-2xl font-bold text-neutral-100">{formatNumber(overview.engaged)}</p>
               </div>
-              <p className={`text-2xl font-bold ${overview.engagementRate > 0.2 ? "text-green-400" : "text-neutral-100"}`}>
-                {formatPercent(overview.engagementRate)}
-              </p>
-            </div>
-          </>
-        )}
+
+              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock size={14} className="text-neutral-500" />
+                  <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">Avg. Engagement</span>
+                </div>
+                <p className="text-2xl font-bold text-neutral-100">{formatDuration(overview.avgDuration)}</p>
+              </div>
+
+              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield size={14} className="text-neutral-500" />
+                  <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">Signal Ratio</span>
+                </div>
+                <p className={`text-2xl font-bold ${(overview.engagementRate ?? 0) > 0.2 ? "text-green-400" : "text-neutral-100"}`}>
+                  {formatPercent(overview.engagementRate)}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Section 2 + 3: Geographic Intelligence + Visitor Fingerprint */}
+      {/* Geographic Intelligence */}
+      <Section title="Geographic Intelligence" actions={
+        <div className="flex items-center gap-1">
+          {(["all", "prospect", "suspicious", "bot"] as ClassFilter[]).map((f) => (
+            <button key={f} type="button" onClick={() => setCityFilter(f)}
+              className={`px-2 py-1 text-xs rounded transition-colors ${cityFilter === f ? "bg-neutral-700 text-neutral-100 font-medium" : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800"}`}>
+              {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+        </div>
+      }>
+        {isLoading ? (
+          <SkeletonTable rows={6} />
+        ) : (
+          <DataTable
+            columns={[
+              { label: "City" },
+              { label: "State" },
+              { label: "Class" },
+              { label: "Visitors", align: "right" },
+              { label: "Engaged", align: "right" },
+            ]}
+            data={filteredCities}
+            renderRow={(city, i) => (
+              <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors">
+                <td className={`py-1.5 px-2 ${isMichiganCity(city.region) ? "text-blue-400 font-medium" : "text-neutral-300"}`}>
+                  {city.city}
+                </td>
+                <td className={`py-1.5 px-2 text-sm ${isMichiganCity(city.region) ? "text-blue-400/70" : "text-neutral-500"}`}>
+                  {city.region}
+                </td>
+                <td className="py-1.5 px-2">
+                  <ClassBadge classification={city.classification} />
+                </td>
+                <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{city.users}</td>
+                <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{city.engaged}</td>
+              </tr>
+            )}
+          />
+        )}
+      </Section>
+
+      {/* Visitor Fingerprint */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Geographic Intelligence */}
-        <Section title="Geographic Intelligence">
+        <Section title="Screen Resolutions">
           {isLoading ? (
-            <SkeletonTable rows={6} />
+            <SkeletonTable rows={4} />
           ) : (
             <DataTable
-              columns={[
-                { label: "City" },
-                { label: "State" },
-                { label: "Visitors", align: "right" },
-                { label: "Engaged", align: "right" },
-              ]}
-              data={data?.cities || []}
-              renderRow={(city, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
-                >
-                  <td className={`py-1.5 px-2 ${isMichiganCity(city.region) ? "text-blue-400 font-medium" : "text-neutral-300"}`}>
-                    {city.city}
-                  </td>
-                  <td className={`py-1.5 px-2 text-sm ${isMichiganCity(city.region) ? "text-blue-400/70" : "text-neutral-500"}`}>
-                    {city.region}
-                  </td>
-                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                    {city.users}
-                  </td>
-                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                    {city.engaged}
-                  </td>
+              columns={[{ label: "Resolution" }, { label: "Visitors", align: "right" }]}
+              data={data?.screenResolutions || []}
+              renderRow={(sr, i) => (
+                <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors">
+                  <td className="py-1.5 px-2 text-neutral-300 font-mono text-xs">{sr.resolution}</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{sr.users}</td>
                 </tr>
               )}
             />
           )}
         </Section>
 
-        {/* Visitor Fingerprint */}
-        <div className="space-y-4">
-          <Section title="Screen Resolutions">
-            {isLoading ? (
-              <SkeletonTable rows={4} />
-            ) : (
-              <DataTable
-                columns={[
-                  { label: "Resolution" },
-                  { label: "Visitors", align: "right" },
-                ]}
-                data={data?.screenResolutions || []}
-                renderRow={(sr, i) => (
-                  <tr
-                    key={i}
-                    className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
-                  >
-                    <td className="py-1.5 px-2 text-neutral-300 font-mono text-xs">
-                      {sr.resolution}
-                    </td>
-                    <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                      {sr.users}
-                    </td>
-                  </tr>
-                )}
-              />
-            )}
-          </Section>
-
-          <Section title="Browser / OS">
-            {isLoading ? (
-              <SkeletonTable rows={4} />
-            ) : (
-              <DataTable
-                columns={[
-                  { label: "Browser / OS" },
-                  { label: "Visitors", align: "right" },
-                ]}
-                data={data?.browserOS || []}
-                renderRow={(bo, i) => (
-                  <tr
-                    key={i}
-                    className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
-                  >
-                    <td className="py-1.5 px-2 text-neutral-300 text-xs">
-                      {bo.browser} <span className="text-neutral-600">/</span> {bo.os}
-                    </td>
-                    <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                      {bo.users}
-                    </td>
-                  </tr>
-                )}
-              />
-            )}
-          </Section>
-        </div>
+        <Section title="Browser / OS">
+          {isLoading ? (
+            <SkeletonTable rows={4} />
+          ) : (
+            <DataTable
+              columns={[{ label: "Browser / OS" }, { label: "Visitors", align: "right" }]}
+              data={data?.browserOS || []}
+              renderRow={(bo, i) => (
+                <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors">
+                  <td className="py-1.5 px-2 text-neutral-300 text-xs">
+                    {bo.browser} <span className="text-neutral-600">/</span> {bo.os}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{bo.users}</td>
+                </tr>
+              )}
+            />
+          )}
+        </Section>
       </div>
 
-      {/* Section 4: Traffic Source Intelligence */}
+      {/* Traffic Source Intelligence */}
       <Section title="Traffic Source Intelligence">
         {isLoading ? (
           <SkeletonTable rows={6} />
@@ -765,27 +791,16 @@ export default function AnalyticsDashboard() {
             renderRow={(sm, i) => {
               const isDirect = sm.source === "(direct) / (none)";
               return (
-                <tr
-                  key={i}
-                  className={`border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors ${isDirect ? "opacity-50" : ""}`}
-                >
-                  <td className="py-1.5 px-2 text-neutral-300 text-xs max-w-[200px] truncate">
-                    {sm.source}
-                  </td>
-                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                    {sm.sessions}
-                  </td>
-                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                    {sm.engaged}
-                  </td>
+                <tr key={i} className={`border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors ${isDirect ? "opacity-50" : ""}`}>
+                  <td className="py-1.5 px-2 text-neutral-300 text-xs max-w-[200px] truncate">{sm.source}</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{sm.sessions}</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{sm.engaged}</td>
                   <td className={`py-1.5 px-2 text-right tabular-nums ${engagementColor(sm.engagementRate)}`}>
                     <span className={`px-1.5 py-0.5 rounded text-xs ${engagementBg(sm.engagementRate)}`}>
                       {formatPercent(sm.engagementRate)}
                     </span>
                   </td>
-                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums text-xs">
-                    {formatDuration(sm.avgDuration)}
-                  </td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums text-xs">{formatDuration(sm.avgDuration)}</td>
                 </tr>
               );
             }}
@@ -793,21 +808,24 @@ export default function AnalyticsDashboard() {
         )}
       </Section>
 
-      {/* Section 5: Time-of-Day Patterns */}
+      {/* Hourly Traffic Pattern */}
       <Section title="Hourly Traffic Pattern">
         {isLoading ? (
           <SkeletonChart />
         ) : (
-          <div className="space-y-1">
-            <div className="flex items-center gap-4 text-[10px] text-neutral-500 mb-2">
+          <div className="space-y-2">
+            <div className="flex items-center gap-4 text-[10px] text-neutral-500 mb-1">
               <span className="flex items-center gap-1">
-                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-blue-500/60" /> Business hours (8a-5p)
+                <span className="inline-block w-2.5 h-2.5 rounded-sm bg-blue-500/60" /> Business hours (8AM-5PM EST)
               </span>
               <span className="flex items-center gap-1">
                 <span className="inline-block w-2.5 h-2.5 rounded-sm bg-neutral-500/60" /> Off hours
               </span>
             </div>
             <HourlyChart data={data?.hourly || []} />
+            <p className="text-[10px] text-neutral-600 mt-1">
+              Business-hour traffic indicates commercial interest. Off-hour spikes often indicate bot activity.
+            </p>
           </div>
         )}
       </Section>
@@ -817,45 +835,33 @@ export default function AnalyticsDashboard() {
         {isLoading ? (
           <SkeletonTable rows={1} />
         ) : (
-          <DayOfWeekRow data={data?.dayOfWeek || []} />
+          <DayOfWeekDisplay data={data?.dayOfWeek || []} />
         )}
       </Section>
 
-      {/* Section 6: Referrer Deep Dive */}
+      {/* Referrer URLs */}
       <Section title="Referrer URLs">
         {isLoading ? (
           <SkeletonTable rows={6} />
         ) : (
           <DataTable
-            columns={[
-              { label: "Referrer URL" },
-              { label: "Sessions", align: "right" },
-            ]}
+            columns={[{ label: "Referrer URL" }, { label: "Sessions", align: "right" }]}
             data={data?.referrers || []}
             renderRow={(ref, i) => (
-              <tr
-                key={i}
-                className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
-              >
+              <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors">
                 <td className="py-1.5 px-2 text-neutral-300 font-mono text-xs max-w-[400px] truncate" title={ref.url}>
                   {truncateUrl(ref.url, 60)}
                 </td>
-                <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
-                  {ref.sessions}
-                </td>
+                <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{ref.sessions}</td>
               </tr>
             )}
           />
         )}
       </Section>
 
-      {/* Section 7: Daily Engaged Traffic Trend */}
+      {/* Daily Engaged Traffic Trend */}
       <Section title="Daily Engaged Traffic">
-        {isLoading ? (
-          <SkeletonChart />
-        ) : (
-          <DailyTrendChart data={data?.daily || []} />
-        )}
+        {isLoading ? <SkeletonChart /> : <DailyTrendChart data={data?.daily || []} />}
       </Section>
 
       {/* Device Breakdown */}
