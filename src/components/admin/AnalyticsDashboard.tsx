@@ -99,20 +99,22 @@ const DATE_RANGES = [
 
 // --- Formatters ---
 
-function formatDuration(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.round(seconds % 60);
+function formatDuration(seconds: number | undefined | null): string {
+  const s = seconds ?? 0;
+  const mins = Math.floor(s / 60);
+  const secs = Math.round(s % 60);
   return `${mins}m ${secs}s`;
 }
 
-function formatNumber(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toLocaleString();
+function formatNumber(n: number | undefined | null): string {
+  const val = n ?? 0;
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`;
+  if (val >= 1_000) return `${(val / 1_000).toFixed(1)}K`;
+  return val.toLocaleString();
 }
 
-function formatPercent(rate: number): string {
-  return `${(rate * 100).toFixed(1)}%`;
+function formatPercent(rate: number | undefined | null): string {
+  return `${((rate ?? 0) * 100).toFixed(1)}%`;
 }
 
 function formatDate(yyyymmdd: string): string {
@@ -122,15 +124,17 @@ function formatDate(yyyymmdd: string): string {
   return `${m}/${d}`;
 }
 
-function engagementColor(rate: number): string {
-  if (rate >= 0.3) return "text-green-400";
-  if (rate >= 0.1) return "text-yellow-400";
+function engagementColor(rate: number | undefined | null): string {
+  const r = rate ?? 0;
+  if (r >= 0.3) return "text-green-400";
+  if (r >= 0.1) return "text-yellow-400";
   return "text-red-400";
 }
 
-function engagementBg(rate: number): string {
-  if (rate >= 0.3) return "bg-green-400/10";
-  if (rate >= 0.1) return "bg-yellow-400/10";
+function engagementBg(rate: number | undefined | null): string {
+  const r = rate ?? 0;
+  if (r >= 0.3) return "bg-green-400/10";
+  if (r >= 0.1) return "bg-yellow-400/10";
   return "bg-red-400/10";
 }
 
@@ -385,7 +389,7 @@ function DeviceChart({ data }: { data: Device[] }) {
             <div className="flex items-center justify-between text-sm mb-1">
               <span className="text-neutral-300 capitalize">{d.device}</span>
               <span className="text-neutral-400">
-                {pct}% ({d.sessions.toLocaleString()})
+                {pct}% ({(d.sessions ?? 0).toLocaleString()})
               </span>
             </div>
             <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
@@ -557,6 +561,7 @@ export default function AnalyticsDashboard() {
     return <ErrorCard message={error} onRetry={fetchData} />;
   }
 
+  const isLoading = loading || !data;
   const overview = data?.overview;
 
   return (
@@ -592,7 +597,7 @@ export default function AnalyticsDashboard() {
 
       {/* Section 1: Visitor Intelligence — 4 stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {loading || !overview ? (
+        {isLoading || !overview ? (
           [1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)
         ) : (
           <>
@@ -651,7 +656,7 @@ export default function AnalyticsDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Geographic Intelligence */}
         <Section title="Geographic Intelligence">
-          {loading ? (
+          {isLoading ? (
             <SkeletonTable rows={6} />
           ) : (
             <DataTable
@@ -688,7 +693,7 @@ export default function AnalyticsDashboard() {
         {/* Visitor Fingerprint */}
         <div className="space-y-4">
           <Section title="Screen Resolutions">
-            {loading ? (
+            {isLoading ? (
               <SkeletonTable rows={4} />
             ) : (
               <DataTable
@@ -715,7 +720,7 @@ export default function AnalyticsDashboard() {
           </Section>
 
           <Section title="Browser / OS">
-            {loading ? (
+            {isLoading ? (
               <SkeletonTable rows={4} />
             ) : (
               <DataTable
@@ -745,7 +750,7 @@ export default function AnalyticsDashboard() {
 
       {/* Section 4: Traffic Source Intelligence */}
       <Section title="Traffic Source Intelligence">
-        {loading ? (
+        {isLoading ? (
           <SkeletonTable rows={6} />
         ) : (
           <DataTable
@@ -790,7 +795,7 @@ export default function AnalyticsDashboard() {
 
       {/* Section 5: Time-of-Day Patterns */}
       <Section title="Hourly Traffic Pattern">
-        {loading ? (
+        {isLoading ? (
           <SkeletonChart />
         ) : (
           <div className="space-y-1">
@@ -809,7 +814,7 @@ export default function AnalyticsDashboard() {
 
       {/* Day of Week */}
       <Section title="Day of Week — Engaged Sessions">
-        {loading ? (
+        {isLoading ? (
           <SkeletonTable rows={1} />
         ) : (
           <DayOfWeekRow data={data?.dayOfWeek || []} />
@@ -818,7 +823,7 @@ export default function AnalyticsDashboard() {
 
       {/* Section 6: Referrer Deep Dive */}
       <Section title="Referrer URLs">
-        {loading ? (
+        {isLoading ? (
           <SkeletonTable rows={6} />
         ) : (
           <DataTable
@@ -846,7 +851,7 @@ export default function AnalyticsDashboard() {
 
       {/* Section 7: Daily Engaged Traffic Trend */}
       <Section title="Daily Engaged Traffic">
-        {loading ? (
+        {isLoading ? (
           <SkeletonChart />
         ) : (
           <DailyTrendChart data={data?.daily || []} />
@@ -855,7 +860,7 @@ export default function AnalyticsDashboard() {
 
       {/* Device Breakdown */}
       <Section title="Device Breakdown">
-        {loading ? (
+        {isLoading ? (
           <div className="space-y-3 animate-pulse">
             {[1, 2, 3].map((i) => (
               <div key={i}>
