@@ -44,7 +44,7 @@ function LogoImage({
   if (failed) return <Monogram name={name} color={color} />;
   return (
     <img
-      src={`https://logo.clearbit.com/${domain}`}
+      src={`https://cdn.brandfetch.io/${domain}/w/256/h/64`}
       alt={name}
       className="max-h-full max-w-full object-contain"
       style={{ filter: "brightness(0) invert(1)", opacity: 0.85 }}
