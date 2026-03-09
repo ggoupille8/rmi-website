@@ -215,6 +215,7 @@ export default function ClientShowcase() {
     Map<number, "out" | "in">
   >(new Map());
   const [initialRevealDone, setInitialRevealDone] = useState(false);
+  const [gridRevealed, setGridRevealed] = useState(false);
   const [isInView, setIsInView] = useState(false);
   const [layout, setLayout] = useState<number[]>([3, 4, 5]);
   const [ready, setReady] = useState(false);
@@ -348,31 +349,38 @@ export default function ClientShowcase() {
     timersRef.current.clear();
   }, [displayPool, layout]);
 
-  // IntersectionObserver — only for rotation pause/resume
+  // IntersectionObserver — trigger grid reveal + pause/resume rotation
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => setIsInView(entry.isIntersecting),
-      { threshold: 0.1 },
+      ([entry]) => {
+        const visible = entry.isIntersecting;
+        setIsInView(visible);
+        if (visible) setGridRevealed(true);
+      },
+      { threshold: 0.15 },
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  // Simultaneous initial reveal — all logos appear at once
+  // Mark all slots as revealed when data is ready (logos load invisibly behind grid opacity 0)
   useEffect(() => {
-    if (!visibleSlots.length || initialRevealDone) return;
+    if (!visibleSlots.length) return;
     const totalSlots = getTotalSlots(layout);
     const allSlots = new Set<number>();
     for (let i = 0; i < totalSlots; i++) allSlots.add(i);
     setRevealedSlots(allSlots);
+  }, [visibleSlots.length, layout]);
 
-    // Mark reveal done after the fade-in transition completes
+  // Start rotation after grid scroll-reveal transition completes
+  useEffect(() => {
+    if (!gridRevealed || initialRevealDone) return;
     safeTimeout(() => {
       setInitialRevealDone(true);
-    }, 700);
-  }, [visibleSlots.length, initialRevealDone, layout]);
+    }, 800);
+  }, [gridRevealed, initialRevealDone]);
 
   // Independent per-slot rotation with random timers
   useEffect(() => {
@@ -494,8 +502,14 @@ export default function ClientShowcase() {
           </p>
         </div>
 
-        {/* Logo grid — dense, uniform gap-12, tighter row spacing */}
-        <div className="flex flex-col items-center gap-4">
+        {/* Logo grid — starts invisible, fades in on scroll */}
+        <div
+          className="flex flex-col items-center gap-4"
+          style={{
+            opacity: gridRevealed ? 1 : 0,
+            transition: "opacity 800ms ease-in-out",
+          }}
+        >
           {rows.map(({ rowIdx, rowClients, startIdx }) => (
             <div
               key={rowIdx}
