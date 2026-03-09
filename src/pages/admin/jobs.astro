@@ -1,0 +1,10 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import JobsAdmin from '../../components/admin/JobsAdmin.tsx';
+
+export const prerender = false;
+---
+
+<AdminLayout title="Jobs">
+  <JobsAdmin client:load />
+</AdminLayout>
