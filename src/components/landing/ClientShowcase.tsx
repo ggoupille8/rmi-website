@@ -32,11 +32,25 @@ function probeImage(src: string, timeoutMs = 5000): Promise<string | null> {
     }, timeoutMs);
     img.onload = () => {
       clearTimeout(timer);
-      if (img.naturalWidth < 32 || img.naturalHeight < 32) {
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+      // Reject images smaller than 64x64
+      if (w < 64 || h < 64) {
         resolve(null);
-      } else {
-        resolve(src);
+        return;
       }
+      // Reject Brandfetch fallback branding (square logo returned for unknown domains)
+      if (src.includes("brandfetch.io") && w === h) {
+        resolve(null);
+        return;
+      }
+      // Reject extreme aspect ratios (> 10:1 either direction)
+      const ratio = w / h;
+      if (ratio > 10 || ratio < 0.1) {
+        resolve(null);
+        return;
+      }
+      resolve(src);
     };
     img.onerror = () => {
       clearTimeout(timer);
@@ -90,19 +104,14 @@ function LogoSlot({
 
   const visible = revealed && loaded && fading !== "out";
 
-  const sizeClasses = [
-    "max-h-14 max-w-[160px]", // row 0 (top — 56px)
-    "max-h-12 max-w-[140px]", // row 1 (middle — 48px)
-    "max-h-10 max-w-[120px]", // row 2 (bottom — 40px)
-  ];
-  const sizeClass = sizeClasses[rowIndex] ?? sizeClasses[2];
-  const minH = rowIndex === 0 ? 56 : rowIndex === 1 ? 48 : 40;
+  // Uniform sizing across all rows for a clean grid
+  const sizeClass = "max-h-10 max-w-[160px]";
 
   return (
     <div
       className="flex items-center justify-center"
       style={{
-        minHeight: `${minH}px`,
+        minHeight: "40px",
         opacity: visible ? 1 : 0,
         transition: "opacity 600ms ease-in-out",
       }}
@@ -266,21 +275,18 @@ export default function ClientShowcase() {
     return () => observer.disconnect();
   }, []);
 
-  // Staggered initial reveal
+  // Simultaneous initial reveal — all logos appear at once
   useEffect(() => {
     if (!visibleSlots.length || initialRevealDone) return;
     const totalSlots = getTotalSlots(layout);
-    const staggerMs = 100;
+    const allSlots = new Set<number>();
+    for (let i = 0; i < totalSlots; i++) allSlots.add(i);
+    setRevealedSlots(allSlots);
 
-    for (let i = 0; i < totalSlots; i++) {
-      safeTimeout(() => {
-        setRevealedSlots((prev) => new Set([...prev, i]));
-      }, i * staggerMs);
-    }
-
+    // Mark reveal done after the fade-in transition completes
     safeTimeout(() => {
       setInitialRevealDone(true);
-    }, totalSlots * staggerMs + 700);
+    }, 700);
   }, [visibleSlots.length, initialRevealDone, layout]);
 
   // Task 2: Independent per-slot rotation with random timers
@@ -290,7 +296,7 @@ export default function ClientShowcase() {
     if (displayPool.length <= totalSlots) return;
 
     function scheduleNextSwap(slotIndex: number) {
-      const delay = 4000 + Math.random() * 4000; // 4–8s random per slot
+      const delay = 5000 + Math.random() * 5000; // 5–10s random per slot
 
       safeTimeout(() => {
         if (!isInViewRef.current) {
