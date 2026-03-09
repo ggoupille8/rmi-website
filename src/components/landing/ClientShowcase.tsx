@@ -201,7 +201,7 @@ export default function ClientShowcase() {
   // astro-island uses display:contents, so Astro's visible directive observes
   // children — returning null leaves zero children and IO never fires.
   if (visibleClients.length === 0) {
-    return <div aria-hidden="true" style={{ minHeight: '1px' }} />;
+    return <div aria-hidden="true" style={{ minHeight: '200px' }} />;
   }
 
   return (
