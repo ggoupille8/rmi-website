@@ -6,8 +6,6 @@ interface Client {
   domain: string;
   color: string;
   description: string;
-  tier: "high" | "medium" | "low";
-  seo_value: number;
 }
 
 interface ValidatedClient extends Client {
@@ -226,6 +224,7 @@ export default function ClientShowcase() {
   const isInViewRef = useRef(false);
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const unmountedRef = useRef(false);
+  const lastSwappedOutRef = useRef<Map<number, number>>(new Map()); // slotIndex → client id
 
   // Keep refs in sync
   useEffect(() => {
@@ -393,7 +392,10 @@ export default function ClientShowcase() {
         const current = visibleRef.current;
         const pool = poolRef.current;
         const visibleIds = new Set(current.map((c) => c.id));
-        const available = pool.filter((c) => !visibleIds.has(c.id));
+        const lastOut = lastSwappedOutRef.current.get(slotIndex);
+        const available = pool.filter(
+          (c) => !visibleIds.has(c.id) && c.id !== lastOut,
+        );
 
         if (!available.length) {
           scheduleNextSwap(slotIndex);
@@ -402,6 +404,11 @@ export default function ClientShowcase() {
 
         const newClient =
           available[Math.floor(Math.random() * available.length)];
+
+        // Track the logo leaving this slot
+        if (current[slotIndex]) {
+          lastSwappedOutRef.current.set(slotIndex, current[slotIndex].id);
+        }
 
         // Phase 1: fade out
         setFadingSlots((prev) => new Map(prev).set(slotIndex, "out"));
