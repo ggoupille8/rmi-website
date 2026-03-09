@@ -121,6 +121,7 @@ export default function ClientShowcase() {
   }, []);
 
   useEffect(() => {
+    if (!clients.length) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -130,15 +131,16 @@ export default function ClientShowcase() {
       },
       { threshold: 0 }
     );
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-      if (sectionRef.current.getBoundingClientRect().top < window.innerHeight) {
-        setVisible(true);
-        observer.disconnect();
-      }
-    }
+    if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [clients.length]);
+
+  useEffect(() => {
+    if (!clients.length || visible) return;
+    if (sectionRef.current && sectionRef.current.getBoundingClientRect().top < window.innerHeight) {
+      setVisible(true);
+    }
+  }, [clients.length, visible]);
 
   if (!clients.length) return null;
 
