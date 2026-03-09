@@ -21,6 +21,9 @@ function getTotalSlots(layout: number[]): number {
   return layout.reduce((a, b) => a + b, 0);
 }
 
+/** Row min-height classes to prevent layout shift */
+const ROW_MIN_HEIGHTS = ["min-h-[64px]", "min-h-[48px]", "min-h-[40px]"];
+
 function LogoSlot({
   client,
   fading,
@@ -33,11 +36,31 @@ function LogoSlot({
   rowIndex: number;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reset imgFailed when client changes
+  // Reset state when client changes
   useEffect(() => {
     setImgFailed(false);
+    setImgLoaded(false);
+    // 4s timeout — if image hasn't loaded, show text fallback
+    timeoutRef.current = setTimeout(() => {
+      setImgFailed(true);
+    }, 4000);
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, [client.id]);
+
+  function handleLoad() {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setImgLoaded(true);
+  }
+
+  function handleError() {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setImgFailed(true);
+  }
 
   // Size classes per row: top = largest, bottom = smallest
   const sizeClasses = [
@@ -47,11 +70,15 @@ function LogoSlot({
   ];
   const sizeClass = sizeClasses[rowIndex] ?? sizeClasses[2];
   const fallbackSize = rowIndex === 0 ? "text-sm" : "text-xs";
+  const minH = ROW_MIN_HEIGHTS[rowIndex] ?? ROW_MIN_HEIGHTS[2];
+
+  // Visible when: revealed by stagger AND (image loaded OR using text fallback), AND not mid-fade
+  const isVisible = revealed && (imgLoaded || imgFailed) && !fading;
 
   return (
     <div
-      className="transition-opacity duration-[600ms] ease-in-out flex items-center justify-center"
-      style={{ opacity: fading ? 0 : revealed ? 1 : 0 }}
+      className={`transition-opacity duration-[600ms] ease-in-out flex items-center justify-center ${minH}`}
+      style={{ opacity: isVisible ? 1 : 0 }}
     >
       {!imgFailed ? (
         <img
@@ -59,12 +86,14 @@ function LogoSlot({
           alt={client.name}
           className={`${sizeClass} w-auto object-contain`}
           style={{ filter: "brightness(0) invert(1)", opacity: 0.85 }}
-          onError={() => setImgFailed(true)}
+          onLoad={handleLoad}
+          onError={handleError}
+          referrerPolicy="no-referrer"
           loading="lazy"
         />
       ) : (
         <span
-          className={`text-white/70 ${fallbackSize} font-medium tracking-wide whitespace-nowrap`}
+          className={`text-white/70 ${fallbackSize} font-medium tracking-wider whitespace-nowrap`}
         >
           {client.name}
         </span>
@@ -118,7 +147,7 @@ export default function ClientShowcase() {
     setInitialRevealDone(false);
   }, [allClients, layout]);
 
-  // IntersectionObserver for viewport tracking
+  // IntersectionObserver — only for rotation pause/resume
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
@@ -130,11 +159,11 @@ export default function ClientShowcase() {
     return () => observer.disconnect();
   }, []);
 
-  // Staggered initial reveal — fires immediately when data loads, no intersection check
+  // Staggered initial reveal — fires immediately when data loads
   useEffect(() => {
     if (!visibleClients.length || initialRevealDone) return;
     const totalSlots = getTotalSlots(layout);
-    const staggerDelay = 100; // ms between each slot reveal
+    const staggerDelay = 100;
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     for (let i = 0; i < totalSlots; i++) {
@@ -145,7 +174,6 @@ export default function ClientShowcase() {
       );
     }
 
-    // Mark initial reveal as done after all slots revealed + transition time
     timers.push(
       setTimeout(() => {
         setInitialRevealDone(true);
@@ -155,7 +183,7 @@ export default function ClientShowcase() {
     return () => timers.forEach(clearTimeout);
   }, [visibleClients.length, initialRevealDone, layout]);
 
-  // Rotation: swap one random logo every ~3.5s
+  // Rotation: swap one random logo every 4s
   const rotate = useCallback(() => {
     const totalSlots = getTotalSlots(layout);
     const current = visibleRef.current;
@@ -168,25 +196,27 @@ export default function ClientShowcase() {
     const slotIndex = Math.floor(Math.random() * totalSlots);
     const newClient = pool[Math.floor(Math.random() * pool.length)];
 
-    // Fade out
+    // Phase 1: fade out (600ms transition + 100ms pause)
     setFadingSlot(slotIndex);
 
-    // After fade-out, swap and fade in
+    // Phase 2: swap client data after fade-out completes
     setTimeout(() => {
       setVisibleClients((prev) => {
         const next = [...prev];
         next[slotIndex] = newClient;
         return next;
       });
+      // Clear fading — LogoSlot will stay at opacity 0 until the new image loads
+      // (isVisible requires imgLoaded || imgFailed, which resets on client change)
       setFadingSlot(null);
-    }, 650); // slightly longer than the 600ms CSS transition
+    }, 700);
   }, [allClients, layout]);
 
   useEffect(() => {
     const totalSlots = getTotalSlots(layout);
     if (!initialRevealDone || !isInView || allClients.length <= totalSlots)
       return;
-    const interval = setInterval(rotate, 3500);
+    const interval = setInterval(rotate, 4000);
     return () => clearInterval(interval);
   }, [initialRevealDone, isInView, allClients.length, layout, rotate]);
 
@@ -201,7 +231,6 @@ export default function ClientShowcase() {
     return { rowIdx, rowClients, startIdx };
   });
 
-  // Row gap classes: tighter on mobile
   const rowGaps = ["gap-10 sm:gap-12", "gap-8 sm:gap-10", "gap-6 sm:gap-8"];
 
   return (

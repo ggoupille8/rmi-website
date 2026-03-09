@@ -455,3 +455,5 @@ CREATE TABLE IF NOT EXISTS clients (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_clients_domain ON clients(domain);
