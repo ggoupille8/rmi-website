@@ -1310,4 +1310,321 @@ describe("ClientShowcase", () => {
       expect(subtitle.className).toContain("text-sm");
     });
   });
+
+  // ── Mobile layout (320px–414px) ────────────────────────────────
+
+  describe("mobile layout", () => {
+    let originalWidth: number;
+
+    beforeEach(() => {
+      originalWidth = window.innerWidth;
+    });
+
+    afterEach(() => {
+      Object.defineProperty(window, "innerWidth", {
+        value: originalWidth,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    function setMobileWidth(width: number) {
+      Object.defineProperty(window, "innerWidth", {
+        value: width,
+        writable: true,
+        configurable: true,
+      });
+    }
+
+    async function renderAtWidth(width: number) {
+      setMobileWidth(width);
+      const result = render(<ClientShowcase />);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+        resolveAllImages();
+        await vi.advanceTimersByTimeAsync(200);
+      });
+      return result;
+    }
+
+    function getLogoSlots(container: HTMLElement) {
+      return Array.from(
+        container.querySelectorAll(".flex.items-center.justify-center"),
+      ).filter((el) =>
+        (el.getAttribute("style") || "").includes("min-height"),
+      );
+    }
+
+    function getRows(container: HTMLElement) {
+      return container.querySelectorAll(
+        ".flex.justify-center.items-center.gap-8",
+      );
+    }
+
+    // ── 320px (small mobile) ──────────────────────────────────
+
+    it("uses [2, 3] layout at 320px with 12 clients (5 total slots)", async () => {
+      const { container } = await renderAtWidth(320);
+      const slots = getLogoSlots(container);
+      expect(slots.length).toBe(5);
+      const rows = getRows(container);
+      expect(rows.length).toBe(2);
+    });
+
+    it("renders 2 logos in first row at 320px", async () => {
+      const { container } = await renderAtWidth(320);
+      const rows = getRows(container);
+      const firstRowSlots = Array.from(
+        rows[0].querySelectorAll(".flex.items-center.justify-center"),
+      ).filter((el) =>
+        (el.getAttribute("style") || "").includes("min-height"),
+      );
+      expect(firstRowSlots.length).toBe(2);
+    });
+
+    it("renders 3 logos in second row at 320px", async () => {
+      const { container } = await renderAtWidth(320);
+      const rows = getRows(container);
+      const secondRowSlots = Array.from(
+        rows[1].querySelectorAll(".flex.items-center.justify-center"),
+      ).filter((el) =>
+        (el.getAttribute("style") || "").includes("min-height"),
+      );
+      expect(secondRowSlots.length).toBe(3);
+    });
+
+    // ── 375px (iPhone SE) ─────────────────────────────────────
+
+    it("uses [2, 3] layout at 375px with 12 clients", async () => {
+      const { container } = await renderAtWidth(375);
+      const slots = getLogoSlots(container);
+      expect(slots.length).toBe(5);
+    });
+
+    it("logo images stay within max-w-[220px] at 375px", async () => {
+      await renderAtWidth(375);
+      const images = screen.getAllByRole("img");
+      for (const img of images) {
+        expect(img.className).toContain("max-w-[220px]");
+        expect(img.className).toContain("w-auto");
+      }
+    });
+
+    it("logo slots have minHeight 56px at 375px for stable layout", async () => {
+      const { container } = await renderAtWidth(375);
+      const slots = getLogoSlots(container);
+      for (const slot of slots) {
+        const style = slot.getAttribute("style") || "";
+        expect(style).toContain("min-height: 56px");
+      }
+    });
+
+    // ── 414px (iPhone Plus) ───────────────────────────────────
+
+    it("uses [2, 3] layout at 414px with 12 clients", async () => {
+      const { container } = await renderAtWidth(414);
+      const slots = getLogoSlots(container);
+      expect(slots.length).toBe(5);
+    });
+
+    // ── 768px (tablet) ────────────────────────────────────────
+
+    it("uses [3, 3, 3] layout at 768px with 12 clients", async () => {
+      const { container } = await renderAtWidth(768);
+      const slots = getLogoSlots(container);
+      expect(slots.length).toBe(9);
+      const rows = getRows(container);
+      expect(rows.length).toBe(3);
+    });
+
+    it("each row has 3 logos at 768px", async () => {
+      const { container } = await renderAtWidth(768);
+      const rows = getRows(container);
+      for (const row of rows) {
+        const rowSlots = Array.from(
+          row.querySelectorAll(".flex.items-center.justify-center"),
+        ).filter((el) =>
+          (el.getAttribute("style") || "").includes("min-height"),
+        );
+        expect(rowSlots.length).toBe(3);
+      }
+    });
+
+    // ── 1024px (desktop) ──────────────────────────────────────
+
+    it("uses [3, 4, 5] layout at 1024px with 12 clients", async () => {
+      const { container } = await renderAtWidth(1024);
+      const slots = getLogoSlots(container);
+      expect(slots.length).toBe(12);
+      const rows = getRows(container);
+      expect(rows.length).toBe(3);
+    });
+
+    // ── Layout with fewer clients ─────────────────────────────
+
+    it("uses [3, 3] layout at 320px with exactly 7 clients", async () => {
+      fetchSpy.mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_CLIENTS.slice(0, 7)), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      const { container } = await renderAtWidth(320);
+      const slots = getLogoSlots(container);
+      expect(slots.length).toBe(6); // [3, 3]
+    });
+
+    it("uses [2, 3] layout at 320px with 8-11 clients", async () => {
+      fetchSpy.mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_CLIENTS.slice(0, 9)), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      const { container } = await renderAtWidth(320);
+      const slots = getLogoSlots(container);
+      expect(slots.length).toBe(5); // [2, 3]
+    });
+
+    it("uses [3, 4] layout at 768px with 8-11 clients", async () => {
+      fetchSpy.mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_CLIENTS.slice(0, 9)), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      const { container } = await renderAtWidth(768);
+      const slots = getLogoSlots(container);
+      expect(slots.length).toBe(7); // [3, 4]
+    });
+
+    // ── Rotation at mobile sizes ──────────────────────────────
+
+    it("rotation works at 375px without errors", async () => {
+      // 12 clients, 5 mobile slots → 7 in reserve for rotation
+      const { container } = await renderAtWidth(375);
+
+      const slotsBefore = getLogoSlots(container).length;
+      expect(slotsBefore).toBe(5);
+
+      // Advance through rotation cycles
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15000);
+        resolveAllImages();
+        await vi.advanceTimersByTimeAsync(2000);
+      });
+
+      // Component still renders correctly
+      expect(screen.getByText("Clients We Serve")).toBeInTheDocument();
+      const slotsAfter = getLogoSlots(container).length;
+      expect(slotsAfter).toBe(5);
+    });
+
+    it("rotation works at 320px (smallest breakpoint) without errors", async () => {
+      await renderAtWidth(320);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15000);
+        resolveAllImages();
+        await vi.advanceTimersByTimeAsync(2000);
+      });
+
+      expect(screen.getByText("Clients We Serve")).toBeInTheDocument();
+    });
+
+    // ── Resize between mobile and desktop ─────────────────────
+
+    it("transitions from mobile to desktop layout on resize", async () => {
+      const { container } = await renderAtWidth(375);
+
+      // Start with mobile layout
+      const mobileSlots = getLogoSlots(container).length;
+      expect(mobileSlots).toBe(5);
+
+      // Resize to desktop
+      Object.defineProperty(window, "innerWidth", {
+        value: 1280,
+        writable: true,
+        configurable: true,
+      });
+
+      await act(async () => {
+        window.dispatchEvent(new Event("resize"));
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      const desktopSlots = getLogoSlots(container).length;
+      expect(desktopSlots).toBe(12);
+    });
+
+    it("transitions from desktop to mobile layout on resize", async () => {
+      const { container } = await renderAtWidth(1280);
+
+      const desktopSlots = getLogoSlots(container).length;
+      expect(desktopSlots).toBe(12);
+
+      // Resize to mobile
+      Object.defineProperty(window, "innerWidth", {
+        value: 375,
+        writable: true,
+        configurable: true,
+      });
+
+      await act(async () => {
+        window.dispatchEvent(new Event("resize"));
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      const mobileSlots = getLogoSlots(container).length;
+      expect(mobileSlots).toBe(5);
+    });
+
+    // ── No horizontal overflow ────────────────────────────────
+
+    it("section uses overflow-hidden to prevent horizontal scroll", async () => {
+      const { container } = await renderAtWidth(375);
+      const section = container.querySelector("section#clients");
+      expect(section?.className).toContain("overflow-hidden");
+    });
+
+    it("section uses px-4 padding at all mobile widths", async () => {
+      const { container } = await renderAtWidth(320);
+      const section = container.querySelector("section#clients");
+      expect(section?.className).toContain("px-4");
+    });
+
+    // ── Dark theme at mobile ──────────────────────────────────
+
+    it("applies dark theme brightness filter on mobile logos", async () => {
+      await renderAtWidth(375);
+      const images = screen.getAllByRole("img");
+      for (const img of images) {
+        const style = img.getAttribute("style") || "";
+        expect(style).toContain("brightness(0) invert(1)");
+      }
+    });
+
+    // ── Fade transitions at mobile ────────────────────────────
+
+    it("fade transitions use same duration at mobile as desktop", async () => {
+      const { container } = await renderAtWidth(375);
+      const slots = getLogoSlots(container);
+      for (const slot of slots) {
+        const style = slot.getAttribute("style") || "";
+        expect(style).toContain("600ms ease-in-out");
+      }
+    });
+
+    // ── Heading responsive classes ────────────────────────────
+
+    it("heading uses text-2xl base with md:text-3xl responsive", async () => {
+      await renderAtWidth(375);
+      const heading = screen.getByText("Clients We Serve");
+      expect(heading.className).toContain("text-2xl");
+      expect(heading.className).toContain("md:text-3xl");
+    });
+  });
 });
