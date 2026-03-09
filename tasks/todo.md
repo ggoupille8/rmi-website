@@ -2,6 +2,57 @@
 
 ## Current
 
+### Remove Fake Logo Wall (Mar 9, 2026)
+Branch: `feat/remove-fake-logos` (committed, NOT merged)
+
+Removed the "Clients We Serve" section entirely from the landing page. The ClientShowcase component used Brandfetch logos for domains RMI doesn't actually serve — fake social proof. Section should not go live until we have real client logos.
+
+**Changes:**
+- Deleted `src/components/landing/ClientShowcase.tsx` (450+ lines)
+- Removed import and `<ClientShowcase client:load />` from `src/pages/index.astro`
+- Updated `CLAUDE.md` file map to remove the deleted file reference
+- Landing page now goes Hero → Services with no gap
+
+**Verification:**
+- [x] `npm run build` — zero errors, zero warnings
+- [x] No references to ClientShowcase remain in src/
+- [x] No Playwright tests referenced the component
+
+**Note:** The admin-side client management (`/admin/clients`, `/api/clients`, `/api/admin/clients`, `/api/ai/client-fill`) is untouched. That infrastructure can be reused when real client logos are ready.
+
+---
+
+### Job Tracking — Cloud Side, Tasks 1–7 (Mar 9, 2026)
+Branch: `feat/job-tracking` (pushed, NOT merged)
+
+**Task 1 — Database Migration:** Created `migrations/011_jobs.sql`. Dropped unused tables from migration 003 (never populated: job_discrepancies, job_files, job_financials, job_name_variants, sync_runs, old jobs). Created new tables: `jobs` (SERIAL PK, 22 columns), `sync_log`, `job_flags`. 6 indexes on jobs, 2 on job_flags. Ran against production DB — verified all 3 tables created.
+
+**Task 7 — SYNC_API_KEY:** Generated 64-char hex key. Added to `.env.local`. ⚠️ **MANUAL STEP:** Graham must add to Vercel production env vars via Dashboard → Project Settings → Environment Variables. Key: `33a988f8210075c99627810e6d897dbf9617c83b5f645a6c1a061acc545513a8`
+
+**Task 2 — Sync API (POST /api/sync/jobs):** Replaced stub with full endpoint. API key auth via `x-sync-key` header (timing-safe comparison). Bulk UPSERT by `job_number` using `ON CONFLICT DO UPDATE`. Data quality checks: `missing_po`, `missing_description`, `no_folder`, `duplicate_customer` (fuzzy matching). Logs every sync to `sync_log`. Returns summary with counts and sync_id.
+
+**Task 3 — Stats API (GET /api/jobs/stats):** Public endpoint, no auth required. Returns aggregate counts by year, status, PM, type. 60-second cache.
+
+**Task 4 — Admin Jobs API (GET /api/admin/jobs):** Admin-authed. Filters: year, status, pm, type, search (full-text across job_number, description, customer_name, po_number). Sortable, paginated (50/page). Joins job_flags per row. Returns summary counts for current filter set. PATCH method resolves flags by ID.
+
+**Task 5 — Admin Dashboard (/admin/jobs):** Created `src/pages/admin/jobs.astro` + `src/components/admin/JobsAdmin.tsx` (599 lines). Stats bar (7 cards), sync status indicator, year tabs (2021–2026), status/PM/type dropdowns, debounced search, sortable 9-column table with color-coded rows (red=closed, green=written_up), expandable row details (section, timing, folder info), flags panel with resolve buttons, pagination.
+
+**Task 6 — Admin Sidebar:** Added "Jobs" nav item with Briefcase icon from lucide-react, positioned above Clients.
+
+**Verification:**
+- [x] `npm run build` — zero errors, zero warnings (14.17s)
+- [x] Migration ran successfully against production DB
+- [x] All TypeScript strict, no `any`
+- [x] Commit: `6d4d810` on `feat/job-tracking`
+- [x] Pushed to `origin/feat/job-tracking`
+
+**Remaining:**
+- [ ] Add SYNC_API_KEY to Vercel production env vars (manual)
+- [ ] Merge feat/job-tracking → main (Graham reviews)
+- [ ] Tasks 8–13: Sync agent (separate project at `C:\Users\Graham Goupille\rmi-sync-agent\`)
+
+---
+
 ### Client Showcase — Tiered Logo Grid + Admin Tab (Mar 9, 2026)
 Branch: `feat/client-showcase` (committed, NOT merged)
 

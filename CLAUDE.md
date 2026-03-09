@@ -84,7 +84,6 @@ src/components/landing/Footer.tsx            — Footer + back to top
 src/components/landing/FloatingMobileCTA.tsx — Mobile floating contact button
 src/components/landing/ProjectShowcase.tsx   — Project gallery cards
 src/components/landing/ImageSlideshow.tsx    — Image carousel component
-src/components/landing/ClientShowcase.tsx    — Client testimonials
 ```
 
 ### Admin Components
