@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface Client {
   id: number;
@@ -10,113 +10,169 @@ interface Client {
   seo_value: number;
 }
 
-/** Desktop: 3-4-5 pyramid (12 slots). Mobile: fewer slots. */
+interface ValidatedClient extends Client {
+  logoUrl: string;
+}
+
+// ── Task 1: Multi-source logo validation ──────────────────────────
+
+const LOGO_SOURCES = (domain: string) => [
+  `https://cdn.brandfetch.io/${domain}/logo`,
+  `https://cdn.brandfetch.io/${domain}/icon`,
+  `https://logo.clearbit.com/${domain}`,
+  `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+];
+
+function probeImage(src: string, timeoutMs = 5000): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const timer = setTimeout(() => {
+      img.src = "";
+      resolve(null);
+    }, timeoutMs);
+    img.onload = () => {
+      clearTimeout(timer);
+      if (img.naturalWidth < 32 || img.naturalHeight < 32) {
+        resolve(null);
+      } else {
+        resolve(src);
+      }
+    };
+    img.onerror = () => {
+      clearTimeout(timer);
+      resolve(null);
+    };
+    img.referrerPolicy = "no-referrer";
+    img.src = src;
+  });
+}
+
+async function validateLogo(domain: string): Promise<string | null> {
+  for (const src of LOGO_SOURCES(domain)) {
+    const result = await probeImage(src);
+    if (result) return result;
+  }
+  return null;
+}
+
+// ── Task 5: Responsive layout ─────────────────────────────────────
+
 function getSlotLayout(width: number): number[] {
-  if (width < 480) return [2, 2, 3]; // 7 slots
-  if (width < 768) return [2, 3, 4]; // 9 slots
-  return [3, 4, 5]; // 12 slots
+  if (width < 768) return [2, 3]; // 5 slots mobile
+  if (width < 1024) return [3, 3, 3]; // 9 slots tablet
+  return [3, 4, 5]; // 12 slots desktop
 }
 
 function getTotalSlots(layout: number[]): number {
   return layout.reduce((a, b) => a + b, 0);
 }
 
-/** Row min-height classes to prevent layout shift */
-const ROW_MIN_HEIGHTS = ["min-h-[64px]", "min-h-[48px]", "min-h-[40px]"];
+// ── Task 3 & 4: LogoSlot — images only, no text fallbacks ────────
 
 function LogoSlot({
   client,
-  fading,
+  logoUrl,
   revealed,
+  fading,
   rowIndex,
 }: {
-  client: Client;
-  fading: boolean;
+  client: ValidatedClient;
+  logoUrl: string;
   revealed: boolean;
+  fading: "out" | "in" | null;
   rowIndex: number;
 }) {
-  const [imgFailed, setImgFailed] = useState(false);
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
-  // Reset state when client changes
   useEffect(() => {
-    setImgFailed(false);
-    setImgLoaded(false);
-    // 4s timeout — if image hasn't loaded, show text fallback
-    timeoutRef.current = setTimeout(() => {
-      setImgFailed(true);
-    }, 4000);
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
+    setLoaded(false);
   }, [client.id]);
 
-  function handleLoad() {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setImgLoaded(true);
-  }
+  const visible = revealed && loaded && fading !== "out";
 
-  function handleError() {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setImgFailed(true);
-  }
-
-  // Size classes per row: top = largest, bottom = smallest
   const sizeClasses = [
-    "max-h-16 max-w-[160px]", // row 0 (top)
-    "max-h-12 max-w-[140px]", // row 1 (middle)
-    "max-h-10 max-w-[120px]", // row 2 (bottom)
+    "max-h-14 max-w-[160px]", // row 0 (top — 56px)
+    "max-h-12 max-w-[140px]", // row 1 (middle — 48px)
+    "max-h-10 max-w-[120px]", // row 2 (bottom — 40px)
   ];
   const sizeClass = sizeClasses[rowIndex] ?? sizeClasses[2];
-  const fallbackSize = rowIndex === 0 ? "text-sm" : "text-xs";
-  const minH = ROW_MIN_HEIGHTS[rowIndex] ?? ROW_MIN_HEIGHTS[2];
-
-  // Visible when: revealed by stagger AND (image loaded OR using text fallback), AND not mid-fade
-  const isVisible = revealed && (imgLoaded || imgFailed) && !fading;
+  const minH = rowIndex === 0 ? 56 : rowIndex === 1 ? 48 : 40;
 
   return (
     <div
-      className={`transition-opacity duration-[600ms] ease-in-out flex items-center justify-center ${minH}`}
-      style={{ opacity: isVisible ? 1 : 0 }}
+      className="flex items-center justify-center"
+      style={{
+        minHeight: `${minH}px`,
+        opacity: visible ? 1 : 0,
+        transition: "opacity 600ms ease-in-out",
+      }}
     >
-      {!imgFailed ? (
-        <img
-          src={`https://cdn.brandfetch.io/${client.domain}/logo`}
-          alt={client.name}
-          className={`${sizeClass} w-auto object-contain`}
-          style={{ filter: "brightness(0) invert(1)", opacity: 0.85 }}
-          onLoad={handleLoad}
-          onError={handleError}
-          referrerPolicy="no-referrer"
-          loading="lazy"
-        />
-      ) : (
-        <span
-          className={`text-white/70 ${fallbackSize} font-medium tracking-wider whitespace-nowrap`}
-        >
-          {client.name}
-        </span>
-      )}
+      <img
+        src={logoUrl}
+        alt={client.name}
+        className={`${sizeClass} w-auto object-contain`}
+        style={{ filter: "brightness(0) invert(1)", opacity: 0.85 }}
+        onLoad={() => setLoaded(true)}
+        onError={() => {
+          /* already validated — keep invisible if somehow fails */
+        }}
+        referrerPolicy="no-referrer"
+        loading="eager"
+      />
     </div>
   );
 }
 
+// ── Main component ────────────────────────────────────────────────
+
 export default function ClientShowcase() {
-  const [allClients, setAllClients] = useState<Client[]>([]);
-  const [visibleClients, setVisibleClients] = useState<Client[]>([]);
-  const [fadingSlot, setFadingSlot] = useState<number | null>(null);
+  const [displayPool, setDisplayPool] = useState<ValidatedClient[]>([]);
+  const [visibleSlots, setVisibleSlots] = useState<ValidatedClient[]>([]);
   const [revealedSlots, setRevealedSlots] = useState<Set<number>>(new Set());
+  const [fadingSlots, setFadingSlots] = useState<
+    Map<number, "out" | "in">
+  >(new Map());
   const [initialRevealDone, setInitialRevealDone] = useState(false);
   const [isInView, setIsInView] = useState(false);
   const [layout, setLayout] = useState<number[]>([3, 4, 5]);
-  const sectionRef = useRef<HTMLElement>(null);
-  const visibleRef = useRef<Client[]>([]);
+  const [ready, setReady] = useState(false);
 
-  // Keep ref in sync for use inside intervals
+  const sectionRef = useRef<HTMLElement>(null);
+  const visibleRef = useRef<ValidatedClient[]>([]);
+  const poolRef = useRef<ValidatedClient[]>([]);
+  const isInViewRef = useRef(false);
+  const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  const unmountedRef = useRef(false);
+
+  // Keep refs in sync
   useEffect(() => {
-    visibleRef.current = visibleClients;
-  }, [visibleClients]);
+    visibleRef.current = visibleSlots;
+  }, [visibleSlots]);
+  useEffect(() => {
+    poolRef.current = displayPool;
+  }, [displayPool]);
+  useEffect(() => {
+    isInViewRef.current = isInView;
+  }, [isInView]);
+
+  // Cleanup all timers on unmount
+  useEffect(() => {
+    return () => {
+      unmountedRef.current = true;
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current.clear();
+    };
+  }, []);
+
+  // Tracked setTimeout that auto-cleans
+  function safeTimeout(fn: () => void, ms: number) {
+    const id = setTimeout(() => {
+      timersRef.current.delete(id);
+      if (!unmountedRef.current) fn();
+    }, ms);
+    timersRef.current.add(id);
+    return id;
+  }
 
   // Responsive layout
   useEffect(() => {
@@ -128,24 +184,75 @@ export default function ClientShowcase() {
     return () => window.removeEventListener("resize", updateLayout);
   }, []);
 
-  // Fetch clients
+  // Task 1: Fetch clients + validate logos in parallel
   useEffect(() => {
-    fetch("/api/clients")
-      .then((r) => r.json())
-      .then((data: Client[]) => setAllClients(data))
-      .catch(() => {});
+    let cancelled = false;
+
+    async function init() {
+      let clients: Client[];
+      try {
+        const res = await fetch("/api/clients");
+        clients = await res.json();
+      } catch {
+        return;
+      }
+      if (cancelled || !clients.length) return;
+
+      const validated: ValidatedClient[] = [];
+      let resolvedCount = 0;
+
+      // Race: resolve when 12 ready OR 8s timeout OR all done
+      await new Promise<void>((resolve) => {
+        const deadline = setTimeout(() => resolve(), 8000);
+
+        const promises = clients.map(async (client) => {
+          const logoUrl = await validateLogo(client.domain);
+          resolvedCount++;
+          if (logoUrl && !cancelled) {
+            validated.push({ ...client, logoUrl });
+            if (validated.length >= 12) {
+              clearTimeout(deadline);
+              resolve();
+            }
+          }
+          if (resolvedCount === clients.length) {
+            clearTimeout(deadline);
+            resolve();
+          }
+        });
+
+        void Promise.allSettled(promises);
+      });
+
+      if (cancelled) return;
+
+      // Task 4: hide section if fewer than 6 logos
+      if (validated.length < 6) return;
+
+      // Shuffle for variety
+      const shuffled = validated.sort(() => Math.random() - 0.5);
+      setDisplayPool(shuffled);
+      setReady(true);
+    }
+
+    init();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Pick initial visible set when clients load or layout changes
+  // Pick visible slots when pool or layout changes
   useEffect(() => {
-    if (!allClients.length) return;
+    if (!displayPool.length) return;
     const totalSlots = getTotalSlots(layout);
-    const shuffled = [...allClients].sort(() => Math.random() - 0.5);
-    setVisibleClients(shuffled.slice(0, totalSlots));
-    // Reset reveal state on layout change
+    setVisibleSlots(displayPool.slice(0, totalSlots));
     setRevealedSlots(new Set());
     setInitialRevealDone(false);
-  }, [allClients, layout]);
+    setFadingSlots(new Map());
+    // Clear existing rotation timers
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current.clear();
+  }, [displayPool, layout]);
 
   // IntersectionObserver — only for rotation pause/resume
   useEffect(() => {
@@ -153,95 +260,131 @@ export default function ClientShowcase() {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => setIsInView(entry.isIntersecting),
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  // Staggered initial reveal — fires immediately when data loads
+  // Staggered initial reveal
   useEffect(() => {
-    if (!visibleClients.length || initialRevealDone) return;
+    if (!visibleSlots.length || initialRevealDone) return;
     const totalSlots = getTotalSlots(layout);
-    const staggerDelay = 100;
-    const timers: ReturnType<typeof setTimeout>[] = [];
+    const staggerMs = 100;
 
     for (let i = 0; i < totalSlots; i++) {
-      timers.push(
-        setTimeout(() => {
-          setRevealedSlots((prev) => new Set([...prev, i]));
-        }, i * staggerDelay)
-      );
+      safeTimeout(() => {
+        setRevealedSlots((prev) => new Set([...prev, i]));
+      }, i * staggerMs);
     }
 
-    timers.push(
-      setTimeout(() => {
-        setInitialRevealDone(true);
-      }, totalSlots * staggerDelay + 700)
-    );
+    safeTimeout(() => {
+      setInitialRevealDone(true);
+    }, totalSlots * staggerMs + 700);
+  }, [visibleSlots.length, initialRevealDone, layout]);
 
-    return () => timers.forEach(clearTimeout);
-  }, [visibleClients.length, initialRevealDone, layout]);
-
-  // Rotation: swap one random logo every 4s
-  const rotate = useCallback(() => {
-    const totalSlots = getTotalSlots(layout);
-    const current = visibleRef.current;
-    if (current.length < totalSlots) return;
-
-    const visibleIds = new Set(current.map((c) => c.id));
-    const pool = allClients.filter((c) => !visibleIds.has(c.id));
-    if (!pool.length) return;
-
-    const slotIndex = Math.floor(Math.random() * totalSlots);
-    const newClient = pool[Math.floor(Math.random() * pool.length)];
-
-    // Phase 1: fade out (600ms transition + 100ms pause)
-    setFadingSlot(slotIndex);
-
-    // Phase 2: swap client data after fade-out completes
-    setTimeout(() => {
-      setVisibleClients((prev) => {
-        const next = [...prev];
-        next[slotIndex] = newClient;
-        return next;
-      });
-      // Clear fading — LogoSlot will stay at opacity 0 until the new image loads
-      // (isVisible requires imgLoaded || imgFailed, which resets on client change)
-      setFadingSlot(null);
-    }, 700);
-  }, [allClients, layout]);
-
+  // Task 2: Independent per-slot rotation with random timers
   useEffect(() => {
+    if (!initialRevealDone) return;
     const totalSlots = getTotalSlots(layout);
-    if (!initialRevealDone || !isInView || allClients.length <= totalSlots)
-      return;
-    const interval = setInterval(rotate, 4000);
-    return () => clearInterval(interval);
-  }, [initialRevealDone, isInView, allClients.length, layout, rotate]);
+    if (displayPool.length <= totalSlots) return;
 
-  if (!allClients.length) return null;
+    function scheduleNextSwap(slotIndex: number) {
+      const delay = 4000 + Math.random() * 4000; // 4–8s random per slot
 
-  // Build rows from the flat visibleClients array
+      safeTimeout(() => {
+        if (!isInViewRef.current) {
+          // Not visible — recheck in 1s
+          scheduleNextSwap(slotIndex);
+          return;
+        }
+
+        const current = visibleRef.current;
+        const pool = poolRef.current;
+        const visibleIds = new Set(current.map((c) => c.id));
+        const available = pool.filter((c) => !visibleIds.has(c.id));
+
+        if (!available.length) {
+          scheduleNextSwap(slotIndex);
+          return;
+        }
+
+        const newClient =
+          available[Math.floor(Math.random() * available.length)];
+
+        // Phase 1: fade out
+        setFadingSlots((prev) => new Map(prev).set(slotIndex, "out"));
+
+        // Phase 2: swap after fade-out (600ms + 100ms pause)
+        safeTimeout(() => {
+          // Pre-load the new logo before swapping
+          const preload = new Image();
+          preload.referrerPolicy = "no-referrer";
+
+          const swapTimeout = safeTimeout(() => {
+            // Timed out waiting for preload — swap anyway (validated URL)
+            doSwap();
+          }, 3000);
+
+          function doSwap() {
+            clearTimeout(swapTimeout);
+            timersRef.current.delete(swapTimeout);
+            if (unmountedRef.current) return;
+
+            setVisibleSlots((prev) => {
+              const next = [...prev];
+              next[slotIndex] = newClient;
+              return next;
+            });
+            setFadingSlots((prev) => {
+              const next = new Map(prev);
+              next.delete(slotIndex);
+              return next;
+            });
+
+            // Schedule next rotation for this slot
+            safeTimeout(() => {
+              scheduleNextSwap(slotIndex);
+            }, 700); // wait for fade-in transition
+          }
+
+          preload.onload = doSwap;
+          preload.onerror = doSwap; // swap anyway — it was validated
+          preload.src = newClient.logoUrl;
+        }, 700);
+      }, delay);
+    }
+
+    // Start independent timers for each slot
+    for (let i = 0; i < totalSlots; i++) {
+      scheduleNextSwap(i);
+    }
+  }, [initialRevealDone, layout, displayPool.length]);
+
+  // Don't render until validation is done
+  if (!ready || !displayPool.length) return null;
+
+  // Build rows
   let offset = 0;
   const rows = layout.map((count, rowIdx) => {
-    const rowClients = visibleClients.slice(offset, offset + count);
+    const rowClients = visibleSlots.slice(offset, offset + count);
     const startIdx = offset;
     offset += count;
     return { rowIdx, rowClients, startIdx };
   });
 
-  const rowGaps = ["gap-10 sm:gap-12", "gap-8 sm:gap-10", "gap-6 sm:gap-8"];
+  // Task 5: spacing per row
+  const rowGaps = ["gap-16", "gap-12", "gap-10"];
 
   return (
     <section
       ref={sectionRef}
       id="clients"
-      className="py-16 px-4 relative overflow-hidden"
+      className="py-20 px-4 relative overflow-hidden"
     >
       <div className="max-w-5xl mx-auto relative">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-12">
           <p className="text-xs uppercase tracking-[0.2em] text-blue-400 mb-2">
             Trusted By Industry Leaders
           </p>
@@ -266,8 +409,9 @@ export default function ClientShowcase() {
                   <LogoSlot
                     key={`slot-${slotIdx}`}
                     client={client}
-                    fading={fadingSlot === slotIdx}
+                    logoUrl={client.logoUrl}
                     revealed={revealedSlots.has(slotIdx)}
+                    fading={fadingSlots.get(slotIdx) ?? null}
                     rowIndex={rowIdx}
                   />
                 );
