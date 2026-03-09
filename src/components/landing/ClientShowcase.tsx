@@ -130,9 +130,9 @@ export default function ClientShowcase() {
     return () => observer.disconnect();
   }, []);
 
-  // Staggered initial reveal
+  // Staggered initial reveal — fires immediately when data loads, no intersection check
   useEffect(() => {
-    if (!visibleClients.length || !isInView || initialRevealDone) return;
+    if (!visibleClients.length || initialRevealDone) return;
     const totalSlots = getTotalSlots(layout);
     const staggerDelay = 100; // ms between each slot reveal
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -153,7 +153,7 @@ export default function ClientShowcase() {
     );
 
     return () => timers.forEach(clearTimeout);
-  }, [visibleClients.length, isInView, initialRevealDone, layout]);
+  }, [visibleClients.length, initialRevealDone, layout]);
 
   // Rotation: swap one random logo every ~3.5s
   const rotate = useCallback(() => {
