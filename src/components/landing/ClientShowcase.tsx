@@ -6,6 +6,7 @@ interface Client {
   domain: string;
   color: string;
   description: string;
+  logo_scale: number;
 }
 
 interface ValidatedClient extends Client {
@@ -194,7 +195,7 @@ function LogoSlot({
         src={logoUrl}
         alt={client.name}
         className="max-h-14 max-w-[220px] w-auto object-contain"
-        style={{ filter: "brightness(0) invert(1)", opacity: 0.85 }}
+        style={{ filter: "brightness(0) invert(1)", opacity: 0.85, transform: `scale(${client.logo_scale || 1})` }}
         onLoad={handleLoad}
         onError={() => setRejected(true)}
         referrerPolicy="no-referrer"

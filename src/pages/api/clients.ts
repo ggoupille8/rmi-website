@@ -17,10 +17,10 @@ export const GET: APIRoute = async () => {
 
   try {
     const result = await sql`
-      SELECT id, name, domain, color, description, tier, seo_value
+      SELECT id, name, domain, color, description, logo_scale
       FROM clients
       WHERE active = TRUE
-      ORDER BY tier, sort_order, id
+      ORDER BY sort_order, id
     `;
     return new Response(JSON.stringify(result.rows), {
       headers: {
