@@ -19,10 +19,10 @@ interface ValidatedClient extends Client {
 const VERIFIED_DOMAINS = new Set([
   'ford.com', 'dteenergy.com', 'cmsenergy.com', 'stellantis.com',
   'toyota.com', 'basf.com', 'ameresco.com',
-  'costco.com', 'apple.com', 'amazon.com', 'starbucks.com',
+  'costco.com', 'amazon.com',
   'verizon.com', 'nissan.com', 'delta.com', 'dominos.com',
   'fidelity.com', 'comcast.com', 'flagstar.com', 'ymca.org',
-  'cartier.com', 'tagheuer.com', 'primark.com', 'celanese.com',
+  'cartier.com', 'tagheuer.com', 'primark.com',
   'mahle.com', 'shakeshack.com', 'fivebelow.com', 'quickenloans.com',
   'umich.edu', 'emich.edu', 'udmercy.edu', 'va.gov',
 ]);
@@ -58,9 +58,9 @@ function probeImage(
       }
 
       if (endpoint === "logo") {
-        // Wordmark logos must be wider than tall (aspect ratio > 1.5:1)
+        // Wordmark logos must be wider than tall (aspect ratio > 1.2:1)
         const ratio = w / h;
-        if (ratio <= 1.5) {
+        if (ratio <= 1.2) {
           resolve(null);
           return;
         }
@@ -311,31 +311,8 @@ export default function ClientShowcase() {
 
       if (cancelled) return;
 
-      // Task 1: Detect Brandfetch fallback pattern —
-      // If 5+ domains return the exact same WxH, they're all fallbacks
-      const sizeGroups = new Map<string, number[]>();
-      results.forEach(({ result }, idx) => {
-        if (result.url.includes("brandfetch")) {
-          const key = `${result.width}x${result.height}`;
-          const group = sizeGroups.get(key);
-          if (group) {
-            group.push(idx);
-          } else {
-            sizeGroups.set(key, [idx]);
-          }
-        }
-      });
-
-      const fallbackIndices = new Set<number>();
-      sizeGroups.forEach((indices) => {
-        if (indices.length >= 5) {
-          indices.forEach((i) => fallbackIndices.add(i));
-        }
-      });
-
-      // Build validated pool excluding fallbacks
+      // Build validated pool — whitelist approach prevents Brandfetch branding
       const validated: ValidatedClient[] = results
-        .filter((_, idx) => !fallbackIndices.has(idx))
         .map(({ client, result }) => ({
           ...client,
           logoUrl: result.url,
