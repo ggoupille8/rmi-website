@@ -25,6 +25,8 @@ const VERIFIED_DOMAINS = new Set([
   'cartier.com', 'tagheuer.com', 'primark.com',
   'mahle.com', 'shakeshack.com', 'fivebelow.com', 'quickenloans.com',
   'umich.edu', 'emich.edu', 'udmercy.edu',
+  'gm.com', 'rolandberger.com', 'ldc.com',
+  'arhaus.com', 'smoothieking.com', 'flooranddecor.com',
 ]);
 
 // ── Strict Brandfetch-only validation ────────────────────────────
