@@ -47,11 +47,11 @@ function LogoImage({
       src={`https://cdn.brandfetch.io/${domain}/w/256/h/64`}
       alt={name}
       className="max-h-full max-w-full object-contain"
-      style={{ filter: "brightness(0) invert(1)", opacity: 0.85 }}
+      style={{ opacity: 0.9 }}
       onError={() => setFailed(true)}
       loading="lazy"
-      width={80}
-      height={32}
+      width={120}
+      height={48}
     />
   );
 }
