@@ -14,7 +14,20 @@ interface ValidatedClient extends Client {
   logoUrl: string;
 }
 
-// ── Task 1: Strict Brandfetch-only validation ────────────────────
+// ── Verified domains — only these return real logos from Brandfetch ──
+
+const VERIFIED_DOMAINS = new Set([
+  'ford.com', 'dteenergy.com', 'cmsenergy.com', 'stellantis.com',
+  'beaumont.org', 'toyota.com', 'basf.com', 'ameresco.com',
+  'costco.com', 'apple.com', 'amazon.com', 'starbucks.com',
+  'verizon.com', 'nissan.com', 'delta.com', 'dominos.com',
+  'fidelity.com', 'comcast.com', 'flagstar.com', 'ymca.org',
+  'cartier.com', 'tagheuer.com', 'primark.com', 'celanese.com',
+  'mahle.com', 'shakeshack.com', 'fivebelow.com', 'quickenloans.com',
+  'umich.edu', 'emich.edu', 'udmercy.edu', 'va.gov',
+]);
+
+// ── Strict Brandfetch-only validation ────────────────────────────
 
 interface ProbeResult {
   url: string;
@@ -85,7 +98,9 @@ function probeImage(
 async function validateLogo(
   domain: string,
 ): Promise<ProbeResult | null> {
-  // Only Brandfetch /logo and /icon — no Google favicons, no Clearbit
+  // Only attempt Brandfetch for verified domains — skip all others
+  if (!VERIFIED_DOMAINS.has(domain)) return null;
+
   const logoResult = await probeImage(
     `https://cdn.brandfetch.io/${domain}/logo`,
     "logo",
