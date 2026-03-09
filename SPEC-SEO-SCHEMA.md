@@ -30,7 +30,7 @@ Find the existing LocalBusiness JSON-LD script. Add these missing fields:
      "https://www.facebook.com/ResourceMechanicalInsulation"
    ]
    ```
-3. Verify `"telephone"` uses E.164 format: `"+14197056153"`
+3. Verify `"telephone"` uses E.164 format: `"+12483795156"`
 4. Verify `"url"` is `"https://www.rmi-llc.net"`
 
 ### Verification
@@ -59,7 +59,7 @@ Find the existing Organization JSON-LD script. Add:
    ```json
    "contactPoint": {
      "@type": "ContactPoint",
-     "telephone": "+14197056153",
+     "telephone": "+12483795156",
      "contactType": "sales",
      "email": "fab@rmi-llc.net",
      "availableLanguage": "English"

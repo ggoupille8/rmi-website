@@ -25,7 +25,7 @@ The contact section works well functionally but the visual presentation can be e
 3. Left column (contact info) should include:
    - Section heading: "Get in Touch" (or keep existing heading)
    - Brief text: "Ready to discuss your insulation project? Reach out directly or fill out the form and we'll get back to you within 48 hours."
-   - Phone: icon + "419-705-6153" (clickable `tel:` link)
+   - Phone: icon + "248-379-5156" (clickable `tel:` link)
    - Email: icon + "fab@rmi-llc.net" (clickable `mailto:` link)
    - Address: icon + "11677 Wayne Road, Suite 112, Romulus, MI 48174"
    - Hours: icon + "Monday – Friday, 7:00 AM – 5:00 PM" (or whatever the actual hours are)

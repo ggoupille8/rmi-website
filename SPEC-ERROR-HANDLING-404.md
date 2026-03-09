@@ -118,7 +118,7 @@ The site needs a custom 404 page, form error handling polish, and edge case cove
 
 ### Approach
 1. If the API call fails (network error, 500 response, timeout), show a user-friendly error message:
-   - "Something went wrong. Please try again or call us directly at 419-705-6153."
+   - "Something went wrong. Please try again or call us directly at 248-379-5156."
 2. The error should appear above the submit button or at the top of the form.
 3. Style it as a red/warning banner: `bg-red-900/50 border border-red-500/50 text-red-200 p-3 rounded-lg`
 4. Include a "Try Again" button that clears the error and re-enables the form.

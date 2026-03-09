@@ -309,7 +309,7 @@ export default function HeroFullWidth() {
 ```tsx
 <ErrorBoundary fallback={
   <div className="text-center py-8">
-    <p className="text-neutral-400">Unable to load form. Please call <a href="tel:+14197056153" className="text-blue-400">419-705-6153</a> or email <a href="mailto:fab@rmi-llc.net" className="text-blue-400">fab@rmi-llc.net</a>.</p>
+    <p className="text-neutral-400">Unable to load form. Please call <a href="tel:+12483795156" className="text-blue-400">248-379-5156</a> or email <a href="mailto:info@rmi-llc.net" className="text-blue-400">info@rmi-llc.net</a>.</p>
   </div>
 }>
 ```
