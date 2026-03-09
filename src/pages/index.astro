@@ -8,6 +8,7 @@ import ProjectShowcase from '../components/landing/ProjectShowcase';
 import CTABanner from '../components/landing/CTABanner';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
+import ClientShowcase from '../components/landing/ClientShowcase';
 import FloatingMobileCTA from '../components/landing/FloatingMobileCTA';
 import { heroTagline, siteTitle, siteDescription } from '../content/site';
 ---
@@ -22,6 +23,8 @@ import { heroTagline, siteTitle, siteDescription } from '../content/site';
       client:load
       tagline={heroTagline}
     />
+    <ClientShowcase client:visible />
+    <div class="w-full h-px bg-gradient-to-r from-transparent via-accent-500/30 to-transparent" />
     <div id="services" class="scroll-mt-14">
       <Services client:visible />
     </div>
