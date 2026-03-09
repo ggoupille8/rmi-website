@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface Client {
   id: number;
@@ -10,139 +10,199 @@ interface Client {
   seo_value: number;
 }
 
-const TIER_SLOTS = { high: 3, medium: 5, low: 7 } as const;
-const TIER_ORDER = ["high", "medium", "low"] as const;
-
-function Monogram({ name, color }: { name: string; color: string }) {
-  const initials = name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 3)
-    .toUpperCase();
-  const textColor = color === "#FFCB05" ? "#8B6914" : color;
-  return (
-    <span
-      className="font-mono font-black tracking-widest text-xs"
-      style={{ color: textColor }}
-    >
-      {initials}
-    </span>
-  );
+/** Desktop: 3-4-5 pyramid (12 slots). Mobile: fewer slots. */
+function getSlotLayout(width: number): number[] {
+  if (width < 480) return [2, 2, 3]; // 7 slots
+  if (width < 768) return [2, 3, 4]; // 9 slots
+  return [3, 4, 5]; // 12 slots
 }
 
-function LogoImage({
-  domain,
-  name,
-  color,
-}: {
-  domain: string;
-  name: string;
-  color: string;
-}) {
-  const [failed, setFailed] = useState(false);
-  if (failed) return <Monogram name={name} color={color} />;
-  return (
-    <img
-      src={`https://cdn.brandfetch.io/${domain}/w/256/h/64`}
-      alt={name}
-      className="max-h-full max-w-full object-contain"
-      style={{ opacity: 0.9 }}
-      onError={() => setFailed(true)}
-      loading="lazy"
-      width={120}
-      height={48}
-    />
-  );
+function getTotalSlots(layout: number[]): number {
+  return layout.reduce((a, b) => a + b, 0);
 }
 
-function ClientCard({
+function LogoSlot({
   client,
-  size,
-  animDelay,
-  sectionVisible,
+  fading,
+  revealed,
+  rowIndex,
 }: {
   client: Client;
-  size: "large" | "medium" | "small";
-  animDelay: number;
-  sectionVisible: boolean;
+  fading: boolean;
+  revealed: boolean;
+  rowIndex: number;
 }) {
-  const [ready, setReady] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
 
+  // Reset imgFailed when client changes
   useEffect(() => {
-    if (!sectionVisible) return;
-    const t = setTimeout(() => setReady(true), animDelay);
-    return () => clearTimeout(t);
-  }, [sectionVisible, animDelay]);
+    setImgFailed(false);
+  }, [client.id]);
 
-  const heights = { large: "h-20", medium: "h-14", small: "h-10" };
-  const paddings = { large: "px-5 py-4", medium: "px-4 py-3", small: "px-3 py-2" };
+  // Size classes per row: top = largest, bottom = smallest
+  const sizeClasses = [
+    "max-h-16 max-w-[160px]", // row 0 (top)
+    "max-h-12 max-w-[140px]", // row 1 (middle)
+    "max-h-10 max-w-[120px]", // row 2 (bottom)
+  ];
+  const sizeClass = sizeClasses[rowIndex] ?? sizeClasses[2];
+  const fallbackSize = rowIndex === 0 ? "text-sm" : "text-xs";
 
   return (
     <div
-      className={`
-        relative flex flex-col items-center justify-center rounded-xl
-        ${heights[size]} ${paddings[size]}
-        transition-all duration-700 ease-out
-        hover:border-blue-500/30 hover:bg-white/[0.04] group
-      `}
-      style={{
-        opacity: ready ? 1 : 0,
-        transform: ready
-          ? "translateY(0) scale(1)"
-          : "translateY(8px) scale(0.96)",
-        background: "rgba(255,255,255,0.025)",
-        border: `1px solid ${client.color}22`,
-      }}
-      title={`${client.name} — ${client.description}`}
+      className="transition-opacity duration-[600ms] ease-in-out flex items-center justify-center"
+      style={{ opacity: fading ? 0 : revealed ? 1 : 0 }}
     >
-      {/* Subtle color glow top */}
-      <div
-        className="absolute inset-x-0 top-0 h-px rounded-t-xl"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${client.color}40, transparent)`,
-        }}
-      />
-      <LogoImage domain={client.domain} name={client.name} color={client.color} />
+      {!imgFailed ? (
+        <img
+          src={`https://cdn.brandfetch.io/${client.domain}/w/256/h/64`}
+          alt={client.name}
+          className={`${sizeClass} w-auto object-contain`}
+          style={{ filter: "brightness(0) invert(1)", opacity: 0.85 }}
+          onError={() => setImgFailed(true)}
+          loading="lazy"
+        />
+      ) : (
+        <span
+          className={`text-white/70 ${fallbackSize} font-medium tracking-wide whitespace-nowrap`}
+        >
+          {client.name}
+        </span>
+      )}
     </div>
   );
 }
 
 export default function ClientShowcase() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [visible, setVisible] = useState(false);
+  const [allClients, setAllClients] = useState<Client[]>([]);
+  const [visibleClients, setVisibleClients] = useState<Client[]>([]);
+  const [fadingSlot, setFadingSlot] = useState<number | null>(null);
+  const [revealedSlots, setRevealedSlots] = useState<Set<number>>(new Set());
+  const [initialRevealDone, setInitialRevealDone] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const [layout, setLayout] = useState<number[]>([3, 4, 5]);
   const sectionRef = useRef<HTMLElement>(null);
+  const visibleRef = useRef<Client[]>([]);
 
+  // Keep ref in sync for use inside intervals
+  useEffect(() => {
+    visibleRef.current = visibleClients;
+  }, [visibleClients]);
+
+  // Responsive layout
+  useEffect(() => {
+    function updateLayout() {
+      setLayout(getSlotLayout(window.innerWidth));
+    }
+    updateLayout();
+    window.addEventListener("resize", updateLayout);
+    return () => window.removeEventListener("resize", updateLayout);
+  }, []);
+
+  // Fetch clients
   useEffect(() => {
     fetch("/api/clients")
       .then((r) => r.json())
-      .then((data: Client[]) => setClients(data))
-      .catch(() => {}); // fail silently — section just won't render
+      .then((data: Client[]) => setAllClients(data))
+      .catch(() => {});
   }, []);
 
+  // Pick initial visible set when clients load or layout changes
   useEffect(() => {
-    if (!clients.length) return;
+    if (!allClients.length) return;
+    const totalSlots = getTotalSlots(layout);
+    const shuffled = [...allClients].sort(() => Math.random() - 0.5);
+    setVisibleClients(shuffled.slice(0, totalSlots));
+    // Reset reveal state on layout change
+    setRevealedSlots(new Set());
+    setInitialRevealDone(false);
+  }, [allClients, layout]);
+
+  // IntersectionObserver for viewport tracking
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0 }
+      ([entry]) => setIsInView(entry.isIntersecting),
+      { threshold: 0.1 }
     );
-    if (sectionRef.current) observer.observe(sectionRef.current);
+    observer.observe(el);
     return () => observer.disconnect();
-  }, [clients.length]);
+  }, []);
+
+  // Staggered initial reveal
+  useEffect(() => {
+    if (!visibleClients.length || !isInView || initialRevealDone) return;
+    const totalSlots = getTotalSlots(layout);
+    const staggerDelay = 100; // ms between each slot reveal
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    for (let i = 0; i < totalSlots; i++) {
+      timers.push(
+        setTimeout(() => {
+          setRevealedSlots((prev) => new Set([...prev, i]));
+        }, i * staggerDelay)
+      );
+    }
+
+    // Mark initial reveal as done after all slots revealed + transition time
+    timers.push(
+      setTimeout(() => {
+        setInitialRevealDone(true);
+      }, totalSlots * staggerDelay + 700)
+    );
+
+    return () => timers.forEach(clearTimeout);
+  }, [visibleClients.length, isInView, initialRevealDone, layout]);
+
+  // Rotation: swap one random logo every ~3.5s
+  const rotate = useCallback(() => {
+    const totalSlots = getTotalSlots(layout);
+    const current = visibleRef.current;
+    if (current.length < totalSlots) return;
+
+    const visibleIds = new Set(current.map((c) => c.id));
+    const pool = allClients.filter((c) => !visibleIds.has(c.id));
+    if (!pool.length) return;
+
+    const slotIndex = Math.floor(Math.random() * totalSlots);
+    const newClient = pool[Math.floor(Math.random() * pool.length)];
+
+    // Fade out
+    setFadingSlot(slotIndex);
+
+    // After fade-out, swap and fade in
+    setTimeout(() => {
+      setVisibleClients((prev) => {
+        const next = [...prev];
+        next[slotIndex] = newClient;
+        return next;
+      });
+      setFadingSlot(null);
+    }, 650); // slightly longer than the 600ms CSS transition
+  }, [allClients, layout]);
 
   useEffect(() => {
-    if (!clients.length || visible) return;
-    if (sectionRef.current && sectionRef.current.getBoundingClientRect().top < window.innerHeight) {
-      setVisible(true);
-    }
-  }, [clients.length, visible]);
+    const totalSlots = getTotalSlots(layout);
+    if (!initialRevealDone || !isInView || allClients.length <= totalSlots)
+      return;
+    const interval = setInterval(rotate, 3500);
+    return () => clearInterval(interval);
+  }, [initialRevealDone, isInView, allClients.length, layout, rotate]);
 
-  if (!clients.length) return null;
+  if (!allClients.length) return null;
+
+  // Build rows from the flat visibleClients array
+  let offset = 0;
+  const rows = layout.map((count, rowIdx) => {
+    const rowClients = visibleClients.slice(offset, offset + count);
+    const startIdx = offset;
+    offset += count;
+    return { rowIdx, rowClients, startIdx };
+  });
+
+  // Row gap classes: tighter on mobile
+  const rowGaps = ["gap-10 sm:gap-12", "gap-8 sm:gap-10", "gap-6 sm:gap-8"];
 
   return (
     <section
@@ -150,9 +210,6 @@ export default function ClientShowcase() {
       id="clients"
       className="py-16 px-4 relative overflow-hidden"
     >
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/10 to-transparent pointer-events-none" />
-
       <div className="max-w-5xl mx-auto relative">
         {/* Header */}
         <div className="text-center mb-10">
@@ -167,43 +224,27 @@ export default function ClientShowcase() {
           </p>
         </div>
 
-        {/* Tiered grid — pyramid layout */}
-        <div className="flex flex-col items-center gap-3">
-          {TIER_ORDER.map((tier, rowIdx) => {
-            const tierClients = clients
-              .filter((c) => c.tier === tier)
-              .slice(0, TIER_SLOTS[tier]);
-            if (!tierClients.length) return null;
-            const size =
-              tier === "high" ? "large" : tier === "medium" ? "medium" : "small";
-            const maxW =
-              tier === "high" ? "560px" : tier === "medium" ? "800px" : "100%";
-            const gap =
-              tier === "high" ? "12px" : tier === "medium" ? "10px" : "8px";
-
-            return (
-              <div
-                key={tier}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${tierClients.length}, 1fr)`,
-                  gap,
-                  width: "100%",
-                  maxWidth: maxW,
-                }}
-              >
-                {tierClients.map((client, i) => (
-                  <ClientCard
-                    key={client.id}
+        {/* Logo pyramid */}
+        <div className="flex flex-col items-center gap-6 sm:gap-8">
+          {rows.map(({ rowIdx, rowClients, startIdx }) => (
+            <div
+              key={rowIdx}
+              className={`flex justify-center items-center ${rowGaps[rowIdx] ?? rowGaps[2]}`}
+            >
+              {rowClients.map((client, i) => {
+                const slotIdx = startIdx + i;
+                return (
+                  <LogoSlot
+                    key={`slot-${slotIdx}`}
                     client={client}
-                    size={size}
-                    animDelay={rowIdx * 160 + i * 80}
-                    sectionVisible={visible}
+                    fading={fadingSlot === slotIdx}
+                    revealed={revealedSlots.has(slotIdx)}
+                    rowIndex={rowIdx}
                   />
-                ))}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
     </section>
