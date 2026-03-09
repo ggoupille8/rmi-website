@@ -1,5 +1,5 @@
 // LogoResolver.ts — Cascading multi-source logo resolver
-// Resolution chain: self-hosted → Clearbit → Google Favicon → initials fallback
+// Resolution chain: self-hosted → Brandfetch → Google Favicon → initials fallback
 
 interface LogoSource {
   name: string;
@@ -13,8 +13,8 @@ const SELF_HOSTED_SLUGS: Set<string> = new Set([
 
 const EXTERNAL_SOURCES: LogoSource[] = [
   {
-    name: 'clearbit',
-    getUrl: (domain) => `https://logo.clearbit.com/${domain}`,
+    name: 'brandfetch',
+    getUrl: (domain) => `https://cdn.brandfetch.io/logo/${domain}`,
   },
   {
     name: 'google-favicon',
