@@ -68,6 +68,7 @@ function LogoSlot({ client, isFading, reducedMotion }: LogoSlotProps) {
         <img
           src={logoUrl}
           alt={client.name}
+          referrerPolicy="no-referrer"
           className="max-h-full max-w-full object-contain brightness-0 invert opacity-70 hover:opacity-100 transition-opacity duration-300"
           onLoad={() => setLoaded(true)}
           onError={() => {

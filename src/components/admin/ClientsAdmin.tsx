@@ -7,22 +7,10 @@ interface Client {
   domain: string;
   color: string;
   description: string;
-  tier: "high" | "medium" | "low";
   seo_value: number;
   active: boolean;
   sort_order: number;
 }
-
-const TIER_LABELS: Record<string, string> = {
-  high: "Tier 1 — Anchor (top row, 2–3 logos, largest)",
-  medium: "Tier 2 — Featured (middle row, 4–5 logos)",
-  low: "Tier 3 — Standard (bottom row, 6–7 logos, smallest)",
-};
-const TIER_COLORS: Record<string, string> = {
-  high: "#f59e0b",
-  medium: "#3b82f6",
-  low: "#6b7280",
-};
 
 // ── Shared styles ──────────────────────────────────────
 const inputCls =
@@ -38,8 +26,6 @@ interface AIFillResult {
   color?: string;
   description?: string;
   seo_value?: number;
-  suggested_tier?: "high" | "medium" | "low";
-  tier_reason?: string;
 }
 
 async function aiFillClient(companyName: string): Promise<AIFillResult> {
@@ -64,16 +50,12 @@ export default function ClientsAdmin() {
     domain: "",
     color: "#0066CC",
     description: "",
-    tier: "medium" as const,
     seo_value: 70,
   };
   const [form, setForm] = useState(emptyForm);
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiNote, setAiNote] = useState<{
-    tier: string;
-    reason: string;
-  } | null>(null);
+  const [aiNote, setAiNote] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -106,17 +88,10 @@ export default function ClientsAdmin() {
         color: data.color ?? "#0066CC",
         description: data.description ?? "",
         seo_value: data.seo_value ?? 70,
-        tier: data.suggested_tier ?? "medium",
       }));
-      setAiNote({
-        tier: data.suggested_tier ?? "",
-        reason: data.tier_reason ?? "",
-      });
+      setAiNote("Fields populated. Review and adjust before saving.");
     } catch {
-      setAiNote({
-        tier: "",
-        reason: "Could not auto-fill. Fill in manually.",
-      });
+      setAiNote("Could not auto-fill. Fill in manually.");
     }
     setAiLoading(false);
   };
@@ -161,14 +136,16 @@ export default function ClientsAdmin() {
     load();
   };
 
-  const handleTierChange = async (id: number, tier: string) => {
+  const handleSortChange = async (id: number, sort_order: number) => {
     await fetch("/api/admin/clients", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, tier }),
+      body: JSON.stringify({ id, sort_order }),
     });
     load();
   };
+
+  const activeCount = clients.filter((c) => c.active).length;
 
   return (
     <div className="max-w-4xl">
@@ -176,8 +153,8 @@ export default function ClientsAdmin() {
       <div className="mb-6">
         <h1 className="text-xl font-bold text-slate-100">Client Showcase</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Manage the tiered logo grid displayed on the public site between
-          Projects and the CTA banner.
+          Manage the logo grid displayed on the public site. {activeCount} of{" "}
+          {clients.length} clients are live.
         </p>
       </div>
 
@@ -208,90 +185,77 @@ export default function ClientsAdmin() {
         <div>
           {loading ? (
             <p className="text-slate-500 text-sm">Loading…</p>
+          ) : clients.length === 0 ? (
+            <p className="text-slate-500 text-sm">
+              No clients yet. Add one using the &quot;+ Add Client&quot; tab.
+            </p>
           ) : (
-            (["high", "medium", "low"] as const).map((tier) => {
-              const tc = clients.filter((c) => c.tier === tier);
-              return (
-                <div key={tier} className="mb-8">
-                  <div
-                    className="text-xs uppercase tracking-widest mb-3 font-semibold"
-                    style={{ color: TIER_COLORS[tier] }}
-                  >
-                    {TIER_LABELS[tier]} — {tc.length} client
-                    {tc.length !== 1 ? "s" : ""}
-                  </div>
-                  {tc.length === 0 && (
-                    <p className="text-slate-600 text-sm">
-                      No clients in this tier.
-                    </p>
-                  )}
-                  {tc.map((client) => (
+            <div className="space-y-2">
+              {clients.map((client) => (
+                <div
+                  key={client.id}
+                  className="flex items-center justify-between rounded-lg px-4 py-3"
+                  style={{
+                    background: client.active
+                      ? "rgba(255,255,255,0.03)"
+                      : "rgba(255,255,255,0.01)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    opacity: client.active ? 1 : 0.5,
+                  }}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
                     <div
-                      key={client.id}
-                      className="flex items-center justify-between rounded-lg px-4 py-3 mb-2"
-                      style={{
-                        background: client.active
-                          ? "rgba(255,255,255,0.03)"
-                          : "rgba(255,255,255,0.01)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        opacity: client.active ? 1 : 0.5,
-                      }}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                          style={{ background: client.color }}
-                        />
-                        <div className="min-w-0">
-                          <div className="text-sm font-medium text-slate-200 truncate">
-                            {client.name}
-                          </div>
-                          <div className="text-xs text-slate-500 truncate">
-                            {client.domain} · {client.description}
-                          </div>
-                        </div>
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ background: client.color }}
+                    />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-slate-200 truncate">
+                        {client.name}
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-                        <span className="text-xs text-slate-500 bg-white/5 px-2 py-0.5 rounded">
-                          SEO {client.seo_value}
-                        </span>
-                        <select
-                          value={client.tier}
-                          onChange={(e) =>
-                            handleTierChange(client.id, e.target.value)
-                          }
-                          className="text-xs rounded px-2 py-1 bg-white/5 border border-white/10 text-slate-300 outline-none cursor-pointer"
-                        >
-                          <option value="high">High</option>
-                          <option value="medium">Medium</option>
-                          <option value="low">Low</option>
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleActive(client)}
-                          className="text-xs px-3 py-1 rounded transition-colors"
-                          style={{
-                            background: client.active
-                              ? "rgba(34,197,94,0.1)"
-                              : "rgba(100,116,139,0.15)",
-                            color: client.active ? "#4ade80" : "#94a3b8",
-                          }}
-                        >
-                          {client.active ? "Live" : "Hidden"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(client.id, client.name)}
-                          className="text-xs px-3 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
-                        >
-                          Remove
-                        </button>
+                      <div className="text-xs text-slate-500 truncate">
+                        {client.domain}
+                        {client.description ? ` · ${client.description}` : ""}
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                    <span className="text-xs text-slate-500 bg-white/5 px-2 py-0.5 rounded">
+                      SEO {client.seo_value}
+                    </span>
+                    <input
+                      type="number"
+                      value={client.sort_order}
+                      onChange={(e) =>
+                        handleSortChange(client.id, Number(e.target.value))
+                      }
+                      className="w-14 text-xs rounded px-2 py-1 bg-white/5 border border-white/10 text-slate-300 outline-none text-center"
+                      title="Sort order"
+                      min={0}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleToggleActive(client)}
+                      className="text-xs px-3 py-1 rounded transition-colors"
+                      style={{
+                        background: client.active
+                          ? "rgba(34,197,94,0.1)"
+                          : "rgba(100,116,139,0.15)",
+                        color: client.active ? "#4ade80" : "#94a3b8",
+                      }}
+                    >
+                      {client.active ? "Live" : "Hidden"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(client.id, client.name)}
+                      className="text-xs px-3 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
-              );
-            })
+              ))}
+            </div>
           )}
         </div>
       )}
@@ -325,25 +289,7 @@ export default function ClientsAdmin() {
               </button>
             </div>
             {aiNote && (
-              <p className="mt-2 text-xs text-slate-400">
-                {aiNote.tier ? (
-                  <>
-                    Suggested:{" "}
-                    <span
-                      style={{
-                        color:
-                          TIER_COLORS[aiNote.tier] ?? TIER_COLORS["medium"],
-                      }}
-                      className="font-semibold"
-                    >
-                      {aiNote.tier.toUpperCase()}
-                    </span>{" "}
-                    — {aiNote.reason}
-                  </>
-                ) : (
-                  <span className="text-red-400">{aiNote.reason}</span>
-                )}
-              </p>
+              <p className="mt-2 text-xs text-slate-400">{aiNote}</p>
             )}
           </div>
 
@@ -384,21 +330,6 @@ export default function ClientsAdmin() {
               </div>
             ))}
             <div>
-              <label className={labelCls}>Tier / Row</label>
-              <select
-                value={form.tier}
-                onChange={(e) =>
-                  setField("tier", e.target.value)
-                }
-                className={inputCls}
-                style={{ background: "#0d1520" }}
-              >
-                <option value="high">High — Top row (largest)</option>
-                <option value="medium">Medium — Middle row</option>
-                <option value="low">Low — Bottom row (smallest)</option>
-              </select>
-            </div>
-            <div>
               <label className={labelCls}>Brand Color</label>
               <div className="flex gap-2">
                 <input
@@ -425,12 +356,6 @@ export default function ClientsAdmin() {
               />
               <span className="font-medium text-slate-200">{form.name}</span>
               <span className="text-slate-500 text-xs">{form.domain}</span>
-              <span
-                className="ml-auto text-xs font-semibold"
-                style={{ color: TIER_COLORS[form.tier] }}
-              >
-                {form.tier.toUpperCase()}
-              </span>
             </div>
           )}
 

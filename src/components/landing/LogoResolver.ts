@@ -13,8 +13,8 @@ const SELF_HOSTED_SLUGS: Set<string> = new Set([
 
 const EXTERNAL_SOURCES: LogoSource[] = [
   {
-    name: 'brandfetch',
-    getUrl: (domain) => `https://cdn.brandfetch.io/logo/${domain}`,
+    name: 'icon-horse',
+    getUrl: (domain) => `https://icon.horse/icon/${domain}`,
   },
   {
     name: 'google-favicon',
@@ -50,8 +50,9 @@ function testImageLoad(url: string): Promise<boolean> {
     };
     img.onload = () => settle(img.naturalWidth > 1 && img.naturalHeight > 1);
     img.onerror = () => settle(false);
+    img.referrerPolicy = 'no-referrer';
     img.src = url;
-    setTimeout(() => settle(false), 3000);
+    setTimeout(() => settle(false), 5000);
   });
 }
 

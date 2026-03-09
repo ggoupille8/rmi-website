@@ -61,9 +61,7 @@ Return ONLY raw JSON, no markdown:
   "domain": "primary domain e.g. ford.com",
   "color": "accurate brand hex color",
   "description": "What RMI likely does for them — 6 words max",
-  "seo_value": integer 1-100 for national brand recognition,
-  "suggested_tier": "high" if Fortune 500/nationally iconic (seo 80+), "medium" if regional/well-known (50-79), "low" if local/smaller,
-  "tier_reason": "One short sentence explaining why"
+  "seo_value": integer 1-100 for national brand recognition
 }`,
           },
         ],

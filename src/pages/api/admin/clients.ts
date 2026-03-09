@@ -36,7 +36,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   try {
     const result = await sql`
-      SELECT * FROM clients ORDER BY tier, sort_order, id
+      SELECT * FROM clients ORDER BY sort_order, id
     `;
     return new Response(JSON.stringify(result.rows), {
       headers: SECURITY_HEADERS,
@@ -58,26 +58,18 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const body = await request.json();
-    const { name, domain, color, description, tier, seo_value, sort_order } = body as {
+    const { name, domain, color, description, seo_value, sort_order } = body as {
       name?: string;
       domain?: string;
       color?: string;
       description?: string;
-      tier?: string;
       seo_value?: number;
       sort_order?: number;
     };
 
-    if (!name || !domain || !tier) {
+    if (!name || !domain) {
       return new Response(
-        JSON.stringify({ error: "name, domain, tier required" }),
-        { status: 400, headers: SECURITY_HEADERS }
-      );
-    }
-
-    if (!["high", "medium", "low"].includes(tier)) {
-      return new Response(
-        JSON.stringify({ error: "tier must be high, medium, or low" }),
+        JSON.stringify({ error: "name and domain required" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -88,8 +80,8 @@ export const POST: APIRoute = async ({ request }) => {
     const sortVal = sort_order ?? 0;
 
     const result = await sql`
-      INSERT INTO clients (name, domain, color, description, tier, seo_value, sort_order)
-      VALUES (${name}, ${domain}, ${colorVal}, ${descVal}, ${tier}, ${seoVal}, ${sortVal})
+      INSERT INTO clients (name, domain, color, description, seo_value, sort_order)
+      VALUES (${name}, ${domain}, ${colorVal}, ${descVal}, ${seoVal}, ${sortVal})
       RETURNING *
     `;
     return new Response(JSON.stringify(result.rows[0]), {
@@ -113,13 +105,12 @@ export const PATCH: APIRoute = async ({ request }) => {
 
   try {
     const body = await request.json();
-    const { id, name, domain, color, description, tier, seo_value, sort_order, active } = body as {
+    const { id, name, domain, color, description, seo_value, sort_order, active } = body as {
       id?: number;
       name?: string;
       domain?: string;
       color?: string;
       description?: string;
-      tier?: string;
       seo_value?: number;
       sort_order?: number;
       active?: boolean;
@@ -132,15 +123,6 @@ export const PATCH: APIRoute = async ({ request }) => {
       );
     }
 
-    if (tier !== undefined && !["high", "medium", "low"].includes(tier)) {
-      return new Response(
-        JSON.stringify({ error: "tier must be high, medium, or low" }),
-        { status: 400, headers: SECURITY_HEADERS }
-      );
-    }
-
-    // Build dynamic update — @vercel/postgres uses tagged templates,
-    // so we handle each field individually via a full column update
     const current = await sql`SELECT * FROM clients WHERE id = ${id}`;
     if (current.rows.length === 0) {
       return new Response(
@@ -154,7 +136,6 @@ export const PATCH: APIRoute = async ({ request }) => {
     const newDomain = domain ?? row.domain;
     const newColor = color ?? row.color;
     const newDesc = description ?? row.description;
-    const newTier = tier ?? row.tier;
     const newSeo = seo_value ?? row.seo_value;
     const newSort = sort_order ?? row.sort_order;
     const newActive = active ?? row.active;
@@ -165,7 +146,6 @@ export const PATCH: APIRoute = async ({ request }) => {
         domain = ${newDomain},
         color = ${newColor},
         description = ${newDesc},
-        tier = ${newTier},
         seo_value = ${newSeo},
         sort_order = ${newSort},
         active = ${newActive},
