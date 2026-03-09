@@ -55,7 +55,7 @@ function LogoSlot({
     >
       {!imgFailed ? (
         <img
-          src={`https://cdn.brandfetch.io/${client.domain}/w/256/h/64`}
+          src={`https://cdn.brandfetch.io/${client.domain}/logo`}
           alt={client.name}
           className={`${sizeClass} w-auto object-contain`}
           style={{ filter: "brightness(0) invert(1)", opacity: 0.85 }}
