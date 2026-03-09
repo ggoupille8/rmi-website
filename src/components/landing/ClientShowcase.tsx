@@ -24,7 +24,7 @@ const VERIFIED_DOMAINS = new Set([
   'fidelity.com', 'comcast.com', 'flagstar.com', 'ymca.org',
   'cartier.com', 'tagheuer.com', 'primark.com',
   'mahle.com', 'shakeshack.com', 'fivebelow.com', 'quickenloans.com',
-  'umich.edu', 'emich.edu', 'udmercy.edu', 'va.gov',
+  'umich.edu', 'emich.edu', 'udmercy.edu',
 ]);
 
 // ── Strict Brandfetch-only validation ────────────────────────────
