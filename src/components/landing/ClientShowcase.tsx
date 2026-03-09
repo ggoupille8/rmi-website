@@ -194,8 +194,15 @@ export default function ClientShowcase() {
     return () => clearInterval(interval);
   }, [visibleClients.length, rotateOneSlot, reducedMotion]);
 
-  // Don't render if API failed or no clients
-  if (fetchFailed || visibleClients.length === 0) return null;
+  // Don't render if API failed
+  if (fetchFailed) return null;
+
+  // Render a placeholder while loading so client:visible can trigger hydration.
+  // astro-island uses display:contents, so Astro's visible directive observes
+  // children — returning null leaves zero children and IO never fires.
+  if (visibleClients.length === 0) {
+    return <div aria-hidden="true" style={{ minHeight: '1px' }} />;
+  }
 
   return (
     <section id="clients" className="py-20 bg-neutral-950">
