@@ -476,10 +476,10 @@ export default function ClientShowcase() {
           <p className="text-xs uppercase tracking-[0.2em] text-blue-400 mb-2">
             Trusted By Industry Leaders
           </p>
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-100 tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
             Clients We Serve
           </h2>
-          <p className="text-sm text-slate-500 mt-2">
+          <p className="text-sm text-slate-400 mt-2">
             Michigan&apos;s commercial &amp; industrial facilities trust RMI
           </p>
         </div>
