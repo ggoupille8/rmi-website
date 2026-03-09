@@ -2,6 +2,39 @@
 
 ## Current
 
+### Client Showcase V2 — Cascading Logo Resolver + Fade Rotation (Mar 9, 2026)
+Branch: `feat/client-showcase-v2` (committed, NOT merged)
+
+Rebuilt the "Clients We Serve" section from scratch with proper multi-source logo resolution and smooth one-at-a-time fade rotation. Replaces the removed Brandfetch-only version.
+
+**New Files:**
+- `src/components/landing/LogoResolver.ts` — Cascading logo resolver: self-hosted overrides → Clearbit (`logo.clearbit.com/{domain}`) → Google Favicon (128px) → initials fallback. Image load validation with 3s timeout per source, in-memory session cache, `getInitials()` utility.
+- `src/components/landing/ClientShowcase.tsx` — 12-slot responsive logo grid (3 cols mobile / 4 tablet / 6 desktop). One-at-a-time fade rotation every 5s with 1.5s CSS opacity transitions. Queue system prevents duplicate logos. LogoSlot sub-component with skeleton shimmer loading state and styled initials fallback.
+
+**Modified Files:**
+- `src/pages/index.astro` — Added ClientShowcase import between Hero and Services with `client:visible` deferred hydration + gradient separator.
+
+**Edge Cases:**
+- API failure / empty → section hidden entirely (returns null)
+- All logo sources fail → styled initials on blue gradient (never blank)
+- Fewer clients than 12 → grid adapts to actual count
+- Tab hidden → rotation paused via `document.visibilityState`
+- Grid hover → rotation paused for tooltip reading
+- `prefers-reduced-motion` → instant swap (0ms) + 10s interval
+
+**Verification:**
+- [x] `npm run build` — zero errors, zero warnings (bundle: 4.13 kB / 1.97 kB gzip)
+- [x] Pre-existing test failures confirmed on main branch (not caused by these changes)
+- [x] Anchor links test passes
+- [x] All TypeScript strict, no `any`
+
+**Commits:**
+- `df3a73f` feat: add cascading logo resolver utility
+- `f2b1457` feat: add client showcase v2 with fade rotation
+- `b86b640` feat: integrate client showcase into landing page
+
+---
+
 ### Remove Fake Logo Wall (Mar 9, 2026)
 Branch: `feat/remove-fake-logos` (committed, NOT merged)
 
