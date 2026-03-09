@@ -115,8 +115,11 @@ export default function ClientShowcase() {
   }, []);
 
   // Fetch clients on mount
+  // No cancelled flag — React 18 safely ignores setState on unmounted components.
+  // The previous closure-based cancelled guard was being set to true during
+  // Astro's client:visible hydration re-mount, silently dropping fetched data.
   useEffect(() => {
-    let cancelled = false;
+    console.log('[ClientShowcase] fetch effect running');
 
     fetch('/api/clients')
       .then((r) => {
@@ -124,7 +127,7 @@ export default function ClientShowcase() {
         return r.json();
       })
       .then((data: Client[]) => {
-        if (cancelled) return;
+        console.log('[ClientShowcase] fetch resolved, clients:', data.length);
         const withDomains = data.filter(
           (c): c is Client => Boolean(c.domain)
         );
@@ -139,12 +142,8 @@ export default function ClientShowcase() {
         queueRef.current = shuffled.slice(slotCount);
       })
       .catch(() => {
-        if (!cancelled) setFetchFailed(true);
+        setFetchFailed(true);
       });
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   // Rotation logic
