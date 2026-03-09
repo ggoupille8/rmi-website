@@ -5,7 +5,6 @@ import Services from '../components/landing/Services';
 import About from '../components/landing/About';
 import MaterialsMarquee from '../components/landing/MaterialsMarquee';
 import ProjectShowcase from '../components/landing/ProjectShowcase';
-import ClientShowcase from '../components/landing/ClientShowcase';
 import CTABanner from '../components/landing/CTABanner';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
@@ -23,7 +22,6 @@ import { heroTagline, siteTitle, siteDescription } from '../content/site';
       client:load
       tagline={heroTagline}
     />
-    <ClientShowcase client:load />
     <div id="services" class="scroll-mt-14">
       <Services client:visible />
     </div>
