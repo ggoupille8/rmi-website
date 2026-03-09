@@ -18,7 +18,7 @@ interface ValidatedClient extends Client {
 
 const VERIFIED_DOMAINS = new Set([
   'ford.com', 'dteenergy.com', 'cmsenergy.com', 'stellantis.com',
-  'beaumont.org', 'toyota.com', 'basf.com', 'ameresco.com',
+  'toyota.com', 'basf.com', 'ameresco.com',
   'costco.com', 'apple.com', 'amazon.com', 'starbucks.com',
   'verizon.com', 'nissan.com', 'delta.com', 'dominos.com',
   'fidelity.com', 'comcast.com', 'flagstar.com', 'ymca.org',
