@@ -5,6 +5,7 @@ import Services from '../components/landing/Services';
 import About from '../components/landing/About';
 import MaterialsMarquee from '../components/landing/MaterialsMarquee';
 import ProjectShowcase from '../components/landing/ProjectShowcase';
+import ClientShowcase from '../components/landing/ClientShowcase';
 import CTABanner from '../components/landing/CTABanner';
 import ContactForm from '../components/landing/ContactForm';
 import Footer from '../components/landing/Footer';
@@ -35,6 +36,8 @@ import { heroTagline, siteTitle, siteDescription } from '../content/site';
     <div id="projects" class="scroll-mt-14">
       <ProjectShowcase client:visible />
     </div>
+    <div class="w-full h-px bg-gradient-to-r from-transparent via-accent-500/30 to-transparent" />
+    <ClientShowcase client:visible />
     <div class="w-full h-px bg-gradient-to-r from-transparent via-accent-500/30 to-transparent" />
     <CTABanner />
     <div class="relative overflow-hidden">

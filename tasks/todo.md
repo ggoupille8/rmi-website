@@ -2,7 +2,30 @@
 
 ## Current
 
-_No active tasks._
+### Client Showcase — Tiered Logo Grid + Admin Tab (Mar 9, 2026)
+Branch: `feat/client-showcase` (committed, NOT merged)
+
+**Task 1 — Database Migration:** Created `migrations/010_clients.sql` with `clients` table (id, name, domain, color, description, tier, seo_value, active, sort_order, timestamps). Seeded 11 flagship clients across 3 tiers (Ford, Henry Ford Health, DTE Energy as high; GM, Stellantis, CMS Energy, Beaumont, Michigan Central as medium; UMich, Wayne County, DTW Airport as low). Appended CREATE TABLE to `schema.sql`.
+
+**Task 2 — Admin API (/api/admin/clients):** Created `src/pages/api/admin/clients.ts` with GET (list all), POST (create), PATCH (update any field), DELETE endpoints. Uses `@vercel/postgres` sql tagged templates + `isAdminAuthorized` from admin-auth.ts. Input validation on tier values, null-safe PATCH via read-then-update pattern.
+
+**Task 3 — Public API (/api/clients):** Created `src/pages/api/clients.ts` — unauthenticated GET returning active clients only (WHERE active = TRUE). 5-minute cache header. Returns empty array on DB error (graceful degradation).
+
+**Task 7 — AI Fill Endpoint (/api/ai/client-fill):** Created `src/pages/api/ai/client-fill.ts` — admin-auth-gated POST that proxies to Anthropic API (claude-haiku-4-5). Takes company name, returns JSON with name, domain, color, description, seo_value, suggested_tier, tier_reason. Strips markdown fences from response.
+
+**Task 4 — ClientShowcase Component:** Created `src/components/landing/ClientShowcase.tsx` — React island (`client:visible`). Fetches from /api/clients. Renders 3-tier pyramid grid (high=3 slots, medium=5, low=7). Clearbit logo images with white invert filter + monogram fallback. Staggered fade-in animation via IntersectionObserver. Returns null when no clients (graceful empty state).
+
+**Task 5 — Wire into Landing Page:** Added ClientShowcase import to `src/pages/index.astro`. Placed between ProjectShowcase and CTABanner with divider lines. Uses `client:visible` directive.
+
+**Task 6 — Admin Clients Page:** Created `src/pages/admin/clients.astro` and `src/components/admin/ClientsAdmin.tsx`. Full CRUD UI: list view grouped by tier with color-coded tier labels, inline tier change dropdown, active/hidden toggle, delete with confirm. Add form with AI auto-fill (calls /api/ai/client-fill), manual fields for name/domain/description/SEO/tier/color, live preview card.
+
+**Task 8 — Admin Sidebar Nav:** Added "Clients" nav item to `src/components/admin/AdminSidebar.tsx` using Building2 icon from lucide-react. Placed between Media and Security in nav order.
+
+**Verification:**
+- [x] `npm run build` — zero errors, zero warnings
+- [x] All new files use existing project patterns (sql tagged templates, isAdminAuthorized, prerender=false)
+- [x] No existing files modified beyond spec scope (index.astro import+placement, AdminSidebar.tsx nav item)
+- [x] No TypeScript errors (strict mode, no `any`)
 
 ### Footer Touch Targets + Email Update (Mar 8, 2026)
 Branch: `feat/footer-touch-targets` (committed, NOT merged)

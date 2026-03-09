@@ -440,3 +440,18 @@ CREATE TABLE IF NOT EXISTS ip_blacklist (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_ipb_ip ON ip_blacklist(ip_address);
 CREATE INDEX IF NOT EXISTS idx_ipb_expires ON ip_blacklist(expires_at);
+
+-- Client Showcase — tiered logo grid on public landing page
+CREATE TABLE IF NOT EXISTS clients (
+  id          SERIAL PRIMARY KEY,
+  name        TEXT NOT NULL,
+  domain      TEXT NOT NULL,
+  color       TEXT NOT NULL DEFAULT '#0066CC',
+  description TEXT NOT NULL DEFAULT '',
+  tier        TEXT NOT NULL CHECK (tier IN ('high', 'medium', 'low')) DEFAULT 'medium',
+  seo_value   INTEGER NOT NULL DEFAULT 70,
+  active      BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order  INTEGER NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
