@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface Client {
   id: number;
@@ -14,16 +14,19 @@ interface ValidatedClient extends Client {
   logoUrl: string;
 }
 
-// ── Task 1: Multi-source logo validation ──────────────────────────
+// ── Task 1: Strict Brandfetch-only validation ────────────────────
 
-const LOGO_SOURCES = (domain: string) => [
-  `https://cdn.brandfetch.io/${domain}/logo`,
-  `https://cdn.brandfetch.io/${domain}/icon`,
-  `https://logo.clearbit.com/${domain}`,
-  `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-];
+interface ProbeResult {
+  url: string;
+  width: number;
+  height: number;
+}
 
-function probeImage(src: string, timeoutMs = 5000): Promise<string | null> {
+function probeImage(
+  src: string,
+  endpoint: "logo" | "icon",
+  timeoutMs = 5000,
+): Promise<ProbeResult | null> {
   return new Promise((resolve) => {
     const img = new Image();
     const timer = setTimeout(() => {
@@ -34,23 +37,41 @@ function probeImage(src: string, timeoutMs = 5000): Promise<string | null> {
       clearTimeout(timer);
       const w = img.naturalWidth;
       const h = img.naturalHeight;
-      // Reject images smaller than 64x64
+
+      // Reject images smaller than 64px in either dimension
       if (w < 64 || h < 64) {
         resolve(null);
         return;
       }
-      // Reject Brandfetch fallback branding (square logo returned for unknown domains)
-      if (src.includes("brandfetch.io") && w === h) {
-        resolve(null);
-        return;
+
+      if (endpoint === "logo") {
+        // Wordmark logos must be wider than tall (aspect ratio > 1.5:1)
+        const ratio = w / h;
+        if (ratio <= 1.5) {
+          resolve(null);
+          return;
+        }
+        // Reject extreme aspect ratios (> 10:1)
+        if (ratio > 10) {
+          resolve(null);
+          return;
+        }
       }
-      // Reject extreme aspect ratios (> 10:1 either direction)
-      const ratio = w / h;
-      if (ratio > 10 || ratio < 0.1) {
-        resolve(null);
-        return;
+
+      if (endpoint === "icon") {
+        // Reject square icons ≤ 256px — Brandfetch fallback branding
+        if (w === h && w <= 256) {
+          resolve(null);
+          return;
+        }
+        // Icons must be at least 200px to be a real high-res icon
+        if (w < 200) {
+          resolve(null);
+          return;
+        }
       }
-      resolve(src);
+
+      resolve({ url: src, width: w, height: h });
     };
     img.onerror = () => {
       clearTimeout(timer);
@@ -61,17 +82,34 @@ function probeImage(src: string, timeoutMs = 5000): Promise<string | null> {
   });
 }
 
-async function validateLogo(domain: string): Promise<string | null> {
-  for (const src of LOGO_SOURCES(domain)) {
-    const result = await probeImage(src);
-    if (result) return result;
-  }
+async function validateLogo(
+  domain: string,
+): Promise<ProbeResult | null> {
+  // Only Brandfetch /logo and /icon — no Google favicons, no Clearbit
+  const logoResult = await probeImage(
+    `https://cdn.brandfetch.io/${domain}/logo`,
+    "logo",
+  );
+  if (logoResult) return logoResult;
+
+  const iconResult = await probeImage(
+    `https://cdn.brandfetch.io/${domain}/icon`,
+    "icon",
+  );
+  if (iconResult) return iconResult;
+
   return null;
 }
 
-// ── Task 5: Responsive layout ─────────────────────────────────────
+// ── Responsive layout with minimum pool support (Task 4) ────────
 
-function getSlotLayout(width: number): number[] {
+function getSlotLayout(width: number, poolSize: number): number[] {
+  // Task 4: Adapt layout to available pool
+  if (poolSize < 6) return []; // hide section
+  if (poolSize <= 7) return width < 768 ? [3, 3] : [3, 3];
+  if (poolSize <= 11) return width < 768 ? [2, 3] : [3, 4];
+
+  // Full layout
   if (width < 768) return [2, 3]; // 5 slots mobile
   if (width < 1024) return [3, 3, 3]; // 9 slots tablet
   return [3, 4, 5]; // 12 slots desktop
@@ -81,14 +119,13 @@ function getTotalSlots(layout: number[]): number {
   return layout.reduce((a, b) => a + b, 0);
 }
 
-// ── Task 3 & 4: LogoSlot — images only, no text fallbacks ────────
+// ── LogoSlot — strict visual artifact rejection (Task 3) ────────
 
 function LogoSlot({
   client,
   logoUrl,
   revealed,
   fading,
-  rowIndex,
 }: {
   client: ValidatedClient;
   logoUrl: string;
@@ -97,21 +134,43 @@ function LogoSlot({
   rowIndex: number;
 }) {
   const [loaded, setLoaded] = useState(false);
+  const [rejected, setRejected] = useState(false);
 
   useEffect(() => {
     setLoaded(false);
+    setRejected(false);
   }, [client.id]);
 
-  const visible = revealed && loaded && fading !== "out";
+  // Task 3: All three conditions must be true for visibility
+  const visible = revealed && loaded && !rejected && fading !== "out";
 
-  // Uniform sizing across all rows for a clean grid
-  const sizeClass = "max-h-10 max-w-[160px]";
+  const handleLoad = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      const img = e.currentTarget;
+      // Task 3: Post-render square check — reject visual artifacts
+      if (img.naturalWidth === img.naturalHeight) {
+        setRejected(true);
+        return;
+      }
+      setLoaded(true);
+    },
+    [],
+  );
+
+  if (rejected) {
+    return (
+      <div
+        className="flex items-center justify-center"
+        style={{ minHeight: "56px", opacity: 0 }}
+      />
+    );
+  }
 
   return (
     <div
       className="flex items-center justify-center"
       style={{
-        minHeight: "40px",
+        minHeight: "56px",
         opacity: visible ? 1 : 0,
         transition: "opacity 600ms ease-in-out",
       }}
@@ -119,12 +178,10 @@ function LogoSlot({
       <img
         src={logoUrl}
         alt={client.name}
-        className={`${sizeClass} w-auto object-contain`}
+        className="max-h-12 max-w-[200px] w-auto object-contain"
         style={{ filter: "brightness(0) invert(1)", opacity: 0.85 }}
-        onLoad={() => setLoaded(true)}
-        onError={() => {
-          /* already validated — keep invisible if somehow fails */
-        }}
+        onLoad={handleLoad}
+        onError={() => setRejected(true)}
         referrerPolicy="no-referrer"
         loading="eager"
       />
@@ -183,17 +240,17 @@ export default function ClientShowcase() {
     return id;
   }
 
-  // Responsive layout
+  // Responsive layout — depends on pool size for Task 4
   useEffect(() => {
     function updateLayout() {
-      setLayout(getSlotLayout(window.innerWidth));
+      setLayout(getSlotLayout(window.innerWidth, displayPool.length));
     }
     updateLayout();
     window.addEventListener("resize", updateLayout);
     return () => window.removeEventListener("resize", updateLayout);
-  }, []);
+  }, [displayPool.length]);
 
-  // Task 1: Fetch clients + validate logos in parallel
+  // Task 1: Fetch clients + validate logos with strict Brandfetch-only sources
   useEffect(() => {
     let cancelled = false;
 
@@ -207,19 +264,23 @@ export default function ClientShowcase() {
       }
       if (cancelled || !clients.length) return;
 
-      const validated: ValidatedClient[] = [];
+      // Validate all in parallel, collecting results with dimensions
+      const results: Array<{
+        client: Client;
+        result: ProbeResult;
+      }> = [];
+
       let resolvedCount = 0;
 
-      // Race: resolve when 12 ready OR 8s timeout OR all done
       await new Promise<void>((resolve) => {
         const deadline = setTimeout(() => resolve(), 8000);
 
         const promises = clients.map(async (client) => {
-          const logoUrl = await validateLogo(client.domain);
+          const probeResult = await validateLogo(client.domain);
           resolvedCount++;
-          if (logoUrl && !cancelled) {
-            validated.push({ ...client, logoUrl });
-            if (validated.length >= 12) {
+          if (probeResult && !cancelled) {
+            results.push({ client, result: probeResult });
+            if (results.length >= 16) {
               clearTimeout(deadline);
               resolve();
             }
@@ -234,6 +295,36 @@ export default function ClientShowcase() {
       });
 
       if (cancelled) return;
+
+      // Task 1: Detect Brandfetch fallback pattern —
+      // If 5+ domains return the exact same WxH, they're all fallbacks
+      const sizeGroups = new Map<string, number[]>();
+      results.forEach(({ result }, idx) => {
+        if (result.url.includes("brandfetch")) {
+          const key = `${result.width}x${result.height}`;
+          const group = sizeGroups.get(key);
+          if (group) {
+            group.push(idx);
+          } else {
+            sizeGroups.set(key, [idx]);
+          }
+        }
+      });
+
+      const fallbackIndices = new Set<number>();
+      sizeGroups.forEach((indices) => {
+        if (indices.length >= 5) {
+          indices.forEach((i) => fallbackIndices.add(i));
+        }
+      });
+
+      // Build validated pool excluding fallbacks
+      const validated: ValidatedClient[] = results
+        .filter((_, idx) => !fallbackIndices.has(idx))
+        .map(({ client, result }) => ({
+          ...client,
+          logoUrl: result.url,
+        }));
 
       // Task 4: hide section if fewer than 6 logos
       if (validated.length < 6) return;
@@ -289,7 +380,7 @@ export default function ClientShowcase() {
     }, 700);
   }, [visibleSlots.length, initialRevealDone, layout]);
 
-  // Task 2: Independent per-slot rotation with random timers
+  // Independent per-slot rotation with random timers
   useEffect(() => {
     if (!initialRevealDone) return;
     const totalSlots = getTotalSlots(layout);
@@ -328,7 +419,6 @@ export default function ClientShowcase() {
           preload.referrerPolicy = "no-referrer";
 
           const swapTimeout = safeTimeout(() => {
-            // Timed out waiting for preload — swap anyway (validated URL)
             doSwap();
           }, 3000);
 
@@ -370,6 +460,9 @@ export default function ClientShowcase() {
   // Don't render until validation is done
   if (!ready || !displayPool.length) return null;
 
+  // Task 4: hide if layout is empty (fewer than 6 logos)
+  if (layout.length === 0) return null;
+
   // Build rows
   let offset = 0;
   const rows = layout.map((count, rowIdx) => {
@@ -379,18 +472,15 @@ export default function ClientShowcase() {
     return { rowIdx, rowClients, startIdx };
   });
 
-  // Task 5: spacing per row
-  const rowGaps = ["gap-16", "gap-12", "gap-10"];
-
   return (
     <section
       ref={sectionRef}
       id="clients"
-      className="py-20 px-4 relative overflow-hidden"
+      className="py-12 px-4 relative overflow-hidden"
     >
       <div className="max-w-5xl mx-auto relative">
-        {/* Header */}
-        <div className="text-center mb-12">
+        {/* Header — tighter spacing */}
+        <div className="text-center mb-6">
           <p className="text-xs uppercase tracking-[0.2em] text-blue-400 mb-2">
             Trusted By Industry Leaders
           </p>
@@ -402,12 +492,12 @@ export default function ClientShowcase() {
           </p>
         </div>
 
-        {/* Logo pyramid */}
-        <div className="flex flex-col items-center gap-6 sm:gap-8">
+        {/* Logo grid — dense, uniform gap-12, tighter row spacing */}
+        <div className="flex flex-col items-center gap-6">
           {rows.map(({ rowIdx, rowClients, startIdx }) => (
             <div
               key={rowIdx}
-              className={`flex justify-center items-center ${rowGaps[rowIdx] ?? rowGaps[2]}`}
+              className="flex justify-center items-center gap-12"
             >
               {rowClients.map((client, i) => {
                 const slotIdx = startIdx + i;
