@@ -193,7 +193,7 @@ function LogoSlot({
       <img
         src={logoUrl}
         alt={client.name}
-        className="max-h-12 max-w-[200px] w-auto object-contain"
+        className="max-h-14 max-w-[220px] w-auto object-contain"
         style={{ filter: "brightness(0) invert(1)", opacity: 0.85 }}
         onLoad={handleLoad}
         onError={() => setRejected(true)}
@@ -485,11 +485,11 @@ export default function ClientShowcase() {
         </div>
 
         {/* Logo grid — dense, uniform gap-12, tighter row spacing */}
-        <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-4">
           {rows.map(({ rowIdx, rowClients, startIdx }) => (
             <div
               key={rowIdx}
-              className="flex justify-center items-center gap-12"
+              className="flex justify-center items-center gap-8"
             >
               {rowClients.map((client, i) => {
                 const slotIdx = startIdx + i;
