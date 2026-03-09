@@ -128,9 +128,15 @@ export default function ClientShowcase() {
           observer.disconnect();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0 }
     );
-    if (sectionRef.current) observer.observe(sectionRef.current);
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+      if (sectionRef.current.getBoundingClientRect().top < window.innerHeight) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    }
     return () => observer.disconnect();
   }, []);
 
