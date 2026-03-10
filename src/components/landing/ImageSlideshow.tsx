@@ -3,13 +3,12 @@ import type { ServiceImage } from "../../content/site";
 
 interface ImageSlideshowProps {
   images: ServiceImage[];
-  serviceSlug?: string;
 }
 
 const SWIPE_THRESHOLD = 50;
 const AUTO_ADVANCE_MS = 5000;
 
-export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowProps) {
+export default function ImageSlideshow({ images }: ImageSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set());
