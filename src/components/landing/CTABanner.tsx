@@ -31,8 +31,7 @@ export default function CTABanner() {
       {/* GPU-composited gradient animation */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 w-[200%] bg-gradient-to-r from-neutral-900 via-blue-950 to-neutral-900 animate-[gradient-pan_8s_ease_infinite] pointer-events-none"
-        style={{ willChange: 'transform' }}
+        className="absolute inset-0 w-[200%] bg-gradient-to-r from-neutral-900 via-blue-950 to-neutral-900 animate-[gradient-pan_8s_ease_infinite] pointer-events-none will-change-transform"
       />
 
       {/* Dot pattern texture overlay */}
