@@ -8,7 +8,7 @@ const clients = [
   { name: "CMS Energy", logo: "/images/clients/cms-energy.svg" },
   { name: "University of Michigan", logo: "/images/clients/university-of-michigan.svg" },
   { name: "Detroit Metro Airport", logo: "/images/clients/detroit-metro-airport.svg" },
-  { name: "Michigan Central", logo: "/images/clients/michigan-central.svg" },
+  { name: "Michigan Central", logo: "/images/clients/michigan-central.png" },
   { name: "Wayne County", logo: "/images/clients/wayne-county.svg" },
 ];
 
