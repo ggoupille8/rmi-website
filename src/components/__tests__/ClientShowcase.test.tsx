@@ -103,8 +103,8 @@ describe("ClientShowcase", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
       for (const img of images) {
-        expect(img).toHaveAttribute("width", "160");
-        expect(img).toHaveAttribute("height", "56");
+        expect(img).toHaveAttribute("width", "180");
+        expect(img).toHaveAttribute("height", "40");
       }
     });
 
