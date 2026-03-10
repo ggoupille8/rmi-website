@@ -414,6 +414,7 @@ export default function ContactForm({
                   id="name"
                   name="name"
                   required
+                  aria-required="true"
                   autoComplete="name"
                   value={formData.name}
                   onChange={(e) => { handleChange(e); handleFieldEdit(); }}
@@ -466,6 +467,7 @@ export default function ContactForm({
                   id="email"
                   name="email"
                   required
+                  aria-required="true"
                   autoComplete="email"
                   value={formData.email}
                   onChange={(e) => { handleChange(e); handleFieldEdit(); }}
@@ -531,6 +533,8 @@ export default function ContactForm({
                 ref={projectTypeRef}
                 id="projectType"
                 name="projectType"
+                required
+                aria-required="true"
                 autoComplete="off"
                 value={formData.projectType}
                 onChange={(e) => { handleChange(e); handleFieldEdit(); }}
@@ -566,6 +570,7 @@ export default function ContactForm({
                 id="message"
                 name="message"
                 required
+                aria-required="true"
                 autoComplete="off"
                 rows={3}
                 value={formData.message}
@@ -662,6 +667,7 @@ export default function ContactForm({
               <button
                 type="submit"
                 disabled={isSubmitting}
+                aria-busy={isSubmitting ? "true" : undefined}
                 className="btn-primary w-full sm:w-auto sm:min-w-[200px] py-3 px-8 text-base sm:text-lg font-bold shadow-lg shadow-accent-500/25 hover:shadow-[0_8px_24px_rgba(59,130,246,0.35)] hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-accent-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 transition-all duration-200"
               >
                 {isSubmitting ? (
