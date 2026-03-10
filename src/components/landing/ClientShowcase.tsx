@@ -30,9 +30,9 @@ const clients: Client[] = [
   { name: "Amazon", logo: "/images/clients/amazon.svg", cdn: false, size: "md" },
   // Row 3 — Industry + Retail + Regional
   { name: "BASF", logo: "/images/clients/basf.svg", cdn: false, size: "md" },
-  { name: "Costco", logo: "/images/clients/costco.svg", cdn: false, size: "md" },
-  { name: "Rocket Mortgage", logo: "https://cdn.simpleicons.org/rocket/white", cdn: true, size: "md" },
-  { name: "Domino's", logo: "/images/clients/dominos.svg", cdn: false, size: "md" },
+  { name: "Costco", logo: "/images/clients/costco.svg", cdn: false, size: "lg" },
+  { name: "Rocket Mortgage", logo: "https://cdn.simpleicons.org/rocket/white", cdn: true, size: "lg" },
+  { name: "Domino's", logo: "/images/clients/dominos.svg", cdn: false, size: "lg" },
   { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", cdn: false, size: "md" },
   { name: "Five Below", logo: "/images/clients/five-below.svg", cdn: false, size: "md" },
 ];
