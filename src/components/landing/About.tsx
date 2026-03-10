@@ -19,6 +19,7 @@ interface CardAccent {
   iconText: string;
   hoverBorder: string;
   hoverShadow: string;
+  hoverIconBg: string;
 }
 
 interface AboutFeature {
@@ -37,8 +38,9 @@ const features: AboutFeature[] = [
       bar: "from-blue-500/60 via-blue-400/40",
       iconBg: "bg-blue-500/10 border-blue-500/30",
       iconText: "text-blue-400",
-      hoverBorder: "hover:border-blue-500/30",
-      hoverShadow: "hover:shadow-blue-500/5",
+      hoverBorder: "hover:border-blue-500/40",
+      hoverShadow: "hover:shadow-blue-500/10",
+      hoverIconBg: "group-hover:bg-blue-500/20 group-hover:border-blue-500/50",
     },
   },
   {
@@ -50,8 +52,9 @@ const features: AboutFeature[] = [
       bar: "from-red-500/60 via-red-400/40",
       iconBg: "bg-red-500/10 border-red-500/30",
       iconText: "text-red-400",
-      hoverBorder: "hover:border-red-500/30",
-      hoverShadow: "hover:shadow-red-500/5",
+      hoverBorder: "hover:border-red-500/40",
+      hoverShadow: "hover:shadow-red-500/10",
+      hoverIconBg: "group-hover:bg-red-500/20 group-hover:border-red-500/50",
     },
   },
   {
@@ -63,8 +66,9 @@ const features: AboutFeature[] = [
       bar: "from-amber-500/60 via-amber-400/40",
       iconBg: "bg-amber-500/10 border-amber-500/30",
       iconText: "text-amber-400",
-      hoverBorder: "hover:border-amber-500/30",
-      hoverShadow: "hover:shadow-amber-500/5",
+      hoverBorder: "hover:border-amber-500/40",
+      hoverShadow: "hover:shadow-amber-500/10",
+      hoverIconBg: "group-hover:bg-amber-500/20 group-hover:border-amber-500/50",
     },
   },
   {
@@ -76,8 +80,9 @@ const features: AboutFeature[] = [
       bar: "from-emerald-500/60 via-emerald-400/40",
       iconBg: "bg-emerald-500/10 border-emerald-500/30",
       iconText: "text-emerald-400",
-      hoverBorder: "hover:border-emerald-500/30",
-      hoverShadow: "hover:shadow-emerald-500/5",
+      hoverBorder: "hover:border-emerald-500/40",
+      hoverShadow: "hover:shadow-emerald-500/10",
+      hoverIconBg: "group-hover:bg-emerald-500/20 group-hover:border-emerald-500/50",
     },
   },
 ];
@@ -85,6 +90,9 @@ const features: AboutFeature[] = [
 export default function About() {
   const gridRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(
+    typeof IntersectionObserver === "undefined"
+  );
+  const [entranceDone, setEntranceDone] = useState(
     typeof IntersectionObserver === "undefined"
   );
 
@@ -100,16 +108,23 @@ export default function About() {
           observer.unobserve(el);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.15 }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (isVisible && !entranceDone) {
+      const timer = setTimeout(() => setEntranceDone(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, entranceDone]);
+
   return (
     <section
-      className="py-8 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-600/30"
+      className="py-8 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-800"
       aria-labelledby="about-heading"
     >
       <div className="container-custom">
@@ -141,15 +156,15 @@ export default function About() {
             return (
               <div
                 key={feature.title}
-                className={`relative overflow-hidden rounded-lg bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 hover:from-neutral-800/60 hover:to-neutral-800/40 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 ${accent.hoverBorder} hover:shadow-lg ${accent.hoverShadow} hover:-translate-y-1 transition-all duration-700 ease-out h-full flex flex-col ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-                style={{ transitionDelay: `${index * 100}ms` }}
+                className={`group relative overflow-hidden rounded-lg bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 hover:from-neutral-800/60 hover:to-neutral-800/40 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 ${accent.hoverBorder} hover:shadow-lg ${accent.hoverShadow} hover:-translate-y-1 transition-all ${entranceDone ? "duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]" : "duration-500 ease-out"} h-full flex flex-col ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                style={{ transitionDelay: entranceDone ? undefined : `${index * 100}ms` }}
               >
                 {/* Accent bar */}
                 <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${accent.bar} to-transparent`} />
 
                 {/* Icon + Title row */}
                 <div className="flex items-center gap-3 mb-3 min-h-[48px]">
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg border ${accent.iconBg} flex-shrink-0`}>
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg border ${accent.iconBg} ${accent.hoverIconBg} transition-colors duration-300 flex-shrink-0`}>
                     <IconComponent
                       className={`w-5 h-5 ${accent.iconText}`}
                       strokeWidth={1.5}

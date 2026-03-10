@@ -1,12 +1,36 @@
+import { useRef, useState, useEffect } from "react";
 import { projectHighlights } from "../../content/site";
 import { ErrorBoundary } from "../ErrorBoundary";
 
 export default function ProjectShowcase() {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(
+    typeof IntersectionObserver === "undefined"
+  );
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const el = gridRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <ErrorBoundary>
     <section
-      className="py-8 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-600/30"
+      className="py-8 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-800"
       aria-labelledby="projects-heading"
     >
       <div className="container-custom">
@@ -27,13 +51,14 @@ export default function ProjectShowcase() {
         </p>
 
         {/* Project Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
-          {projectHighlights.map((project) => (
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
+          {projectHighlights.map((project, index) => (
             <div
               key={project.title}
-              className="group overflow-hidden rounded-xl bg-white/5 border border-white/5 hover:border-accent-500/30 hover:-translate-y-1 hover:shadow-lg hover:shadow-accent-500/10 transition-all duration-300 ease-out"
+              className={`group overflow-hidden rounded-xl bg-white/5 border border-neutral-700 hover:border-blue-500/50 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-[400ms] ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+              style={{ transitionDelay: isVisible ? undefined : `${index * 150}ms`, transitionDuration: isVisible ? undefined : "600ms" }}
             >
-              <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl border-b-2 border-accent-500/0 group-hover:border-accent-500 transition-all duration-300">
+              <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl border-b-2 border-blue-500/0 group-hover:border-blue-500 transition-all duration-[400ms]">
                 <picture>
                   <source
                     srcSet={`${project.image}-480w.webp 480w, ${project.image}-960w.webp 960w`}
@@ -45,12 +70,12 @@ export default function ProjectShowcase() {
                     alt={project.alt}
                     width="960"
                     height="540"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-[400ms] ease-out group-hover:scale-[1.03]"
                     loading="lazy"
                     decoding="async"
                   />
                 </picture>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-[400ms] group-hover:opacity-75" />
               </div>
               <div className="px-5 py-4">
                 <h3 className="text-lg font-semibold text-white transition-colors duration-200 group-hover:text-accent-400">
