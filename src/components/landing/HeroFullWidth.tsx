@@ -169,7 +169,6 @@ function AnimatedStat({
 export default function HeroFullWidth({
   tagline = heroTagline,
 }: HeroFullWidthProps) {
-  const heroImages = defaultHeroImages;
   const [activeIndex, setActiveIndex] = useState(0);
   const prevIndexRef = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -207,7 +206,7 @@ export default function HeroFullWidth({
     intervalRef.current = setInterval(() => {
       setActiveIndex((prev) => {
         prevIndexRef.current = prev;
-        return (prev + 1) % heroImages.length;
+        return (prev + 1) % defaultHeroImages.length;
       });
     }, SLIDE_DURATION);
   }, []);
@@ -227,7 +226,7 @@ export default function HeroFullWidth({
     >
       {/* Background Slideshow */}
       <div className="absolute top-12 sm:top-14 left-0 right-0 bottom-0 z-0 overflow-hidden">
-        {heroImages.map((src, index) => {
+        {defaultHeroImages.map((src, index) => {
           const isActive = index === activeIndex;
           const isPrev = index === prevIndexRef.current && index !== activeIndex;
           const isZooming = isActive && index === zoomIndex;
@@ -392,7 +391,7 @@ export default function HeroFullWidth({
 
           {/* Slideshow Dots */}
           <div className="flex justify-center gap-1 pb-3" role="group" aria-label="Hero slideshow navigation">
-            {heroImages.map((_, idx) => (
+            {defaultHeroImages.map((_, idx) => (
               <button
                 key={idx}
                 type="button"
