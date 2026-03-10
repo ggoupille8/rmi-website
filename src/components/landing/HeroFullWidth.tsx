@@ -244,7 +244,7 @@ export default function HeroFullWidth({
           return (
           <div
             key={src}
-            className={`absolute inset-0 ease-in-out ${
+            className={`absolute inset-0 ${
               isActive ? "opacity-100" : "opacity-0"
             }`}
             style={{
