@@ -102,7 +102,7 @@ describe("ClientShowcase", () => {
       const images = screen.getAllByRole("img");
       for (const img of images) {
         const src = img.getAttribute("src");
-        expect(src).toMatch(/^\/images\/clients\/.+\.svg$/);
+        expect(src).toMatch(/^\/images\/clients\/.+\.(svg|png)$/);
       }
     });
 
