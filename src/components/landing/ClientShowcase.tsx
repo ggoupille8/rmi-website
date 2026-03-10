@@ -44,18 +44,18 @@ export default function ClientShowcase() {
           {clients.map((client) => (
             <div
               key={client.name}
-              className="flex items-center justify-center h-14 w-full opacity-70 hover:opacity-100 transition-opacity duration-300"
+              className="flex items-center justify-center h-16 w-full px-2 opacity-70 hover:opacity-100 transition-opacity duration-300"
               title={client.name}
             >
               <img
                 src={client.logo}
                 alt={client.name}
-                className={`max-h-14 max-w-[160px] object-contain ${
+                className={`h-10 w-auto max-w-[180px] object-contain ${
                   client.cdn ? "" : "brightness-0 invert"
                 }`}
                 loading="lazy"
-                width={160}
-                height={56}
+                width={180}
+                height={40}
                 referrerPolicy="no-referrer"
               />
             </div>
