@@ -249,7 +249,6 @@ export default function Services() {
                     <div className="relative md:w-[60%] flex-shrink-0 max-h-[40vh] md:max-h-none overflow-hidden rounded-t-2xl md:rounded-t-none md:rounded-l-2xl">
                       <ImageSlideshow
                         images={activeServiceData.images}
-                        serviceSlug={activeServiceData.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}
                       />
                       {/* Close button — over image panel */}
                       <button
