@@ -108,6 +108,8 @@ export default function ClientShowcase() {
   const visibleCountRef = useRef(0);
   const isRotatingRef = useRef(false);
   const isHoveredRef = useRef(false);
+  // Fair rotation: shuffled list of slot indices — each slot rotates once before any repeats
+  const slotOrderRef = useRef<number[]>([]);
   const reducedMotionRef = useRef(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -164,7 +166,14 @@ export default function ClientShowcase() {
     if (visibleCountRef.current === 0) return;
 
     isRotatingRef.current = true;
-    const slotIndex = Math.floor(Math.random() * visibleCountRef.current);
+
+    // Fair rotation: refill shuffled slot order when exhausted so every
+    // slot rotates exactly once before any slot repeats.
+    if (slotOrderRef.current.length === 0) {
+      const indices = Array.from({ length: visibleCountRef.current }, (_, i) => i);
+      slotOrderRef.current = shuffle(indices);
+    }
+    const slotIndex = slotOrderRef.current.pop()!;
     const fadeDuration = reducedMotionRef.current ? 0 : FADE_DURATION;
 
     // Start fade-out

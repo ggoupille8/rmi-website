@@ -535,6 +535,67 @@ describe("ClientShowcase", () => {
       expect(screen.getByText("Clients We Serve")).toBeInTheDocument();
     });
 
+    it("rotates each slot exactly once before repeating any (fair rotation)", async () => {
+      // 24 clients = 12 visible + 12 in queue, so every slot CAN rotate
+      const manyClients = Array.from({ length: 24 }, (_, i) =>
+        makeClient(i + 1, `Client ${i}`, `client${i}.com`),
+      );
+
+      fetchSpy.mockResolvedValueOnce(
+        new Response(JSON.stringify(manyClients), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      const { container } = await renderAndResolve();
+
+      // Snapshot the initial src for each slot position
+      const getSlotSrcs = () => {
+        const slots = container.querySelectorAll("[title]");
+        return Array.from(slots).map((s) => {
+          const img = s.querySelector("img");
+          return img?.getAttribute("src") ?? null;
+        });
+      };
+
+      const initialSrcs = getSlotSrcs();
+
+      // Run rotation cycles one at a time with precise timing:
+      // ROTATION_INTERVAL (5000ms) fires the interval, then FADE_DURATION
+      // (1500ms) for fade-out, then FADE_DURATION (1500ms) for fade-in.
+      // Run 14 cycles to guarantee all 12 slots rotate even if an
+      // interval fires while isRotating is still true (gets skipped).
+      for (let cycle = 0; cycle < 14; cycle++) {
+        // Advance past one interval tick
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(5100);
+        });
+        // Let fade-out + swap + fade-in complete
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(3200);
+        });
+        // Fire load events on swapped-in images
+        await act(async () => {
+          const imgs = container.querySelectorAll("img");
+          for (const img of imgs) {
+            img.dispatchEvent(new Event("load", { bubbles: false }));
+          }
+          await vi.advanceTimersByTimeAsync(100);
+        });
+      }
+
+      const afterSrcs = getSlotSrcs();
+
+      // With fair rotation, after one full round every slot should
+      // have been swapped at least once (src changed from initial)
+      let changedCount = 0;
+      for (let i = 0; i < 12; i++) {
+        if (afterSrcs[i] !== initialSrcs[i]) changedCount++;
+      }
+      expect(changedCount).toBe(12);
+    });
+
     it("pauses rotation on mouse hover", async () => {
       const extraClients = [
         ...MOCK_CLIENTS,
