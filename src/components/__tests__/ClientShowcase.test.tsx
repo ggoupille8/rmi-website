@@ -80,8 +80,8 @@ describe("ClientShowcase", () => {
       const cdnImages = images.filter((img) =>
         img.getAttribute("src")?.startsWith("https://"),
       );
-      expect(localImages.length).toBe(4);
-      expect(cdnImages.length).toBe(8);
+      expect(localImages.length).toBe(3);
+      expect(cdnImages.length).toBe(9);
       for (const img of localImages) {
         expect(img.className).toContain("brightness-0");
         expect(img.className).toContain("invert");
@@ -103,8 +103,8 @@ describe("ClientShowcase", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
       for (const img of images) {
-        expect(img).toHaveAttribute("width", "120");
-        expect(img).toHaveAttribute("height", "40");
+        expect(img).toHaveAttribute("width", "160");
+        expect(img).toHaveAttribute("height", "56");
       }
     });
 
@@ -132,7 +132,7 @@ describe("ClientShowcase", () => {
       const logoContainers = container.querySelectorAll("[title]");
       expect(logoContainers.length).toBe(12);
       for (const el of logoContainers) {
-        expect(el.className).toContain("opacity-60");
+        expect(el.className).toContain("opacity-70");
         expect(el.className).toContain("hover:opacity-100");
         expect(el.className).toContain("transition-opacity");
       }
@@ -150,9 +150,9 @@ describe("ClientShowcase", () => {
       expect(screen.getByAltText("General Motors")).toBeInTheDocument();
     });
 
-    it("includes University of Michigan", () => {
+    it("includes FedEx", () => {
       render(<ClientShowcase />);
-      expect(screen.getByAltText("University of Michigan")).toBeInTheDocument();
+      expect(screen.getByAltText("FedEx")).toBeInTheDocument();
     });
 
     it("includes Toyota", () => {

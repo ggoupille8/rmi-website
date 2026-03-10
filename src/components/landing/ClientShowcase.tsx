@@ -19,12 +19,12 @@ const clients: Client[] = [
   { name: "Delta Air Lines", logo: "https://cdn.simpleicons.org/delta/white", cdn: true },
   { name: "Henry Ford Health", logo: "/images/clients/henry-ford-health.svg", cdn: false },
   { name: "DTE Energy", logo: "/images/clients/dte-energy.svg", cdn: false },
-  { name: "University of Michigan", logo: "/images/clients/university-of-michigan.svg", cdn: false },
+  { name: "FedEx", logo: "https://cdn.simpleicons.org/fedex/white", cdn: true },
 ];
 
 export default function ClientShowcase() {
   return (
-    <section id="clients" className="py-16 sm:py-20 bg-neutral-950">
+    <section id="clients" className="py-12 sm:py-16 bg-neutral-950">
       <div className="max-w-6xl mx-auto px-4">
         {/* Heading */}
         <div className="text-center mb-12">
@@ -40,22 +40,22 @@ export default function ClientShowcase() {
         </div>
 
         {/* Logo grid — 12 items = 2 rows of 6 (desktop), 3 of 4 (tablet), 4 of 3 (mobile) */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-8 items-center justify-items-center">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-6 items-center justify-items-center">
           {clients.map((client) => (
             <div
               key={client.name}
-              className="flex items-center justify-center h-12 w-full opacity-60 hover:opacity-100 transition-opacity duration-300"
+              className="flex items-center justify-center h-14 w-full opacity-70 hover:opacity-100 transition-opacity duration-300"
               title={client.name}
             >
               <img
                 src={client.logo}
                 alt={client.name}
-                className={`max-h-10 max-w-[120px] object-contain ${
+                className={`max-h-14 max-w-[160px] object-contain ${
                   client.cdn ? "" : "brightness-0 invert"
                 }`}
                 loading="lazy"
-                width={120}
-                height={40}
+                width={160}
+                height={56}
                 referrerPolicy="no-referrer"
               />
             </div>
