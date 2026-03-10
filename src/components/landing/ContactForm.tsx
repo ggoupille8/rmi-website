@@ -359,9 +359,9 @@ export default function ContactForm({
   };
 
   const inputBase =
-    "block w-full rounded-md shadow-sm text-base px-3 py-2 border bg-neutral-800 text-white placeholder:text-neutral-400 leading-relaxed min-w-0 min-h-[48px] hover:border-neutral-500/50 focus:ring-1 transition-colors duration-200";
-  const inputNormal = `${inputBase} border-neutral-600 focus:border-accent-500/50 focus:ring-accent-500/20`;
-  const inputError = `${inputBase} border-red-500 focus:border-red-500 focus:ring-red-500`;
+    "block w-full rounded-md shadow-sm text-base px-3 py-2 border bg-neutral-800/50 text-white placeholder:text-neutral-400 leading-relaxed min-w-0 min-h-[48px] outline-none transition-all duration-200 ease-out";
+  const inputNormal = `${inputBase} border-neutral-700/30 hover:border-neutral-600/50 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20`;
+  const inputError = `${inputBase} border-red-500 ring-2 ring-red-500/20 focus:border-red-500 focus:ring-2 focus:ring-red-500/20`;
 
   return (
     <ErrorBoundary fallback={
@@ -397,7 +397,7 @@ export default function ContactForm({
             ref={formRef}
             method="post"
             onSubmit={handleSubmit}
-            className="mt-6 space-y-4 border border-neutral-700/30 rounded-xl backdrop-blur-sm bg-neutral-900/50 p-6 sm:p-8"
+            className="mt-6 space-y-4 border border-neutral-700/30 rounded-xl backdrop-blur-md bg-neutral-900/50 p-6 sm:p-8 shadow-inner shadow-black/10"
             noValidate
             aria-busy={isSubmitting ? "true" : "false"}
           >
@@ -581,7 +581,7 @@ export default function ContactForm({
                   textarea.style.height = `${textarea.scrollHeight}px`;
                 }}
                 placeholder="Describe your project, timeline, and requirements..."
-                className={`${fieldErrors.message ? inputError : inputNormal} resize-none`}
+                className={`${fieldErrors.message ? inputError : inputNormal} resize-y min-h-[120px]`}
                 aria-invalid={fieldErrors.message ? "true" : "false"}
                 aria-describedby={fieldErrors.message ? "message-error" : undefined}
               />
@@ -666,9 +666,24 @@ export default function ContactForm({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-primary w-full py-3 text-base sm:text-lg font-bold hover:shadow-[0_8px_24px_rgba(59,130,246,0.25)] hover:scale-[1.02] active:scale-[0.98]"
+                className="btn-primary w-full sm:w-auto sm:min-w-[200px] py-3 px-8 text-base sm:text-lg font-bold shadow-lg shadow-accent-500/25 hover:shadow-[0_8px_24px_rgba(59,130,246,0.35)] hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-accent-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 transition-all duration-200"
               >
-                {isSubmitting ? "Sending..." : "Send Message"}
+                {isSubmitting ? (
+                  <span className="inline-flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Sending...
+                  </span>
+                ) : submitStatus === "success" ? (
+                  <span className="inline-flex items-center gap-2 text-green-300">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    Sent!
+                  </span>
+                ) : "Send Message"}
               </button>
               <p className="mt-2 text-xs text-neutral-400 text-center leading-tight">
                 By submitting, you agree that we may collect device and browsing
