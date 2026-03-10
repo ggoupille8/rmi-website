@@ -107,9 +107,18 @@ export default function ImageSlideshow({ images, serviceSlug }: ImageSlideshowPr
       {/* Image container — object-cover on mobile (fills space, crops edges),
            object-contain on desktop (shows full image in side panel) */}
       <div className="relative flex-1 min-h-[280px] md:min-h-[400px]">
-        {/* Skeleton placeholder — shows until active image loads */}
+        {/* Shimmer placeholder — shows until active image loads */}
         {!loadedImages.has(currentIndex) && (
-          <div className="absolute inset-0 z-[15] bg-neutral-800 animate-pulse" />
+          <div className="absolute inset-0 z-[15] bg-neutral-800 overflow-hidden">
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)",
+                backgroundSize: "200% 100%",
+                animation: "shimmer 1.5s ease-in-out infinite",
+              }}
+            />
+          </div>
         )}
         {images.map((image, index) => {
           // Render current slide and ±2 neighbors (5 max) for preloading

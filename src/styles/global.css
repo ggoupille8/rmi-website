@@ -37,6 +37,11 @@
   50% { opacity: 0.6; transform: scale(1.04); }
 }
 
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 @keyframes kenBurns {
   from {
     transform: scale(1);
@@ -255,6 +260,12 @@
   }
 }
 @layer components {
+  /* Modal text panel scrollbar */
+  .modal-text-panel::-webkit-scrollbar { width: 4px; }
+  .modal-text-panel::-webkit-scrollbar-track { background: transparent; }
+  .modal-text-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+  .modal-text-panel { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
+
   /* Container System - Consistent widths */
   .container-custom {
     @apply mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8;

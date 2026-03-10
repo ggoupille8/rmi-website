@@ -57,7 +57,7 @@ export default function Services() {
       setActiveService(null);
       setIsClosing(false);
       triggerRef.current?.focus();
-    }, 300);
+    }, 250);
   }, []);
 
   const openModal = (anchorId: string, buttonEl: HTMLButtonElement) => {
@@ -192,10 +192,10 @@ export default function Services() {
                 aria-haspopup="dialog"
                 aria-expanded={activeService === service.anchorId}
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className={`group cursor-pointer flex items-center justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] ${cardStyle.bg} backdrop-blur-sm border border-neutral-700/50 ${cardStyle.border} transition-all duration-200 ease-out hover:bg-neutral-800/70 active:bg-neutral-700/50 hover:border-neutral-600 hover:-translate-y-0.5 ${cardStyle.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-inset`}
+                className={`group cursor-pointer flex items-center justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] ${cardStyle.bg} backdrop-blur-sm border border-neutral-700/50 ${cardStyle.border} transition-all duration-300 ease-out hover:bg-neutral-800/70 active:bg-neutral-700/50 hover:border-accent-500/50 hover:-translate-y-0.5 ${cardStyle.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900`}
               >
                 <IconComponent
-                  className={`w-7 h-7 ${cardStyle.iconColor} ${cardStyle.hoverIcon} flex-shrink-0 transition-colors duration-200`}
+                  className={`w-7 h-7 ${cardStyle.iconColor} ${cardStyle.hoverIcon} flex-shrink-0 transition-colors duration-300`}
                   strokeWidth={1.5}
                   aria-hidden="true"
                 />
@@ -203,7 +203,7 @@ export default function Services() {
                   {service.title}
                 </span>
                 <ChevronRight
-                  className="w-4 h-4 text-neutral-500 group-hover:text-accent-400 group-hover:translate-x-0.5 transition-all duration-200 ml-auto flex-shrink-0"
+                  className="w-4 h-4 text-neutral-500 group-hover:text-accent-400 group-hover:translate-x-0.5 transition-all duration-300 ml-auto flex-shrink-0"
                   aria-hidden="true"
                 />
               </button>
@@ -219,7 +219,7 @@ export default function Services() {
         >
           {/* Backdrop — click to close */}
           <div
-            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${isVisible && !isClosing ? "opacity-100" : "opacity-0"}`}
+            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity ${isClosing ? "duration-200 ease-in" : "duration-300 ease-out"} ${isVisible && !isClosing ? "opacity-100" : "opacity-0"}`}
             onClick={closeModal}
             aria-hidden="true"
           />
@@ -230,7 +230,7 @@ export default function Services() {
             role="dialog"
             aria-modal="true"
             aria-labelledby={`modal-${activeService}`}
-            className={`relative z-10 w-full mx-4 max-h-[85vh] overflow-hidden bg-neutral-900 backdrop-blur-md rounded-2xl border border-neutral-600/30 shadow-2xl shadow-black/40 ring-1 ring-accent-500/10 transition-all duration-300 ease-out ${
+            className={`relative z-10 w-full mx-4 max-h-[85vh] overflow-hidden bg-neutral-900 backdrop-blur-md rounded-2xl border border-neutral-600/30 shadow-2xl shadow-black/40 ring-1 ring-accent-500/10 transition-all ${isClosing ? "duration-200 ease-in" : "duration-300 ease-out"} ${
               activeServiceData && activeServiceData.images.length > 0
                 ? "max-w-[1000px]"
                 : "max-w-lg"
@@ -264,7 +264,7 @@ export default function Services() {
                   )}
 
                   {/* Right Panel — Text Content (40% on desktop, full width on mobile & no-image) */}
-                  <div className={`flex flex-col min-h-0 ${hasImages ? "md:w-[40%] md:border-l md:border-accent-500/20" : "w-full"} overflow-y-auto`}>
+                  <div className={`modal-text-panel flex flex-col min-h-0 ${hasImages ? "md:w-[40%] md:border-l md:border-accent-500/20" : "w-full"} overflow-y-auto`}>
                     {/* Close button for no-image modals */}
                     {!hasImages && (
                       <button
