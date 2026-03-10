@@ -1,15 +1,25 @@
-const clients = [
-  { name: "Ford Motor Company", logo: "/images/clients/ford.svg" },
-  { name: "General Motors", logo: "/images/clients/general-motors.svg" },
-  { name: "Stellantis", logo: "/images/clients/stellantis.svg" },
-  { name: "Henry Ford Health", logo: "/images/clients/henry-ford-health.svg" },
-  { name: "Corewell Health", logo: "/images/clients/corewell-health.svg" },
-  { name: "DTE Energy", logo: "/images/clients/dte-energy.svg" },
-  { name: "CMS Energy", logo: "/images/clients/cms-energy.svg" },
-  { name: "University of Michigan", logo: "/images/clients/university-of-michigan.svg" },
-  { name: "Detroit Metro Airport", logo: "/images/clients/detroit-metro-airport.svg" },
-  { name: "Michigan Central", logo: "/images/clients/michigan-central.png" },
-  { name: "Wayne County", logo: "/images/clients/wayne-county.svg" },
+interface Client {
+  name: string;
+  logo: string;
+  /** true when logo is served from an external CDN (already white) */
+  cdn: boolean;
+}
+
+const clients: Client[] = [
+  // Row 1 — Automotive + Tech
+  { name: "Ford Motor Company", logo: "https://cdn.simpleicons.org/ford/white", cdn: true },
+  { name: "General Motors", logo: "https://cdn.simpleicons.org/generalmotors/white", cdn: true },
+  { name: "Toyota", logo: "https://cdn.simpleicons.org/toyota/white", cdn: true },
+  { name: "Stellantis", logo: "/images/clients/stellantis.svg", cdn: false },
+  { name: "Nissan", logo: "https://cdn.simpleicons.org/nissan/white", cdn: true },
+  { name: "Apple", logo: "https://cdn.simpleicons.org/apple/white", cdn: true },
+  // Row 2 — National + Regional
+  { name: "Starbucks", logo: "https://cdn.simpleicons.org/starbucks/white", cdn: true },
+  { name: "Verizon", logo: "https://cdn.simpleicons.org/verizon/white", cdn: true },
+  { name: "Delta Air Lines", logo: "https://cdn.simpleicons.org/delta/white", cdn: true },
+  { name: "Henry Ford Health", logo: "/images/clients/henry-ford-health.svg", cdn: false },
+  { name: "DTE Energy", logo: "/images/clients/dte-energy.svg", cdn: false },
+  { name: "University of Michigan", logo: "/images/clients/university-of-michigan.svg", cdn: false },
 ];
 
 export default function ClientShowcase() {
@@ -29,7 +39,7 @@ export default function ClientShowcase() {
           </p>
         </div>
 
-        {/* Logo grid */}
+        {/* Logo grid — 12 items = 2 rows of 6 (desktop), 3 of 4 (tablet), 4 of 3 (mobile) */}
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-8 items-center justify-items-center">
           {clients.map((client) => (
             <div
@@ -40,10 +50,13 @@ export default function ClientShowcase() {
               <img
                 src={client.logo}
                 alt={client.name}
-                className="max-h-10 max-w-[120px] object-contain brightness-0 invert"
+                className={`max-h-10 max-w-[120px] object-contain ${
+                  client.cdn ? "" : "brightness-0 invert"
+                }`}
                 loading="lazy"
                 width={120}
                 height={40}
+                referrerPolicy="no-referrer"
               />
             </div>
           ))}
