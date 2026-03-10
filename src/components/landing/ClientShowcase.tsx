@@ -58,33 +58,49 @@ function LogoSlot({ client, isFading, reducedMotion }: LogoSlotProps) {
         transition: `opacity ${FADE_DURATION}ms ease-in-out`,
       };
 
+  const brandColor = client.color ?? '#0066CC';
+
   return (
     <div
-      className="flex items-center justify-center h-16 md:h-20"
+      className="group flex flex-col items-center justify-center gap-2 py-3"
       style={fadeStyle}
       title={client.name}
     >
-      {logoUrl ? (
-        <img
-          src={logoUrl}
-          alt={client.name}
-          referrerPolicy="no-referrer"
-          className="max-h-full max-w-full object-contain brightness-0 invert opacity-70 hover:opacity-100 transition-opacity duration-300"
-          onLoad={() => setLoaded(true)}
-          onError={() => {
-            setLogoUrl(null);
-            setLoaded(true);
-          }}
-        />
-      ) : loaded ? (
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
-          <span className="text-white font-bold text-sm md:text-base">
-            {getInitials(client.name)}
-          </span>
-        </div>
-      ) : (
-        <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg bg-neutral-800 animate-pulse" />
-      )}
+      {/* Logo container */}
+      <div className="relative flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white/5 group-hover:bg-white/10 transition-colors duration-300">
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt={client.name}
+            referrerPolicy="no-referrer"
+            className="max-h-[48px] max-w-[48px] md:max-h-[56px] md:max-w-[56px] object-contain rounded-md opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+            onLoad={() => setLoaded(true)}
+            onError={() => {
+              setLogoUrl(null);
+              setLoaded(true);
+            }}
+          />
+        ) : loaded ? (
+          <div
+            className="w-12 h-12 md:w-14 md:h-14 rounded-lg flex items-center justify-center"
+            style={{
+              background: `linear-gradient(135deg, ${brandColor}66, ${brandColor}33)`,
+              border: `1px solid ${brandColor}44`,
+            }}
+          >
+            <span className="text-white font-bold text-sm md:text-base tracking-wide">
+              {getInitials(client.name)}
+            </span>
+          </div>
+        ) : (
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-lg bg-neutral-800 animate-pulse" />
+        )}
+      </div>
+
+      {/* Client name */}
+      <span className="text-[10px] md:text-xs text-neutral-500 group-hover:text-neutral-300 transition-colors duration-300 text-center leading-tight max-w-[80px] md:max-w-[100px] truncate">
+        {client.name}
+      </span>
     </div>
   );
 }
@@ -222,7 +238,7 @@ export default function ClientShowcase() {
 
         {/* Logo grid */}
         <div
-          className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8"
+          className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-6 gap-y-4"
           onMouseEnter={() => {
             isHoveredRef.current = true;
           }}

@@ -221,21 +221,12 @@ describe("ClientShowcase", () => {
       }
     });
 
-    it("applies brightness-0 invert classes for dark theme", async () => {
+    it("applies opacity and hover transition classes", async () => {
       await renderAndResolve();
       const images = screen.getAllByRole("img");
       for (const img of images) {
-        expect(img.className).toContain("brightness-0");
-        expect(img.className).toContain("invert");
-      }
-    });
-
-    it("applies opacity-70 with hover:opacity-100 transition", async () => {
-      await renderAndResolve();
-      const images = screen.getAllByRole("img");
-      for (const img of images) {
-        expect(img.className).toContain("opacity-70");
-        expect(img.className).toContain("hover:opacity-100");
+        expect(img.className).toContain("opacity-80");
+        expect(img.className).toContain("transition-opacity");
       }
     });
 
@@ -256,10 +247,11 @@ describe("ClientShowcase", () => {
         await vi.advanceTimersByTimeAsync(200);
       });
 
-      // Should show initials text in fallback badges
+      // Should show initials text in fallback badges (brand-colored gradient)
       const section = document.getElementById("clients");
       expect(section).not.toBeNull();
-      const fallbacks = section!.querySelectorAll(".bg-gradient-to-br");
+      // Initials fallback badges use inline gradient styles
+      const fallbacks = section!.querySelectorAll(".rounded-lg.flex.items-center");
       expect(fallbacks.length).toBeGreaterThan(0);
     });
 
@@ -421,7 +413,7 @@ describe("ClientShowcase", () => {
       const { container } = await renderAndResolve();
 
       const slots = container.querySelectorAll("[title]");
-      const firstSlot = slots[0]?.querySelector(".flex.items-center.justify-center");
+      const firstSlot = slots[0];
       if (firstSlot) {
         const style = firstSlot.getAttribute("style") || "";
         expect(style).toContain("1500ms");
@@ -554,7 +546,7 @@ describe("ClientShowcase", () => {
       expect(grid).not.toBeNull();
       // The onMouseEnter/onMouseLeave are set on the grid div
       // Verify the grid renders without error when hovered
-      expect(grid?.getAttribute("class")).toContain("gap-8");
+      expect(grid?.getAttribute("class")).toContain("gap-x-6");
     });
   });
 
