@@ -1,5 +1,5 @@
 // LogoResolver.ts — Cascading multi-source logo resolver
-// Resolution chain: self-hosted → Brandfetch → Google Favicon → initials fallback
+// Resolution chain: self-hosted → Google gstatic (128px) → icon.horse → initials fallback
 
 interface LogoSource {
   name: string;
@@ -13,13 +13,13 @@ const SELF_HOSTED_SLUGS: Set<string> = new Set([
 
 const EXTERNAL_SOURCES: LogoSource[] = [
   {
-    name: 'icon-horse',
-    getUrl: (domain) => `https://icon.horse/icon/${domain}`,
+    name: 'google-gstatic',
+    getUrl: (domain) =>
+      `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${domain}&size=128`,
   },
   {
-    name: 'google-favicon',
-    getUrl: (domain) =>
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+    name: 'icon-horse',
+    getUrl: (domain) => `https://icon.horse/icon/${domain}`,
   },
 ];
 
@@ -38,6 +38,9 @@ function getSelfHostedUrl(domain: string): string | null {
   return null;
 }
 
+/** Minimum pixel dimension to consider a logo usable (reject tiny favicons) */
+const MIN_LOGO_SIZE = 48;
+
 function testImageLoad(url: string): Promise<boolean> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -48,7 +51,8 @@ function testImageLoad(url: string): Promise<boolean> {
         resolve(value);
       }
     };
-    img.onload = () => settle(img.naturalWidth > 1 && img.naturalHeight > 1);
+    img.onload = () =>
+      settle(img.naturalWidth >= MIN_LOGO_SIZE && img.naturalHeight >= MIN_LOGO_SIZE);
     img.onerror = () => settle(false);
     img.referrerPolicy = 'no-referrer';
     img.src = url;
