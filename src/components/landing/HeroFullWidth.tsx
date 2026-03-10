@@ -42,6 +42,9 @@ const heroImageOrigins = [
 ];
 
 const SLIDE_DURATION = 12000; // 12s per image
+const CROSSFADE_MS = 800; // crossfade overlap duration
+const KENBURNS_MS = 8000; // Ken Burns zoom duration
+const KENBURNS_SCALE = 1.06; // zoom end scale
 
 interface HeroFullWidthProps {
   tagline?: string;
@@ -171,6 +174,8 @@ export default function HeroFullWidth({
   const prevIndexRef = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [zoomIndex, setZoomIndex] = useState(-1);
+  const kenBurnsFrameRef = useRef(0);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -179,6 +184,23 @@ export default function HeroFullWidth({
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
+  // Ken Burns: transition-based zoom that restarts cleanly on each slide change.
+  // Phase 1: new slide renders at scale(1) because zoomIndex hasn't updated yet.
+  // Phase 2: after browser paints scale(1), start the zoom transition.
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    const outerFrame = requestAnimationFrame(() => {
+      const innerFrame = requestAnimationFrame(() => {
+        setZoomIndex(activeIndex);
+      });
+      kenBurnsFrameRef.current = innerFrame;
+    });
+    return () => {
+      cancelAnimationFrame(outerFrame);
+      cancelAnimationFrame(kenBurnsFrameRef.current);
+    };
+  }, [activeIndex, prefersReducedMotion]);
 
   const startAutoAdvance = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -208,13 +230,27 @@ export default function HeroFullWidth({
         {heroImages.map((src, index) => {
           const isActive = index === activeIndex;
           const isPrev = index === prevIndexRef.current && index !== activeIndex;
+          const isZooming = isActive && index === zoomIndex;
+
+          // Ken Burns: active slide zooms from scale(1) → scale(KENBURNS_SCALE)
+          // Previous slide (fading out) holds its zoomed state to avoid snap-back
+          const imgTransform = (isZooming || isPrev)
+            ? `scale(${KENBURNS_SCALE})`
+            : "scale(1)";
+          const imgTransition = isZooming
+            ? `transform ${KENBURNS_MS}ms ease-out`
+            : "none";
+
           return (
           <div
             key={src}
-            className={`absolute inset-0 transition-opacity duration-[2000ms] ease-in-out ${
+            className={`absolute inset-0 ease-in-out ${
               isActive ? "opacity-100" : "opacity-0"
             }`}
-            style={{ zIndex: isActive ? 2 : isPrev ? 1 : 0 }}
+            style={{
+              zIndex: isActive ? 2 : isPrev ? 1 : 0,
+              transition: `opacity ${CROSSFADE_MS}ms ease-in-out`,
+            }}
             aria-hidden="true"
           >
             <picture>
@@ -236,8 +272,8 @@ export default function HeroFullWidth({
                   fetchPriority={index === 0 ? "high" : undefined}
                   style={
                     !prefersReducedMotion
-                      ? { animation: `kenBurns ${SLIDE_DURATION * 2}ms ease-in-out infinite alternate`, animationDelay: `${index * -(SLIDE_DURATION / 3)}ms`, transformOrigin: heroImageOrigins[index] }
-                      : { transform: "scale(1)", filter: "brightness(1)" }
+                      ? { transform: imgTransform, transition: imgTransition, transformOrigin: heroImageOrigins[index] }
+                      : { transform: "scale(1)" }
                   }
                 />
               </picture>
