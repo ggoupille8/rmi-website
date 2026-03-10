@@ -42,10 +42,10 @@ describe("ClientShowcase", () => {
       expect(grid?.className).toContain("lg:grid-cols-6");
     });
 
-    it("renders all 11 client logos", () => {
+    it("renders all 12 client logos", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
-      expect(images.length).toBe(11);
+      expect(images.length).toBe(12);
     });
 
     it("section has proper padding and background classes", () => {
@@ -71,12 +71,23 @@ describe("ClientShowcase", () => {
       }
     });
 
-    it("applies monochrome filter classes to images", () => {
+    it("applies monochrome filter classes only to local images", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
-      for (const img of images) {
+      const localImages = images.filter((img) =>
+        img.getAttribute("src")?.startsWith("/"),
+      );
+      const cdnImages = images.filter((img) =>
+        img.getAttribute("src")?.startsWith("https://"),
+      );
+      expect(localImages.length).toBe(4);
+      expect(cdnImages.length).toBe(8);
+      for (const img of localImages) {
         expect(img.className).toContain("brightness-0");
         expect(img.className).toContain("invert");
+      }
+      for (const img of cdnImages) {
+        expect(img.className).not.toContain("brightness-0");
       }
     });
 
@@ -97,19 +108,29 @@ describe("ClientShowcase", () => {
       }
     });
 
-    it("uses static /images/clients/ paths for all logos", () => {
+    it("sets referrerPolicy='no-referrer' on all images", () => {
+      render(<ClientShowcase />);
+      const images = screen.getAllByRole("img");
+      for (const img of images) {
+        expect(img).toHaveAttribute("referrerpolicy", "no-referrer");
+      }
+    });
+
+    it("uses SimpleIcons CDN or static /images/clients/ paths for logos", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
       for (const img of images) {
         const src = img.getAttribute("src");
-        expect(src).toMatch(/^\/images\/clients\/.+\.(svg|png)$/);
+        expect(src).toMatch(
+          /^(https:\/\/cdn\.simpleicons\.org\/.+\/white|\/images\/clients\/.+\.(svg|png))$/,
+        );
       }
     });
 
     it("applies opacity-60 hover transition on logo containers", () => {
       const { container } = render(<ClientShowcase />);
       const logoContainers = container.querySelectorAll("[title]");
-      expect(logoContainers.length).toBe(11);
+      expect(logoContainers.length).toBe(12);
       for (const el of logoContainers) {
         expect(el.className).toContain("opacity-60");
         expect(el.className).toContain("hover:opacity-100");
@@ -134,14 +155,14 @@ describe("ClientShowcase", () => {
       expect(screen.getByAltText("University of Michigan")).toBeInTheDocument();
     });
 
-    it("includes Detroit Metro Airport", () => {
+    it("includes Toyota", () => {
       render(<ClientShowcase />);
-      expect(screen.getByAltText("Detroit Metro Airport")).toBeInTheDocument();
+      expect(screen.getByAltText("Toyota")).toBeInTheDocument();
     });
 
-    it("includes Corewell Health (formerly Beaumont)", () => {
+    it("includes Apple", () => {
       render(<ClientShowcase />);
-      expect(screen.getByAltText("Corewell Health")).toBeInTheDocument();
+      expect(screen.getByAltText("Apple")).toBeInTheDocument();
     });
   });
 
