@@ -41,10 +41,10 @@ describe("ClientShowcase", () => {
       expect(grid?.className).toContain("md:grid-cols-6");
     });
 
-    it("renders all 18 client logos", () => {
+    it("renders all 12 client logos", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
-      expect(images.length).toBe(18);
+      expect(images.length).toBe(12);
     });
 
     it("section has proper padding and background classes", () => {
@@ -79,7 +79,7 @@ describe("ClientShowcase", () => {
       const cdnImages = images.filter((img) =>
         img.getAttribute("src")?.startsWith("https://"),
       );
-      expect(localImages.length).toBe(10);
+      expect(localImages.length).toBe(4);
       expect(cdnImages.length).toBe(8);
       for (const img of localImages) {
         expect(img.className).toContain("brightness-0");
@@ -129,7 +129,7 @@ describe("ClientShowcase", () => {
     it("applies opacity-60 hover transition on logo containers", () => {
       const { container } = render(<ClientShowcase />);
       const logoContainers = container.querySelectorAll("[title]");
-      expect(logoContainers.length).toBe(18);
+      expect(logoContainers.length).toBe(12);
       for (const el of logoContainers) {
         expect(el.className).toContain("opacity-70");
         expect(el.className).toContain("hover:opacity-100");
