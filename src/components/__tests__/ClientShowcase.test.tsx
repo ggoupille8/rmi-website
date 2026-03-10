@@ -221,12 +221,23 @@ describe("ClientShowcase", () => {
       }
     });
 
-    it("applies opacity and hover transition classes", async () => {
+    it("applies monochrome white filter (brightness-0 invert) for uniform look", async () => {
       await renderAndResolve();
       const images = screen.getAllByRole("img");
       for (const img of images) {
-        expect(img.className).toContain("opacity-80");
+        expect(img.className).toContain("brightness-0");
+        expect(img.className).toContain("invert");
+      }
+    });
+
+    it("applies base opacity-60 with group-hover:opacity-100 transition", async () => {
+      await renderAndResolve();
+      const images = screen.getAllByRole("img");
+      for (const img of images) {
+        expect(img.className).toContain("opacity-60");
+        expect(img.className).toContain("group-hover:opacity-100");
         expect(img.className).toContain("transition-opacity");
+        expect(img.className).toContain("duration-300");
       }
     });
 
@@ -247,11 +258,11 @@ describe("ClientShowcase", () => {
         await vi.advanceTimersByTimeAsync(200);
       });
 
-      // Should show initials text in fallback badges (brand-colored gradient)
+      // Should show initials text in fallback badges (uniform bg-white/10)
       const section = document.getElementById("clients");
       expect(section).not.toBeNull();
-      // Initials fallback badges use inline gradient styles
-      const fallbacks = section!.querySelectorAll(".rounded-lg.flex.items-center");
+      // Initials fallback badges use bg-white/10 class
+      const fallbacks = section!.querySelectorAll(".bg-white\\/10");
       expect(fallbacks.length).toBeGreaterThan(0);
     });
 
@@ -829,6 +840,503 @@ describe("ClientShowcase", () => {
         /Michigan.*commercial.*industrial facilities trust RMI/,
       );
       expect(subtitle.className).toContain("text-neutral-400");
+    });
+  });
+
+  // ── Monochrome / uniform styling ──────────────────────────────
+
+  describe("monochrome uniform styling", () => {
+    it("all logo images use identical filter classes (no per-client color)", async () => {
+      await renderAndResolve();
+      const images = screen.getAllByRole("img");
+      const classLists = images.map((img) => img.className);
+      // Every image should share the exact same set of classes
+      for (const cls of classLists) {
+        expect(cls).toBe(classLists[0]);
+      }
+    });
+
+    it("logo container uses bg-white/5 background for subtle dark card", async () => {
+      const { container } = await renderAndResolve();
+      const logoContainers = container.querySelectorAll(".bg-white\\/5");
+      expect(logoContainers.length).toBe(12);
+    });
+
+    it("logo container hovers to bg-white/10", async () => {
+      const { container } = await renderAndResolve();
+      const logoContainers = container.querySelectorAll(".group-hover\\:bg-white\\/10");
+      expect(logoContainers.length).toBe(12);
+    });
+
+    it("initials fallback uses uniform bg-white/10 (no brand colors)", async () => {
+      logoShouldResolve = false;
+
+      const { container } = render(<ClientShowcase />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
+
+      // All initials badges should use bg-white/10 class, not inline brand-color styles
+      const fallbacks = container.querySelectorAll(".bg-white\\/10");
+      expect(fallbacks.length).toBeGreaterThan(0);
+      for (const fb of fallbacks) {
+        // Should NOT have inline background style (no per-client gradients)
+        expect(fb.getAttribute("style")).toBeNull();
+      }
+    });
+
+    it("initials fallback text uses white/70 color for consistency", async () => {
+      logoShouldResolve = false;
+
+      const { container } = render(<ClientShowcase />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
+
+      const initialsText = container.querySelectorAll(".text-white\\/70.font-bold");
+      expect(initialsText.length).toBeGreaterThan(0);
+    });
+
+    it("logo images have constrained max dimensions for uniform sizing", async () => {
+      await renderAndResolve();
+      const images = screen.getAllByRole("img");
+      for (const img of images) {
+        expect(img.className).toContain("max-h-[48px]");
+        expect(img.className).toContain("max-w-[48px]");
+        expect(img.className).toContain("md:max-h-[56px]");
+        expect(img.className).toContain("md:max-w-[56px]");
+        expect(img.className).toContain("object-contain");
+      }
+    });
+  });
+
+  // ── Client name labels ────────────────────────────────────────
+
+  describe("client name labels", () => {
+    it("renders a name label below each logo slot", async () => {
+      const { container } = await renderAndResolve();
+      // Each slot with title also has a <span> with client name
+      const nameLabels = container.querySelectorAll(
+        "[title] > span.text-neutral-500",
+      );
+      expect(nameLabels.length).toBe(12);
+    });
+
+    it("name labels truncate long names", async () => {
+      const { container } = await renderAndResolve();
+      const nameLabels = container.querySelectorAll("[title] > span");
+      for (const label of nameLabels) {
+        expect(label.className).toContain("truncate");
+      }
+    });
+
+    it("name labels have hover color transition", async () => {
+      const { container } = await renderAndResolve();
+      const nameLabels = container.querySelectorAll(
+        "[title] > span.group-hover\\:text-neutral-300",
+      );
+      expect(nameLabels.length).toBe(12);
+    });
+
+    it("name labels show correct client names", async () => {
+      fetchSpy.mockResolvedValueOnce(
+        new Response(JSON.stringify(MOCK_CLIENTS.slice(0, 3)), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      const { container } = render(<ClientShowcase />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+        const imgs = container.querySelectorAll("img");
+        for (const img of imgs) {
+          img.dispatchEvent(new Event("load", { bubbles: false }));
+        }
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      // Check each name appears as text in a label span
+      for (const client of MOCK_CLIENTS.slice(0, 3)) {
+        const label = container.querySelector(`[title="${client.name}"] > span`);
+        expect(label).not.toBeNull();
+        expect(label?.textContent).toBe(client.name);
+      }
+    });
+
+    it("name labels are responsive (text-[10px] mobile, md:text-xs desktop)", async () => {
+      const { container } = await renderAndResolve();
+      const nameLabel = container.querySelector("[title] > span");
+      expect(nameLabel).not.toBeNull();
+      expect(nameLabel?.className).toContain("text-[10px]");
+      expect(nameLabel?.className).toContain("md:text-xs");
+    });
+  });
+
+  // ── Logo container structure ──────────────────────────────────
+
+  describe("logo container structure", () => {
+    it("each slot uses group class for coordinated hover effects", async () => {
+      const { container } = await renderAndResolve();
+      const slots = container.querySelectorAll("[title].group");
+      expect(slots.length).toBe(12);
+    });
+
+    it("logo containers have rounded-xl corners", async () => {
+      const { container } = await renderAndResolve();
+      const containers = container.querySelectorAll(".rounded-xl.bg-white\\/5");
+      expect(containers.length).toBe(12);
+    });
+
+    it("logo containers are responsive (w-16 h-16 mobile, md:w-20 md:h-20)", async () => {
+      const { container } = await renderAndResolve();
+      const firstContainer = container.querySelector(".rounded-xl.bg-white\\/5");
+      expect(firstContainer).not.toBeNull();
+      expect(firstContainer?.className).toContain("w-16");
+      expect(firstContainer?.className).toContain("h-16");
+      expect(firstContainer?.className).toContain("md:w-20");
+      expect(firstContainer?.className).toContain("md:h-20");
+    });
+
+    it("logo containers have transition-colors for smooth hover", async () => {
+      const { container } = await renderAndResolve();
+      const firstContainer = container.querySelector(".rounded-xl.bg-white\\/5");
+      expect(firstContainer?.className).toContain("transition-colors");
+      expect(firstContainer?.className).toContain("duration-300");
+    });
+  });
+
+  // ── Visibility state handling ─────────────────────────────────
+
+  describe("visibility state handling", () => {
+    it("does not rotate when document is hidden", async () => {
+      const extraClients = [
+        ...MOCK_CLIENTS,
+        makeClient(13, "Dominos", "dominos.com"),
+        makeClient(14, "Fidelity", "fidelity.com"),
+        makeClient(15, "Comcast", "comcast.com"),
+      ];
+
+      fetchSpy.mockResolvedValueOnce(
+        new Response(JSON.stringify(extraClients), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      await renderAndResolve();
+
+      // Simulate hidden tab
+      Object.defineProperty(document, "visibilityState", {
+        value: "hidden",
+        writable: true,
+        configurable: true,
+      });
+
+      const imagesBefore = screen
+        .getAllByRole("img")
+        .map((i) => i.getAttribute("src"));
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(30000);
+      });
+
+      const imagesAfter = screen
+        .getAllByRole("img")
+        .map((i) => i.getAttribute("src"));
+
+      // No rotation should have occurred
+      expect(imagesAfter).toEqual(imagesBefore);
+
+      // Restore
+      Object.defineProperty(document, "visibilityState", {
+        value: "visible",
+        writable: true,
+        configurable: true,
+      });
+    });
+  });
+
+  // ── Reduced motion — detailed ─────────────────────────────────
+
+  describe("prefers-reduced-motion (detailed)", () => {
+    it("slot style has no transition property when reduced motion is on", async () => {
+      mockMatchMedia.mockReturnValue({
+        matches: true,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      });
+
+      const { container } = await renderAndResolve();
+      const slot = container.querySelector("[title]");
+      const style = slot?.getAttribute("style") || "";
+      // Should have opacity but NOT transition
+      expect(style).toContain("opacity");
+      expect(style).not.toContain("transition");
+    });
+
+    it("slot style includes transition when reduced motion is off", async () => {
+      mockMatchMedia.mockReturnValue({
+        matches: false,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      });
+
+      const { container } = await renderAndResolve();
+      const slot = container.querySelector("[title]");
+      const style = slot?.getAttribute("style") || "";
+      expect(style).toContain("transition");
+      expect(style).toContain("1500ms");
+    });
+  });
+
+  // ── Shuffle and queue behavior ────────────────────────────────
+
+  describe("shuffle and queue behavior", () => {
+    it("with fewer clients than GRID_SIZE, shows all clients", async () => {
+      const fewClients = MOCK_CLIENTS.slice(0, 5);
+
+      fetchSpy.mockResolvedValueOnce(
+        new Response(JSON.stringify(fewClients), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      const { container } = render(<ClientShowcase />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      const slots = container.querySelectorAll("[title]");
+      expect(slots.length).toBe(5);
+    });
+
+    it("with exactly GRID_SIZE clients, no rotation queue exists", async () => {
+      // 12 clients = 12 slots, nothing left for queue
+      await renderAndResolve();
+
+      const imagesBefore = screen
+        .getAllByRole("img")
+        .map((i) => i.getAttribute("alt"));
+
+      // Advance many rotation intervals
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(60000);
+      });
+
+      // Same count — no swaps happened
+      const imagesAfter = screen
+        .getAllByRole("img")
+        .map((i) => i.getAttribute("alt"));
+      expect(imagesAfter.length).toBe(imagesBefore.length);
+    });
+
+    it("rotation eventually cycles through all queued clients", async () => {
+      const allClients = [
+        ...MOCK_CLIENTS,
+        makeClient(13, "Extra One", "extra1.com"),
+      ];
+
+      fetchSpy.mockResolvedValueOnce(
+        new Response(JSON.stringify(allClients), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+
+      await renderAndResolve();
+
+      // Run enough rotation cycles to guarantee the 13th client appears
+      // Each rotation takes: ROTATION_INTERVAL (5s) + 2 * FADE_DURATION (1.5s) = 8s
+      for (let i = 0; i < 15; i++) {
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(8500);
+        });
+        // Fire load events on any new images
+        await act(async () => {
+          const imgs = document.querySelectorAll("img");
+          for (const img of imgs) {
+            img.dispatchEvent(new Event("load", { bubbles: false }));
+          }
+          await vi.advanceTimersByTimeAsync(100);
+        });
+      }
+
+      // Component should still be healthy
+      expect(screen.getByText("Clients We Serve")).toBeInTheDocument();
+      expect(screen.getAllByRole("img").length).toBeGreaterThan(0);
+    });
+  });
+
+  // ── Placeholder hydration guard ───────────────────────────────
+
+  describe("placeholder hydration guard", () => {
+    it("placeholder has minHeight 200px for Astro client:visible trigger", () => {
+      const { container } = render(<ClientShowcase />);
+      const placeholder = container.querySelector("[aria-hidden='true']");
+      expect(placeholder).not.toBeNull();
+      expect(placeholder?.getAttribute("style")).toContain("min-height");
+      expect(placeholder?.getAttribute("style")).toContain("200px");
+    });
+
+    it("placeholder is replaced by section once clients load", async () => {
+      const { container } = await renderAndResolve();
+      const placeholder = container.querySelector("[aria-hidden='true']");
+      expect(placeholder).toBeNull();
+      const section = container.querySelector("section#clients");
+      expect(section).not.toBeNull();
+    });
+  });
+
+  // ── Fetch endpoint contract ───────────────────────────────────
+
+  describe("fetch endpoint contract", () => {
+    it("calls /api/clients exactly once on mount", async () => {
+      await renderAndResolve();
+      const clientsCalls = fetchSpy.mock.calls.filter(
+        (call) => call[0] === "/api/clients",
+      );
+      expect(clientsCalls.length).toBe(1);
+    });
+
+    it("does not refetch on re-render", async () => {
+      const { rerender } = await renderAndResolve();
+      rerender(<ClientShowcase />);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      const clientsCalls = fetchSpy.mock.calls.filter(
+        (call) => call[0] === "/api/clients",
+      );
+      // Still just 1 call from initial mount
+      expect(clientsCalls.length).toBe(1);
+    });
+  });
+
+  // ── LogoSlot lifecycle ────────────────────────────────────────
+
+  describe("LogoSlot lifecycle", () => {
+    it("image onLoad triggers visibility (opacity 1)", async () => {
+      const { container } = render(<ClientShowcase />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(100);
+      });
+
+      // Before onLoad, slots have opacity: 0
+      const slotBefore = container.querySelector("[title]");
+      expect(slotBefore?.getAttribute("style")).toContain("opacity: 0");
+
+      // Fire load
+      await act(async () => {
+        const imgs = container.querySelectorAll("img");
+        for (const img of imgs) {
+          img.dispatchEvent(new Event("load", { bubbles: false }));
+        }
+        await vi.advanceTimersByTimeAsync(50);
+      });
+
+      // After onLoad, slots have opacity: 1
+      const slotAfter = container.querySelector("[title]");
+      expect(slotAfter?.getAttribute("style")).toContain("opacity: 1");
+    });
+
+    it("image onError transitions to initials badge", async () => {
+      const { container } = await renderAndResolve();
+
+      const imageCountBefore = container.querySelectorAll("img").length;
+      expect(imageCountBefore).toBe(12);
+
+      // Fire error on first image
+      await act(async () => {
+        const firstImg = container.querySelector("img");
+        firstImg?.dispatchEvent(new Event("error", { bubbles: false }));
+        await vi.advanceTimersByTimeAsync(50);
+      });
+
+      // One fewer image, one more initials badge
+      const imageCountAfter = container.querySelectorAll("img").length;
+      expect(imageCountAfter).toBe(11);
+      const initialsBadges = container.querySelectorAll(".bg-white\\/10.rounded-lg");
+      expect(initialsBadges.length).toBe(1);
+    });
+  });
+
+  // ── getInitials logic via mock ────────────────────────────────
+
+  describe("getInitials rendering", () => {
+    it("generates correct initials for multi-word company names", async () => {
+      logoShouldResolve = false;
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([makeClient(1, "Ford Motor Company", "ford.com")]),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+
+      const { container } = render(<ClientShowcase />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
+
+      // "Ford Motor Company" → "FMC" (filters out common words)
+      const initialsEl = container.querySelector(".font-bold.tracking-wide");
+      expect(initialsEl?.textContent).toBe("FMC");
+    });
+
+    it("generates correct initials filtering 'the' and '&'", async () => {
+      logoShouldResolve = false;
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            makeClient(1, "The Ford & Motor", "ford.com"),
+          ]),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+
+      const { container } = render(<ClientShowcase />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
+
+      // "The Ford & Motor" → filters "The" and "&" → "FM"
+      const initialsEl = container.querySelector(".font-bold.tracking-wide");
+      expect(initialsEl?.textContent).toBe("FM");
+    });
+
+    it("caps initials at 3 characters max", async () => {
+      logoShouldResolve = false;
+      fetchSpy.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            makeClient(
+              1,
+              "Very Long Company Name Here",
+              "vlcnh.com",
+            ),
+          ]),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+
+      const { container } = render(<ClientShowcase />);
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(200);
+      });
+
+      const initialsEl = container.querySelector(".font-bold.tracking-wide");
+      expect(initialsEl?.textContent?.length).toBeLessThanOrEqual(3);
     });
   });
 });

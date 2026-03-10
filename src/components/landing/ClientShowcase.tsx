@@ -58,8 +58,6 @@ function LogoSlot({ client, isFading, reducedMotion }: LogoSlotProps) {
         transition: `opacity ${FADE_DURATION}ms ease-in-out`,
       };
 
-  const brandColor = client.color ?? '#0066CC';
-
   return (
     <div
       className="group flex flex-col items-center justify-center gap-2 py-3"
@@ -73,7 +71,7 @@ function LogoSlot({ client, isFading, reducedMotion }: LogoSlotProps) {
             src={logoUrl}
             alt={client.name}
             referrerPolicy="no-referrer"
-            className="max-h-[48px] max-w-[48px] md:max-h-[56px] md:max-w-[56px] object-contain rounded-md opacity-80 group-hover:opacity-100 transition-opacity duration-300"
+            className="max-h-[48px] max-w-[48px] md:max-h-[56px] md:max-w-[56px] object-contain rounded-md brightness-0 invert opacity-60 group-hover:opacity-100 transition-opacity duration-300"
             onLoad={() => setLoaded(true)}
             onError={() => {
               setLogoUrl(null);
@@ -81,14 +79,8 @@ function LogoSlot({ client, isFading, reducedMotion }: LogoSlotProps) {
             }}
           />
         ) : loaded ? (
-          <div
-            className="w-12 h-12 md:w-14 md:h-14 rounded-lg flex items-center justify-center"
-            style={{
-              background: `linear-gradient(135deg, ${brandColor}66, ${brandColor}33)`,
-              border: `1px solid ${brandColor}44`,
-            }}
-          >
-            <span className="text-white font-bold text-sm md:text-base tracking-wide">
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-lg flex items-center justify-center bg-white/10">
+            <span className="text-white/70 font-bold text-sm md:text-base tracking-wide">
               {getInitials(client.name)}
             </span>
           </div>
