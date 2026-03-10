@@ -66,7 +66,7 @@ export default function ProjectShowcase() {
                     type="image/webp"
                   />
                   <img
-                    src={`${project.image}-960w.jpg`}
+                    src={`${project.image}.jpg`}
                     alt={project.alt}
                     width="960"
                     height="540"
