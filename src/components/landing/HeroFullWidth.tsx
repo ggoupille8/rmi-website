@@ -101,10 +101,10 @@ function useCountUp(
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
 
-      // Easing function for smooth animation
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      // easeOutExpo: fast start, smooth deceleration
+      const easeOutExpo = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
       const currentValue = Math.floor(
-        startValue + (endValue - startValue) * easeOutQuart
+        startValue + (endValue - startValue) * easeOutExpo
       );
 
       setCount(currentValue);
