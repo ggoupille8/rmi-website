@@ -243,7 +243,7 @@ export default function Services() {
               const modalGlowColor = "bg-accent-500/20";
               const hasImages = activeServiceData.images.length > 0;
               return (
-                <div className={`flex h-full min-h-0 ${hasImages ? "flex-col md:flex-row" : "flex-col"}`} style={hasImages ? { height: "85vh", maxHeight: "85vh" } : undefined}>
+                <div className={`flex min-h-0 ${hasImages ? "flex-col md:flex-row h-[85vh] max-h-[85vh]" : "flex-col h-full"}`}>
                   {/* Left Panel — Image Slideshow (60% on desktop) */}
                   {hasImages && (
                     <div className="relative md:w-[60%] flex-shrink-0 max-h-[40vh] md:max-h-none overflow-hidden rounded-t-2xl md:rounded-t-none md:rounded-l-2xl">
