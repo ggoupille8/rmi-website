@@ -41,10 +41,10 @@ const heroImageOrigins = [
   "center 45%",        // hero-6: zoom toward center-upper subject
 ];
 
-const SLIDE_DURATION = 12000; // 12s per image
-const CROSSFADE_MS = 800; // crossfade overlap duration
-const KENBURNS_MS = 8000; // Ken Burns zoom duration
-const KENBURNS_SCALE = 1.06; // zoom end scale
+const SLIDE_DURATION = 7000; // 7s per slide display
+const CROSSFADE_MS = 1000; // 1s crossfade with ease-in-out
+const KENBURNS_MS = 8000; // 8s Ken Burns zoom duration
+const KENBURNS_SCALE = 1.06; // subtle zoom: scale(1.0) to scale(1.06)
 
 interface HeroFullWidthProps {
   tagline?: string;
