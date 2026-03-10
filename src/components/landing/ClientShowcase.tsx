@@ -24,17 +24,18 @@ const clients: Client[] = [
 
 export default function ClientShowcase() {
   return (
-    <section id="clients" className="py-12 sm:py-16 bg-neutral-950">
+    <section id="clients" className="py-8 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-800">
       <div className="max-w-6xl mx-auto px-4">
         {/* Heading */}
-        <div className="text-center mb-12">
-          <p className="text-sm font-semibold tracking-widest text-blue-400 uppercase mb-3">
+        <div className="text-center">
+          <p className="text-xs font-semibold tracking-widest text-blue-400 uppercase mb-3">
             Trusted by Industry Leaders
           </p>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">
+          <h2 className="font-bold tracking-wider text-white uppercase text-xl sm:text-2xl lg:text-3xl">
             Clients We Serve
           </h2>
-          <p className="text-neutral-400 max-w-2xl mx-auto">
+          <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto" />
+          <p className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-8 sm:mb-10">
             Michigan&apos;s commercial &amp; industrial facilities trust RMI
           </p>
         </div>
