@@ -38,21 +38,20 @@ describe("ClientShowcase", () => {
       const grid = container.querySelector(".grid");
       expect(grid).not.toBeNull();
       expect(grid?.className).toContain("grid-cols-3");
-      expect(grid?.className).toContain("sm:grid-cols-4");
-      expect(grid?.className).toContain("lg:grid-cols-6");
+      expect(grid?.className).toContain("md:grid-cols-6");
     });
 
-    it("renders all 12 client logos", () => {
+    it("renders all 18 client logos", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
-      expect(images.length).toBe(12);
+      expect(images.length).toBe(18);
     });
 
     it("section has proper padding and background classes", () => {
       const { container } = render(<ClientShowcase />);
       const section = container.querySelector("section#clients");
       expect(section).not.toBeNull();
-      expect(section?.className).toContain("bg-neutral-950");
+      expect(section?.className).toContain("bg-neutral-900");
     });
 
     it("content is constrained to max-w-6xl", () => {
@@ -80,8 +79,8 @@ describe("ClientShowcase", () => {
       const cdnImages = images.filter((img) =>
         img.getAttribute("src")?.startsWith("https://"),
       );
-      expect(localImages.length).toBe(3);
-      expect(cdnImages.length).toBe(9);
+      expect(localImages.length).toBe(10);
+      expect(cdnImages.length).toBe(8);
       for (const img of localImages) {
         expect(img.className).toContain("brightness-0");
         expect(img.className).toContain("invert");
@@ -130,7 +129,7 @@ describe("ClientShowcase", () => {
     it("applies opacity-60 hover transition on logo containers", () => {
       const { container } = render(<ClientShowcase />);
       const logoContainers = container.querySelectorAll("[title]");
-      expect(logoContainers.length).toBe(12);
+      expect(logoContainers.length).toBe(18);
       for (const el of logoContainers) {
         expect(el.className).toContain("opacity-70");
         expect(el.className).toContain("hover:opacity-100");
@@ -207,12 +206,12 @@ describe("ClientShowcase", () => {
       expect(heading.className).toContain("text-white");
     });
 
-    it("subtitle uses neutral-400 color", () => {
+    it("subtitle uses neutral-300 color", () => {
       render(<ClientShowcase />);
       const subtitle = screen.getByText(
         /Michigan.*commercial.*industrial facilities trust RMI/,
       );
-      expect(subtitle.className).toContain("text-neutral-400");
+      expect(subtitle.className).toContain("text-neutral-300");
     });
   });
 

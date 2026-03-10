@@ -3,23 +3,38 @@ interface Client {
   logo: string;
   /** true when logo is served from an external CDN (already white) */
   cdn: boolean;
+  /** controls rendered height — sm for visually heavy, lg for thin/small logos */
+  size?: 'sm' | 'md' | 'lg';
 }
+
+const sizeClasses: Record<string, string> = {
+  sm: 'h-6 sm:h-8 lg:h-10 w-auto max-w-[120px] sm:max-w-[140px] lg:max-w-[160px]',
+  md: 'h-8 sm:h-10 lg:h-12 w-auto max-w-[130px] sm:max-w-[150px] lg:max-w-[180px]',
+  lg: 'h-10 sm:h-12 lg:h-14 w-auto max-w-[140px] sm:max-w-[160px] lg:max-w-[200px]',
+};
 
 const clients: Client[] = [
   // Row 1 — Automotive + Tech
-  { name: "Ford Motor Company", logo: "https://cdn.simpleicons.org/ford/white", cdn: true },
-  { name: "General Motors", logo: "https://cdn.simpleicons.org/generalmotors/white", cdn: true },
-  { name: "Toyota", logo: "https://cdn.simpleicons.org/toyota/white", cdn: true },
-  { name: "Stellantis", logo: "/images/clients/stellantis.svg", cdn: false },
-  { name: "Nissan", logo: "https://cdn.simpleicons.org/nissan/white", cdn: true },
-  { name: "Apple", logo: "https://cdn.simpleicons.org/apple/white", cdn: true },
+  { name: "Ford Motor Company", logo: "https://cdn.simpleicons.org/ford/white", cdn: true, size: "lg" },
+  { name: "General Motors", logo: "https://cdn.simpleicons.org/generalmotors/white", cdn: true, size: "md" },
+  { name: "Toyota", logo: "https://cdn.simpleicons.org/toyota/white", cdn: true, size: "lg" },
+  { name: "Stellantis", logo: "/images/clients/stellantis.svg", cdn: false, size: "md" },
+  { name: "Nissan", logo: "https://cdn.simpleicons.org/nissan/white", cdn: true, size: "md" },
+  { name: "Apple", logo: "https://cdn.simpleicons.org/apple/white", cdn: true, size: "sm" },
   // Row 2 — National + Regional
-  { name: "Starbucks", logo: "https://cdn.simpleicons.org/starbucks/white", cdn: true },
-  { name: "Verizon", logo: "https://cdn.simpleicons.org/verizon/white", cdn: true },
-  { name: "Delta Air Lines", logo: "https://cdn.simpleicons.org/delta/white", cdn: true },
-  { name: "Henry Ford Health", logo: "/images/clients/henry-ford-health.svg", cdn: false },
-  { name: "DTE Energy", logo: "/images/clients/dte-energy.svg", cdn: false },
-  { name: "FedEx", logo: "https://cdn.simpleicons.org/fedex/white", cdn: true },
+  { name: "Starbucks", logo: "https://cdn.simpleicons.org/starbucks/white", cdn: true, size: "md" },
+  { name: "Delta Air Lines", logo: "https://cdn.simpleicons.org/delta/white", cdn: true, size: "lg" },
+  { name: "Henry Ford Health", logo: "/images/clients/henry-ford-health.svg", cdn: false, size: "md" },
+  { name: "DTE Energy", logo: "/images/clients/dte-energy.svg", cdn: false, size: "sm" },
+  { name: "FedEx", logo: "https://cdn.simpleicons.org/fedex/white", cdn: true, size: "lg" },
+  { name: "Amazon", logo: "/images/clients/amazon.svg", cdn: false, size: "md" },
+  // Row 3 — New additions
+  { name: "BASF", logo: "/images/clients/basf.svg", cdn: false, size: "md" },
+  { name: "Costco", logo: "/images/clients/costco.svg", cdn: false, size: "md" },
+  { name: "Comerica", logo: "/images/clients/comerica.svg", cdn: false, size: "md" },
+  { name: "Rocket Mortgage", logo: "/images/clients/rocket-mortgage.svg", cdn: false, size: "md" },
+  { name: "YMCA", logo: "/images/clients/ymca.svg", cdn: false, size: "md" },
+  { name: "DMC", logo: "/images/clients/dmc.svg", cdn: false, size: "md" },
 ];
 
 export default function ClientShowcase() {
@@ -40,8 +55,8 @@ export default function ClientShowcase() {
           </p>
         </div>
 
-        {/* Logo grid — 12 items = 2 rows of 6 (desktop), 3 of 4 (tablet), 4 of 3 (mobile) */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-6 items-center justify-items-center">
+        {/* Logo grid — 18 items = 3 rows of 6 (desktop/tablet), 6 rows of 3 (mobile) */}
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-x-4 gap-y-8 items-center justify-items-center">
           {clients.map((client) => (
             <div
               key={client.name}
@@ -51,7 +66,7 @@ export default function ClientShowcase() {
               <img
                 src={client.logo}
                 alt={client.name}
-                className={`h-8 sm:h-10 lg:h-12 w-auto max-w-[120px] sm:max-w-[140px] lg:max-w-[180px] object-contain ${
+                className={`${sizeClasses[client.size ?? 'md']} object-contain ${
                   client.cdn ? "" : "brightness-0 invert"
                 }`}
                 loading="lazy"
