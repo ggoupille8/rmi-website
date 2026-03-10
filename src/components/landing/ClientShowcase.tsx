@@ -8,9 +8,9 @@ interface Client {
 }
 
 const sizeClasses: Record<string, string> = {
-  sm: 'h-8 sm:h-10 lg:h-12 w-auto max-w-[130px] sm:max-w-[150px] lg:max-w-[170px]',
-  md: 'h-10 sm:h-12 lg:h-14 w-auto max-w-[140px] sm:max-w-[160px] lg:max-w-[190px]',
-  lg: 'h-12 sm:h-14 lg:h-16 w-auto max-w-[150px] sm:max-w-[170px] lg:max-w-[210px]',
+  sm: 'h-8 sm:h-10 lg:h-10 w-auto max-w-[110px] sm:max-w-[130px] lg:max-w-[170px]',
+  md: 'h-10 sm:h-11 lg:h-12 w-auto max-w-[120px] sm:max-w-[140px] lg:max-w-[170px]',
+  lg: 'h-11 sm:h-12 lg:h-14 w-auto max-w-[130px] sm:max-w-[150px] lg:max-w-[170px]',
 };
 
 const clients: Client[] = [
@@ -60,7 +60,7 @@ export default function ClientShowcase() {
           {clients.map((client) => (
             <div
               key={client.name}
-              className="flex items-center justify-center h-20 w-full px-2 overflow-visible opacity-70 hover:opacity-100 transition-opacity duration-300"
+              className="flex items-center justify-center h-14 w-full px-2 overflow-hidden opacity-70 hover:opacity-100 transition-opacity duration-300"
               title={client.name}
             >
               <img
