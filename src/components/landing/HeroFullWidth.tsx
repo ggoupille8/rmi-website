@@ -297,7 +297,7 @@ export default function HeroFullWidth({
                 <source srcSet="/images/logo/rmi-logo-full.webp" type="image/webp" />
                 <img
                   src="/images/logo/rmi-logo-full.png"
-                  alt=""
+                  alt="Resource Mechanical Insulation"
                   width="500"
                   height="200"
                   loading="eager"
