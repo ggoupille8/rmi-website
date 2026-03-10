@@ -81,7 +81,7 @@ export default function MaterialsMarquee() {
           }}
         >
           <div className="service-ticker overflow-hidden">
-            <div className="service-ticker__track" style={{ animationDirection: "reverse" }}>
+            <div className="service-ticker__track [animation-direction:reverse]">
               {duplicatedRow2.map((material, index) => (
                 <span
                   key={`r2-${material}-${index}`}
