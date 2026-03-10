@@ -63,31 +63,31 @@ export default function Footer() {
             <nav className="flex flex-col items-center md:items-start gap-1" aria-label="Footer navigation">
               <a
                 href="#services"
-                className="inline-flex items-center text-neutral-300 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="inline-flex items-center text-neutral-300 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Services
               </a>
               <a
                 href="#about"
-                className="inline-flex items-center text-neutral-300 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="inline-flex items-center text-neutral-300 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 About
               </a>
               <a
                 href="#projects"
-                className="inline-flex items-center text-neutral-300 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="inline-flex items-center text-neutral-300 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Projects
               </a>
               <a
                 href="#contact"
-                className="inline-flex items-center text-neutral-300 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="inline-flex items-center text-neutral-300 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Contact
               </a>
               <a
                 href="#contact"
-                className="inline-flex items-center text-neutral-300 hover:text-accent-400 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="inline-flex items-center text-neutral-300 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Request a Quote
               </a>
