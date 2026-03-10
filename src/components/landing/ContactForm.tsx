@@ -349,9 +349,7 @@ export default function ContactForm({
         message: "",
         website: "",
       });
-    } catch (error) {
-      console.error("Form submission error:", error);
-      // Only show generic error for network/server errors
+    } catch {
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
@@ -416,6 +414,7 @@ export default function ContactForm({
                   id="name"
                   name="name"
                   required
+                  aria-required="true"
                   autoComplete="name"
                   value={formData.name}
                   onChange={(e) => { handleChange(e); handleFieldEdit(); }}
@@ -468,6 +467,7 @@ export default function ContactForm({
                   id="email"
                   name="email"
                   required
+                  aria-required="true"
                   autoComplete="email"
                   value={formData.email}
                   onChange={(e) => { handleChange(e); handleFieldEdit(); }}
@@ -533,6 +533,8 @@ export default function ContactForm({
                 ref={projectTypeRef}
                 id="projectType"
                 name="projectType"
+                required
+                aria-required="true"
                 autoComplete="off"
                 value={formData.projectType}
                 onChange={(e) => { handleChange(e); handleFieldEdit(); }}
@@ -568,6 +570,7 @@ export default function ContactForm({
                 id="message"
                 name="message"
                 required
+                aria-required="true"
                 autoComplete="off"
                 rows={3}
                 value={formData.message}
@@ -594,15 +597,13 @@ export default function ContactForm({
 
             {submitStatus === "success" && (
               <div
-                className="rounded-lg bg-success-dark/20 p-6 border border-success/30 text-center"
+                className="rounded-lg bg-success-dark/20 p-6 border border-success/30 text-center animate-[fadeIn_400ms_ease-out]"
                 role="alert"
                 aria-live="polite"
-                style={{ animation: "fadeIn 400ms ease-out" }}
               >
                 {/* Animated checkmark */}
                 <div
-                  className="mx-auto w-14 h-14 rounded-full bg-success/20 flex items-center justify-center mb-3"
-                  style={{ animation: "modalIn 500ms ease-out" }}
+                  className="mx-auto w-14 h-14 rounded-full bg-success/20 flex items-center justify-center mb-3 animate-[modalIn_500ms_ease-out]"
                 >
                   <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -666,6 +667,7 @@ export default function ContactForm({
               <button
                 type="submit"
                 disabled={isSubmitting}
+                aria-busy={isSubmitting ? "true" : undefined}
                 className="btn-primary w-full sm:w-auto sm:min-w-[200px] py-3 px-8 text-base sm:text-lg font-bold shadow-lg shadow-accent-500/25 hover:shadow-[0_8px_24px_rgba(59,130,246,0.35)] hover:scale-[1.02] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-accent-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 transition-all duration-200"
               >
                 {isSubmitting ? (
