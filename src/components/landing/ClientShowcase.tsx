@@ -37,10 +37,17 @@ const ANIMATION_TOTAL_MS = 200 + 17 * 60 + 500;
 export default function ClientShowcase() {
   const [isVisible, setIsVisible] = useState(false);
   const [animationDone, setAnimationDone] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
   const prefersReducedMotion = typeof window !== "undefined"
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // SSR-safe guard: only apply animation styles after React hydrates.
+  // Without this, SSR renders opacity:0 which collapses the astro-island to 0×0.
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Observe section entering viewport
   useEffect(() => {
@@ -94,7 +101,7 @@ export default function ClientShowcase() {
     }
   }, [isVisible, animationDone]);
 
-  const skipAnimation = prefersReducedMotion || animationDone;
+  const skipAnimation = !hasMounted || prefersReducedMotion || animationDone;
 
   return (
     <section
