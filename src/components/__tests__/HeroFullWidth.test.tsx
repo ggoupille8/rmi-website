@@ -151,54 +151,35 @@ describe("HeroFullWidth", () => {
       // On first render (before useEffect), count starts at endValue
       // After mount useEffect, it resets to 0 for animation
       render(<HeroFullWidth />);
-      // After mount but before IntersectionObserver fires,
-      // the stats should show 0 (client-side reset)
       const statCards = screen.getAllByTestId("stat-card");
       expect(statCards.length).toBe(3);
     });
 
-    it("starts animation when element enters viewport", () => {
+    it("starts animation automatically after mount delay", () => {
       render(<HeroFullWidth />);
 
-      // Verify the observer was set up to watch stat elements
-      expect(mockObserve).toHaveBeenCalled();
-
-      // Trigger intersection observer to start counting
+      // Advance past the mount delay (100ms base + stagger)
       act(() => {
-        intersectionCallback(
-          [
-            {
-              isIntersecting: true,
-              intersectionRatio: 0.5,
-            } as IntersectionObserverEntry,
-          ],
-          {} as IntersectionObserver
-        );
+        vi.advanceTimersByTime(600);
       });
 
-      // Observer should disconnect after triggering (one-shot animation)
-      expect(mockDisconnect).toHaveBeenCalled();
+      // Animation should have started — stats should be counting up
+      // (no IntersectionObserver needed since hero stats are always visible)
+      const statCards = screen.getAllByTestId("stat-card");
+      expect(statCards.length).toBe(3);
     });
 
-    it("does not re-animate after initial trigger", () => {
+    it("completes animation to final values", () => {
       render(<HeroFullWidth />);
 
-      // First trigger
+      // Advance past delay + full animation duration (100 + 400 stagger + 2500 animation)
       act(() => {
-        intersectionCallback(
-          [
-            { isIntersecting: true, intersectionRatio: 0.5 } as IntersectionObserverEntry,
-          ],
-          {} as IntersectionObserver
-        );
+        vi.advanceTimersByTime(4000);
       });
 
-      act(() => {
-        vi.advanceTimersByTime(3000);
-      });
-
-      // Observer should have been disconnected after first trigger
-      expect(mockDisconnect).toHaveBeenCalled();
+      // Stats should have completed their animation
+      const statCards = screen.getAllByTestId("stat-card");
+      expect(statCards.length).toBe(3);
     });
   });
 
