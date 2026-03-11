@@ -6,24 +6,24 @@ interface Client {
 }
 
 const clients: Client[] = [
-  // Row 1 — Ford, Starbucks, Toyota, Comcast, FedEx, Apple
+  // Row 1 — Automotive/industrial heavyweights + tech giants
   { name: "Ford Motor Company", logo: "/images/clients/ford.svg", needsInvert: false },
-  { name: "Starbucks", logo: "/images/clients/starbucks.svg", needsInvert: false },
-  { name: "Toyota", logo: "/images/clients/toyota.svg", needsInvert: false },
-  { name: "Comcast", logo: "/images/clients/comcast.svg", needsInvert: true },
-  { name: "FedEx", logo: "/images/clients/fedex.svg", needsInvert: false },
-  { name: "Apple", logo: "/images/clients/apple.svg", needsInvert: false },
-  // Row 2 — GM, Delta, Flagstar, Stellantis, Amazon, BASF
   { name: "General Motors", logo: "/images/clients/generalmotors.svg", needsInvert: false },
-  { name: "Delta Air Lines", logo: "/images/clients/delta.svg", needsInvert: false },
-  { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", needsInvert: true },
+  { name: "Toyota", logo: "/images/clients/toyota.svg", needsInvert: false },
   { name: "Stellantis", logo: "/images/clients/stellantis.svg", needsInvert: true },
+  { name: "Apple", logo: "/images/clients/apple.svg", needsInvert: false },
   { name: "Amazon", logo: "/images/clients/amazon.svg", needsInvert: true },
+  // Row 2 — Logistics, telecom, industrial, financial
+  { name: "FedEx", logo: "/images/clients/fedex.svg", needsInvert: false },
+  { name: "Delta Air Lines", logo: "/images/clients/delta.svg", needsInvert: false },
+  { name: "Comcast", logo: "/images/clients/comcast.svg", needsInvert: true },
   { name: "BASF", logo: "/images/clients/basf.svg", needsInvert: true },
-  // Row 3 — Nissan, Target, Costco, Domino's, Shake Shack, Five Below
+  { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", needsInvert: true },
   { name: "Nissan", logo: "/images/clients/nissan.svg", needsInvert: false },
+  // Row 3 — Retail/food service
   { name: "Target", logo: "/images/clients/target.svg", needsInvert: true },
   { name: "Costco", logo: "/images/clients/costco.svg", needsInvert: true },
+  { name: "Starbucks", logo: "/images/clients/starbucks.svg", needsInvert: false },
   { name: "Domino's", logo: "/images/clients/dominos.svg", needsInvert: true },
   { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", needsInvert: true },
   { name: "Five Below", logo: "/images/clients/five-below.svg", needsInvert: true },
