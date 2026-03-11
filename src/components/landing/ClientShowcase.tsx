@@ -3,11 +3,13 @@ interface Client {
   logo: string;
   /** true when logo is served from an external CDN (already white, square 1:1) */
   cdn: boolean;
+  /** Optional mobile size override classes (replaces default sizing on mobile) */
+  mobileSize?: string;
 }
 
 const clients: Client[] = [
   // Row 1 — Automotive + Tech (biggest names, icon-heavy)
-  { name: "Ford Motor Company", logo: "https://cdn.simpleicons.org/ford/white", cdn: true },
+  { name: "Ford Motor Company", logo: "https://cdn.simpleicons.org/ford/white", cdn: true, mobileSize: "h-14 lg:h-14 w-auto max-w-[75px] lg:max-w-[70px]" },
   { name: "General Motors", logo: "https://cdn.simpleicons.org/generalmotors/white", cdn: true },
   { name: "Toyota", logo: "https://cdn.simpleicons.org/toyota/white", cdn: true },
   { name: "Stellantis", logo: "/images/clients/stellantis.svg", cdn: false },
@@ -16,18 +18,24 @@ const clients: Client[] = [
   // Row 2 — Energy + Healthcare + Transport
   { name: "Starbucks", logo: "https://cdn.simpleicons.org/starbucks/white", cdn: true },
   { name: "Delta Air Lines", logo: "https://cdn.simpleicons.org/delta/white", cdn: true },
-  { name: "Comcast", logo: "/images/clients/comcast.svg", cdn: false },
-  { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", cdn: false },
-  { name: "FedEx", logo: "https://cdn.simpleicons.org/fedex/white", cdn: true },
-  { name: "Amazon", logo: "/images/clients/amazon.svg", cdn: false },
+  { name: "Comcast", logo: "/images/clients/comcast.svg", cdn: false, mobileSize: "h-7 lg:h-12 w-auto max-w-[110px] lg:max-w-[170px] brightness-0 invert" },
+  { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", cdn: false, mobileSize: "h-7 lg:h-12 w-auto max-w-[110px] lg:max-w-[170px] brightness-0 invert" },
+  { name: "FedEx", logo: "https://cdn.simpleicons.org/fedex/white", cdn: true, mobileSize: "h-14 lg:h-14 w-auto max-w-[75px] lg:max-w-[70px]" },
+  { name: "Amazon", logo: "/images/clients/amazon.svg", cdn: false, mobileSize: "h-7 lg:h-12 w-auto max-w-[110px] lg:max-w-[170px] brightness-0 invert" },
   // Row 3 — Industry + Retail + Regional
-  { name: "BASF", logo: "/images/clients/basf.svg", cdn: false },
+  { name: "BASF", logo: "/images/clients/basf.svg", cdn: false, mobileSize: "h-7 lg:h-12 w-auto max-w-[110px] lg:max-w-[170px] brightness-0 invert" },
   { name: "Costco", logo: "/images/clients/costco.svg", cdn: false },
-  { name: "Rocket Mortgage", logo: "https://cdn.simpleicons.org/rocket/white", cdn: true },
+  { name: "Target", logo: "/images/clients/target.svg", cdn: false },
   { name: "Domino's", logo: "/images/clients/dominos.svg", cdn: false },
   { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", cdn: false },
   { name: "Five Below", logo: "/images/clients/five-below.svg", cdn: false },
 ];
+
+function getLogoClasses(client: Client): string {
+  if (client.mobileSize) return `object-contain ${client.mobileSize}`;
+  if (client.cdn) return "object-contain h-12 lg:h-14 w-auto max-w-[60px] lg:max-w-[70px]";
+  return "object-contain h-10 lg:h-12 w-auto max-w-[150px] lg:max-w-[170px] brightness-0 invert";
+}
 
 export default function ClientShowcase() {
   return (
@@ -58,11 +66,7 @@ export default function ClientShowcase() {
               <img
                 src={client.logo}
                 alt={client.name}
-                className={`object-contain ${
-                  client.cdn
-                    ? "h-12 lg:h-14 w-auto max-w-[60px] lg:max-w-[70px]"
-                    : "h-10 lg:h-12 w-auto max-w-[150px] lg:max-w-[170px] brightness-0 invert"
-                }`}
+                className={getLogoClasses(client)}
                 loading="lazy"
                 width={180}
                 height={40}
