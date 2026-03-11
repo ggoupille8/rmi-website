@@ -52,7 +52,7 @@ export default function ClientShowcase() {
           {clients.map((client) => (
             <div
               key={client.name}
-              className="flex items-center justify-center h-16 sm:h-18 lg:h-20 w-full px-2 opacity-70 hover:opacity-100 transition-opacity duration-300"
+              className="flex items-center justify-center h-16 sm:h-18 lg:h-20 w-full px-2 opacity-60 hover:opacity-100 hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
             >
               <img
                 src={client.logo}
