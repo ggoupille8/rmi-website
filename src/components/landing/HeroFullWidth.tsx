@@ -50,75 +50,49 @@ interface HeroFullWidthProps {
   tagline?: string;
 }
 
-// Animated counter hook
+// Animated counter hook — mount-based trigger (hero stats are always in viewport)
 function useCountUp(
   endValue: number,
   duration: number = 2000,
-  startOnView: boolean = true
+  delay: number = 0
 ): { count: number; ref: React.RefObject<HTMLDivElement | null> } {
-  // Initialize at endValue so SSR HTML shows final numbers (no "0+" flash)
-  const [count, setCount] = useState(endValue);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
+  const [count, setCount] = useState(endValue); // SSR shows final value
+  const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // On client mount, reset to 0 for animation
+  // On client mount, reset to 0 then start animation after delay
   useEffect(() => {
     setCount(0);
-    setHasMounted(true);
-  }, []);
+    const timeout = setTimeout(() => {
+      setHasAnimated(true);
+    }, 100 + delay);
+    return () => clearTimeout(timeout);
+  }, [delay]);
 
+  // Run the animation
   useEffect(() => {
-    if (!hasMounted) return;
-    if (!startOnView) {
-      setHasStarted(true);
-      return;
-    }
-    // Already animated — never re-observe
-    if (hasStarted) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasStarted(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.3 }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMounted, startOnView, hasStarted]);
-
-  useEffect(() => {
-    if (!hasStarted) return;
+    if (!hasAnimated) return;
 
     const startTime = Date.now();
-    const startValue = 0;
+    let animFrame: number;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-
       // easeOutExpo: fast start, smooth deceleration
       const easeOutExpo = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      const currentValue = Math.floor(
-        startValue + (endValue - startValue) * easeOutExpo
-      );
+      const currentValue = Math.floor(endValue * easeOutExpo);
 
       setCount(currentValue);
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        animFrame = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
-  }, [hasStarted, endValue, duration]);
+    animFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animFrame);
+  }, [hasAnimated, endValue, duration]);
 
   return { count, ref };
 }
@@ -137,7 +111,7 @@ function AnimatedStat({
   shortLabel?: string;
   delay?: number;
 }) {
-  const { count, ref } = useCountUp(endValue, 2500 + delay);
+  const { count, ref } = useCountUp(endValue, 2500, delay);
 
   // Format large numbers nicely
   const displayValue =

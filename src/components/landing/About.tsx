@@ -134,9 +134,12 @@ export default function About() {
             id="about-heading"
             className="font-bold tracking-wider text-white uppercase text-xl sm:text-2xl lg:text-3xl"
           >
-            Why Choose{' '}
-            <span className="hidden sm:inline">{companyName}</span>
-            <span className="sm:hidden">RMI</span>
+            <span aria-hidden="true">
+              Why Choose{' '}
+              <span className="hidden sm:inline">{companyName}</span>
+              <span className="sm:hidden">RMI</span>
+            </span>
+            <span className="sr-only">Why Choose {companyName}</span>
           </h2>
           <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full" />
         </div>
