@@ -1,3 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 50" fill="white">
-  <text x="170" y="36" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="32" letter-spacing="1" fill="white">BABCOCK &amp; WILCOX</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="#FFFFFF">
+  <!-- Babcock & Wilcox - B&W stylized mark + text -->
+  <g>
+    <!-- "B" letter -->
+    <path d="M8 8h18c6 0 10 3 10 8.5 0 3.5-2 6-5 7 4 1 7 4.5 7 8.5 0 6-4.5 10-11 10H8V8zm10 13h6c2.5 0 4-1.5 4-3.5S26.5 14 24 14h-6v7zm0 14h7c3 0 5-1.5 5-4s-2-4-5-4h-7v8z"/>
+    <!-- Ampersand -->
+    <path d="M52 35c-1.5 2.5-4 4-7 4-4.5 0-7.5-3-7.5-7 0-3 1.5-5 4.5-7l-2-2.5c-1.5-2-2-3.5-2-5 0-3.5 3-6 7-6s7 2.5 7 6c0 2.5-1.5 4.5-4 6l3.5 4c.5-1 1-2.5 1.2-4h4c-.5 2.5-1.5 5-3 7l4 4.5h-5L52 35zm-7-1.5c1.5 0 2.8-.8 3.8-2l-4-4.5c-1.8 1.2-2.8 2.5-2.8 4 0 1.5 1.2 2.5 3 2.5zm.5-14c1.2-1 2-2 2-3.2 0-1.5-1-2.3-2.5-2.3s-2.5 1-2.5 2.5c0 1 .5 1.8 1.5 3h1.5z"/>
+    <!-- "W" letter -->
+    <path d="M60 8h10l5.5 22 5.5-22h10l5.5 22L102 8h10l-10 34h-10l-6-22-6 22H70L60 8z"/>
+  </g>
+  <!-- "BABCOCK & WILCOX" text below -->
+  <text x="100" y="56" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="400" font-size="7" letter-spacing="1.5" fill="#FFFFFF">BABCOCK &amp; WILCOX</text>
 </svg>
