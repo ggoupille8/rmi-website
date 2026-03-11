@@ -29,7 +29,7 @@ const clients: Client[] = [
   { name: "CBRE", logo: "/images/clients/cbre.svg", scale: 0.8 },
   { name: "University of Michigan", logo: "/images/clients/michigan.svg", scale: 1.5 },
   { name: "Meijer", logo: "/images/clients/meijer.svg", scale: 0.8 },
-  { name: "Babcock & Wilcox", logo: "/images/clients/babcock-wilcox.svg" },
+  { name: "Smoothie King", logo: "/images/clients/smoothie-king.svg", scale: 0.8 },
   { name: "Nissan", logo: "/images/clients/nissan.svg", scale: 2 },
   // Row 4 — Consumer, automotive, energy
   { name: "Target", logo: "/images/clients/target.svg", needsInvert: true, scale: 0.8 },
