@@ -78,9 +78,10 @@ export default function ClientShowcase() {
     <section
       ref={sectionRef}
       id="clients"
-      className="py-12 sm:py-16 lg:py-20 bg-neutral-900 border-t border-neutral-800"
+      className="relative py-12 sm:py-16 lg:py-20 bg-neutral-900 border-t border-b border-neutral-800"
     >
-      <div className="max-w-6xl mx-auto px-4">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(96,165,250,0.04)_0%,transparent_70%)]" />
+      <div className="relative max-w-6xl mx-auto px-4">
         {/* Heading */}
         <div className="text-center">
           <p
