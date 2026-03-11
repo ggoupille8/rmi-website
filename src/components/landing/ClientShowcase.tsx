@@ -11,42 +11,44 @@ interface Client {
 
 const clients: Client[] = [
   // Row 1 — Automotive heavyweights + tech giants
-  { name: "Ford Motor Company", logo: "/images/clients/ford.svg", scale: 3 },
-  { name: "General Motors", logo: "/images/clients/generalmotors.svg", scale: 1.75 },
-  { name: "Toyota", logo: "/images/clients/toyota.svg", scale: 2.1 },
+  { name: "Ford Motor Company", logo: "/images/clients/ford.svg", scale: 2.4 },
+  { name: "General Motors", logo: "/images/clients/generalmotors.svg", scale: 1.4 },
+  { name: "Toyota", logo: "/images/clients/toyota.svg", scale: 1.68 },
   { name: "Stellantis", logo: "/images/clients/stellantis.svg", needsInvert: true },
-  { name: "Apple", logo: "/images/clients/apple.svg", scale: 1.8 },
-  { name: "Amazon", logo: "/images/clients/amazon.svg", needsInvert: true },
+  { name: "Apple", logo: "/images/clients/apple.svg", scale: 1.44 },
+  { name: "Amazon", logo: "/images/clients/amazon.svg", needsInvert: true, scale: 0.8 },
   // Row 2 — Logistics, auto, industrial, telecom
-  { name: "FedEx", logo: "/images/clients/fedex.svg", scale: 4 },
+  { name: "FedEx", logo: "/images/clients/fedex.svg", scale: 3.2 },
   { name: "Delta Air Lines", logo: "/images/clients/delta.svg", scale: 3 },
-  { name: "BMW", logo: "/images/clients/bmw.svg", scale: 2.2 },
-  { name: "BASF", logo: "/images/clients/basf.svg", needsInvert: true },
-  { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", needsInvert: true },
-  { name: "Verizon", logo: "/images/clients/verizon.svg" },
+  { name: "BMW", logo: "/images/clients/bmw.svg", scale: 1.76 },
+  { name: "BASF", logo: "/images/clients/basf.svg", needsInvert: true, scale: 0.8 },
+  { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", needsInvert: true, scale: 0.8 },
+  { name: "Verizon", logo: "/images/clients/verizon.svg", scale: 0.8 },
   // Row 3 — Michigan/commercial/industrial
-  { name: "Rocket Mortgage", logo: "/images/clients/rocket.svg", scale: 1.2 },
-  { name: "CBRE", logo: "/images/clients/cbre.svg" },
-  { name: "University of Michigan", logo: "/images/clients/michigan.svg", scale: 2.5 },
-  { name: "Meijer", logo: "/images/clients/meijer.svg" },
+  { name: "Rocket Mortgage", logo: "/images/clients/rocket.svg", scale: 0.96 },
+  { name: "CBRE", logo: "/images/clients/cbre.svg", scale: 0.8 },
+  { name: "University of Michigan", logo: "/images/clients/michigan.svg", scale: 1.5 },
+  { name: "Meijer", logo: "/images/clients/meijer.svg", scale: 0.8 },
   { name: "Babcock & Wilcox", logo: "/images/clients/babcock-wilcox.svg" },
   { name: "Nissan", logo: "/images/clients/nissan.svg", scale: 2 },
   // Row 4 — Consumer/regional
-  { name: "Target", logo: "/images/clients/target.svg", needsInvert: true },
-  { name: "Cadillac", logo: "/images/clients/cadillac.svg", scale: 2 },
-  { name: "Starbucks", logo: "/images/clients/starbucks.svg", scale: 2 },
-  { name: "Consumers Energy", logo: "/images/clients/consumers-energy.svg" },
-  { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", needsInvert: true, scale: 1.5 },
-  { name: "Five Below", logo: "/images/clients/five-below.svg", needsInvert: true, scale: 1.2 },
-  // Row 5 — Regional (partial row)
-  { name: "Ascension Health", logo: "/images/clients/ascension.svg", scale: 1.3 },
-  { name: "Culver's", logo: "/images/clients/culvers.svg", scale: 1.3 },
-  { name: "Eastern Michigan University", logo: "/images/clients/eastern-michigan.svg", scale: 2 },
-  { name: "Barton Malow", logo: "/images/clients/barton-malow.svg" },
+  { name: "Target", logo: "/images/clients/target.svg", needsInvert: true, scale: 0.8 },
+  { name: "Cadillac", logo: "/images/clients/cadillac.svg", scale: 3 },
+  { name: "Starbucks", logo: "/images/clients/starbucks.svg", scale: 1.6 },
+  { name: "Consumers Energy", logo: "/images/clients/consumers-energy.svg", scale: 0.8 },
+  { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", needsInvert: true, scale: 1.2 },
+  { name: "Five Below", logo: "/images/clients/five-below.svg", needsInvert: true, scale: 0.96 },
+  // Row 5 — Regional + new additions
+  { name: "Ascension Health", logo: "/images/clients/ascension.svg", scale: 1.04 },
+  { name: "Culver's", logo: "/images/clients/culvers.svg", scale: 1.04 },
+  { name: "Eastern Michigan University", logo: "/images/clients/eastern-michigan.svg", scale: 1.6 },
+  { name: "Barton Malow", logo: "/images/clients/barton-malow.svg", scale: 0.8 },
+  { name: "Audi", logo: "/images/clients/audi.svg", scale: 0.8 },
+  { name: "John E. Green Company", logo: "/images/clients/john-e-green.svg", scale: 0.8 },
 ];
 
-/** Max stagger delay = 200ms heading lead + 27 logos * 60ms + 500ms duration */
-const ANIMATION_TOTAL_MS = 200 + 27 * 60 + 500;
+/** Max stagger delay = 200ms heading lead + 29 logos * 60ms + 500ms duration */
+const ANIMATION_TOTAL_MS = 200 + 29 * 60 + 500;
 
 export default function ClientShowcase() {
   const [isVisible, setIsVisible] = useState(false);
@@ -167,7 +169,7 @@ export default function ClientShowcase() {
           </p>
         </div>
 
-        {/* Logo grid — 28 items = ~5 rows of 6 (desktop), ~10 rows of 3 (mobile) */}
+        {/* Logo grid — 30 items = 5 rows of 6 (desktop), 10 rows of 3 (mobile) */}
         <div className="grid grid-cols-3 md:grid-cols-6 gap-x-2 sm:gap-x-3 lg:gap-x-4 gap-y-3 sm:gap-y-4 lg:gap-y-5 items-center justify-items-center">
           {clients.map((client, index) => (
             <div

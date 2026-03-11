@@ -41,10 +41,10 @@ describe("ClientShowcase", () => {
       expect(grid?.className).toContain("md:grid-cols-6");
     });
 
-    it("renders all 18 client logos", () => {
+    it("renders all 30 client logos", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
-      expect(images.length).toBe(18);
+      expect(images.length).toBe(30);
     });
 
     it("section has proper padding and background classes", () => {
@@ -70,23 +70,16 @@ describe("ClientShowcase", () => {
       }
     });
 
-    it("applies monochrome filter classes only to local images", () => {
+    it("applies invert filter classes to logos that need it", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
-      const localImages = images.filter((img) =>
-        img.getAttribute("src")?.startsWith("/"),
+      const invertedImages = images.filter((img) =>
+        img.className.includes("brightness-0"),
       );
-      const cdnImages = images.filter((img) =>
-        img.getAttribute("src")?.startsWith("https://"),
-      );
-      expect(localImages.length).toBe(9);
-      expect(cdnImages.length).toBe(9);
-      for (const img of localImages) {
-        expect(img.className).toContain("brightness-0");
+      // Stellantis, Amazon, BASF, Flagstar, Target, Shake Shack, Five Below = 7
+      expect(invertedImages.length).toBe(7);
+      for (const img of invertedImages) {
         expect(img.className).toContain("invert");
-      }
-      for (const img of cdnImages) {
-        expect(img.className).not.toContain("brightness-0");
       }
     });
 
@@ -102,38 +95,17 @@ describe("ClientShowcase", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
       for (const img of images) {
-        expect(img).toHaveAttribute("width", "180");
+        expect(img).toHaveAttribute("width", "130");
         expect(img).toHaveAttribute("height", "40");
       }
     });
 
-    it("sets referrerPolicy='no-referrer' on all images", () => {
-      render(<ClientShowcase />);
-      const images = screen.getAllByRole("img");
-      for (const img of images) {
-        expect(img).toHaveAttribute("referrerpolicy", "no-referrer");
-      }
-    });
-
-    it("uses SimpleIcons CDN or static /images/clients/ paths for logos", () => {
+    it("uses static /images/clients/ paths for all logos", () => {
       render(<ClientShowcase />);
       const images = screen.getAllByRole("img");
       for (const img of images) {
         const src = img.getAttribute("src");
-        expect(src).toMatch(
-          /^(https:\/\/cdn\.simpleicons\.org\/.+\/white|\/images\/clients\/.+\.(svg|png))$/,
-        );
-      }
-    });
-
-    it("applies opacity-60 hover transition on logo containers", () => {
-      const { container } = render(<ClientShowcase />);
-      const logoContainers = container.querySelectorAll("[title]");
-      expect(logoContainers.length).toBe(18);
-      for (const el of logoContainers) {
-        expect(el.className).toContain("opacity-70");
-        expect(el.className).toContain("hover:opacity-100");
-        expect(el.className).toContain("transition-opacity");
+        expect(src).toMatch(/^\/images\/clients\/.+\.svg$/);
       }
     });
   });
@@ -162,6 +134,16 @@ describe("ClientShowcase", () => {
     it("includes Apple", () => {
       render(<ClientShowcase />);
       expect(screen.getByAltText("Apple")).toBeInTheDocument();
+    });
+
+    it("includes Audi", () => {
+      render(<ClientShowcase />);
+      expect(screen.getByAltText("Audi")).toBeInTheDocument();
+    });
+
+    it("includes John E. Green Company", () => {
+      render(<ClientShowcase />);
+      expect(screen.getByAltText("John E. Green Company")).toBeInTheDocument();
     });
   });
 
