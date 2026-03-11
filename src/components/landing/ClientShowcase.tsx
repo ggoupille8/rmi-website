@@ -1,40 +1,32 @@
 interface Client {
   name: string;
   logo: string;
-  /** true when logo is served from an external CDN (already white) */
+  /** true when logo is served from an external CDN (already white, square 1:1) */
   cdn: boolean;
-  /** controls rendered height — sm for visually heavy, lg for thin/small logos */
-  size?: 'sm' | 'md' | 'lg';
 }
-
-const sizeClasses: Record<string, string> = {
-  sm: 'h-8 sm:h-10 lg:h-10 w-auto max-w-[110px] sm:max-w-[130px] lg:max-w-[170px]',
-  md: 'h-10 sm:h-11 lg:h-12 w-auto max-w-[120px] sm:max-w-[140px] lg:max-w-[170px]',
-  lg: 'h-11 sm:h-12 lg:h-14 w-auto max-w-[130px] sm:max-w-[150px] lg:max-w-[170px]',
-};
 
 const clients: Client[] = [
   // Row 1 — Automotive + Tech (biggest names, icon-heavy)
-  { name: "Ford Motor Company", logo: "https://cdn.simpleicons.org/ford/white", cdn: true, size: "lg" },
-  { name: "General Motors", logo: "https://cdn.simpleicons.org/generalmotors/white", cdn: true, size: "lg" },
-  { name: "Toyota", logo: "https://cdn.simpleicons.org/toyota/white", cdn: true, size: "lg" },
-  { name: "Stellantis", logo: "/images/clients/stellantis.svg", cdn: false, size: "md" },
-  { name: "Nissan", logo: "https://cdn.simpleicons.org/nissan/white", cdn: true, size: "md" },
-  { name: "Apple", logo: "https://cdn.simpleicons.org/apple/white", cdn: true, size: "md" },
+  { name: "Ford Motor Company", logo: "https://cdn.simpleicons.org/ford/white", cdn: true },
+  { name: "General Motors", logo: "https://cdn.simpleicons.org/generalmotors/white", cdn: true },
+  { name: "Toyota", logo: "https://cdn.simpleicons.org/toyota/white", cdn: true },
+  { name: "Stellantis", logo: "/images/clients/stellantis.svg", cdn: false },
+  { name: "Nissan", logo: "https://cdn.simpleicons.org/nissan/white", cdn: true },
+  { name: "Apple", logo: "https://cdn.simpleicons.org/apple/white", cdn: true },
   // Row 2 — Energy + Healthcare + Transport
-  { name: "Starbucks", logo: "https://cdn.simpleicons.org/starbucks/white", cdn: true, size: "md" },
-  { name: "Delta Air Lines", logo: "https://cdn.simpleicons.org/delta/white", cdn: true, size: "lg" },
-  { name: "Henry Ford Health", logo: "/images/clients/henry-ford-health.svg", cdn: false, size: "md" },
-  { name: "DTE Energy", logo: "/images/clients/dte-energy.svg", cdn: false, size: "sm" },
-  { name: "FedEx", logo: "https://cdn.simpleicons.org/fedex/white", cdn: true, size: "lg" },
-  { name: "Amazon", logo: "/images/clients/amazon.svg", cdn: false, size: "md" },
+  { name: "Starbucks", logo: "https://cdn.simpleicons.org/starbucks/white", cdn: true },
+  { name: "Delta Air Lines", logo: "https://cdn.simpleicons.org/delta/white", cdn: true },
+  { name: "Comcast", logo: "/images/clients/comcast.svg", cdn: false },
+  { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", cdn: false },
+  { name: "FedEx", logo: "https://cdn.simpleicons.org/fedex/white", cdn: true },
+  { name: "Amazon", logo: "/images/clients/amazon.svg", cdn: false },
   // Row 3 — Industry + Retail + Regional
-  { name: "BASF", logo: "/images/clients/basf.svg", cdn: false, size: "md" },
-  { name: "Costco", logo: "/images/clients/costco.svg", cdn: false, size: "lg" },
-  { name: "Rocket Mortgage", logo: "https://cdn.simpleicons.org/rocket/white", cdn: true, size: "lg" },
-  { name: "Domino's", logo: "/images/clients/dominos.svg", cdn: false, size: "lg" },
-  { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", cdn: false, size: "md" },
-  { name: "Five Below", logo: "/images/clients/five-below.svg", cdn: false, size: "md" },
+  { name: "BASF", logo: "/images/clients/basf.svg", cdn: false },
+  { name: "Costco", logo: "/images/clients/costco.svg", cdn: false },
+  { name: "Rocket Mortgage", logo: "https://cdn.simpleicons.org/rocket/white", cdn: true },
+  { name: "Domino's", logo: "/images/clients/dominos.svg", cdn: false },
+  { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", cdn: false },
+  { name: "Five Below", logo: "/images/clients/five-below.svg", cdn: false },
 ];
 
 export default function ClientShowcase() {
@@ -50,7 +42,7 @@ export default function ClientShowcase() {
             Clients We Serve
           </h2>
           <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto" />
-          <p className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-6 sm:mb-8">
+          <p className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-4 sm:mb-6">
             Michigan&apos;s commercial &amp; industrial facilities trust RMI
           </p>
         </div>
@@ -66,8 +58,10 @@ export default function ClientShowcase() {
               <img
                 src={client.logo}
                 alt={client.name}
-                className={`${sizeClasses[client.size ?? 'md']} object-contain ${
-                  client.cdn ? "" : "brightness-0 invert"
+                className={`object-contain ${
+                  client.cdn
+                    ? "h-12 lg:h-14 w-auto max-w-[60px] lg:max-w-[70px]"
+                    : "h-10 lg:h-12 w-auto max-w-[150px] lg:max-w-[170px] brightness-0 invert"
                 }`}
                 loading="lazy"
                 width={180}
