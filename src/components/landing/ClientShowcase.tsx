@@ -12,12 +12,12 @@ const clients: Client[] = [
   { name: "Ford Motor Company", logo: "https://cdn.simpleicons.org/ford/white", cdn: true, mobileSize: "h-20 lg:h-28 w-auto max-w-[120px] lg:max-w-[140px]" },
   { name: "Starbucks", logo: "https://cdn.simpleicons.org/starbucks/white", cdn: true, mobileSize: "h-[58px] lg:h-[67px] w-auto max-w-[72px] lg:max-w-[84px]" },
   { name: "Toyota", logo: "https://cdn.simpleicons.org/toyota/white", cdn: true, mobileSize: "h-[72px] lg:h-[84px] w-auto max-w-[90px] lg:max-w-[105px]" },
-  { name: "Comcast", logo: "/images/clients/comcast.svg", cdn: false, mobileSize: "h-8 lg:h-14 w-auto max-w-[130px] lg:max-w-[190px] brightness-0 invert" },
+  { name: "Comcast", logo: "/images/clients/comcast.svg", cdn: false, mobileSize: "h-6 lg:h-8 w-auto max-w-[160px] lg:max-w-[200px] brightness-0 invert" },
   { name: "FedEx", logo: "https://cdn.simpleicons.org/fedex/white", cdn: true, mobileSize: "h-20 lg:h-28 w-auto max-w-[120px] lg:max-w-[140px]" },
   { name: "Apple", logo: "https://cdn.simpleicons.org/apple/white", cdn: true, mobileSize: "h-[62px] lg:h-[73px] w-auto max-w-[78px] lg:max-w-[91px]" },
   // Row 2 — GM, Delta, Flagstar, Stellantis, Amazon, BASF
   { name: "General Motors", logo: "https://cdn.simpleicons.org/generalmotors/white", cdn: true, mobileSize: "h-[62px] lg:h-[73px] w-auto max-w-[78px] lg:max-w-[91px]" },
-  { name: "Delta Air Lines", logo: "https://cdn.simpleicons.org/delta/white", cdn: true, mobileSize: "h-[67px] lg:h-[78px] w-auto max-w-[84px] lg:max-w-[98px]" },
+  { name: "Delta Air Lines", logo: "https://cdn.simpleicons.org/delta/white", cdn: true, mobileSize: "h-24 lg:h-28 w-auto max-w-[120px] lg:max-w-[140px]" },
   { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", cdn: false, mobileSize: "h-7 lg:h-12 w-auto max-w-[110px] lg:max-w-[170px] brightness-0 invert" },
   { name: "Stellantis", logo: "/images/clients/stellantis.svg", cdn: false, mobileSize: "h-[52px] lg:h-[62px] w-auto max-w-[160px] lg:max-w-[180px] brightness-0 invert" },
   { name: "Amazon", logo: "/images/clients/amazon.svg", cdn: false, mobileSize: "h-8 lg:h-10 w-auto max-w-[130px] lg:max-w-[150px] brightness-0 invert" },
@@ -25,8 +25,8 @@ const clients: Client[] = [
   // Row 3 — Nissan, Target, Costco, Domino's, Shake Shack, Five Below
   { name: "Nissan", logo: "https://cdn.simpleicons.org/nissan/white", cdn: true, mobileSize: "h-[72px] lg:h-[84px] w-auto max-w-[90px] lg:max-w-[105px]" },
   { name: "Target", logo: "/images/clients/target.svg", cdn: false, mobileSize: "h-12 lg:h-16 w-auto max-w-[140px] lg:max-w-[175px] brightness-0 invert" },
-  { name: "Costco", logo: "/images/clients/costco.svg", cdn: false, mobileSize: "h-8 lg:h-12 w-auto max-w-[130px] lg:max-w-[170px] brightness-0 invert" },
-  { name: "Domino's", logo: "/images/clients/dominos.svg", cdn: false, mobileSize: "h-8 lg:h-12 w-auto max-w-[120px] lg:max-w-[170px] brightness-0 invert" },
+  { name: "Costco", logo: "/images/clients/costco.svg", cdn: false, mobileSize: "h-8 lg:h-12 w-auto max-w-[140px] lg:max-w-[180px] brightness-0 invert" },
+  { name: "Domino's", logo: "/images/clients/dominos.svg", cdn: false, mobileSize: "h-6 lg:h-8 w-auto max-w-[150px] lg:max-w-[190px] brightness-0 invert" },
   { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", cdn: false },
   { name: "Five Below", logo: "/images/clients/five-below.svg", cdn: false },
 ];
