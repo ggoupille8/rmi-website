@@ -24,7 +24,7 @@ const clients: Client[] = [
   { name: "BASF", logo: "/images/clients/basf.svg", cdn: false, mobileSize: "h-7 lg:h-12 w-auto max-w-[110px] lg:max-w-[170px] brightness-0 invert" },
   // Row 3 — Nissan, Target, Costco, Domino's, Shake Shack, Five Below
   { name: "Nissan", logo: "https://cdn.simpleicons.org/nissan/white", cdn: true, mobileSize: "h-[72px] lg:h-[84px] w-auto max-w-[90px] lg:max-w-[105px]" },
-  { name: "Target", logo: "/images/clients/target.svg", cdn: false, mobileSize: "h-14 lg:h-20 w-auto max-w-[160px] lg:max-w-[220px] brightness-0 invert" },
+  { name: "Target", logo: "/images/clients/target.svg", cdn: false, mobileSize: "h-12 lg:h-16 w-auto max-w-[140px] lg:max-w-[175px] brightness-0 invert" },
   { name: "Costco", logo: "/images/clients/costco.svg", cdn: false, mobileSize: "h-8 lg:h-12 w-auto max-w-[120px] lg:max-w-[170px] brightness-0 invert" },
   { name: "Domino's", logo: "/images/clients/dominos.svg", cdn: false, mobileSize: "h-8 lg:h-12 w-auto max-w-[120px] lg:max-w-[170px] brightness-0 invert" },
   { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", cdn: false },
@@ -61,7 +61,6 @@ export default function ClientShowcase() {
             <div
               key={client.name}
               className="flex items-center justify-center h-20 lg:h-24 w-full px-2 overflow-hidden opacity-70 hover:opacity-100 transition-opacity duration-300"
-              title={client.name}
             >
               <img
                 src={client.logo}
