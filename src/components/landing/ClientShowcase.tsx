@@ -44,7 +44,7 @@ const clients: Client[] = [
   { name: "Eastern Michigan University", logo: "/images/clients/eastern-michigan.svg", scale: 1.6 },
   { name: "Barton Malow", logo: "/images/clients/barton-malow.svg", scale: 0.8 },
   { name: "Audi", logo: "/images/clients/audi.svg", scale: 0.8 },
-  { name: "John E. Green Company", logo: "/images/clients/john-e-green.svg", scale: 0.8 },
+  { name: "Cartier", logo: "/images/clients/cartier.svg", scale: 0.8 },
 ];
 
 /** Max stagger delay = 200ms heading lead + 29 logos * 60ms + 500ms duration */

@@ -141,9 +141,9 @@ describe("ClientShowcase", () => {
       expect(screen.getByAltText("Audi")).toBeInTheDocument();
     });
 
-    it("includes John E. Green Company", () => {
+    it("includes Cartier", () => {
       render(<ClientShowcase />);
-      expect(screen.getByAltText("John E. Green Company")).toBeInTheDocument();
+      expect(screen.getByAltText("Cartier")).toBeInTheDocument();
     });
   });
 
