@@ -31,7 +31,7 @@ const clients: Client[] = [
 
 export default function ClientShowcase() {
   return (
-    <section id="clients" className="py-6 sm:py-8 lg:py-10 bg-neutral-900 border-t border-neutral-800">
+    <section id="clients" className="py-12 sm:py-16 lg:py-20 bg-neutral-900 border-t border-neutral-800">
       <div className="max-w-6xl mx-auto px-4">
         {/* Heading */}
         <div className="text-center">
@@ -42,13 +42,13 @@ export default function ClientShowcase() {
             Clients We Serve
           </h2>
           <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto" />
-          <p className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-4 sm:mb-6">
+          <p className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-8 sm:mb-10 lg:mb-12">
             Michigan&apos;s commercial &amp; industrial facilities trust RMI
           </p>
         </div>
 
         {/* Logo grid — 18 items = 3 rows of 6 (desktop), 6 rows of 3 (mobile) */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-x-1 gap-y-4 items-center justify-items-center">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-x-4 sm:gap-x-6 lg:gap-x-8 gap-y-6 sm:gap-y-8 lg:gap-y-10 items-center justify-items-center">
           {clients.map((client) => (
             <div
               key={client.name}
