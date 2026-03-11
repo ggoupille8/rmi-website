@@ -4,31 +4,33 @@ interface Client {
   name: string;
   logo: string;
   /** true when the SVG has dark/colored fill and needs CSS inversion to appear white */
-  needsInvert: boolean;
+  needsInvert?: boolean;
+  /** CSS transform scale multiplier (default 1) — icon logos need boosting vs wordmarks */
+  scale?: number;
 }
 
 const clients: Client[] = [
   // Row 1 — Automotive/industrial heavyweights + tech giants
-  { name: "Ford Motor Company", logo: "/images/clients/ford.svg", needsInvert: false },
-  { name: "General Motors", logo: "/images/clients/generalmotors.svg", needsInvert: false },
-  { name: "Toyota", logo: "/images/clients/toyota.svg", needsInvert: false },
+  { name: "Ford Motor Company", logo: "/images/clients/ford.svg", scale: 3 },
+  { name: "General Motors", logo: "/images/clients/generalmotors.svg", scale: 2.5 },
+  { name: "Toyota", logo: "/images/clients/toyota.svg", scale: 3 },
   { name: "Stellantis", logo: "/images/clients/stellantis.svg", needsInvert: true },
-  { name: "Apple", logo: "/images/clients/apple.svg", needsInvert: false },
+  { name: "Apple", logo: "/images/clients/apple.svg", scale: 2 },
   { name: "Amazon", logo: "/images/clients/amazon.svg", needsInvert: true },
   // Row 2 — Logistics, telecom, industrial, financial
-  { name: "FedEx", logo: "/images/clients/fedex.svg", needsInvert: false },
-  { name: "Delta Air Lines", logo: "/images/clients/delta.svg", needsInvert: false },
+  { name: "FedEx", logo: "/images/clients/fedex.svg" },
+  { name: "Delta Air Lines", logo: "/images/clients/delta.svg", scale: 3 },
   { name: "Comcast", logo: "/images/clients/comcast.svg", needsInvert: true },
   { name: "BASF", logo: "/images/clients/basf.svg", needsInvert: true },
   { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", needsInvert: true },
-  { name: "Nissan", logo: "/images/clients/nissan.svg", needsInvert: false },
+  { name: "Nissan", logo: "/images/clients/nissan.svg", scale: 2 },
   // Row 3 — Retail/food service
   { name: "Target", logo: "/images/clients/target.svg", needsInvert: true },
   { name: "Costco", logo: "/images/clients/costco.svg", needsInvert: true },
-  { name: "Starbucks", logo: "/images/clients/starbucks.svg", needsInvert: false },
+  { name: "Starbucks", logo: "/images/clients/starbucks.svg", scale: 2 },
   { name: "Domino's", logo: "/images/clients/dominos.svg", needsInvert: true },
-  { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", needsInvert: true },
-  { name: "Five Below", logo: "/images/clients/five-below.svg", needsInvert: true },
+  { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", needsInvert: true, scale: 1.5 },
+  { name: "Five Below", logo: "/images/clients/five-below.svg", needsInvert: true, scale: 1.2 },
 ];
 
 /** Max stagger delay = 200ms heading lead + 17 logos * 60ms + 500ms duration */
@@ -107,14 +109,14 @@ export default function ClientShowcase() {
     <section
       ref={sectionRef}
       id="clients"
-      className="relative py-12 sm:py-16 lg:py-20 bg-neutral-900 border-t border-b border-neutral-800"
+      className="relative py-6 sm:py-8 lg:py-10 bg-neutral-900 border-t border-b border-neutral-800"
     >
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(96,165,250,0.04)_0%,transparent_70%)]" />
       <div className="relative max-w-6xl mx-auto px-4">
         {/* Heading */}
         <div className="text-center">
           <p
-            className="text-xs font-semibold tracking-widest text-blue-400 uppercase mb-3 transition-all duration-500 ease-out"
+            className="text-xs font-semibold tracking-widest text-blue-400 uppercase mb-1 transition-all duration-500 ease-out"
             style={skipAnimation ? undefined : {
               transitionDelay: "0ms",
               opacity: isVisible ? 1 : 0,
@@ -134,7 +136,7 @@ export default function ClientShowcase() {
             Clients We Serve
           </h2>
           <div
-            className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto transition-all duration-500 ease-out"
+            className="w-12 h-0.5 bg-accent-500 mt-2 rounded-full mx-auto transition-all duration-500 ease-out"
             style={skipAnimation ? undefined : {
               transitionDelay: "150ms",
               opacity: isVisible ? 1 : 0,
@@ -142,7 +144,7 @@ export default function ClientShowcase() {
             }}
           />
           <p
-            className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-8 sm:mb-10 lg:mb-12 transition-all duration-500 ease-out"
+            className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-4 sm:mb-5 lg:mb-6 transition-all duration-500 ease-out"
             style={skipAnimation ? undefined : {
               transitionDelay: "150ms",
               opacity: isVisible ? 1 : 0,
@@ -154,11 +156,11 @@ export default function ClientShowcase() {
         </div>
 
         {/* Logo grid — 18 items = 3 rows of 6 (desktop), 6 rows of 3 (mobile) */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-x-4 sm:gap-x-6 lg:gap-x-8 gap-y-6 sm:gap-y-8 lg:gap-y-10 items-center justify-items-center">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-x-2 sm:gap-x-3 lg:gap-x-4 gap-y-3 sm:gap-y-4 lg:gap-y-5 items-center justify-items-center">
           {clients.map((client, index) => (
             <div
               key={client.name}
-              className="flex items-center justify-center h-16 sm:h-18 lg:h-20 w-full px-2 opacity-60 hover:opacity-100 hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
+              className="flex items-center justify-center h-12 sm:h-14 lg:h-16 w-full px-2 overflow-visible opacity-60 hover:opacity-100 hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
               style={skipAnimation ? undefined : {
                 transitionDelay: `${200 + index * 60}ms`,
                 opacity: isVisible ? undefined : 0,
@@ -169,6 +171,7 @@ export default function ClientShowcase() {
                 src={client.logo}
                 alt={client.name}
                 className={`object-contain h-8 sm:h-9 lg:h-10 max-w-[100px] sm:max-w-[120px] lg:max-w-[130px] w-auto${client.needsInvert ? " brightness-0 invert" : ""}`}
+                style={client.scale && client.scale !== 1 ? { transform: `scale(${client.scale})` } : undefined}
                 loading="lazy"
                 width={130}
                 height={40}
