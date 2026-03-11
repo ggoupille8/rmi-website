@@ -24,17 +24,29 @@ const clients: Client[] = [
   { name: "BASF", logo: "/images/clients/basf.svg", needsInvert: true },
   { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", needsInvert: true },
   { name: "Nissan", logo: "/images/clients/nissan.svg", scale: 2 },
-  // Row 3 — Retail/consumer
+  // Row 3 — Real estate, mortgage, education, industrial
+  { name: "Verizon", logo: "/images/clients/verizon.svg" },
+  { name: "CBRE", logo: "/images/clients/cbre.svg" },
+  { name: "Rocket Mortgage", logo: "/images/clients/rocket.svg", scale: 2.2 },
+  { name: "University of Michigan", logo: "/images/clients/michigan.svg", scale: 2.5 },
+  { name: "Meijer", logo: "/images/clients/meijer.svg" },
+  { name: "Babcock & Wilcox", logo: "/images/clients/babcock-wilcox.svg" },
+  // Row 4 — Retail/consumer + Michigan partners
   { name: "Target", logo: "/images/clients/target.svg", needsInvert: true },
   { name: "Cadillac", logo: "/images/clients/cadillac.svg", scale: 2 },
   { name: "Starbucks", logo: "/images/clients/starbucks.svg", scale: 2 },
-  { name: "Verizon", logo: "/images/clients/verizon.svg" },
+  { name: "Consumers Energy", logo: "/images/clients/consumers-energy.svg" },
   { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", needsInvert: true, scale: 1.5 },
   { name: "Five Below", logo: "/images/clients/five-below.svg", needsInvert: true, scale: 1.2 },
+  // Row 5 — Healthcare, food, education, construction
+  { name: "Ascension Health", logo: "/images/clients/ascension.svg", scale: 1.5 },
+  { name: "Culver's", logo: "/images/clients/culvers.svg", scale: 1.5 },
+  { name: "Eastern Michigan University", logo: "/images/clients/eastern-michigan.svg", scale: 2 },
+  { name: "Barton Malow", logo: "/images/clients/barton-malow.svg" },
 ];
 
-/** Max stagger delay = 200ms heading lead + 17 logos * 60ms + 500ms duration */
-const ANIMATION_TOTAL_MS = 200 + 17 * 60 + 500;
+/** Max stagger delay = 200ms heading lead + 27 logos * 60ms + 500ms duration */
+const ANIMATION_TOTAL_MS = 200 + 27 * 60 + 500;
 
 export default function ClientShowcase() {
   const [isVisible, setIsVisible] = useState(false);
@@ -155,7 +167,7 @@ export default function ClientShowcase() {
           </p>
         </div>
 
-        {/* Logo grid — 18 items = 3 rows of 6 (desktop), 6 rows of 3 (mobile) */}
+        {/* Logo grid — 28 items = ~5 rows of 6 (desktop), ~10 rows of 3 (mobile) */}
         <div className="grid grid-cols-3 md:grid-cols-6 gap-x-2 sm:gap-x-3 lg:gap-x-4 gap-y-3 sm:gap-y-4 lg:gap-y-5 items-center justify-items-center">
           {clients.map((client, index) => (
             <div
