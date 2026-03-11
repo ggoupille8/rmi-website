@@ -12,23 +12,23 @@ interface Client {
 const clients: Client[] = [
   // Row 1 — Automotive/industrial heavyweights + tech giants
   { name: "Ford Motor Company", logo: "/images/clients/ford.svg", scale: 3 },
-  { name: "General Motors", logo: "/images/clients/generalmotors.svg", scale: 2.5 },
-  { name: "Toyota", logo: "/images/clients/toyota.svg", scale: 3 },
+  { name: "General Motors", logo: "/images/clients/generalmotors.svg", scale: 1.75 },
+  { name: "Toyota", logo: "/images/clients/toyota.svg", scale: 2.1 },
   { name: "Stellantis", logo: "/images/clients/stellantis.svg", needsInvert: true },
-  { name: "Apple", logo: "/images/clients/apple.svg", scale: 2 },
+  { name: "Apple", logo: "/images/clients/apple.svg", scale: 1.8 },
   { name: "Amazon", logo: "/images/clients/amazon.svg", needsInvert: true },
   // Row 2 — Logistics, telecom, industrial, financial
-  { name: "FedEx", logo: "/images/clients/fedex.svg" },
+  { name: "FedEx", logo: "/images/clients/fedex.svg", scale: 4 },
   { name: "Delta Air Lines", logo: "/images/clients/delta.svg", scale: 3 },
-  { name: "Comcast", logo: "/images/clients/comcast.svg", needsInvert: true },
+  { name: "BMW", logo: "/images/clients/bmw.svg", scale: 2.2 },
   { name: "BASF", logo: "/images/clients/basf.svg", needsInvert: true },
   { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", needsInvert: true },
   { name: "Nissan", logo: "/images/clients/nissan.svg", scale: 2 },
-  // Row 3 — Retail/food service
+  // Row 3 — Retail/consumer
   { name: "Target", logo: "/images/clients/target.svg", needsInvert: true },
-  { name: "Costco", logo: "/images/clients/costco.svg", needsInvert: true },
+  { name: "Cadillac", logo: "/images/clients/cadillac.svg", scale: 2 },
   { name: "Starbucks", logo: "/images/clients/starbucks.svg", scale: 2 },
-  { name: "Domino's", logo: "/images/clients/dominos.svg", needsInvert: true },
+  { name: "Verizon", logo: "/images/clients/verizon.svg" },
   { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", needsInvert: true, scale: 1.5 },
   { name: "Five Below", logo: "/images/clients/five-below.svg", needsInvert: true, scale: 1.2 },
 ];
@@ -144,7 +144,7 @@ export default function ClientShowcase() {
             }}
           />
           <p
-            className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-4 sm:mb-5 lg:mb-6 transition-all duration-500 ease-out"
+            className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-3 sm:mb-4 transition-all duration-500 ease-out"
             style={skipAnimation ? undefined : {
               transitionDelay: "150ms",
               opacity: isVisible ? 1 : 0,
@@ -160,7 +160,7 @@ export default function ClientShowcase() {
           {clients.map((client, index) => (
             <div
               key={client.name}
-              className="flex items-center justify-center h-12 sm:h-14 lg:h-16 w-full px-2 overflow-visible opacity-60 hover:opacity-100 hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
+              className="flex items-center justify-center h-12 sm:h-14 lg:h-16 w-full px-2 overflow-visible opacity-[0.65] hover:opacity-100 hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
               style={skipAnimation ? undefined : {
                 transitionDelay: `${200 + index * 60}ms`,
                 opacity: isVisible ? undefined : 0,
