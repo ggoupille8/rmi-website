@@ -60,9 +60,31 @@ export default function ClientShowcase() {
       { threshold: 0.15 }
     );
 
-    if (sectionRef.current) observer.observe(sectionRef.current);
+    const el = sectionRef.current;
+    if (el) {
+      observer.observe(el);
+
+      // CRITICAL FIX: Check if already in viewport at mount time.
+      // client:visible hydration means the element is guaranteed to be
+      // in the viewport when React mounts, but IntersectionObserver may
+      // not fire for elements that are already intersecting.
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        setIsVisible(true);
+        observer.disconnect();
+      }
+    }
+
     return () => observer.disconnect();
   }, [prefersReducedMotion]);
+
+  // Fallback: force visibility after 2s in case observer + rect check both miss
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setIsVisible(true);
+    }, 2000);
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Clear stagger delays after entrance animation completes so hover isn't delayed
   useEffect(() => {
