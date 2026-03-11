@@ -1,9 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
-  <!-- Audi Four Rings -->
-  <g stroke="white" stroke-width="3" fill="none">
-    <circle cx="45" cy="30" r="18"/>
-    <circle cx="75" cy="30" r="18"/>
-    <circle cx="105" cy="30" r="18"/>
-    <circle cx="135" cy="30" r="18"/>
+  <!-- Audi Four Interlocking Rings -->
+  <g stroke="white" stroke-width="2.5" fill="none">
+    <!-- Each ring overlaps the next by ~60% of diameter -->
+    <circle cx="41" cy="30" r="16"/>
+    <circle cx="67" cy="30" r="16"/>
+    <circle cx="93" cy="30" r="16"/>
+    <circle cx="119" cy="30" r="16"/>
   </g>
+  <!-- AUDI wordmark beneath rings -->
+  <text x="80" y="56" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="9" fill="white" letter-spacing="5">AUDI</text>
 </svg>

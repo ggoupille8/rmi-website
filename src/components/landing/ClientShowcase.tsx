@@ -10,35 +10,35 @@ interface Client {
 }
 
 const clients: Client[] = [
-  // Row 1 — Automotive heavyweights + tech giants
+  // Row 1 — Automotive + tech
   { name: "Ford Motor Company", logo: "/images/clients/ford.svg", scale: 2.4 },
   { name: "General Motors", logo: "/images/clients/generalmotors.svg", scale: 1.4 },
   { name: "Toyota", logo: "/images/clients/toyota.svg", scale: 1.68 },
   { name: "Stellantis", logo: "/images/clients/stellantis.svg", needsInvert: true },
   { name: "Apple", logo: "/images/clients/apple.svg", scale: 1.44 },
   { name: "Amazon", logo: "/images/clients/amazon.svg", needsInvert: true, scale: 0.8 },
-  // Row 2 — Logistics, auto, industrial, telecom
+  // Row 2 — Logistics, industrial, telecom
   { name: "FedEx", logo: "/images/clients/fedex.svg", scale: 3.2 },
   { name: "Delta Air Lines", logo: "/images/clients/delta.svg", scale: 3 },
   { name: "BMW", logo: "/images/clients/bmw.svg", scale: 1.76 },
   { name: "BASF", logo: "/images/clients/basf.svg", needsInvert: true, scale: 0.8 },
   { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", needsInvert: true, scale: 0.8 },
   { name: "Verizon", logo: "/images/clients/verizon.svg", scale: 0.8 },
-  // Row 3 — Michigan/commercial/industrial
+  // Row 3 — Commercial, education, industrial
   { name: "Rocket Mortgage", logo: "/images/clients/rocket.svg", scale: 0.96 },
   { name: "CBRE", logo: "/images/clients/cbre.svg", scale: 0.8 },
   { name: "University of Michigan", logo: "/images/clients/michigan.svg", scale: 1.5 },
   { name: "Meijer", logo: "/images/clients/meijer.svg", scale: 0.8 },
   { name: "Babcock & Wilcox", logo: "/images/clients/babcock-wilcox.svg" },
   { name: "Nissan", logo: "/images/clients/nissan.svg", scale: 2 },
-  // Row 4 — Consumer/regional
+  // Row 4 — Consumer, automotive, energy
   { name: "Target", logo: "/images/clients/target.svg", needsInvert: true, scale: 0.8 },
   { name: "Cadillac", logo: "/images/clients/cadillac.svg", scale: 3 },
   { name: "Starbucks", logo: "/images/clients/starbucks.svg", scale: 1.6 },
   { name: "Consumers Energy", logo: "/images/clients/consumers-energy.svg", scale: 0.8 },
   { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", needsInvert: true, scale: 1.2 },
   { name: "Five Below", logo: "/images/clients/five-below.svg", needsInvert: true, scale: 0.96 },
-  // Row 5 — Regional + new additions
+  // Row 5 — Regional, luxury, construction
   { name: "Ascension Health", logo: "/images/clients/ascension.svg", scale: 1.04 },
   { name: "Culver's", logo: "/images/clients/culvers.svg", scale: 1.04 },
   { name: "Eastern Michigan University", logo: "/images/clients/eastern-michigan.svg", scale: 1.6 },
@@ -189,6 +189,7 @@ export default function ClientShowcase() {
                 loading="lazy"
                 width={130}
                 height={40}
+                referrerPolicy="no-referrer"
               />
             </div>
           ))}
