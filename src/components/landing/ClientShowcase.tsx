@@ -1,3 +1,5 @@
+import { useState, useEffect, useRef } from "react";
+
 interface Client {
   name: string;
   logo: string;
@@ -29,30 +31,109 @@ const clients: Client[] = [
   { name: "Five Below", logo: "/images/clients/five-below.svg", needsInvert: true },
 ];
 
+/** Max stagger delay = 200ms heading lead + 17 logos * 60ms + 500ms duration */
+const ANIMATION_TOTAL_MS = 200 + 17 * 60 + 500;
+
 export default function ClientShowcase() {
+  const [isVisible, setIsVisible] = useState(false);
+  const [animationDone, setAnimationDone] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const prefersReducedMotion = typeof window !== "undefined"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Observe section entering viewport
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setIsVisible(true);
+      setAnimationDone(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, [prefersReducedMotion]);
+
+  // Clear stagger delays after entrance animation completes so hover isn't delayed
+  useEffect(() => {
+    if (isVisible && !animationDone) {
+      const timer = setTimeout(() => setAnimationDone(true), ANIMATION_TOTAL_MS);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, animationDone]);
+
+  const skipAnimation = prefersReducedMotion || animationDone;
+
   return (
-    <section id="clients" className="py-12 sm:py-16 lg:py-20 bg-neutral-900 border-t border-neutral-800">
+    <section
+      ref={sectionRef}
+      id="clients"
+      className="py-12 sm:py-16 lg:py-20 bg-neutral-900 border-t border-neutral-800"
+    >
       <div className="max-w-6xl mx-auto px-4">
         {/* Heading */}
         <div className="text-center">
-          <p className="text-xs font-semibold tracking-widest text-blue-400 uppercase mb-3">
+          <p
+            className="text-xs font-semibold tracking-widest text-blue-400 uppercase mb-3 transition-all duration-500 ease-out"
+            style={skipAnimation ? undefined : {
+              transitionDelay: "0ms",
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? "none" : "translateY(16px)",
+            }}
+          >
             Trusted by Industry Leaders
           </p>
-          <h2 className="font-bold tracking-wider text-white uppercase text-xl sm:text-2xl lg:text-3xl">
+          <h2
+            className="font-bold tracking-wider text-white uppercase text-xl sm:text-2xl lg:text-3xl transition-all duration-500 ease-out"
+            style={skipAnimation ? undefined : {
+              transitionDelay: "100ms",
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? "none" : "translateY(16px)",
+            }}
+          >
             Clients We Serve
           </h2>
-          <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto" />
-          <p className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-8 sm:mb-10 lg:mb-12">
+          <div
+            className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto transition-all duration-500 ease-out"
+            style={skipAnimation ? undefined : {
+              transitionDelay: "150ms",
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? "none" : "translateY(16px)",
+            }}
+          />
+          <p
+            className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-4 mb-8 sm:mb-10 lg:mb-12 transition-all duration-500 ease-out"
+            style={skipAnimation ? undefined : {
+              transitionDelay: "150ms",
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible ? "none" : "translateY(16px)",
+            }}
+          >
             Michigan&apos;s commercial &amp; industrial facilities trust RMI
           </p>
         </div>
 
         {/* Logo grid — 18 items = 3 rows of 6 (desktop), 6 rows of 3 (mobile) */}
         <div className="grid grid-cols-3 md:grid-cols-6 gap-x-4 sm:gap-x-6 lg:gap-x-8 gap-y-6 sm:gap-y-8 lg:gap-y-10 items-center justify-items-center">
-          {clients.map((client) => (
+          {clients.map((client, index) => (
             <div
               key={client.name}
               className="flex items-center justify-center h-16 sm:h-18 lg:h-20 w-full px-2 opacity-60 hover:opacity-100 hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
+              style={skipAnimation ? undefined : {
+                transitionDelay: `${200 + index * 60}ms`,
+                opacity: isVisible ? undefined : 0,
+                transform: isVisible ? undefined : "translateY(16px)",
+              }}
             >
               <img
                 src={client.logo}
