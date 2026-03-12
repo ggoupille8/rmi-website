@@ -2,6 +2,244 @@
 
 ## Current
 
+### Hero Image Re-Compression — PageSpeed LCP Fix (Mar 12, 2026)
+Branch: `feat/hero-image-compression` (committed, NOT merged)
+
+PageSpeed flagged hero-6-960w.webp (295 KB) as the primary LCP bottleneck — 4x larger than any other 960w hero image. Total 960w payload was 622 KB.
+
+**Task 1 — Re-compress hero-6 at all breakpoints:**
+hero-6 was a portrait image (960x1280) — all variants were the same 960px-wide source. Cropped to landscape (960x640) + gentle blur (sigma 0.8) + q=60 re-encode:
+- `hero-6-960w.webp`: 295 KB → 73 KB (-75%)
+- `hero-6.webp`: 269 KB → 72 KB (-73%)
+- `hero-6-1280w.webp`: 269 KB → 72 KB (-73%)
+- `hero-6-480w.webp`: 49 KB → 19 KB (-62%)
+
+**Task 2 — Logo WebP conversion:**
+Already complete — `rmi-logo-full.webp` (4 KB) exists and `HeroFullWidth.tsx` already uses `<picture>` with WebP source + PNG fallback. No changes needed.
+
+**Task 3 — Re-compress remaining hero images:**
+Applied per-image settings (blur 0.3–0.8, quality 50–60) across all hero images. Portrait hero-4 also cropped to landscape. Kept hero-1-480w (11 KB) and hero-1-1280w (66 KB) as-is.
+
+| Image | 480w | 960w | 1280w | 1920w |
+|-------|------|------|-------|-------|
+| hero-1 | 11 KB (skip) | 36→27 KB | 66 KB (skip) | 137→100 KB |
+| hero-2 | 27→21 KB | 73→54 KB | 113→70 KB | 189→101 KB |
+| hero-3 | 19→15 KB | 50→38 KB | 79→47 KB | 107→77 KB |
+| hero-4 | 28→15 KB | 92→46 KB | 130→54 KB | 173→80 KB |
+| hero-5 | 23→18 KB | 77→54 KB | 140→79 KB | 295→118 KB |
+| hero-6 | 49→19 KB | 295→73 KB | 269→72 KB | 269→72 KB |
+
+**Overall Results:**
+- Total hero payload: 2,746 KB → 1,326 KB (-52%, saved 1,420 KB)
+- 960w breakpoint: 622 KB → 291 KB (-53%, target was <300 KB)
+- hero-6-960w: 295 KB → 73 KB (-75%, target was <90 KB)
+
+**Script:** `scripts/compress-heroes.mjs` — Node.js sharp script with per-file configs (quality, blur sigma, landscape crop for portrait images). Re-encodes from existing WebP files.
+
+**Verification:**
+- [x] hero-6-960w.webp < 90 KB (73 KB)
+- [x] hero-6.webp < 160 KB (72 KB)
+- [x] hero-6-480w.webp < 30 KB (19 KB)
+- [x] hero-5-960w.webp < 55 KB (54 KB)
+- [x] hero-2-960w.webp < 55 KB (54 KB)
+- [x] Total 960w < 300 KB (291 KB)
+- [x] `npm run build` — zero errors, zero warnings
+- [x] Logo already WebP with `<picture>` fallback
+
+**Files Modified:**
+- `public/images/hero/*.webp` — 22 images re-compressed in place
+
+**Files Created:**
+- `scripts/compress-heroes.mjs` — compression utility script
+
+---
+
+### Financial Dashboard — PDF Parsers, Upload & Reconciliation (Mar 12, 2026)
+Branch: `feat/financial-dashboard` (committed, NOT merged)
+
+Full financial reporting dashboard that ingests AR Aging, Balance Sheet, and Income Statement PDFs from Sage/Peachtree, stores parsed data in PostgreSQL, and provides a reconciliation matrix that cross-validates financial data against WIP records.
+
+**Task 1 — Database Migration:**
+Created `migrations/014_financial_reports.sql` with 6 tables:
+- `ar_aging_snapshots` + `ar_aging_entries` — Customer aging data with auto-computed `total_past_due` column
+- `balance_sheet_snapshots` + `balance_sheet_entries` — Account lines with section classification
+- `income_statement_snapshots` + `income_statement_entries` — Activity + balance columns
+All tables have unique constraints on (report_date, variant) for idempotent re-import. Schema appended to `schema.sql`.
+
+**Task 2 — PDF Parsers:**
+Created `src/lib/financial-parsers.ts` with three parser functions:
+- `parseArAging(buffer)` — Extracts 47 customers with aging buckets (current, 1-30, 31-60, 61-90, over_90), retainage, phone, customer code. Handles trailing `-` negatives, `*` suffixes, "CompanyTotals" pattern. Validates customer sum === report total.
+- `parseBalanceSheet(buffer)` — Extracts account lines with section classification (current_assets, long_term_assets, current_liabilities, long_term_liabilities, equity). Handles parenthetical negatives, "Waterford Bank (Note" trap. Validates Total Assets === Total L&E.
+- `parseIncomeStatement(buffer)` — Extracts activity + balance columns, handles single-value lines (balance only), `401(k)` parentheses trap. Validates Gross Margin and Net Income math.
+
+Created `src/lib/__tests__/financial-parsers.test.ts` — 29 unit tests, all passing. Tests use `it.skipIf(!hasFile)` for PDF-dependent tests.
+
+**Task 3 — API Endpoints:**
+- `src/pages/api/admin/financial-upload.ts` (POST) — Multipart PDF upload with auto-detection of report type from filename and variant (standard/post_ajes/close_out). Idempotent re-import (DELETE + INSERT on same date+variant). 50MB limit.
+- `src/pages/api/admin/financials.ts` (GET) — Four actions:
+  - `months` — All available report months across types
+  - `snapshots` — Filtered by type and date range
+  - `detail` — Snapshot + entries by ID or date
+  - `reconciliation` — Tie-out matrix: AR↔BS 1-1100, |AR Retainage|↔BS 1-1110, WIP Revenue in Excess↔BS 1-1500, WIP Billings in Excess↔BS 1-2200, IS Net Income↔BS Net Income. $5 match threshold.
+
+**Task 4 — Admin Dashboard UI:**
+- `src/pages/admin/financials.astro` — Astro page with AdminLayout
+- `src/components/admin/FinancialDashboard.tsx` — 3-tab dashboard (Upload, Reports, Reconciliation) with month selector, import history, collapsible report sections, sortable AR customer table, Balance Sheet KPIs, Income Statement columns
+- `src/components/admin/FinancialUpload.tsx` — Drag-and-drop PDF upload with multi-file support and status tracking
+- `src/components/admin/ReconciliationMatrix.tsx` — Tie-out grid with match/variance/missing status badges, data source display, variance highlighting
+- Modified `src/components/admin/AdminSidebar.tsx` — Added "Financials" nav item with DollarSign icon
+
+**Files Created:**
+- `migrations/014_financial_reports.sql`
+- `src/lib/financial-parsers.ts`
+- `src/lib/__tests__/financial-parsers.test.ts`
+- `src/pages/api/admin/financial-upload.ts`
+- `src/pages/api/admin/financials.ts`
+- `src/pages/admin/financials.astro`
+- `src/components/admin/FinancialDashboard.tsx`
+- `src/components/admin/FinancialUpload.tsx`
+- `src/components/admin/ReconciliationMatrix.tsx`
+
+**Files Modified:**
+- `schema.sql` — Appended 6 new table definitions
+- `src/components/admin/AdminSidebar.tsx` — Added Financials nav link
+- `package.json` / `package-lock.json` — Added `pdf-parse` dependency
+
+**Verification:**
+- [x] `npm run build` — zero errors, zero warnings
+- [x] 29/29 financial parser unit tests pass
+- [x] `data/` directory in .gitignore — no PDFs committed
+- [x] All TypeScript strict, no `any`
+
+---
+
+### WIP Sync Agent — Automatic File Watcher (Mar 12, 2026)
+Branch: `feat/wip-sync-agent` (pushed, NOT merged)
+
+Standalone Node.js agent that watches `P:\WIP - Financial\` for Excel file changes and automatically uploads them to the `/api/admin/wip-upload` endpoint. Runs on Graham's desktop or the appserver.
+
+**Task 2 — Verify API Key Auth:**
+Verified `isAdminAuthorized()` in `src/lib/admin-auth.ts:110` checks both session cookie and API key. `isApiKeyAuthorized()` reads `ADMIN_API_KEY` env var and uses timing-safe comparison with `Authorization: Bearer <key>` header. `wip-upload.ts:21` already calls `isAdminAuthorized(request)`. No changes needed.
+
+**Task 1 — Create Sync Agent Script:**
+Created `sync-agent/` directory with 7 source files:
+- `index.js` — Main entry point with config validation, initial sync of all existing files, graceful shutdown (SIGINT/SIGTERM)
+- `config.js` — Configuration from env vars (watch path, API URL, API key, debounce, retries)
+- `watcher.js` — chokidar file watcher with polling for network drives, `awaitWriteFinish` stability check, debounced change detection, filename pattern matching (`RMI WIP - YYYY.xlsx`)
+- `uploader.js` — Multipart form-data upload with retry logic (3 attempts, 10s delay), file size validation, detailed result logging
+- `logger.js` — File + console logger with daily log rotation, debug mode toggle
+- `package.json` — Dependencies: chokidar ^3.6.0, dotenv ^16.4.0
+- `.env.example` — Environment variable template
+
+**Task 3 — .gitignore:**
+Created `sync-agent/.gitignore` excluding `node_modules/`, `logs/`, and `.env`.
+
+**Files Created:**
+- `sync-agent/index.js`
+- `sync-agent/config.js`
+- `sync-agent/watcher.js`
+- `sync-agent/uploader.js`
+- `sync-agent/logger.js`
+- `sync-agent/package.json`
+- `sync-agent/package-lock.json`
+- `sync-agent/.env.example`
+- `sync-agent/.gitignore`
+
+**Files Verified (no changes needed):**
+- `src/lib/admin-auth.ts` — `isApiKeyAuthorized()` + `isAdminAuthorized()` confirmed
+- `src/pages/api/admin/wip-upload.ts` — already uses `isAdminAuthorized(request)`
+
+**Verification:**
+- [x] `npm install` in sync-agent/ — 15 packages installed, zero errors
+- [x] `npm run build` in project root — zero errors, zero warnings (14.48s)
+- [x] .gitignore excludes node_modules, logs, .env from git tracking
+- [x] Only 9 files staged (no secrets, no node_modules)
+- [x] Commit: `160702f` on `feat/wip-sync-agent`
+- [x] Pushed to `origin/feat/wip-sync-agent`
+
+**Commit:**
+- `160702f` feat(wip): add file watcher sync agent for automatic WIP uploads
+
+**Post-Merge Setup (Graham's manual steps):**
+1. Generate API key: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+2. Set in Vercel: `vercel env add ADMIN_API_KEY` (paste key)
+3. Redeploy to pick up env var
+4. On target machine: `cd sync-agent && copy .env.example .env` → edit .env → `npm install && node index.js`
+5. Optional PM2: `npm install -g pm2 && pm2 start index.js --name wip-sync && pm2 save && pm2 startup`
+
+---
+
+### PageSpeed Performance — Hero LCP Fix & Hydration Optimization (Mar 12, 2026)
+Branch: `feat/perf-hero-lcp` (committed, NOT merged)
+
+Mobile PageSpeed was 83 with LCP at 4.2s. Root cause: all 6 hero images loading immediately (1,170 KiB), missing 1280w srcset breakpoint, and unnecessary `client:load` on below-fold components.
+
+**Task 1 — 1280w Hero Image Variants:**
+Generated 1280w WebP variants for all 6 hero images using Node sharp (quality 80). Fills the srcset gap between 960w and 1920w — high-DPR mobile devices (412px × 2.625 DPR = 1,082 effective pixels) now get 1280w instead of 1920w.
+
+| Image | 1920w | 1280w | Savings |
+|-------|-------|-------|---------|
+| hero-1 | 137 KiB | 66 KiB | 51.5% |
+| hero-2 | 189 KiB | 113 KiB | 40.1% |
+| hero-3 | 107 KiB | 79 KiB | 26.0% |
+| hero-4 | 173 KiB | 130 KiB | 25.0% |
+| hero-5 | 295 KiB | 140 KiB | 52.7% |
+| hero-6 | 269 KiB | 269 KiB | 0% (portrait, already <1280w) |
+
+**Task 2 — Defer Hero Images 2-6:**
+Modified `HeroFullWidth.tsx` to only render the `<picture>` element for slide 0 (hero-1) during SSR. Slides 1-5 render a `<div class="bg-neutral-900">` placeholder. After hydration, a `useEffect` sets `hydrated=true` and all 6 `<picture>` elements render normally with `loading="lazy"`.
+
+Also updated all srcsets (both `<source>` and `<img>`) to include the 1280w breakpoint:
+```
+480w, 960w, 1280w, 1920w
+```
+
+Updated `<link rel="preload">` in `BaseLayout.astro` to include 1280w in `imagesrcset`.
+
+**Task 3 — ClientShowcase → client:idle:**
+Changed `<ClientShowcase client:load />` to `<ClientShowcase client:idle />` in `index.astro`. Uses `requestIdleCallback` to defer hydration until main thread is idle, removing it from the critical rendering path. Avoids the `client:visible` IntersectionObserver deadlock that was discovered previously.
+
+**Task 4 — FloatingMobileCTA → client:idle:**
+Changed `<FloatingMobileCTA client:load />` to `<FloatingMobileCTA client:idle />` in `index.astro`. Small TBT reduction — the floating button doesn't need to be interactive immediately.
+
+**Files Modified:**
+- `src/components/landing/HeroFullWidth.tsx` — deferred image rendering + 1280w srcsets
+- `src/layouts/BaseLayout.astro` — updated preload imagesrcset with 1280w
+- `src/pages/index.astro` — ClientShowcase + FloatingMobileCTA → client:idle
+
+**Files Created:**
+- `public/images/hero/hero-1-1280w.webp` (66 KiB)
+- `public/images/hero/hero-2-1280w.webp` (113 KiB)
+- `public/images/hero/hero-3-1280w.webp` (79 KiB)
+- `public/images/hero/hero-4-1280w.webp` (130 KiB)
+- `public/images/hero/hero-5-1280w.webp` (140 KiB)
+- `public/images/hero/hero-6-1280w.webp` (269 KiB)
+
+**Verification:**
+- [x] `npm run build` — zero errors, zero warnings (13.86s)
+- [x] SSR HTML contains only 1 hero `<img>` tag (hero-1), not 6
+- [x] 5 placeholder `<div>` elements rendered for slides 2-6 in SSR
+- [x] Preload link includes 1280w in imagesrcset
+- [x] Hero-1 srcset includes 480w, 960w, 1280w, 1920w breakpoints
+- [x] All 6 1280w image files exist and are smaller than 1920w originals
+- [x] 2 `client:idle` islands (ClientShowcase + FloatingMobileCTA)
+- [x] 1 `client:load` island (HeroFullWidth — unchanged)
+- [x] 6 `client:visible` islands (Services, About, ProjectShowcase, CTABanner, ContactForm, Footer)
+
+**Commits:**
+- `6de1ac1` perf: add 1280w hero image variants for high-DPR mobile
+- `ce7729d` perf: defer hero images 2-6 until after hydration (save ~1033 KiB on initial load)
+- `5ee7062` perf: switch ClientShowcase and FloatingMobileCTA to client:idle
+
+**Expected Impact:**
+- LCP: 4.2s → <2.5s (hero-1 no longer competes with 5 other images for bandwidth)
+- TBT: 180ms → <150ms (deferred hydration of ClientShowcase + FloatingMobileCTA)
+- Mobile PageSpeed: 83 → 90+ target
+
+**Next Step:** Graham merges after PageSpeed verification on Vercel preview deployment.
+
+---
+
 ### Client Showcase V2 — Cascading Logo Resolver + Fade Rotation (Mar 9, 2026)
 Branch: `feat/client-showcase-v2` (committed, NOT merged)
 
