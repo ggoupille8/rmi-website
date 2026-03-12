@@ -239,15 +239,12 @@ async function handleReconciliation(url: URL): Promise<Response> {
   const year = parseInt(dateParts[0], 10);
   const month = parseInt(dateParts[1], 10);
 
-  // Get the WIP summary for this month (revenue in excess / billings in excess)
+  // Get the WIP totals for this month from the wip_snapshot_totals table
   const wipData = await sql`
-    SELECT
-      SUM(CASE WHEN remaining > 0 THEN remaining ELSE 0 END) as revenue_in_excess,
-      SUM(CASE WHEN remaining < 0 THEN ABS(remaining) ELSE 0 END) as billings_in_excess,
-      SUM(billed_to_date) as total_billed,
-      SUM(costs_to_date) as total_costs
-    FROM job_financials
-    WHERE wip_year = ${year} AND wip_month = ${month}
+    SELECT revenue_excess, billings_excess
+    FROM wip_snapshot_totals
+    WHERE snapshot_year = ${year} AND snapshot_month = ${month}
+    LIMIT 1
   `.catch(() => ({ rows: [] }));
 
   const ar = arSnap.rows[0] ?? null;
@@ -309,14 +306,14 @@ async function handleReconciliation(url: URL): Promise<Response> {
     tieOut(
       "Revenue in Excess (CIE)",
       "WIP Revenue in Excess",
-      wip ? parseFloat(wip.revenue_in_excess) : null,
+      wip ? parseFloat(wip.revenue_excess) : null,
       "BS 1-1500 (Costs in Excess)",
       bs ? parseFloat(bs.costs_in_excess) : null
     ),
     tieOut(
       "Billings in Excess (BIE)",
       "WIP Billings in Excess",
-      wip ? parseFloat(wip.billings_in_excess) : null,
+      wip ? Math.abs(parseFloat(wip.billings_excess)) : null,
       "BS 1-2200 (Billings in Excess)",
       bs ? parseFloat(bs.billings_in_excess) : null
     ),
