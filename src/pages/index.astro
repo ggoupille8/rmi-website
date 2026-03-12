@@ -23,7 +23,7 @@ import { heroTagline, siteTitle, siteDescription } from '../content/site';
       client:load
       tagline={heroTagline}
     />
-    <ClientShowcase client:load />
+    <ClientShowcase client:idle />
     <div class="w-full h-px bg-gradient-to-r from-transparent via-accent-500/30 to-transparent" />
     <div id="services" class="scroll-mt-14">
       <Services client:visible />
@@ -66,6 +66,6 @@ import { heroTagline, siteTitle, siteDescription } from '../content/site';
       </div>
     </div>
     <Footer client:visible />
-    <FloatingMobileCTA client:load />
+    <FloatingMobileCTA client:idle />
   </div>
 </BaseLayout>
