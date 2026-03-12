@@ -458,3 +458,121 @@ CREATE TABLE IF NOT EXISTS clients (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_clients_domain ON clients(domain);
+
+-- ─────────────────────────────────────────────
+-- AR AGING SNAPSHOTS
+-- ─────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS ar_aging_snapshots (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  report_date     DATE NOT NULL,
+  generated_date  DATE,
+  source_filename VARCHAR(500) NOT NULL,
+  variant         VARCHAR(100),
+  total_amount    DECIMAL(14,2) NOT NULL,
+  total_current   DECIMAL(14,2) NOT NULL,
+  total_over_30   DECIMAL(14,2) NOT NULL,
+  total_over_60   DECIMAL(14,2) NOT NULL,
+  total_over_90   DECIMAL(14,2) NOT NULL,
+  total_over_120  DECIMAL(14,2) NOT NULL,
+  total_retainage DECIMAL(14,2) NOT NULL,
+  customer_count  INTEGER NOT NULL,
+  imported_at     TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  imported_by     VARCHAR(100) DEFAULT 'manual',
+  UNIQUE(report_date, variant)
+);
+
+CREATE TABLE IF NOT EXISTS ar_aging_entries (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  snapshot_id     UUID NOT NULL REFERENCES ar_aging_snapshots(id) ON DELETE CASCADE,
+  customer_name   VARCHAR(255) NOT NULL,
+  customer_code   VARCHAR(50),
+  customer_phone  VARCHAR(20),
+  total_amount    DECIMAL(14,2) NOT NULL,
+  current_amount  DECIMAL(14,2) NOT NULL,
+  over_30         DECIMAL(14,2) NOT NULL,
+  over_60         DECIMAL(14,2) NOT NULL,
+  over_90         DECIMAL(14,2) NOT NULL,
+  over_120        DECIMAL(14,2) NOT NULL,
+  retainage       DECIMAL(14,2) NOT NULL,
+  total_past_due  DECIMAL(14,2) GENERATED ALWAYS AS (over_30 + over_60 + over_90 + over_120) STORED,
+  UNIQUE(snapshot_id, customer_name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ar_entries_snapshot ON ar_aging_entries(snapshot_id);
+CREATE INDEX IF NOT EXISTS idx_ar_snapshots_date ON ar_aging_snapshots(report_date);
+
+-- ─────────────────────────────────────────────
+-- BALANCE SHEET SNAPSHOTS
+-- ─────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS balance_sheet_snapshots (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  report_date     DATE NOT NULL,
+  source_filename VARCHAR(500) NOT NULL,
+  variant         VARCHAR(100),
+  total_assets         DECIMAL(14,2),
+  total_liabilities    DECIMAL(14,2),
+  total_equity         DECIMAL(14,2),
+  net_income           DECIMAL(14,2),
+  ar_balance           DECIMAL(14,2),
+  ar_retainage         DECIMAL(14,2),
+  costs_in_excess      DECIMAL(14,2),
+  billings_in_excess   DECIMAL(14,2),
+  account_count        INTEGER NOT NULL,
+  imported_at     TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  imported_by     VARCHAR(100) DEFAULT 'manual',
+  UNIQUE(report_date, variant)
+);
+
+CREATE TABLE IF NOT EXISTS balance_sheet_entries (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  snapshot_id     UUID NOT NULL REFERENCES balance_sheet_snapshots(id) ON DELETE CASCADE,
+  account_number  VARCHAR(20),
+  account_name    VARCHAR(255) NOT NULL,
+  amount          DECIMAL(14,2) NOT NULL,
+  section         VARCHAR(50) NOT NULL,
+  is_subtotal     BOOLEAN DEFAULT FALSE,
+  line_order      INTEGER NOT NULL,
+  UNIQUE(snapshot_id, account_number)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bs_entries_snapshot ON balance_sheet_entries(snapshot_id);
+CREATE INDEX IF NOT EXISTS idx_bs_snapshots_date ON balance_sheet_snapshots(report_date);
+CREATE INDEX IF NOT EXISTS idx_bs_entries_account ON balance_sheet_entries(account_number);
+
+-- ─────────────────────────────────────────────
+-- INCOME STATEMENT SNAPSHOTS
+-- ─────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS income_statement_snapshots (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  period_end_date DATE NOT NULL,
+  source_filename VARCHAR(500) NOT NULL,
+  variant         VARCHAR(100),
+  total_income         DECIMAL(14,2),
+  total_cost_of_sales  DECIMAL(14,2),
+  gross_margin         DECIMAL(14,2),
+  total_expenses       DECIMAL(14,2),
+  net_income           DECIMAL(14,2),
+  account_count        INTEGER NOT NULL,
+  imported_at     TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  imported_by     VARCHAR(100) DEFAULT 'manual',
+  UNIQUE(period_end_date, variant)
+);
+
+CREATE TABLE IF NOT EXISTS income_statement_entries (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  snapshot_id     UUID NOT NULL REFERENCES income_statement_snapshots(id) ON DELETE CASCADE,
+  account_number  VARCHAR(20),
+  account_name    VARCHAR(255) NOT NULL,
+  current_activity DECIMAL(14,2),
+  current_balance  DECIMAL(14,2),
+  section         VARCHAR(50) NOT NULL,
+  is_subtotal     BOOLEAN DEFAULT FALSE,
+  line_order      INTEGER NOT NULL,
+  UNIQUE(snapshot_id, account_number)
+);
+
+CREATE INDEX IF NOT EXISTS idx_is_entries_snapshot ON income_statement_entries(snapshot_id);
+CREATE INDEX IF NOT EXISTS idx_is_snapshots_date ON income_statement_snapshots(period_end_date);
