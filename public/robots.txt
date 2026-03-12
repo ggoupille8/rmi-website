@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /pm/
 Disallow: /api/
 
 Sitemap: https://rmi-llc.net/sitemap-index.xml
