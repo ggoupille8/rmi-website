@@ -106,8 +106,16 @@ function fmtInt(val: string | number | null | undefined): string {
 }
 
 function dateLabel(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
+  // Handle both YYYY-MM-DD and full ISO datetime (YYYY-MM-DDTHH:MM:SS.000Z)
+  const dateOnly = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+  const d = new Date(dateOnly + "T00:00:00");
+  if (isNaN(d.getTime())) return dateStr;
   return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
+/** Extract a usable date from a snapshot row (handles aliased period_end_date) */
+function snapshotDate(row: SnapshotRow): string | undefined {
+  return row.report_date || row.period_end_date;
 }
 
 export default function FinancialDashboard() {
@@ -124,10 +132,12 @@ export default function FinancialDashboard() {
         setMonths(d);
         // Auto-select the most recent date
         const allDates = [
-          ...d.arAging.map((s: SnapshotRow) => s.report_date),
-          ...d.balanceSheet.map((s: SnapshotRow) => s.report_date),
-          ...d.incomeStatement.map((s: SnapshotRow) => s.period_end_date),
-        ].filter(Boolean) as string[];
+          ...d.arAging.map((s: SnapshotRow) => snapshotDate(s)),
+          ...d.balanceSheet.map((s: SnapshotRow) => snapshotDate(s)),
+          ...d.incomeStatement.map((s: SnapshotRow) => snapshotDate(s)),
+        ]
+          .filter(Boolean)
+          .map((dt: string) => dt.includes("T") ? dt.split("T")[0] : dt);
         const unique = [...new Set(allDates)].sort().reverse();
         if (unique.length > 0 && !selectedDate) setSelectedDate(unique[0]);
       })
@@ -140,10 +150,12 @@ export default function FinancialDashboard() {
   // Collect unique dates for the month selector
   const allDates = months
     ? [
-        ...months.arAging.map((s) => s.report_date),
-        ...months.balanceSheet.map((s) => s.report_date),
-        ...months.incomeStatement.map((s) => s.period_end_date),
-      ].filter(Boolean) as string[]
+        ...months.arAging.map((s) => snapshotDate(s)),
+        ...months.balanceSheet.map((s) => snapshotDate(s)),
+        ...months.incomeStatement.map((s) => snapshotDate(s)),
+      ]
+      .filter(Boolean)
+      .map((d) => (d as string).includes("T") ? (d as string).split("T")[0] : d) as string[]
     : [];
   const uniqueDates = [...new Set(allDates)].sort().reverse();
 
@@ -215,9 +227,9 @@ export default function FinancialDashboard() {
                   </thead>
                   <tbody className="divide-y divide-neutral-800">
                     {[
-                      ...months.arAging.map((s) => ({ ...s, type: "AR Aging", date: s.report_date, records: s.customer_count })),
-                      ...months.balanceSheet.map((s) => ({ ...s, type: "Balance Sheet", date: s.report_date, records: s.account_count })),
-                      ...months.incomeStatement.map((s) => ({ ...s, type: "Income Statement", date: s.period_end_date, records: s.account_count })),
+                      ...months.arAging.map((s) => ({ ...s, type: "AR Aging", date: snapshotDate(s), records: s.customer_count })),
+                      ...months.balanceSheet.map((s) => ({ ...s, type: "Balance Sheet", date: snapshotDate(s), records: s.account_count })),
+                      ...months.incomeStatement.map((s) => ({ ...s, type: "Income Statement", date: snapshotDate(s), records: s.account_count })),
                     ]
                       .sort((a, b) => (b.imported_at ?? "").localeCompare(a.imported_at ?? ""))
                       .map((row, i) => (
