@@ -504,7 +504,7 @@ export default function WipDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-hidden">
       {/* ── Month Selector + Controls ────────────────────── */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
@@ -580,6 +580,12 @@ export default function WipDashboard() {
           </div>
         )}
       </div>
+
+      {/* ── Loading Skeleton ──────────────────────────── */}
+      {loading && jobs.length === 0 && <LoadingSkeleton />}
+
+      {/* ── Content (hidden during initial load) ─────── */}
+      {!(loading && jobs.length === 0) && (<>
 
       {/* ── Primary KPI Cards ──────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -864,6 +870,8 @@ export default function WipDashboard() {
         </h3>
         <WipJobTable jobs={effectiveJobs} mode="admin" />
       </div>
+
+      </>)}
     </div>
   );
 }

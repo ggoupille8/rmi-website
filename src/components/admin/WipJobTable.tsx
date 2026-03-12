@@ -1,9 +1,8 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, Fragment } from "react";
 import {
   ChevronUp,
   ChevronDown,
   Search,
-  Filter,
   Eye,
   EyeOff,
   ChevronRight,
@@ -105,11 +104,10 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
   const [sortField, setSortField] = useState<SortField>("job_number");
   const [sortDir, setSortDir] = useState<SortDirection>("asc");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPMs, setSelectedPMs] = useState<Set<string>>(new Set(PM_CODES));
-  const [showCompleted, setShowCompleted] = useState(true);
+  const [pmFilter, setPmFilter] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "complete">("all");
   const [showHidden, setShowHidden] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-  const [showPmFilter, setShowPmFilter] = useState(false);
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -128,11 +126,11 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
       // PM filter
-      if (job.project_manager && !selectedPMs.has(job.project_manager)) return false;
-      if (!job.project_manager && selectedPMs.size < PM_CODES.length) return false;
+      if (pmFilter !== "All" && job.project_manager !== pmFilter) return false;
 
-      // Completed filter
-      if (!showCompleted && job.pct_complete !== null && job.pct_complete >= 1.0) return false;
+      // Status filter
+      if (statusFilter === "active" && job.pct_complete !== null && job.pct_complete >= 1.0) return false;
+      if (statusFilter === "complete" && (job.pct_complete === null || job.pct_complete < 1.0)) return false;
 
       // Hidden filter
       if (!showHidden && job.is_hidden_in_source) return false;
@@ -147,7 +145,7 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
 
       return true;
     });
-  }, [jobs, selectedPMs, showCompleted, showHidden, debouncedSearch]);
+  }, [jobs, pmFilter, statusFilter, showHidden, debouncedSearch]);
 
   // ── Sorting ──────────────────────────────────────────
   const sortedJobs = useMemo(() => {
@@ -183,32 +181,20 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
     [sortField]
   );
 
-  const togglePM = useCallback((pm: string) => {
-    setSelectedPMs((prev) => {
-      const next = new Set(prev);
-      if (next.has(pm)) {
-        next.delete(pm);
-      } else {
-        next.add(pm);
-      }
-      return next;
-    });
-  }, []);
-
   const toggleRow = useCallback((jobNumber: string) => {
     setExpandedRow((prev) => (prev === jobNumber ? null : jobNumber));
   }, []);
 
   // ── Row Styling ──────────────────────────────────────
   const getRowClass = (job: WipSnapshot, index: number): string => {
-    const base = index % 2 === 0 ? "bg-neutral-900/30" : "bg-neutral-900/60";
     if (job.gross_profit !== null && job.gross_profit < 0) {
-      return "bg-red-950/30 hover:bg-red-950/50";
+      return "bg-red-900/20 hover:bg-red-900/30";
     }
-    if (job.pct_complete !== null && job.pct_complete > 1.0 && job.backlog_revenue !== null && job.backlog_revenue < 0) {
-      return "bg-amber-950/30 hover:bg-amber-950/50";
+    if (job.pct_complete !== null && job.pct_complete >= 1.0) {
+      return "bg-green-900/10 hover:bg-green-900/20";
     }
-    return `${base} hover:bg-neutral-800/60`;
+    const stripe = index % 2 === 0 ? "bg-neutral-800/50" : "";
+    return `${stripe} hover:bg-neutral-800/60`;
   };
 
   // ── Cell Rendering ───────────────────────────────────
@@ -341,55 +327,30 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
           />
         </div>
 
-        {/* PM Filter */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowPmFilter(!showPmFilter)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-sm text-neutral-300 hover:bg-neutral-750 hover:border-neutral-600 transition-colors"
-          >
-            <Filter size={14} />
-            PM
-            {selectedPMs.size < PM_CODES.length && (
-              <span className="ml-1 px-1.5 py-0.5 bg-primary-600/20 text-primary-400 rounded text-xs">
-                {selectedPMs.size}
-              </span>
-            )}
-          </button>
-          {showPmFilter && (
-            <div className="absolute top-full left-0 mt-1 z-20 bg-neutral-800 border border-neutral-700 rounded-lg p-2 shadow-xl min-w-[120px]">
-              {PM_CODES.map((pm) => (
-                <label
-                  key={pm}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-neutral-700 cursor-pointer text-sm text-neutral-300"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedPMs.has(pm)}
-                    onChange={() => togglePM(pm)}
-                    className="rounded border-neutral-600 bg-neutral-700 text-primary-500 focus:ring-primary-500/30"
-                  />
-                  {pm}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Toggles */}
-        <button
-          type="button"
-          onClick={() => setShowCompleted(!showCompleted)}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border transition-colors ${
-            showCompleted
-              ? "bg-neutral-800 border-neutral-700 text-neutral-300"
-              : "bg-neutral-800/50 border-neutral-700/50 text-neutral-500"
-          }`}
+        {/* PM Filter Dropdown */}
+        <select
+          value={pmFilter}
+          onChange={(e) => setPmFilter(e.target.value)}
+          className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-sm text-neutral-300 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30 cursor-pointer"
         >
-          {showCompleted ? <Eye size={14} /> : <EyeOff size={14} />}
-          Completed
-        </button>
+          <option value="All">All PMs</option>
+          {PM_CODES.map((pm) => (
+            <option key={pm} value={pm}>{pm}</option>
+          ))}
+        </select>
 
+        {/* Status Filter Dropdown */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "complete")}
+          className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-sm text-neutral-300 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30 cursor-pointer"
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="complete">Complete</option>
+        </select>
+
+        {/* Hidden Toggle */}
         <button
           type="button"
           onClick={() => setShowHidden(!showHidden)}
@@ -402,11 +363,11 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
           {showHidden ? <Eye size={14} /> : <EyeOff size={14} />}
           Hidden
         </button>
+      </div>
 
-        {/* Count */}
-        <span className="text-xs text-neutral-500 ml-auto">
-          {sortedJobs.length} of {jobs.length} jobs
-        </span>
+      {/* ── Job Count ────────────────────────────────── */}
+      <div className="text-xs text-neutral-500">
+        Showing {sortedJobs.length} of {jobs.length} jobs
       </div>
 
       {/* ── Table ──────────────────────────────────────── */}
@@ -449,9 +410,8 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
               </tr>
             ) : (
               sortedJobs.map((job, i) => (
-                <>
+                <Fragment key={job.job_number}>
                   <tr
-                    key={job.job_number}
                     onClick={() => {
                       toggleRow(job.job_number);
                       onJobClick?.(job);
@@ -478,7 +438,7 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
                     ))}
                   </tr>
                   {expandedRow === job.job_number && renderExpandedDetail(job)}
-                </>
+                </Fragment>
               ))
             )}
           </tbody>
