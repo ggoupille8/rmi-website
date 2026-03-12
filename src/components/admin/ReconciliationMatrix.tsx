@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { CheckCircle, AlertCircle, HelpCircle, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { CheckCircle, AlertCircle, HelpCircle, Loader2, RefreshCw } from "lucide-react";
 
 interface TieOut {
   description: string;
@@ -30,19 +30,26 @@ export default function ReconciliationMatrix({ reportDate }: { reportDate: strin
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!reportDate) return;
+  const fetchReconciliation = useCallback(async (date: string) => {
     setLoading(true);
     setError(null);
-    fetch(`/api/admin/financials?action=reconciliation&reportDate=${reportDate}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) throw new Error(d.error);
-        setData(d);
-      })
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [reportDate]);
+    try {
+      const r = await fetch(`/api/admin/financials?action=reconciliation&reportDate=${date}`);
+      if (!r.ok) throw new Error(`Server error: ${r.status}`);
+      const d = await r.json();
+      if (d.error) throw new Error(d.error);
+      setData(d);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to load reconciliation");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!reportDate) return;
+    fetchReconciliation(reportDate);
+  }, [reportDate, fetchReconciliation]);
 
   if (!reportDate) {
     return (
@@ -63,18 +70,27 @@ export default function ReconciliationMatrix({ reportDate }: { reportDate: strin
 
   if (error) {
     return (
-      <div className="text-center py-12 text-red-400">
-        <AlertCircle className="mx-auto mb-2" size={24} />
-        {error}
+      <div className="text-center py-12">
+        <AlertCircle className="mx-auto mb-2 text-red-400" size={24} />
+        <p className="text-red-400 mb-3">{error}</p>
+        {reportDate && (
+          <button
+            onClick={() => fetchReconciliation(reportDate)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-neutral-800 border border-neutral-700 rounded-md text-neutral-300 hover:bg-neutral-700 transition-colors"
+          >
+            <RefreshCw size={14} /> Retry
+          </button>
+        )}
       </div>
     );
   }
 
   if (!data) return null;
 
-  const matchCount = data.tieOuts.filter((t) => t.status === "match").length;
-  const varianceCount = data.tieOuts.filter((t) => t.status === "variance").length;
-  const missingCount = data.tieOuts.filter((t) => t.status === "missing_data").length;
+  const tieOuts = data.tieOuts || [];
+  const matchCount = tieOuts.filter((t) => t.status === "match").length;
+  const varianceCount = tieOuts.filter((t) => t.status === "variance").length;
+  const missingCount = tieOuts.filter((t) => t.status === "missing_data").length;
 
   return (
     <div className="space-y-4">
@@ -120,7 +136,7 @@ export default function ReconciliationMatrix({ reportDate }: { reportDate: strin
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-800">
-            {data.tieOuts.map((t, i) => (
+            {tieOuts.map((t, i) => (
               <tr key={i} className="hover:bg-neutral-800/30">
                 <td className="py-2.5 pr-4 text-neutral-200 font-medium">{t.description}</td>
                 <td className="py-2.5 pr-4 text-neutral-400 text-xs">{t.sourceA.name}</td>
