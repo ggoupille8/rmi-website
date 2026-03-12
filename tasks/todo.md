@@ -2,6 +2,58 @@
 
 ## Current
 
+### Hero Image Re-Compression — PageSpeed LCP Fix (Mar 12, 2026)
+Branch: `feat/hero-image-compression` (committed, NOT merged)
+
+PageSpeed flagged hero-6-960w.webp (295 KB) as the primary LCP bottleneck — 4x larger than any other 960w hero image. Total 960w payload was 622 KB.
+
+**Task 1 — Re-compress hero-6 at all breakpoints:**
+hero-6 was a portrait image (960x1280) — all variants were the same 960px-wide source. Cropped to landscape (960x640) + gentle blur (sigma 0.8) + q=60 re-encode:
+- `hero-6-960w.webp`: 295 KB → 73 KB (-75%)
+- `hero-6.webp`: 269 KB → 72 KB (-73%)
+- `hero-6-1280w.webp`: 269 KB → 72 KB (-73%)
+- `hero-6-480w.webp`: 49 KB → 19 KB (-62%)
+
+**Task 2 — Logo WebP conversion:**
+Already complete — `rmi-logo-full.webp` (4 KB) exists and `HeroFullWidth.tsx` already uses `<picture>` with WebP source + PNG fallback. No changes needed.
+
+**Task 3 — Re-compress remaining hero images:**
+Applied per-image settings (blur 0.3–0.8, quality 50–60) across all hero images. Portrait hero-4 also cropped to landscape. Kept hero-1-480w (11 KB) and hero-1-1280w (66 KB) as-is.
+
+| Image | 480w | 960w | 1280w | 1920w |
+|-------|------|------|-------|-------|
+| hero-1 | 11 KB (skip) | 36→27 KB | 66 KB (skip) | 137→100 KB |
+| hero-2 | 27→21 KB | 73→54 KB | 113→70 KB | 189→101 KB |
+| hero-3 | 19→15 KB | 50→38 KB | 79→47 KB | 107→77 KB |
+| hero-4 | 28→15 KB | 92→46 KB | 130→54 KB | 173→80 KB |
+| hero-5 | 23→18 KB | 77→54 KB | 140→79 KB | 295→118 KB |
+| hero-6 | 49→19 KB | 295→73 KB | 269→72 KB | 269→72 KB |
+
+**Overall Results:**
+- Total hero payload: 2,746 KB → 1,326 KB (-52%, saved 1,420 KB)
+- 960w breakpoint: 622 KB → 291 KB (-53%, target was <300 KB)
+- hero-6-960w: 295 KB → 73 KB (-75%, target was <90 KB)
+
+**Script:** `scripts/compress-heroes.mjs` — Node.js sharp script with per-file configs (quality, blur sigma, landscape crop for portrait images). Re-encodes from existing WebP files.
+
+**Verification:**
+- [x] hero-6-960w.webp < 90 KB (73 KB)
+- [x] hero-6.webp < 160 KB (72 KB)
+- [x] hero-6-480w.webp < 30 KB (19 KB)
+- [x] hero-5-960w.webp < 55 KB (54 KB)
+- [x] hero-2-960w.webp < 55 KB (54 KB)
+- [x] Total 960w < 300 KB (291 KB)
+- [x] `npm run build` — zero errors, zero warnings
+- [x] Logo already WebP with `<picture>` fallback
+
+**Files Modified:**
+- `public/images/hero/*.webp` — 22 images re-compressed in place
+
+**Files Created:**
+- `scripts/compress-heroes.mjs` — compression utility script
+
+---
+
 ### Financial Dashboard — PDF Parsers, Upload & Reconciliation (Mar 12, 2026)
 Branch: `feat/financial-dashboard` (committed, NOT merged)
 
