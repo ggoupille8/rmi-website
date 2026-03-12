@@ -76,8 +76,8 @@ describe("ClientShowcase", () => {
       const invertedImages = images.filter((img) =>
         img.className.includes("brightness-0"),
       );
-      // Stellantis, Amazon, BASF, Flagstar, Target, Shake Shack, Five Below = 7
-      expect(invertedImages.length).toBe(7);
+      // Stellantis, Amazon, BASF, Flagstar, Target, Shake Shack, Five Below, Costco, Cartier = 9
+      expect(invertedImages.length).toBe(9);
       for (const img of invertedImages) {
         expect(img.className).toContain("invert");
       }
@@ -141,9 +141,9 @@ describe("ClientShowcase", () => {
       expect(screen.getByAltText("Audi")).toBeInTheDocument();
     });
 
-    it("includes John E. Green Company", () => {
+    it("includes Cartier", () => {
       render(<ClientShowcase />);
-      expect(screen.getByAltText("John E. Green Company")).toBeInTheDocument();
+      expect(screen.getByAltText("Cartier")).toBeInTheDocument();
     });
   });
 

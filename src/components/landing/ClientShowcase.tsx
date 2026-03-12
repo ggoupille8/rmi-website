@@ -25,10 +25,10 @@ const clients: Client[] = [
   { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", needsInvert: true, scale: 0.8 },
   { name: "Verizon", logo: "/images/clients/verizon.svg", scale: 0.8 },
   // Row 3 — Michigan/commercial/industrial
-  { name: "Rocket Mortgage", logo: "/images/clients/rocket.svg", scale: 0.96 },
+  { name: "Rocket Mortgage", logo: "/images/clients/rocket.svg", scale: 1.92 },
   { name: "CBRE", logo: "/images/clients/cbre.svg", scale: 0.8 },
   { name: "University of Michigan", logo: "/images/clients/michigan.svg", scale: 1.5 },
-  { name: "Meijer", logo: "/images/clients/meijer.svg", scale: 0.8 },
+  { name: "Meijer", logo: "/images/clients/meijer.svg", scale: 1.12 },
   { name: "Babcock & Wilcox", logo: "/images/clients/babcock-wilcox.svg" },
   { name: "Nissan", logo: "/images/clients/nissan.svg", scale: 2 },
   // Row 4 — Consumer/regional
@@ -42,9 +42,9 @@ const clients: Client[] = [
   { name: "Ascension Health", logo: "/images/clients/ascension.svg", scale: 1.04 },
   { name: "Culver's", logo: "/images/clients/culvers.svg", scale: 1.04 },
   { name: "Eastern Michigan University", logo: "/images/clients/eastern-michigan.svg", scale: 1.6 },
-  { name: "Barton Malow", logo: "/images/clients/barton-malow.svg", scale: 0.8 },
+  { name: "Costco", logo: "/images/clients/costco.svg", needsInvert: true, scale: 0.8 },
   { name: "Audi", logo: "/images/clients/audi.svg", scale: 0.8 },
-  { name: "John E. Green Company", logo: "/images/clients/john-e-green.svg", scale: 0.8 },
+  { name: "Cartier", logo: "/images/clients/cartier.svg", needsInvert: true, scale: 0.8 },
 ];
 
 /** Max stagger delay = 200ms heading lead + 29 logos * 60ms + 500ms duration */
