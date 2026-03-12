@@ -7,12 +7,13 @@ import {
   AlertTriangle,
   BarChart3,
   ChevronDown,
+  ChevronRight,
   RefreshCw,
   AlertCircle,
   X,
 } from "lucide-react";
 import WipJobTable, { type WipSnapshot } from "./WipJobTable";
-import { computeWipAlerts, alertDismissKey, type AlertFlag } from "@/lib/wip-alerts";
+import { computeWipAlerts, alertDismissKey, isGliJob, type AlertFlag } from "@/lib/wip-alerts";
 
 // ── Types ──────────────────────────────────────────────
 
@@ -52,8 +53,6 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-/** Matches job numbers like 26-0215, 25-0215, 24-0215 (GLI / Fab Shop) */
-const GLI_JOB_SUFFIX = "-0215";
 
 const PM_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   GG: { bg: "bg-blue-950/40", text: "text-blue-400", border: "border-blue-800/50" },
@@ -197,7 +196,7 @@ export default function WipDashboard() {
   const effectiveJobs = useMemo(() => {
     const safeJobs = jobs || [];
     if (!excludeGLI) return safeJobs;
-    return safeJobs.filter((j) => !j.job_number.endsWith(GLI_JOB_SUFFIX));
+    return safeJobs.filter((j) => !isGliJob(j));
   }, [jobs, excludeGLI]);
 
   // ── Computed: Prior year map for YTD ──────────────────
@@ -350,15 +349,58 @@ export default function WipDashboard() {
 
   const dismissedCount = alerts.length - visibleAlerts.length;
 
+  const [alertsExpanded, setAlertsExpanded] = useState(false);
+
+  // ── Computed: Grouped alerts by type ─────────────────
+  const alertGroups = useMemo(() => {
+    const groups: Record<string, AlertFlag[]> = {};
+    for (const a of visibleAlerts) {
+      const label = a.type;
+      if (!groups[label]) groups[label] = [];
+      groups[label].push(a);
+    }
+    return groups;
+  }, [visibleAlerts]);
+
+  const alertSeveritySummary = useMemo(() => {
+    const red = visibleAlerts.filter((a) => a.severity === "red").length;
+    const yellow = visibleAlerts.filter((a) => a.severity === "yellow").length;
+    const parts: string[] = [];
+    if (red > 0) parts.push(`${red} Red`);
+    if (yellow > 0) parts.push(`${yellow} Yellow`);
+    return parts.join(", ");
+  }, [visibleAlerts]);
+
+  const dismissAllYellow = useCallback(() => {
+    const yellowAlerts = visibleAlerts.filter((a) => a.severity === "yellow");
+    if (yellowAlerts.length === 0) return;
+    setDismissedKeys((prev) => {
+      const next = new Set(prev);
+      for (const a of yellowAlerts) {
+        next.add(alertDismissKey(a));
+      }
+      if (selectedYear !== null && selectedMonth !== null) {
+        localStorage.setItem(
+          `wip-dismissed-alerts-${selectedYear}-${selectedMonth}`,
+          JSON.stringify([...next])
+        );
+      }
+      return next;
+    });
+  }, [visibleAlerts, selectedYear, selectedMonth]);
+
+  const ALERT_TYPE_LABELS: Record<string, string> = {
+    "negative-profit": "Negative Margin",
+    "over-run": "Over-Run",
+    "under-billed": "Under-Billed",
+    "over-billed": "Over-Billed",
+  };
+
   // ── Computed: Enhanced PM Metrics ─────────────────────
   const enhancedPmMetrics = useMemo(() => {
     if (!effectiveJobs || effectiveJobs.length === 0 || selectedYear === null) return {};
 
     const yearPrefix = `${selectedYear.toString().slice(-2)}-`;
-
-    const isGliJob = (job: WipSnapshot) =>
-      (job.description?.toLowerCase().includes("great lakes insulation") ?? false) ||
-      (job.job_number?.endsWith("-0215") ?? false);
 
     const metrics: Record<string, {
       newSalesCount: number;
@@ -436,6 +478,14 @@ export default function WipDashboard() {
   }, []);
 
   const kpiTimeLabel = hasYtdData ? "YTD" : "Current Snapshot";
+
+  // Margin % coloring: green >30%, yellow 20-30%, red <20%
+  const marginColor = useMemo(() => {
+    const pct = kpis.marginPct * 100;
+    if (pct > 30) return "text-emerald-400";
+    if (pct >= 20) return "text-amber-400";
+    return "text-red-400";
+  }, [kpis.marginPct]);
 
   // ── Render ───────────────────────────────────────────
 
@@ -563,6 +613,7 @@ export default function WipDashboard() {
           label="Gross Profit"
           value={fmtCompact(kpis.grossProfit)}
           detail={`${fmtPct(kpis.marginPct)} margin`}
+          detailColor={marginColor}
           accent={kpis.grossProfit >= 0 ? "text-emerald-400" : "text-red-400"}
           accentBg={kpis.grossProfit >= 0 ? "bg-emerald-950/40" : "bg-red-950/40"}
           badge={kpiTimeLabel}
@@ -689,88 +740,119 @@ export default function WipDashboard() {
 
       {/* ── Alert Flags ────────────────────────────────── */}
       {alerts.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider">
-              Alerts ({visibleAlerts.length})
-              {dismissedCount > 0 && (
-                <span className="ml-2 text-neutral-600 normal-case tracking-normal">
-                  {dismissedCount} dismissed
-                </span>
-              )}
-            </h3>
-          </div>
-          {visibleAlerts.length > 0 ? (
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {visibleAlerts.map((alert, i) => (
-                <div
-                  key={`${alert.job_number}-${alert.type}-${i}`}
-                  className={`flex items-start gap-3 p-3 rounded-lg border ${
-                    alert.severity === "red"
-                      ? "bg-red-950/20 border-red-900/40"
-                      : "bg-amber-950/20 border-amber-900/40"
-                  }`}
-                >
-                  <AlertTriangle
-                    size={16}
-                    className={`mt-0.5 shrink-0 ${
-                      alert.severity === "red" ? "text-red-400" : "text-amber-400"
-                    }`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="font-mono text-neutral-200">{alert.job_number}</span>
-                      <span className="text-neutral-500">·</span>
-                      <span className="text-neutral-400 truncate">
-                        {alert.description ?? "No description"}
-                      </span>
-                      <span className="text-neutral-500">·</span>
-                      <span className="text-neutral-500">{alert.project_manager}</span>
-                    </div>
-                    <div className="text-xs mt-0.5">
-                      <span className="text-neutral-500">{alert.metric_label}: </span>
-                      <span
-                        className={
-                          alert.severity === "red" ? "text-red-400" : "text-amber-400"
-                        }
+        <div className="border border-neutral-800 rounded-lg overflow-hidden">
+          {/* Collapsible header */}
+          <button
+            type="button"
+            onClick={() => setAlertsExpanded(!alertsExpanded)}
+            className="w-full flex items-center gap-3 px-4 py-3 bg-neutral-900 hover:bg-neutral-800/80 transition-colors text-left"
+          >
+            <ChevronRight
+              size={16}
+              className={`text-neutral-500 transition-transform ${alertsExpanded ? "rotate-90" : ""}`}
+            />
+            <AlertTriangle size={16} className="text-amber-400" />
+            <span className="text-sm font-medium text-neutral-300">
+              Alerts
+            </span>
+            {visibleAlerts.length > 0 && (
+              <span className="text-sm text-neutral-500">
+                — {alertSeveritySummary}
+              </span>
+            )}
+            {dismissedCount > 0 && (
+              <span className="text-xs text-neutral-600 ml-auto">
+                {dismissedCount} dismissed
+              </span>
+            )}
+          </button>
+
+          {/* Expanded content */}
+          {alertsExpanded && (
+            <div className="border-t border-neutral-800 px-4 py-3 space-y-4">
+              {visibleAlerts.length > 0 ? (
+                <>
+                  {/* Dismiss All Yellow button */}
+                  {visibleAlerts.some((a) => a.severity === "yellow") && (
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={dismissAllYellow}
+                        className="text-xs px-3 py-1.5 rounded-lg border border-amber-900/40 bg-amber-950/20 text-amber-400 hover:bg-amber-950/40 transition-colors"
                       >
-                        {fmtCurrency(alert.metric_value)}
-                      </span>
+                        Dismiss All Yellow
+                      </button>
                     </div>
-                  </div>
-                  <span
-                    className={`shrink-0 text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded ${
-                      alert.severity === "red"
-                        ? "bg-red-900/40 text-red-400"
-                        : "bg-amber-900/40 text-amber-400"
-                    }`}
-                  >
-                    {alert.severity === "red" ? "RED" : "YELLOW"}
-                  </span>
-                  <span
-                    className={`shrink-0 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                      alert.type === "negative-profit" || alert.type === "over-run"
-                        ? "bg-red-900/40 text-red-400"
-                        : "bg-amber-900/40 text-amber-400"
-                    }`}
-                  >
-                    {alert.type.replace("-", " ")}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => dismissAlert(alert)}
-                    className="shrink-0 p-1 rounded hover:bg-neutral-700/50 text-neutral-600 hover:text-neutral-400 transition-colors"
-                    title="Dismiss alert"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
+                  )}
+
+                  {/* Grouped alerts */}
+                  {Object.entries(alertGroups).map(([type, groupAlerts]) => (
+                    <div key={type}>
+                      <h4 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
+                        {ALERT_TYPE_LABELS[type] ?? type} ({groupAlerts.length})
+                      </h4>
+                      <div className="space-y-1.5">
+                        {groupAlerts.map((alert, i) => (
+                          <div
+                            key={`${alert.job_number}-${alert.type}-${i}`}
+                            className={`flex items-start gap-3 p-2.5 rounded-lg border ${
+                              alert.severity === "red"
+                                ? "bg-red-950/20 border-red-900/40"
+                                : "bg-amber-950/15 border-amber-900/30"
+                            }`}
+                          >
+                            <AlertTriangle
+                              size={14}
+                              className={`mt-0.5 shrink-0 ${
+                                alert.severity === "red" ? "text-red-400" : "text-amber-400"
+                              }`}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="font-mono text-neutral-200">{alert.job_number}</span>
+                                <span className="text-neutral-500">·</span>
+                                <span className="text-neutral-400 truncate">
+                                  {alert.description ?? "No description"}
+                                </span>
+                                <span className="text-neutral-500">·</span>
+                                <span className="text-neutral-500">{alert.project_manager}</span>
+                              </div>
+                              <div className="text-xs mt-0.5">
+                                <span className="text-neutral-500">{alert.metric_label}: </span>
+                                <span className={alert.severity === "red" ? "text-red-400" : "text-amber-400"}>
+                                  {fmtCurrency(alert.metric_value)}
+                                </span>
+                              </div>
+                            </div>
+                            <span
+                              className={`shrink-0 text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded ${
+                                alert.severity === "red"
+                                  ? "bg-red-900/40 text-red-400"
+                                  : "bg-amber-900/40 text-amber-400"
+                              }`}
+                            >
+                              {alert.severity === "red" ? "RED" : "YELLOW"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => dismissAlert(alert)}
+                              className="shrink-0 p-1 rounded hover:bg-neutral-700/50 text-neutral-600 hover:text-neutral-400 transition-colors"
+                              title="Dismiss alert"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <p className="text-sm text-neutral-600">
+                  All alerts dismissed for this snapshot.
+                </p>
+              )}
             </div>
-          ) : (
-            <p className="text-sm text-neutral-600">
-              All alerts dismissed for this snapshot.
-            </p>
           )}
         </div>
       )}
@@ -793,6 +875,7 @@ function KpiCard({
   label,
   value,
   detail,
+  detailColor,
   accent,
   accentBg,
   badge,
@@ -801,6 +884,7 @@ function KpiCard({
   label: string;
   value: string;
   detail?: string;
+  detailColor?: string;
   accent: string;
   accentBg: string;
   badge?: string;
@@ -819,7 +903,49 @@ function KpiCard({
         )}
       </div>
       <div className={`text-2xl font-bold ${accent} tabular-nums`}>{value}</div>
-      {detail && <div className="text-xs text-neutral-500 mt-1">{detail}</div>}
+      {detail && <div className={`text-xs mt-1 ${detailColor ?? "text-neutral-500"}`}>{detail}</div>}
+    </div>
+  );
+}
+
+// ── Loading Skeleton ──────────────────────────────────
+
+function SkeletonCard() {
+  return (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 animate-pulse">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-8 h-8 rounded bg-neutral-800" />
+        <div className="h-3 w-24 rounded bg-neutral-800" />
+      </div>
+      <div className="h-7 w-20 rounded bg-neutral-800 mb-2" />
+      <div className="h-3 w-16 rounded bg-neutral-800" />
+    </div>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 animate-pulse">
+        <div className="h-4 w-32 rounded bg-neutral-800 mb-4" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-8 rounded bg-neutral-800" />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -12,13 +12,27 @@ export interface AlertFlag {
   metric_value: number;
 }
 
+// ── GLI Detection ────────────────────────────────────────
+// GLI (Great Lakes Insulation / Fab Shop) jobs invoice on material shipment
+// while WIP % complete tracks the overall contract, making them always appear
+// "over-billed". Exclude them from alerts entirely.
+
+export function isGliJob(job: WipSnapshot): boolean {
+  if (job.job_number.endsWith("-0215")) return true;
+  if (job.description?.toLowerCase().includes("great lakes insulation")) return true;
+  return false;
+}
+
 // ── Alert Computation ──────────────────────────────────
 
 export function computeWipAlerts(jobs: WipSnapshot[]): AlertFlag[] {
   const flags: AlertFlag[] = [];
   if (!jobs) return flags;
 
-  for (const job of jobs) {
+  // Filter out GLI fab shop jobs — different billing pattern, always looks over-billed
+  const alertableJobs = jobs.filter((j) => !isGliJob(j));
+
+  for (const job of alertableJobs) {
     // Negative gross profit — only for active (not 100% complete) jobs
     if (
       job.gross_profit !== null &&
