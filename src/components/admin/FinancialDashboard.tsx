@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Upload, BarChart3, GitCompare, ChevronDown, ChevronUp, Loader2, AlertCircle, RefreshCw, FileText, Calendar } from "lucide-react";
+import {
+  Upload, BarChart3, GitCompare, ChevronDown, Loader2,
+  AlertCircle, RefreshCw, FileText, Calendar, CheckCircle, AlertTriangle,
+  RotateCcw,
+} from "lucide-react";
 import FinancialUpload from "./FinancialUpload";
 import ReconciliationMatrix from "./ReconciliationMatrix";
 
 type Tab = "upload" | "reports" | "reconciliation";
+type ReportSubTab = "ar_aging" | "balance_sheet" | "income_statement";
 
 interface SnapshotRow {
   report_date?: string;
@@ -16,6 +21,7 @@ interface SnapshotRow {
   total_amount?: string;
   total_assets?: string;
   net_income?: string;
+  validation_passed?: boolean;
 }
 
 interface MonthsData {
@@ -106,17 +112,101 @@ function fmtInt(val: string | number | null | undefined): string {
 }
 
 function dateLabel(dateStr: string): string {
-  // Handle both YYYY-MM-DD and full ISO datetime (YYYY-MM-DDTHH:MM:SS.000Z)
   const dateOnly = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
   const d = new Date(dateOnly + "T00:00:00");
   if (isNaN(d.getTime())) return dateStr;
   return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
-/** Extract a usable date from a snapshot row (handles aliased period_end_date) */
 function snapshotDate(row: SnapshotRow): string | undefined {
   return row.report_date || row.period_end_date;
 }
+
+function importedAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+// ─────────────────────────────────────────────
+// Loading Skeletons
+// ─────────────────────────────────────────────
+
+function SkeletonRow() {
+  return (
+    <tr>
+      {[80, 60, 70, 55, 45, 65].map((w, i) => (
+        <td key={i} className="py-2.5 pr-4">
+          <div className="h-4 bg-neutral-800 rounded animate-pulse" style={{ width: `${w}%` }} />
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+function SkeletonKPI() {
+  return (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 space-y-2">
+      <div className="h-3 w-16 bg-neutral-800 rounded animate-pulse" />
+      <div className="h-6 w-24 bg-neutral-800 rounded animate-pulse" />
+    </div>
+  );
+}
+
+function ReportSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[0, 1, 2, 3].map((i) => <SkeletonKPI key={i} />)}
+      </div>
+      <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-neutral-800">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <th key={i} className="px-4 py-3">
+                  <div className="h-3 w-16 bg-neutral-800 rounded animate-pulse" />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-800/50">
+            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => <SkeletonRow key={i} />)}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function HistorySkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="h-4 w-28 bg-neutral-800 rounded animate-pulse" />
+      <div className="space-y-0">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-4 py-3 border-b border-neutral-800/50">
+            <div className="h-4 w-20 bg-neutral-800 rounded animate-pulse" />
+            <div className="h-5 w-24 bg-neutral-800 rounded-full animate-pulse" />
+            <div className="h-4 w-32 bg-neutral-800 rounded animate-pulse flex-1" />
+            <div className="h-4 w-12 bg-neutral-800 rounded animate-pulse" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Main Dashboard
+// ─────────────────────────────────────────────
 
 export default function FinancialDashboard() {
   const [tab, setTab] = useState<Tab>("upload");
@@ -136,7 +226,6 @@ export default function FinancialDashboard() {
       })
       .then((d) => {
         setMonths(d);
-        // Auto-select the most recent date on first load only
         if (!initialLoadDone.current) {
           initialLoadDone.current = true;
           const allDates = [
@@ -159,7 +248,6 @@ export default function FinancialDashboard() {
 
   useEffect(() => { fetchMonths(); }, [fetchMonths]);
 
-  // Collect unique dates for the month selector
   const allDates = months
     ? [
         ...months.arAging.map((s) => snapshotDate(s)),
@@ -214,59 +302,17 @@ export default function FinancialDashboard() {
         <div className="space-y-6">
           <FinancialUpload onUploadComplete={fetchMonths} />
 
-          {/* Upload history */}
-          {months && months.arAging.length === 0 && months.balanceSheet.length === 0 && months.incomeStatement.length === 0 && !loading && (
+          {loading && <HistorySkeleton />}
+
+          {!loading && months && months.arAging.length === 0 && months.balanceSheet.length === 0 && months.incomeStatement.length === 0 && (
             <div className="text-center py-8 text-neutral-500">
               <FileText size={24} className="mx-auto mb-2 text-neutral-600" />
               <p className="text-sm">No reports imported yet. Drop PDF files above to get started.</p>
             </div>
           )}
-          {months && (months.arAging.length > 0 || months.balanceSheet.length > 0 || months.incomeStatement.length > 0) && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-neutral-300">Import History</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-neutral-400 border-b border-neutral-700">
-                      <th className="pb-2 pr-4 font-medium">Date</th>
-                      <th className="pb-2 pr-4 font-medium">Type</th>
-                      <th className="pb-2 pr-4 font-medium">Variant</th>
-                      <th className="pb-2 pr-4 font-medium">File</th>
-                      <th className="pb-2 pr-4 font-medium text-right">Records</th>
-                      <th className="pb-2 font-medium">Imported</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-800">
-                    {[
-                      ...months.arAging.map((s) => ({ ...s, type: "AR Aging", date: snapshotDate(s), records: s.customer_count })),
-                      ...months.balanceSheet.map((s) => ({ ...s, type: "Balance Sheet", date: snapshotDate(s), records: s.account_count })),
-                      ...months.incomeStatement.map((s) => ({ ...s, type: "Income Statement", date: snapshotDate(s), records: s.account_count })),
-                    ]
-                      .sort((a, b) => (b.imported_at ?? "").localeCompare(a.imported_at ?? ""))
-                      .map((row, i) => (
-                        <tr key={i} className="hover:bg-neutral-800/50">
-                          <td className="py-2 pr-4 text-neutral-200">{row.date ? dateLabel(row.date) : "—"}</td>
-                          <td className="py-2 pr-4">
-                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                              row.type === "AR Aging" ? "bg-blue-500/15 text-blue-400" :
-                              row.type === "Balance Sheet" ? "bg-emerald-500/15 text-emerald-400" :
-                              "bg-amber-500/15 text-amber-400"
-                            }`}>
-                              {row.type}
-                            </span>
-                          </td>
-                          <td className="py-2 pr-4 text-neutral-400 text-xs">{row.variant ?? "standard"}</td>
-                          <td className="py-2 pr-4 text-neutral-400 text-xs truncate max-w-[200px]">{row.source_filename}</td>
-                          <td className="py-2 pr-4 text-right text-neutral-200 tabular-nums">{row.records ?? "—"}</td>
-                          <td className="py-2 text-neutral-500 text-xs">
-                            {row.imported_at ? new Date(row.imported_at).toLocaleDateString() : "—"}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+
+          {!loading && months && (months.arAging.length > 0 || months.balanceSheet.length > 0 || months.incomeStatement.length > 0) && (
+            <ImportHistory months={months} onReimport={fetchMonths} />
           )}
         </div>
       )}
@@ -286,10 +332,11 @@ export default function FinancialDashboard() {
       )}
 
       {/* Reports tab */}
-      {tab === "reports" && selectedDate && (
+      {tab === "reports" && loading && <ReportSkeleton />}
+      {tab === "reports" && !loading && selectedDate && (
         <ReportsView reportDate={selectedDate} />
       )}
-      {tab === "reports" && !selectedDate && !loading && (
+      {tab === "reports" && !loading && !selectedDate && (
         <div className="text-center py-12">
           <FileText size={32} className="mx-auto mb-3 text-neutral-600" />
           <p className="text-neutral-400">No financial reports imported yet.</p>
@@ -301,13 +348,137 @@ export default function FinancialDashboard() {
       {tab === "reconciliation" && (
         <ReconciliationMatrix reportDate={selectedDate} />
       )}
+    </div>
+  );
+}
 
-      {loading && (
-        <div className="flex items-center justify-center py-8 gap-2 text-neutral-400">
-          <Loader2 size={18} className="animate-spin" />
-          Loading...
+// ─────────────────────────────────────────────
+// Import History Table
+// ─────────────────────────────────────────────
+
+interface HistoryRow extends SnapshotRow {
+  type: string;
+  date: string | undefined;
+  records: number | undefined;
+}
+
+function ImportHistory({ months, onReimport }: { months: MonthsData; onReimport: () => void }) {
+  const [reimporting, setReimporting] = useState<number | null>(null);
+
+  const rows: HistoryRow[] = [
+    ...months.arAging.map((s) => ({ ...s, type: "AR Aging", date: snapshotDate(s), records: s.customer_count })),
+    ...months.balanceSheet.map((s) => ({ ...s, type: "Balance Sheet", date: snapshotDate(s), records: s.account_count })),
+    ...months.incomeStatement.map((s) => ({ ...s, type: "Income Statement", date: snapshotDate(s), records: s.account_count })),
+  ].sort((a, b) => (b.imported_at ?? "").localeCompare(a.imported_at ?? ""));
+
+  async function handleReimport(row: HistoryRow, index: number) {
+    setReimporting(index);
+    try {
+      const res = await fetch("/api/admin/financial-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reimport: true,
+          source_filename: row.source_filename,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error((data as Record<string, string>).error ?? `HTTP ${res.status}`);
+      }
+      onReimport();
+    } catch {
+      // Re-import failed silently - the upload tab will show current state
+    } finally {
+      setReimporting(null);
+    }
+  }
+
+  function validationIcon(row: HistoryRow) {
+    if (row.validation_passed === false) {
+      return (
+        <span title="Validation flagged issues">
+          <AlertTriangle size={14} className="text-amber-400" />
+        </span>
+      );
+    }
+    if (row.records && row.records > 0) {
+      return (
+        <span title="Self-validation passed">
+          <CheckCircle size={14} className="text-emerald-400" />
+        </span>
+      );
+    }
+    return <span className="text-neutral-600">--</span>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider">Import History</h3>
+      <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-neutral-500 text-xs uppercase tracking-wider border-b border-neutral-800">
+                <th className="px-4 py-3 font-medium">Period</th>
+                <th className="px-4 py-3 font-medium">Type</th>
+                <th className="px-4 py-3 font-medium">File</th>
+                <th className="px-4 py-3 font-medium text-right">Records</th>
+                <th className="px-4 py-3 font-medium text-center">Valid</th>
+                <th className="px-4 py-3 font-medium">Imported</th>
+                <th className="px-4 py-3 font-medium" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-800/50">
+              {rows.map((row, i) => (
+                <tr key={i} className="hover:bg-neutral-800/30 transition-colors">
+                  <td className="px-4 py-2.5 text-neutral-200 font-medium">
+                    {row.date ? dateLabel(row.date) : "--"}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      row.type === "AR Aging"
+                        ? "bg-blue-500/15 text-blue-400 border border-blue-500/20"
+                        : row.type === "Balance Sheet"
+                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                        : "bg-amber-500/15 text-amber-400 border border-amber-500/20"
+                    }`}>
+                      {row.type}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-neutral-400 text-xs truncate max-w-[200px]" title={row.source_filename}>
+                    {row.source_filename}
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-neutral-200 tabular-nums">
+                    {row.records ?? "--"}
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    {validationIcon(row)}
+                  </td>
+                  <td className="px-4 py-2.5 text-neutral-500 text-xs" title={row.imported_at ? new Date(row.imported_at).toLocaleString() : ""}>
+                    {row.imported_at ? importedAgo(row.imported_at) : "--"}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <button
+                      onClick={() => handleReimport(row, i)}
+                      disabled={reimporting !== null}
+                      title="Re-import this report"
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700/50 border border-transparent hover:border-neutral-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {reimporting === i ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <RotateCcw size={12} />
+                      )}
+                      Re-import
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -316,7 +487,6 @@ export default function FinancialDashboard() {
 // Reports sub-view
 // ─────────────────────────────────────────────
 
-// Cache for report detail data to avoid re-fetching on tab switch
 const reportCache = new Map<string, { ar: unknown; bs: unknown; is: unknown }>();
 
 function ReportsView({ reportDate }: { reportDate: string }) {
@@ -325,15 +495,11 @@ function ReportsView({ reportDate }: { reportDate: string }) {
   const [isData, setIsData] = useState<{ snapshot: IsSnapshot; entries: IsEntry[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [subTab, setSubTab] = useState<ReportSubTab>("ar_aging");
 
-  const [arOpen, setArOpen] = useState(true);
-  const [bsOpen, setBsOpen] = useState(true);
-  const [isOpen, setIsOpen] = useState(true);
-
-  const [arSort, setArSort] = useState<{ col: string; asc: boolean }>({ col: "customer_name", asc: true });
+  const [arSort, setArSort] = useState<{ col: string; asc: boolean }>({ col: "total_amount", asc: false });
 
   useEffect(() => {
-    // Use cache if available
     const cached = reportCache.get(reportDate);
     if (cached) {
       setArData(cached.ar as typeof arData);
@@ -363,14 +529,7 @@ function ReportsView({ reportDate }: { reportDate: string }) {
     }).finally(() => setLoading(false));
   }, [reportDate]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12 gap-2 text-neutral-400">
-        <Loader2 size={18} className="animate-spin" />
-        Loading reports...
-      </div>
-    );
-  }
+  if (loading) return <ReportSkeleton />;
 
   if (fetchError) {
     return (
@@ -381,7 +540,6 @@ function ReportsView({ reportDate }: { reportDate: string }) {
     );
   }
 
-  // AR Aging sorting
   const sortedArEntries = arData
     ? [...arData.entries].sort((a, b) => {
         const col = arSort.col as keyof ArEntry;
@@ -401,97 +559,153 @@ function ReportsView({ reportDate }: { reportDate: string }) {
     }));
   }
 
+  const reportSubTabs: { key: ReportSubTab; label: string; color: string; hasData: boolean }[] = [
+    { key: "ar_aging", label: "AR Aging", color: "blue", hasData: !!arData },
+    { key: "balance_sheet", label: "Balance Sheet", color: "emerald", hasData: !!bsData },
+    { key: "income_statement", label: "Income Statement", color: "amber", hasData: !!isData },
+  ];
+
+  const activeTabColor = reportSubTabs.find((t) => t.key === subTab)?.color ?? "blue";
+  const activeColors: Record<string, string> = {
+    blue: "border-blue-500/40 text-blue-400 bg-blue-600/10",
+    emerald: "border-emerald-500/40 text-emerald-400 bg-emerald-600/10",
+    amber: "border-amber-500/40 text-amber-400 bg-amber-600/10",
+  };
+  const dotColors: Record<string, string> = {
+    blue: "bg-blue-400",
+    emerald: "bg-emerald-400",
+    amber: "bg-amber-400",
+  };
+  void activeTabColor; // used for styling context
+
   return (
-    <div className="space-y-6">
-      {/* AR Aging */}
-      <CollapsibleSection
-        title="AR Aging"
-        open={arOpen}
-        onToggle={() => setArOpen(!arOpen)}
-        badge={arData ? `${arData.snapshot.customer_count} customers` : null}
-        color="blue"
-      >
-        {arData ? (
+    <div className="space-y-5">
+      {/* Report sub-tabs */}
+      <div className="flex gap-1.5 flex-wrap">
+        {reportSubTabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setSubTab(t.key)}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              subTab === t.key
+                ? activeColors[t.color]
+                : "border-neutral-700/50 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/50 hover:border-neutral-600"
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${
+              subTab === t.key ? dotColors[t.color] : t.hasData ? "bg-neutral-500" : "bg-neutral-700"
+            }`} />
+            {t.label}
+            {!t.hasData && <span className="text-[10px] text-neutral-600">(none)</span>}
+          </button>
+        ))}
+      </div>
+
+      {/* AR Aging view */}
+      {subTab === "ar_aging" && (
+        arData ? (
           <div className="space-y-4">
-            {/* KPIs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <KPI label="Total AR" value={fmt(arData.snapshot.total_amount)} />
               <KPI label="Current" value={fmt(arData.snapshot.total_current)} />
               <KPI label="Retainage" value={fmt(arData.snapshot.total_retainage)} />
-              <KPI label="90+ Days" value={
-                fmt(sortedArEntries.reduce((s, e) => s + num(e.over_90) + num(e.over_120), 0))
-              } warn />
+              <KPI
+                label="90+ Days"
+                value={fmt(sortedArEntries.reduce((s, e) => s + num(e.over_90) + num(e.over_120), 0))}
+                warn
+              />
             </div>
 
-            {/* Customer table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-neutral-400 border-b border-neutral-700">
-                    {[
-                      { key: "customer_name", label: "Customer" },
-                      { key: "total_amount", label: "Total" },
-                      { key: "current_amount", label: "Current" },
-                      { key: "over_30", label: ">30" },
-                      { key: "over_60", label: ">60" },
-                      { key: "over_90", label: ">90" },
-                      { key: "over_120", label: ">120" },
-                      { key: "retainage", label: "Retainage" },
-                    ].map((h) => (
-                      <th
-                        key={h.key}
-                        onClick={() => toggleArSort(h.key)}
-                        className={`pb-2 pr-3 font-medium cursor-pointer hover:text-neutral-200 ${
-                          h.key !== "customer_name" ? "text-right" : ""
-                        }`}
-                      >
-                        {h.label}
-                        {arSort.col === h.key && (arSort.asc ? " \u25B2" : " \u25BC")}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-800/50">
-                  {sortedArEntries.map((e, i) => {
-                    const pastDue = num(e.over_90) + num(e.over_120);
-                    return (
-                      <tr key={i} className={`hover:bg-neutral-800/50 ${pastDue > 0 ? "text-amber-200" : ""}`}>
-                        <td className="py-1.5 pr-3 text-neutral-200">
-                          {e.customer_name}
-                          {e.customer_code && <span className="text-neutral-500 text-xs ml-1">({e.customer_code})</span>}
-                        </td>
-                        <td className="py-1.5 pr-3 text-right tabular-nums">{fmt(e.total_amount)}</td>
-                        <td className="py-1.5 pr-3 text-right tabular-nums">{fmt(e.current_amount)}</td>
-                        <td className="py-1.5 pr-3 text-right tabular-nums">{fmt(e.over_30)}</td>
-                        <td className="py-1.5 pr-3 text-right tabular-nums">{fmt(e.over_60)}</td>
-                        <td className={`py-1.5 pr-3 text-right tabular-nums ${num(e.over_90) > 0 ? "text-red-400" : ""}`}>
-                          {fmt(e.over_90)}
-                        </td>
-                        <td className={`py-1.5 pr-3 text-right tabular-nums ${num(e.over_120) > 0 ? "text-red-400" : ""}`}>
-                          {fmt(e.over_120)}
-                        </td>
-                        <td className="py-1.5 text-right tabular-nums">{fmt(e.retainage)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-neutral-500 text-xs uppercase tracking-wider border-b border-neutral-800">
+                      {[
+                        { key: "customer_name", label: "Customer", align: "left" },
+                        { key: "total_amount", label: "Total", align: "right" },
+                        { key: "current_amount", label: "Current", align: "right" },
+                        { key: "over_30", label: ">30", align: "right" },
+                        { key: "over_60", label: ">60", align: "right" },
+                        { key: "over_90", label: ">90", align: "right" },
+                        { key: "over_120", label: ">120", align: "right" },
+                        { key: "retainage", label: "Retainage", align: "right" },
+                      ].map((h) => (
+                        <th
+                          key={h.key}
+                          onClick={() => toggleArSort(h.key)}
+                          className={`px-4 py-3 font-medium cursor-pointer hover:text-neutral-300 transition-colors ${
+                            h.align === "right" ? "text-right" : ""
+                          } ${arSort.col === h.key ? "text-blue-400" : ""}`}
+                        >
+                          {h.label}
+                          {arSort.col === h.key && (
+                            <span className="ml-1">{arSort.asc ? "\u25B2" : "\u25BC"}</span>
+                          )}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800/50">
+                    {sortedArEntries.map((e, i) => {
+                      const pastDue90 = num(e.over_90) + num(e.over_120);
+                      const isOverdue = pastDue90 > 0;
+                      return (
+                        <tr
+                          key={i}
+                          className={`transition-colors ${
+                            isOverdue
+                              ? "bg-red-950/15 hover:bg-red-950/25"
+                              : "hover:bg-neutral-800/30"
+                          }`}
+                        >
+                          <td className="px-4 py-2 text-neutral-200 font-medium">
+                            {e.customer_name}
+                            {e.customer_code && (
+                              <span className="text-neutral-600 text-xs ml-1.5">({e.customer_code})</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2 text-right tabular-nums font-medium text-neutral-100">
+                            {fmt(e.total_amount)}
+                          </td>
+                          <td className="px-4 py-2 text-right tabular-nums text-neutral-300">
+                            {fmt(e.current_amount)}
+                          </td>
+                          <td className="px-4 py-2 text-right tabular-nums text-neutral-300">
+                            {fmt(e.over_30)}
+                          </td>
+                          <td className="px-4 py-2 text-right tabular-nums text-neutral-300">
+                            {fmt(e.over_60)}
+                          </td>
+                          <td className={`px-4 py-2 text-right tabular-nums font-medium ${
+                            num(e.over_90) > 0 ? "text-red-400" : "text-neutral-300"
+                          }`}>
+                            {fmt(e.over_90)}
+                          </td>
+                          <td className={`px-4 py-2 text-right tabular-nums font-medium ${
+                            num(e.over_120) > 0 ? "text-red-400" : "text-neutral-300"
+                          }`}>
+                            {fmt(e.over_120)}
+                          </td>
+                          <td className="px-4 py-2 text-right tabular-nums text-neutral-300">
+                            {fmt(e.retainage)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         ) : (
-          <p className="text-neutral-500 text-sm py-4">No AR Aging data for this month</p>
-        )}
-      </CollapsibleSection>
+          <EmptyReportState type="AR Aging" />
+        )
+      )}
 
-      {/* Balance Sheet */}
-      <CollapsibleSection
-        title="Balance Sheet"
-        open={bsOpen}
-        onToggle={() => setBsOpen(!bsOpen)}
-        badge={bsData ? `${bsData.entries.filter((e) => !e.is_subtotal).length} accounts` : null}
-        color="emerald"
-      >
-        {bsData ? (
+      {/* Balance Sheet view */}
+      {subTab === "balance_sheet" && (
+        bsData ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <KPI label="Total Assets" value={fmt(bsData.snapshot.total_assets)} />
@@ -500,97 +714,143 @@ function ReportsView({ reportDate }: { reportDate: string }) {
               <KPI label="Net Income" value={fmt(bsData.snapshot.net_income)} />
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-neutral-400 border-b border-neutral-700">
-                    <th className="pb-2 pr-4 font-medium">Account</th>
-                    <th className="pb-2 pr-4 font-medium">Name</th>
-                    <th className="pb-2 font-medium text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-800/50">
-                  {bsData.entries.map((e, i) => (
-                    <tr
-                      key={i}
-                      className={`hover:bg-neutral-800/50 ${e.is_subtotal ? "font-semibold" : ""}`}
-                    >
-                      <td className="py-1.5 pr-4 text-neutral-500 text-xs tabular-nums">
-                        {e.account_number ?? ""}
-                      </td>
-                      <td className={`py-1.5 pr-4 ${e.is_subtotal ? "text-neutral-100" : "text-neutral-300"}`}>
-                        {e.is_subtotal ? "" : "\u00A0\u00A0"}{e.account_name}
-                      </td>
-                      <td className="py-1.5 text-right tabular-nums text-neutral-200">
-                        {fmt(e.amount)}
-                      </td>
+            <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-neutral-500 text-xs uppercase tracking-wider border-b border-neutral-800">
+                      <th className="px-4 py-3 font-medium w-24">Acct #</th>
+                      <th className="px-4 py-3 font-medium">Account Name</th>
+                      <th className="px-4 py-3 font-medium text-right">Amount</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {bsData.entries.map((e, i) => {
+                      const isSection = e.is_subtotal;
+                      return (
+                        <tr
+                          key={i}
+                          className={
+                            isSection
+                              ? "bg-neutral-800/40 border-y border-neutral-700/50"
+                              : "border-b border-neutral-800/30 hover:bg-neutral-800/20 transition-colors"
+                          }
+                        >
+                          <td className={`px-4 py-2 tabular-nums text-xs ${
+                            isSection ? "text-neutral-400 font-medium" : "text-neutral-600"
+                          }`}>
+                            {e.account_number ?? ""}
+                          </td>
+                          <td className={`py-2 ${
+                            isSection
+                              ? "px-4 text-neutral-100 font-semibold text-sm"
+                              : "pl-8 pr-4 text-neutral-300"
+                          }`}>
+                            {e.account_name}
+                          </td>
+                          <td className={`px-4 py-2 text-right tabular-nums ${
+                            isSection
+                              ? "text-neutral-100 font-semibold"
+                              : "text-neutral-300"
+                          }`}>
+                            {fmt(e.amount)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         ) : (
-          <p className="text-neutral-500 text-sm py-4">No Balance Sheet data for this month</p>
-        )}
-      </CollapsibleSection>
+          <EmptyReportState type="Balance Sheet" />
+        )
+      )}
 
-      {/* Income Statement */}
-      <CollapsibleSection
-        title="Income Statement"
-        open={isOpen}
-        onToggle={() => setIsOpen(!isOpen)}
-        badge={isData ? `${isData.entries.filter((e) => !e.is_subtotal).length} accounts` : null}
-        color="amber"
-      >
-        {isData ? (
+      {/* Income Statement view */}
+      {subTab === "income_statement" && (
+        isData ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               <KPI label="Revenue" value={fmtInt(isData.snapshot.total_income)} />
               <KPI label="COGS" value={fmtInt(isData.snapshot.total_cost_of_sales)} />
               <KPI label="Gross Margin" value={fmtInt(isData.snapshot.gross_margin)} />
               <KPI label="Expenses" value={fmtInt(isData.snapshot.total_expenses)} />
-              <KPI label="Net Income" value={fmtInt(isData.snapshot.net_income)} />
+              <KPI
+                label="Net Income"
+                value={fmtInt(isData.snapshot.net_income)}
+                warn={num(isData.snapshot.net_income) < 0}
+              />
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-neutral-400 border-b border-neutral-700">
-                    <th className="pb-2 pr-4 font-medium">Account</th>
-                    <th className="pb-2 pr-4 font-medium">Name</th>
-                    <th className="pb-2 font-medium text-right">Activity</th>
-                    <th className="pb-2 font-medium text-right">Balance (YTD)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-800/50">
-                  {isData.entries.map((e, i) => (
-                    <tr
-                      key={i}
-                      className={`hover:bg-neutral-800/50 ${e.is_subtotal ? "font-semibold" : ""}`}
-                    >
-                      <td className="py-1.5 pr-4 text-neutral-500 text-xs tabular-nums">
-                        {e.account_number ?? ""}
-                      </td>
-                      <td className={`py-1.5 pr-4 ${e.is_subtotal ? "text-neutral-100" : "text-neutral-300"}`}>
-                        {e.is_subtotal ? "" : "\u00A0\u00A0"}{e.account_name}
-                      </td>
-                      <td className="py-1.5 pr-4 text-right tabular-nums text-neutral-200">
-                        {e.current_activity !== null ? fmtInt(e.current_activity) : "—"}
-                      </td>
-                      <td className="py-1.5 text-right tabular-nums text-neutral-200">
-                        {e.current_balance !== null ? fmtInt(e.current_balance) : "—"}
-                      </td>
+            <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-neutral-500 text-xs uppercase tracking-wider border-b border-neutral-800">
+                      <th className="px-4 py-3 font-medium w-24">Acct #</th>
+                      <th className="px-4 py-3 font-medium">Account Name</th>
+                      <th className="px-4 py-3 font-medium text-right">Activity</th>
+                      <th className="px-4 py-3 font-medium text-right">Balance (YTD)</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {isData.entries.map((e, i) => {
+                      const isSection = e.is_subtotal;
+                      const activityVal = num(e.current_activity);
+                      const balanceVal = num(e.current_balance);
+                      return (
+                        <tr
+                          key={i}
+                          className={
+                            isSection
+                              ? "bg-neutral-800/40 border-y border-neutral-700/50"
+                              : "border-b border-neutral-800/30 hover:bg-neutral-800/20 transition-colors"
+                          }
+                        >
+                          <td className={`px-4 py-2 tabular-nums text-xs ${
+                            isSection ? "text-neutral-400 font-medium" : "text-neutral-600"
+                          }`}>
+                            {e.account_number ?? ""}
+                          </td>
+                          <td className={`py-2 ${
+                            isSection
+                              ? "px-4 text-neutral-100 font-semibold text-sm"
+                              : "pl-8 pr-4 text-neutral-300"
+                          }`}>
+                            {e.account_name}
+                          </td>
+                          <td className={`px-4 py-2 text-right tabular-nums ${
+                            isSection
+                              ? "text-neutral-100 font-semibold"
+                              : activityVal < 0
+                              ? "text-red-400"
+                              : "text-neutral-300"
+                          }`}>
+                            {e.current_activity !== null ? fmtInt(e.current_activity) : "--"}
+                          </td>
+                          <td className={`px-4 py-2 text-right tabular-nums ${
+                            isSection
+                              ? "text-neutral-100 font-semibold"
+                              : balanceVal < 0
+                              ? "text-red-400"
+                              : "text-neutral-300"
+                          }`}>
+                            {e.current_balance !== null ? fmtInt(e.current_balance) : "--"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         ) : (
-          <p className="text-neutral-500 text-sm py-4">No Income Statement data for this month</p>
-        )}
-      </CollapsibleSection>
+          <EmptyReportState type="Income Statement" />
+        )
+      )}
     </div>
   );
 }
@@ -599,50 +859,12 @@ function ReportsView({ reportDate }: { reportDate: string }) {
 // Sub-components
 // ─────────────────────────────────────────────
 
-function CollapsibleSection({
-  title,
-  open,
-  onToggle,
-  badge,
-  color,
-  children,
-}: {
-  title: string;
-  open: boolean;
-  onToggle: () => void;
-  badge: string | null;
-  color: "blue" | "emerald" | "amber";
-  children: React.ReactNode;
-}) {
-  const borderColor = {
-    blue: "border-blue-500/20",
-    emerald: "border-emerald-500/20",
-    amber: "border-amber-500/20",
-  }[color];
-
-  const badgeColor = {
-    blue: "bg-blue-500/15 text-blue-400",
-    emerald: "bg-emerald-500/15 text-emerald-400",
-    amber: "bg-amber-500/15 text-amber-400",
-  }[color];
-
+function EmptyReportState({ type }: { type: string }) {
   return (
-    <div className={`border ${borderColor} rounded-lg bg-neutral-900/50`}>
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-800/50 transition-colors rounded-t-lg"
-      >
-        <div className="flex items-center gap-3">
-          <h3 className="text-sm font-semibold text-neutral-200">{title}</h3>
-          {badge && (
-            <span className={`px-2 py-0.5 rounded text-xs font-medium ${badgeColor}`}>
-              {badge}
-            </span>
-          )}
-        </div>
-        {open ? <ChevronUp size={16} className="text-neutral-400" /> : <ChevronDown size={16} className="text-neutral-400" />}
-      </button>
-      {open && <div className="px-4 pb-4">{children}</div>}
+    <div className="text-center py-12 bg-neutral-900/30 border border-neutral-800/50 rounded-lg">
+      <FileText size={28} className="mx-auto mb-2 text-neutral-600" />
+      <p className="text-neutral-400 text-sm">No {type} data for this month</p>
+      <p className="text-neutral-600 text-xs mt-1">Upload a PDF on the Upload tab</p>
     </div>
   );
 }
@@ -680,26 +902,29 @@ function MonthSelector({
         <span className="font-medium">
           {selected ? dateLabel(selected) : "Select Month"}
         </span>
-        <ChevronDown size={14} className="text-neutral-500" />
+        <ChevronDown size={14} className={`text-neutral-500 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-30 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-[300px] overflow-y-auto min-w-[200px]">
-          {dates.map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => { onSelect(d); setOpen(false); }}
-              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-700 transition-colors ${
-                d === selected
-                  ? "bg-blue-600/15 text-blue-400"
-                  : "text-neutral-300"
-              }`}
-            >
-              <span className="font-medium">{dateLabel(d)}</span>
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-1 z-30 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-[300px] overflow-y-auto min-w-[200px]">
+            {dates.map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => { onSelect(d); setOpen(false); }}
+                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-700 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                  d === selected
+                    ? "bg-blue-600/15 text-blue-400 font-medium"
+                    : "text-neutral-300"
+                }`}
+              >
+                {dateLabel(d)}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
