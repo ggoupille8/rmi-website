@@ -45,3 +45,13 @@ artifacts/screenshots/
 tests/screenshots/
 
 .claude/
+
+# Spec files (ephemeral, consumed by Claude Code)
+SPEC-*.md
+SPRINT-*.md
+AUDIT-*.md
+
+# Build artifacts
+build.log
+build-check.log
+NUL
