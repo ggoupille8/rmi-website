@@ -1,18 +1,17 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import ExecutiveDashboard from '../../components/admin/ExecutiveDashboard';
 import { sql } from '@vercel/postgres';
 import { getPostgresEnv } from '../../lib/db-env';
 
 export const prerender = false;
 
-// Fetch stats server-side
-let stats = {
+// Fetch lead stats server-side for instant render (no skeleton needed)
+let leadStats = {
   total: 0,
   newCount: 0,
   contactedCount: 0,
   archivedCount: 0,
-  thisMonth: 0,
-  lastSubmission: null as string | null,
   thisWeek: 0,
   lastWeek: 0,
 };
@@ -22,24 +21,20 @@ const { url: postgresUrl } = getPostgresEnv();
 
 if (postgresUrl) {
   try {
-    const [totalRes, newRes, contactedRes, archivedRes, monthRes, lastRes, thisWeekRes, lastWeekRes, recentRes] = await Promise.all([
+    const [totalRes, newRes, contactedRes, archivedRes, thisWeekRes, lastWeekRes, recentRes] = await Promise.all([
       sql`SELECT COUNT(*) as count FROM contacts WHERE deleted_at IS NULL`,
       sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'new' AND deleted_at IS NULL`,
       sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'contacted' AND deleted_at IS NULL`,
       sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'archived' AND deleted_at IS NULL`,
-      sql`SELECT COUNT(*) as count FROM contacts WHERE created_at >= date_trunc('month', CURRENT_DATE) AND deleted_at IS NULL`,
-      sql`SELECT created_at FROM contacts WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 1`,
       sql`SELECT COUNT(*) as count FROM contacts WHERE created_at >= date_trunc('week', CURRENT_DATE) AND deleted_at IS NULL`,
       sql`SELECT COUNT(*) as count FROM contacts WHERE created_at >= date_trunc('week', CURRENT_DATE) - interval '7 days' AND created_at < date_trunc('week', CURRENT_DATE) AND deleted_at IS NULL`,
       sql`SELECT id, name, email, status, created_at FROM contacts WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 5`,
     ]);
-    stats = {
+    leadStats = {
       total: parseInt(totalRes.rows[0]?.count || '0', 10),
       newCount: parseInt(newRes.rows[0]?.count || '0', 10),
       contactedCount: parseInt(contactedRes.rows[0]?.count || '0', 10),
       archivedCount: parseInt(archivedRes.rows[0]?.count || '0', 10),
-      thisMonth: parseInt(monthRes.rows[0]?.count || '0', 10),
-      lastSubmission: lastRes.rows[0]?.created_at ?? null,
       thisWeek: parseInt(thisWeekRes.rows[0]?.count || '0', 10),
       lastWeek: parseInt(lastWeekRes.rows[0]?.count || '0', 10),
     };
@@ -48,166 +43,12 @@ if (postgresUrl) {
     console.error('Failed to fetch admin stats:', error instanceof Error ? error.message : 'Unknown error');
   }
 }
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return 'No submissions';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-}
-
-function timeAgo(dateStr: string): string {
-  const now = new Date();
-  const then = new Date(dateStr);
-  const diff = Math.floor((now.getTime() - then.getTime()) / 1000);
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-}
-
-// Trend calculation
-const trendArrow = stats.thisWeek > stats.lastWeek ? '↑' : stats.thisWeek < stats.lastWeek ? '↓' : '→';
-const trendColor = stats.thisWeek > stats.lastWeek ? 'text-green-400' : stats.thisWeek < stats.lastWeek ? 'text-red-400' : 'text-neutral-400';
-
-// Pipeline bar percentages
-const pipelineTotal = stats.newCount + stats.contactedCount + stats.archivedCount;
-const newPct = pipelineTotal > 0 ? (stats.newCount / pipelineTotal) * 100 : 0;
-const contactedPct = pipelineTotal > 0 ? (stats.contactedCount / pipelineTotal) * 100 : 0;
-const archivedPct = pipelineTotal > 0 ? (stats.archivedCount / pipelineTotal) * 100 : 0;
-
-// Status badge styling
-function statusBadge(status: string): string {
-  switch (status) {
-    case 'new': return 'bg-primary-500/20 text-primary-400';
-    case 'contacted': return 'bg-green-500/20 text-green-400';
-    case 'archived': return 'bg-neutral-600/20 text-neutral-400';
-    default: return 'bg-neutral-600/20 text-neutral-400';
-  }
-}
 ---
 
 <AdminLayout title="Dashboard">
-  <div class="max-w-5xl">
-    <!-- Row 1: Lead Pipeline Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-4">
-      <!-- Total Active Leads -->
-      <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-        <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">Total Active Leads</p>
-        <p class="text-2xl font-bold text-neutral-100">{stats.total}</p>
-      </div>
-
-      <!-- New (Action Required) -->
-      <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-        <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">New (Action Required)</p>
-        <p class="text-2xl font-bold text-primary-400">{stats.newCount}</p>
-      </div>
-
-      <!-- This Week -->
-      <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-        <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">This Week</p>
-        <p class="text-2xl font-bold text-neutral-100">
-          {stats.thisWeek}
-          <span class={`text-sm ml-1 ${trendColor}`}>{trendArrow} vs last week</span>
-        </p>
-      </div>
-
-      <!-- Last Submission -->
-      <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-        <p class="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">Last Submission</p>
-        <p class="text-sm font-medium text-neutral-300 mt-1">{formatDate(stats.lastSubmission)}</p>
-      </div>
-    </div>
-
-    <!-- Row 2: Lead Status Pipeline Bar -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4 lg:p-5 mb-4">
-      <h2 class="text-sm font-semibold text-neutral-300 mb-3">Lead Status Pipeline</h2>
-      <div class="flex h-2 rounded-full overflow-hidden bg-neutral-800">
-        {pipelineTotal > 0 ? (
-          <>
-            <div style={`width: ${newPct}%`} class="bg-primary-500"></div>
-            <div style={`width: ${contactedPct}%`} class="bg-green-500"></div>
-            <div style={`width: ${archivedPct}%`} class="bg-neutral-600"></div>
-          </>
-        ) : (
-          <div class="w-full bg-neutral-700"></div>
-        )}
-      </div>
-      <div class="flex gap-6 mt-3">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-primary-500"></span>
-          <span class="text-sm text-neutral-400">New: <strong class="text-neutral-200">{stats.newCount}</strong></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-          <span class="text-sm text-neutral-400">Contacted: <strong class="text-neutral-200">{stats.contactedCount}</strong></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-neutral-600"></span>
-          <span class="text-sm text-neutral-400">Archived: <strong class="text-neutral-200">{stats.archivedCount}</strong></span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4 lg:p-5 mb-4">
-      <h2 class="text-sm font-semibold text-neutral-300 mb-3">Quick Actions</h2>
-      <div class="flex flex-wrap gap-2">
-        {stats.newCount > 0 && (
-          <a
-            href="/admin/leads?status=new"
-            class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-md transition-colors"
-          >
-            {stats.newCount} {stats.newCount === 1 ? 'Lead Needs' : 'Leads Need'} Follow-up
-          </a>
-        )}
-        <a
-          href="/admin/analytics"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-medium rounded-md transition-colors"
-        >
-          View Analytics
-        </a>
-        <a
-          href="/admin/leads"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-medium rounded-md transition-colors"
-        >
-          All Leads
-        </a>
-      </div>
-    </div>
-
-    <!-- Recent Leads Mini-Table -->
-    <div class="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-      <h2 class="text-sm font-semibold text-neutral-300 mb-3">Recent Leads</h2>
-      {recentLeads.length > 0 ? (
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b border-neutral-800">
-                <th class="text-left text-xs font-medium text-neutral-500 uppercase tracking-wider pb-2">Name</th>
-                <th class="text-left text-xs font-medium text-neutral-500 uppercase tracking-wider pb-2 hidden sm:table-cell">Email</th>
-                <th class="text-left text-xs font-medium text-neutral-500 uppercase tracking-wider pb-2">Status</th>
-                <th class="text-right text-xs font-medium text-neutral-500 uppercase tracking-wider pb-2">When</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentLeads.map((lead) => (
-                <tr class="border-b border-neutral-800/50 last:border-0">
-                  <td class="py-2 text-sm text-neutral-200">{lead.name}</td>
-                  <td class="py-2 text-sm text-neutral-400 hidden sm:table-cell">{lead.email}</td>
-                  <td class="py-2">
-                    <span class={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${statusBadge(lead.status)}`}>
-                      {lead.status}
-                    </span>
-                  </td>
-                  <td class="py-2 text-sm text-neutral-500 text-right">{timeAgo(lead.created_at)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p class="text-sm text-neutral-500">No leads yet.</p>
-      )}
-    </div>
-  </div>
+  <ExecutiveDashboard
+    leadStats={leadStats}
+    recentLeads={recentLeads}
+    client:load
+  />
 </AdminLayout>
