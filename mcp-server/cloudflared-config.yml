@@ -1,0 +1,10 @@
+# Cloudflare Tunnel configuration for RMI MCP Server
+# Copy this file to ~/.cloudflared/config.yml after filling in values
+
+tunnel: <TUNNEL_ID>                            # from: cloudflared tunnel list
+credentials-file: C:\Users\<user>\.cloudflared\<TUNNEL_ID>.json
+
+ingress:
+  - hostname: mcp.rmi-llc.net                  # change to your subdomain
+    service: http://localhost:3100
+  - service: http_status:404
