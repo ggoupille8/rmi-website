@@ -149,6 +149,7 @@ export default function HeroFullWidth({
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [zoomIndex, setZoomIndex] = useState(-1);
   const kenBurnsFrameRef = useRef(0);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -156,6 +157,11 @@ export default function HeroFullWidth({
     const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Defer rendering of non-active slide images until after hydration
+  useEffect(() => {
+    setHydrated(true);
   }, []);
 
   // Ken Burns: transition-based zoom that restarts cleanly on each slide change.
@@ -204,6 +210,7 @@ export default function HeroFullWidth({
           const isActive = index === activeIndex;
           const isPrev = index === prevIndexRef.current && index !== activeIndex;
           const isZooming = isActive && index === zoomIndex;
+          const shouldRenderImage = index === 0 || hydrated;
 
           // Ken Burns: active slide zooms from scale(1) → scale(KENBURNS_SCALE)
           // Previous slide (fading out) holds its zoomed state to avoid snap-back
@@ -226,15 +233,16 @@ export default function HeroFullWidth({
             }}
             aria-hidden="true"
           >
+            {shouldRenderImage ? (
             <picture>
                 <source
-                  srcSet={`${src.replace(/\.(webp|jpe?g)$/i, "-480w.webp")} 480w, ${src.replace(/\.(webp|jpe?g)$/i, "-960w.webp")} 960w, ${src.replace(/\.(webp|jpe?g)$/i, ".webp")} 1920w`}
+                  srcSet={`${src.replace(/\.(webp|jpe?g)$/i, "-480w.webp")} 480w, ${src.replace(/\.(webp|jpe?g)$/i, "-960w.webp")} 960w, ${src.replace(/\.(webp|jpe?g)$/i, "-1280w.webp")} 1280w, ${src.replace(/\.(webp|jpe?g)$/i, ".webp")} 1920w`}
                   sizes="100vw"
                   type="image/webp"
                 />
                 <img
                   src={src}
-                  srcSet={`${src.replace(/\.(webp|jpe?g)$/i, "-480w.webp")} 480w, ${src.replace(/\.(webp|jpe?g)$/i, "-960w.webp")} 960w, ${src} 1920w`}
+                  srcSet={`${src.replace(/\.(webp|jpe?g)$/i, "-480w.webp")} 480w, ${src.replace(/\.(webp|jpe?g)$/i, "-960w.webp")} 960w, ${src.replace(/\.(webp|jpe?g)$/i, "-1280w.webp")} 1280w, ${src} 1920w`}
                   sizes="100vw"
                   alt={heroImageAlts[index]}
                   width="1920"
@@ -250,6 +258,9 @@ export default function HeroFullWidth({
                   }
                 />
               </picture>
+            ) : (
+              <div className="w-full h-full bg-neutral-900" />
+            )}
           </div>
           );
         })}
