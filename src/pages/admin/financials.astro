@@ -1,0 +1,10 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import FinancialDashboard from '../../components/admin/FinancialDashboard.tsx';
+
+export const prerender = false;
+---
+
+<AdminLayout title="Financials">
+  <FinancialDashboard client:load />
+</AdminLayout>
