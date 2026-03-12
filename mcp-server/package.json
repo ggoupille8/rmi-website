@@ -1,0 +1,34 @@
+{
+  "name": "rmi-file-server",
+  "version": "1.0.0",
+  "description": "MCP server providing Claude with read-only access to RMI's P:\\ share drive",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "install-service": "node scripts/install-service.mjs",
+    "uninstall-service": "node scripts/uninstall-service.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "glob": "^11.0.0",
+    "pdf-parse": "^1.1.1",
+    "xlsx": "^0.18.5",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@types/pdf-parse": "^1.1.4",
+    "node-windows": "^1.0.0-beta.8",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
