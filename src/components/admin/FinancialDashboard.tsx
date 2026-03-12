@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Upload, BarChart3, GitCompare, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import FinancialUpload from "./FinancialUpload";
 import ReconciliationMatrix from "./ReconciliationMatrix";
@@ -123,27 +123,34 @@ export default function FinancialDashboard() {
   const [months, setMonths] = useState<MonthsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const initialLoadDone = useRef(false);
 
   const fetchMonths = useCallback(() => {
     setLoading(true);
     fetch("/api/admin/financials")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d) => {
         setMonths(d);
-        // Auto-select the most recent date
-        const allDates = [
-          ...d.arAging.map((s: SnapshotRow) => snapshotDate(s)),
-          ...d.balanceSheet.map((s: SnapshotRow) => snapshotDate(s)),
-          ...d.incomeStatement.map((s: SnapshotRow) => snapshotDate(s)),
-        ]
-          .filter(Boolean)
-          .map((dt: string) => dt.includes("T") ? dt.split("T")[0] : dt);
-        const unique = [...new Set(allDates)].sort().reverse();
-        if (unique.length > 0 && !selectedDate) setSelectedDate(unique[0]);
+        // Auto-select the most recent date on first load only
+        if (!initialLoadDone.current) {
+          initialLoadDone.current = true;
+          const allDates = [
+            ...(d.arAging || []).map((s: SnapshotRow) => snapshotDate(s)),
+            ...(d.balanceSheet || []).map((s: SnapshotRow) => snapshotDate(s)),
+            ...(d.incomeStatement || []).map((s: SnapshotRow) => snapshotDate(s)),
+          ]
+            .filter(Boolean)
+            .map((dt: string) => dt.includes("T") ? dt.split("T")[0] : dt);
+          const unique = [...new Set(allDates)].sort().reverse();
+          if (unique.length > 0) setSelectedDate(unique[0]);
+        }
       })
       .catch(() => setMonths({ arAging: [], balanceSheet: [], incomeStatement: [] }))
       .finally(() => setLoading(false));
-  }, [selectedDate]);
+  }, []);
 
   useEffect(() => { fetchMonths(); }, [fetchMonths]);
 
@@ -284,6 +291,9 @@ export default function FinancialDashboard() {
 // Reports sub-view
 // ─────────────────────────────────────────────
 
+// Cache for report detail data to avoid re-fetching on tab switch
+const reportCache = new Map<string, { ar: unknown; bs: unknown; is: unknown }>();
+
 function ReportsView({ reportDate }: { reportDate: string }) {
   const [arData, setArData] = useState<{ snapshot: ArSnapshot; entries: ArEntry[] } | null>(null);
   const [bsData, setBsData] = useState<{ snapshot: BsSnapshot; entries: BsEntry[] } | null>(null);
@@ -297,6 +307,15 @@ function ReportsView({ reportDate }: { reportDate: string }) {
   const [arSort, setArSort] = useState<{ col: string; asc: boolean }>({ col: "customer_name", asc: true });
 
   useEffect(() => {
+    // Use cache if available
+    const cached = reportCache.get(reportDate);
+    if (cached) {
+      setArData(cached.ar as typeof arData);
+      setBsData(cached.bs as typeof bsData);
+      setIsData(cached.is as typeof isData);
+      return;
+    }
+
     setLoading(true);
     Promise.all([
       fetch(`/api/admin/financials?action=detail&type=ar_aging&reportDate=${reportDate}`)
@@ -309,6 +328,7 @@ function ReportsView({ reportDate }: { reportDate: string }) {
       setArData(ar);
       setBsData(bs);
       setIsData(is);
+      reportCache.set(reportDate, { ar, bs, is });
     }).finally(() => setLoading(false));
   }, [reportDate]);
 
