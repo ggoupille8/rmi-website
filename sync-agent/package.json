@@ -1,0 +1,14 @@
+{
+  "name": "rmi-wip-sync-agent",
+  "version": "1.0.0",
+  "description": "Watches WIP Excel files on P:\\ drive and syncs to RMI database",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "start:debug": "WIP_DEBUG=true node index.js"
+  },
+  "dependencies": {
+    "chokidar": "^3.6.0",
+    "dotenv": "^16.4.0"
+  }
+}
