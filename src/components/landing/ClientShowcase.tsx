@@ -42,9 +42,9 @@ const clients: Client[] = [
   { name: "Ascension Health", logo: "/images/clients/ascension.svg", scale: 1.04 },
   { name: "Culver's", logo: "/images/clients/culvers.svg", scale: 1.04 },
   { name: "Eastern Michigan University", logo: "/images/clients/eastern-michigan.svg", scale: 1.6 },
-  { name: "Costco", logo: "/images/clients/costco.svg", scale: 1.6 },
-  { name: "Audi", logo: "/images/clients/audi.svg", scale: 0.8 },
-  { name: "Cartier", logo: "/images/clients/cartier.svg", needsInvert: true, scale: 1.8 },
+  { name: "Costco", logo: "/images/clients/costco.svg", scale: 1.0 },
+  { name: "Audi", logo: "/images/clients/audi.svg", scale: 1.2 },
+  { name: "Cartier", logo: "/images/clients/cartier.svg", scale: 1.3 },
 ];
 
 /** Max stagger delay = 200ms heading lead + 29 logos * 60ms + 500ms duration */
