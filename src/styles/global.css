@@ -282,6 +282,43 @@
   .service-ticker:hover .service-ticker__track {
     animation-play-state: paused;
   }
+  /* Footer link slide-in underline from left */
+  .footer-link {
+    position: relative;
+  }
+  .footer-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 1px;
+    background: rgb(var(--color-accent-400));
+    transition: width 0.3s ease;
+  }
+  .footer-link:hover::after {
+    width: 100%;
+  }
+  /* Marquee chip subtle shimmer */
+  .marquee-chip {
+    position: relative;
+    overflow: hidden;
+  }
+  .marquee-chip::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgba(96, 165, 250, 0.06) 50%,
+      transparent 65%
+    );
+    background-size: 250% 100%;
+    animation: shimmer 8s ease-in-out infinite;
+    pointer-events: none;
+  }
   /* Button System - Industrial, Strong Contrast */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-600 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-300 ease-in-out;

@@ -1,6 +1,6 @@
 import { materials } from "../../content/site";
 
-const pillClass = "inline-block px-3 py-1.5 sm:px-5 sm:py-2.5 mx-1.5 sm:mx-2 text-neutral-300 text-xs sm:text-sm whitespace-nowrap border border-neutral-700/50 rounded-full bg-neutral-800/50";
+const pillClass = "marquee-chip inline-block px-3 py-1.5 sm:px-5 sm:py-2.5 mx-1.5 sm:mx-2 text-neutral-300 text-xs sm:text-sm whitespace-nowrap border border-neutral-700/50 rounded-full bg-neutral-800/50";
 
 const fadeMask = "linear-gradient(to right, transparent, black clamp(58px, 10vw, 144px), black calc(100% - clamp(58px, 10vw, 144px)), transparent)";
 

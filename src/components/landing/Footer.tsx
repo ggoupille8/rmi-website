@@ -37,10 +37,23 @@ export default function Footer() {
     <ErrorBoundary>
     <footer
       id="footer"
-      className="bg-neutral-900 text-white border-t border-neutral-800/50"
+      className="bg-neutral-900 text-white relative overflow-hidden"
       aria-label="Site footer"
     >
-      <div className="container-custom pt-6 sm:pt-8 pb-3 sm:pb-4">
+      {/* Gradient top border */}
+      <div className="h-px bg-gradient-to-r from-transparent via-accent-500 to-transparent" aria-hidden="true" />
+
+      {/* RMI watermark */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
+        aria-hidden="true"
+      >
+        <span className="text-[10rem] sm:text-[14rem] lg:text-[18rem] font-black text-white/[0.025] tracking-[0.2em] uppercase">
+          RMI
+        </span>
+      </div>
+
+      <div className="container-custom pt-6 sm:pt-8 pb-3 sm:pb-4 relative">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
           {/* Company Info */}
           <div className="text-center md:text-left">
@@ -63,31 +76,31 @@ export default function Footer() {
             <nav className="flex flex-col items-center md:items-start gap-1" aria-label="Footer navigation">
               <a
                 href="#services"
-                className="inline-flex items-center text-neutral-300 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="footer-link inline-flex items-center text-neutral-300 hover:text-accent-400 transition-colors duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Services
               </a>
               <a
                 href="#about"
-                className="inline-flex items-center text-neutral-300 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="footer-link inline-flex items-center text-neutral-300 hover:text-accent-400 transition-colors duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 About
               </a>
               <a
                 href="#projects"
-                className="inline-flex items-center text-neutral-300 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="footer-link inline-flex items-center text-neutral-300 hover:text-accent-400 transition-colors duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Projects
               </a>
               <a
                 href="#contact"
-                className="inline-flex items-center text-neutral-300 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="footer-link inline-flex items-center text-neutral-300 hover:text-accent-400 transition-colors duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Contact
               </a>
               <a
                 href="#contact"
-                className="inline-flex items-center text-neutral-300 hover:text-accent-400 hover:translate-x-1 transition-all duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
+                className="footer-link inline-flex items-center text-neutral-300 hover:text-accent-400 transition-colors duration-200 text-sm min-w-[44px] min-h-[44px] sm:min-h-0 sm:py-1.5"
               >
                 Request a Quote
               </a>
@@ -160,8 +173,18 @@ export default function Footer() {
         </nav>
 
         {/* Bottom Bar */}
-        <div className="mt-3 pt-3 border-t border-neutral-700/30 flex items-center justify-center">
-          <p className="text-sm text-neutral-400">
+        <div className="mt-3 pt-3 border-t border-neutral-700/30">
+          <div className="flex justify-end mb-1">
+            <a
+              href="#"
+              className="text-xs text-neutral-500 hover:text-accent-400 transition-colors duration-200 inline-flex items-center gap-1 min-h-[44px] sm:min-h-0"
+              aria-label="Scroll back to top of page"
+            >
+              Back to Top
+              <ArrowUp className="w-3 h-3" aria-hidden="true" />
+            </a>
+          </div>
+          <p className="text-sm text-neutral-400 text-center">
             &copy; {currentYear} {companyNameFull}. All rights reserved.
           </p>
         </div>
