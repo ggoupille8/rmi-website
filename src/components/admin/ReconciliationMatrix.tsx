@@ -102,7 +102,7 @@ export default function ReconciliationMatrix({ reportDate }: { reportDate: strin
           </span>
         )}
         {varianceCount > 0 && (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-red-500/15 text-red-400 border border-red-500/20">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-500/15 text-amber-400 border border-amber-500/20">
             <AlertCircle size={14} /> {varianceCount} Variance{varianceCount !== 1 ? "s" : ""}
           </span>
         )}
@@ -137,31 +137,31 @@ export default function ReconciliationMatrix({ reportDate }: { reportDate: strin
           </thead>
           <tbody className="divide-y divide-neutral-800">
             {tieOuts.map((t, i) => (
-              <tr key={i} className="hover:bg-neutral-800/30">
+              <tr key={i} className="hover:bg-neutral-800/50 transition-colors">
                 <td className="py-2.5 pr-4 text-neutral-200 font-medium">{t.description}</td>
                 <td className="py-2.5 pr-4 text-neutral-400 text-xs">{t.sourceA.name}</td>
                 <td className="py-2.5 pr-4 text-right text-neutral-200 tabular-nums">{fmt(t.sourceA.value)}</td>
                 <td className="py-2.5 pr-4 text-neutral-400 text-xs">{t.sourceB.name}</td>
                 <td className="py-2.5 pr-4 text-right text-neutral-200 tabular-nums">{fmt(t.sourceB.value)}</td>
                 <td className={`py-2.5 pr-4 text-right tabular-nums ${
-                  t.status === "variance" ? "text-red-400" : "text-neutral-400"
+                  t.status === "variance" ? "text-red-400 font-medium" : "text-neutral-400"
                 }`}>
                   {t.variance !== null ? fmt(t.variance) : "—"}
                 </td>
                 <td className="py-2.5 text-center">
                   {t.status === "match" && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-500/15 text-green-400">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
                       <CheckCircle size={12} /> Match
                     </span>
                   )}
                   {t.status === "variance" && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-500/15 text-red-400">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/15 text-amber-400 border border-amber-500/20">
                       <AlertCircle size={12} /> Variance
                     </span>
                   )}
                   {t.status === "missing_data" && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-neutral-500/15 text-neutral-500">
-                      <HelpCircle size={12} /> Missing
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-neutral-500/15 text-neutral-400 border border-neutral-500/20">
+                      <HelpCircle size={12} /> No Data
                     </span>
                   )}
                 </td>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Upload, BarChart3, GitCompare, ChevronDown, ChevronUp, Loader2, AlertCircle, RefreshCw, FileText } from "lucide-react";
+import { Upload, BarChart3, GitCompare, ChevronDown, ChevronUp, Loader2, AlertCircle, RefreshCw, FileText, Calendar } from "lucide-react";
 import FinancialUpload from "./FinancialUpload";
 import ReconciliationMatrix from "./ReconciliationMatrix";
 
@@ -202,18 +202,11 @@ export default function FinancialDashboard() {
 
       {/* Month selector (for reports and reconciliation tabs) */}
       {tab !== "upload" && uniqueDates.length > 0 && (
-        <div className="flex items-center gap-3">
-          <label className="text-sm text-neutral-400">Month:</label>
-          <select
-            value={selectedDate ?? ""}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="bg-neutral-800 border border-neutral-700 rounded-md px-3 py-1.5 text-sm text-neutral-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            {uniqueDates.map((d) => (
-              <option key={d} value={d}>{dateLabel(d)}</option>
-            ))}
-          </select>
-        </div>
+        <MonthSelector
+          dates={uniqueDates}
+          selected={selectedDate}
+          onSelect={setSelectedDate}
+        />
       )}
 
       {/* Upload tab */}
@@ -251,7 +244,7 @@ export default function FinancialDashboard() {
                     ]
                       .sort((a, b) => (b.imported_at ?? "").localeCompare(a.imported_at ?? ""))
                       .map((row, i) => (
-                        <tr key={i} className="hover:bg-neutral-800/30">
+                        <tr key={i} className="hover:bg-neutral-800/50">
                           <td className="py-2 pr-4 text-neutral-200">{row.date ? dateLabel(row.date) : "—"}</td>
                           <td className="py-2 pr-4">
                             <span className={`px-2 py-0.5 rounded text-xs font-medium ${
@@ -462,7 +455,7 @@ function ReportsView({ reportDate }: { reportDate: string }) {
                   {sortedArEntries.map((e, i) => {
                     const pastDue = num(e.over_90) + num(e.over_120);
                     return (
-                      <tr key={i} className={`hover:bg-neutral-800/30 ${pastDue > 0 ? "text-amber-200" : ""}`}>
+                      <tr key={i} className={`hover:bg-neutral-800/50 ${pastDue > 0 ? "text-amber-200" : ""}`}>
                         <td className="py-1.5 pr-3 text-neutral-200">
                           {e.customer_name}
                           {e.customer_code && <span className="text-neutral-500 text-xs ml-1">({e.customer_code})</span>}
@@ -520,7 +513,7 @@ function ReportsView({ reportDate }: { reportDate: string }) {
                   {bsData.entries.map((e, i) => (
                     <tr
                       key={i}
-                      className={`hover:bg-neutral-800/30 ${e.is_subtotal ? "font-semibold" : ""}`}
+                      className={`hover:bg-neutral-800/50 ${e.is_subtotal ? "font-semibold" : ""}`}
                     >
                       <td className="py-1.5 pr-4 text-neutral-500 text-xs tabular-nums">
                         {e.account_number ?? ""}
@@ -574,7 +567,7 @@ function ReportsView({ reportDate }: { reportDate: string }) {
                   {isData.entries.map((e, i) => (
                     <tr
                       key={i}
-                      className={`hover:bg-neutral-800/30 ${e.is_subtotal ? "font-semibold" : ""}`}
+                      className={`hover:bg-neutral-800/50 ${e.is_subtotal ? "font-semibold" : ""}`}
                     >
                       <td className="py-1.5 pr-4 text-neutral-500 text-xs tabular-nums">
                         {e.account_number ?? ""}
@@ -637,7 +630,7 @@ function CollapsibleSection({
     <div className={`border ${borderColor} rounded-lg bg-neutral-900/50`}>
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-800/30 transition-colors rounded-t-lg"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-neutral-800/50 transition-colors rounded-t-lg"
       >
         <div className="flex items-center gap-3">
           <h3 className="text-sm font-semibold text-neutral-200">{title}</h3>
@@ -656,11 +649,58 @@ function CollapsibleSection({
 
 function KPI({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
   return (
-    <div className="bg-neutral-800/50 rounded-lg p-3 border border-neutral-700/30">
-      <p className="text-xs text-neutral-400 mb-1">{label}</p>
-      <p className={`text-sm font-semibold tabular-nums ${warn ? "text-red-400" : "text-neutral-100"}`}>
+    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+      <p className="text-xs text-neutral-500 uppercase tracking-wider mb-2">{label}</p>
+      <p className={`text-lg font-bold tabular-nums ${warn ? "text-red-400" : "text-neutral-100"}`}>
         {value}
       </p>
+    </div>
+  );
+}
+
+function MonthSelector({
+  dates,
+  selected,
+  onSelect,
+}: {
+  dates: string[];
+  selected: string | null;
+  onSelect: (d: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 hover:bg-neutral-750 hover:border-neutral-600 transition-colors"
+      >
+        <Calendar size={16} className="text-blue-400" />
+        <span className="font-medium">
+          {selected ? dateLabel(selected) : "Select Month"}
+        </span>
+        <ChevronDown size={14} className="text-neutral-500" />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-30 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-[300px] overflow-y-auto min-w-[200px]">
+          {dates.map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => { onSelect(d); setOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-700 transition-colors ${
+                d === selected
+                  ? "bg-blue-600/15 text-blue-400"
+                  : "text-neutral-300"
+              }`}
+            >
+              <span className="font-medium">{dateLabel(d)}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
