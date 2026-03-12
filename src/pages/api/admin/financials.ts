@@ -59,15 +59,15 @@ export const GET: APIRoute = async ({ request, url }) => {
 async function handleMonths(): Promise<Response> {
   // Get all unique month/year combinations across all report types
   const arDates = await sql`
-    SELECT DISTINCT report_date, variant, customer_count, total_amount, imported_at
+    SELECT DISTINCT report_date, variant, customer_count, total_amount, imported_at, source_filename
     FROM ar_aging_snapshots ORDER BY report_date DESC
   `;
   const bsDates = await sql`
-    SELECT DISTINCT report_date, variant, account_count, total_assets, imported_at
+    SELECT DISTINCT report_date, variant, account_count, total_assets, imported_at, source_filename
     FROM balance_sheet_snapshots ORDER BY report_date DESC
   `;
   const isDates = await sql`
-    SELECT DISTINCT period_end_date as report_date, variant, account_count, net_income, imported_at
+    SELECT DISTINCT period_end_date as report_date, variant, account_count, net_income, imported_at, source_filename
     FROM income_statement_snapshots ORDER BY period_end_date DESC
   `;
 
