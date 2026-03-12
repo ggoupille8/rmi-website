@@ -42,6 +42,7 @@ interface WipApiResponse {
     job_count: number;
   } | null;
   pmSummary: PmSummary[];
+  priorYearEndSnapshots: WipSnapshot[] | null;
 }
 
 // ── Constants ──────────────────────────────────────────
@@ -50,6 +51,9 @@ const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
+
+/** Matches job numbers like 26-0215, 25-0215, 24-0215 (GLI / Fab Shop) */
+const GLI_JOB_SUFFIX = "-0215";
 
 const PM_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   GG: { bg: "bg-blue-950/40", text: "text-blue-400", border: "border-blue-800/50" },
@@ -106,9 +110,11 @@ export default function WipDashboard() {
   const [jobs, setJobs] = useState<WipSnapshot[]>([]);
   const [totals, setTotals] = useState<WipApiResponse["totals"] | null>(null);
   const [pmSummary, setPmSummary] = useState<PmSummary[]>([]);
+  const [priorYearEndSnapshots, setPriorYearEndSnapshots] = useState<WipSnapshot[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showMonthDropdown, setShowMonthDropdown] = useState(false);
+  const [excludeGLI, setExcludeGLI] = useState(false);
 
   // ── Fetch available months ───────────────────────────
   useEffect(() => {
@@ -146,6 +152,7 @@ export default function WipDashboard() {
         setJobs(data.snapshots ?? []);
         setTotals(data.totals);
         setPmSummary(data.pmSummary ?? []);
+        setPriorYearEndSnapshots(data.priorYearEndSnapshots ?? null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -155,52 +162,118 @@ export default function WipDashboard() {
     loadData();
   }, [selectedYear, selectedMonth]);
 
-  // ── Computed: KPIs from jobs ─────────────────────────
-  const kpis = useMemo(() => {
+  // ── Computed: Effective jobs (with GLI exclusion) ─────
+  const effectiveJobs = useMemo(() => {
     const safeJobs = jobs || [];
-    const activeJobs = safeJobs.filter((j) => j.pct_complete === null || j.pct_complete < 1.0);
-    const completedJobs = safeJobs.filter((j) => j.pct_complete !== null && j.pct_complete >= 1.0);
-    const overBilled = safeJobs.filter((j) => j.billings_excess !== null && j.billings_excess < 0);
-    const negativeMargin = safeJobs.filter((j) => j.gross_profit !== null && j.gross_profit < 0);
+    if (!excludeGLI) return safeJobs;
+    return safeJobs.filter((j) => !j.job_number.endsWith(GLI_JOB_SUFFIX));
+  }, [jobs, excludeGLI]);
 
-    if (!totals) {
-      const sumField = (field: keyof WipSnapshot) =>
-        safeJobs.reduce((sum, j) => sum + ((j[field] as number) ?? 0), 0);
+  // ── Computed: Prior year map for YTD ──────────────────
+  const priorYearMap = useMemo(() => {
+    if (!priorYearEndSnapshots) return null;
+    const map = new Map<string, WipSnapshot>();
+    for (const snap of priorYearEndSnapshots) {
+      map.set(snap.job_number, snap);
+    }
+    return map;
+  }, [priorYearEndSnapshots]);
 
-      const totalRevised = sumField("revised_contract");
-      const totalBacklog = sumField("backlog_revenue");
-      const totalEarned = sumField("earned_revenue");
-      const totalProfit = sumField("gross_profit");
-      const marginPct = totalRevised > 0 ? totalProfit / totalRevised : 0;
+  const hasYtdData = priorYearMap !== null;
 
-      return {
-        revisedContract: totalRevised,
-        backlog: totalBacklog,
-        earnedRevenue: totalEarned,
-        grossProfit: totalProfit,
-        marginPct,
-        activeJobs: activeJobs.length,
-        completedJobs: completedJobs.length,
-        overBilled: overBilled.length,
-        negativeMargin: negativeMargin.length,
-      };
+  // ── Computed: KPIs from effective jobs ─────────────────
+  const kpis = useMemo(() => {
+    const activeJobs = effectiveJobs.filter((j) => j.pct_complete === null || j.pct_complete < 1.0);
+    const completedJobs = effectiveJobs.filter((j) => j.pct_complete !== null && j.pct_complete >= 1.0);
+    const overBilled = effectiveJobs.filter((j) => j.billings_excess !== null && j.billings_excess < 0);
+    const negativeMargin = effectiveJobs.filter((j) => j.gross_profit !== null && j.gross_profit < 0);
+
+    const sumField = (field: keyof WipSnapshot) =>
+      effectiveJobs.reduce((sum, j) => sum + ((j[field] as number) ?? 0), 0);
+
+    // Current snapshot values (point-in-time)
+    const totalRevised = sumField("revised_contract");
+    const totalBacklog = sumField("backlog_revenue");
+
+    // YTD or current snapshot for revenue/profit
+    let earnedRevenue: number;
+    let grossProfit: number;
+
+    if (priorYearMap) {
+      // YTD = current cumulative values minus prior year end values
+      earnedRevenue = 0;
+      grossProfit = 0;
+      for (const job of effectiveJobs) {
+        const prior = priorYearMap.get(job.job_number);
+        earnedRevenue += (job.earned_revenue ?? 0) - (prior?.earned_revenue ?? 0);
+        grossProfit += (job.gross_profit_to_date ?? 0) - (prior?.gross_profit_to_date ?? 0);
+      }
+    } else {
+      // No prior year data — use current snapshot
+      earnedRevenue = sumField("earned_revenue");
+      grossProfit = sumField("gross_profit");
     }
 
+    const marginPct = earnedRevenue > 0 ? grossProfit / earnedRevenue : 0;
+
     return {
-      revisedContract: totals.revised_contract,
-      backlog: totals.backlog_revenue,
-      earnedRevenue: totals.earned_revenue,
-      grossProfit: totals.gross_profit,
-      marginPct: totals.gross_margin_pct,
+      revisedContract: totalRevised,
+      backlog: totalBacklog,
+      earnedRevenue,
+      grossProfit,
+      marginPct,
       activeJobs: activeJobs.length,
       completedJobs: completedJobs.length,
       overBilled: overBilled.length,
       negativeMargin: negativeMargin.length,
     };
-  }, [jobs, totals]);
+  }, [effectiveJobs, priorYearMap]);
+
+  // ── Computed: PM Summary (recomputed when GLI excluded) ─
+  const effectivePmSummary = useMemo((): PmSummary[] => {
+    if (!excludeGLI) return pmSummary;
+
+    const pmMap = new Map<string, {
+      jobCount: number;
+      totalBacklog: number;
+      totalProfit: number;
+      totalRevisedContract: number;
+      margins: number[];
+    }>();
+
+    for (const job of effectiveJobs) {
+      const pm = job.project_manager ?? "??";
+      const existing = pmMap.get(pm) ?? {
+        jobCount: 0,
+        totalBacklog: 0,
+        totalProfit: 0,
+        totalRevisedContract: 0,
+        margins: [],
+      };
+      existing.jobCount++;
+      existing.totalBacklog += job.backlog_revenue ?? 0;
+      existing.totalProfit += job.gross_profit ?? 0;
+      existing.totalRevisedContract += job.revised_contract ?? 0;
+      if (job.gross_margin_pct !== null) existing.margins.push(job.gross_margin_pct);
+      pmMap.set(pm, existing);
+    }
+
+    return Array.from(pmMap.entries())
+      .map(([pm, data]) => ({
+        projectManager: pm,
+        jobCount: data.jobCount,
+        totalBacklog: data.totalBacklog,
+        avgMargin: data.margins.length > 0
+          ? data.margins.reduce((a, b) => a + b, 0) / data.margins.length
+          : null,
+        totalProfit: data.totalProfit,
+        totalRevisedContract: data.totalRevisedContract,
+      }))
+      .sort((a, b) => a.projectManager.localeCompare(b.projectManager));
+  }, [effectiveJobs, excludeGLI, pmSummary]);
 
   // ── Computed: Alert Flags ────────────────────────────
-  const alerts = useMemo(() => computeWipAlerts(jobs), [jobs]);
+  const alerts = useMemo(() => computeWipAlerts(effectiveJobs), [effectiveJobs]);
 
   // ── Dismiss State ──────────────────────────────────
   const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(new Set());
@@ -246,9 +319,9 @@ export default function WipDashboard() {
 
   const dismissedCount = alerts.length - visibleAlerts.length;
 
-  // ── Computed: Enhanced PM Metrics (New Sales, Completion, GLI exclusion) ──
+  // ── Computed: Enhanced PM Metrics ─────────────────────
   const enhancedPmMetrics = useMemo(() => {
-    if (!jobs || jobs.length === 0 || selectedYear === null) return {};
+    if (!effectiveJobs || effectiveJobs.length === 0 || selectedYear === null) return {};
 
     const yearPrefix = `${selectedYear.toString().slice(-2)}-`;
 
@@ -265,7 +338,7 @@ export default function WipDashboard() {
       gliExcluded: boolean;
     }> = {};
 
-    for (const job of jobs) {
+    for (const job of effectiveJobs) {
       const pm = job.project_manager ?? "??";
       if (!metrics[pm]) {
         metrics[pm] = {
@@ -300,7 +373,7 @@ export default function WipDashboard() {
     }
 
     return metrics;
-  }, [jobs, selectedYear]);
+  }, [effectiveJobs, selectedYear]);
 
   // PM with lowest backlog (excl. GLI) — pipeline warning
   const lowestBacklogPm = useMemo(() => {
@@ -331,6 +404,8 @@ export default function WipDashboard() {
     setShowMonthDropdown(false);
   }, []);
 
+  const kpiTimeLabel = hasYtdData ? "YTD" : "Current Snapshot";
+
   // ── Render ───────────────────────────────────────────
 
   if (error && jobs.length === 0) {
@@ -349,45 +424,72 @@ export default function WipDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* ── Month Selector + Header ────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div className="relative">
+      {/* ── Month Selector + Controls ────────────────────── */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          {/* Month Selector */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowMonthDropdown(!showMonthDropdown)}
+              className="flex items-center gap-2 px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 hover:bg-neutral-750 hover:border-neutral-600 transition-colors"
+            >
+              <BarChart3 size={16} className="text-primary-400" />
+              <span className="font-medium">
+                {selectedMonth !== null && selectedYear !== null
+                  ? `${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`
+                  : "Select Month"}
+              </span>
+              <ChevronDown size={14} className="text-neutral-500" />
+            </button>
+
+            {showMonthDropdown && (
+              <div className="absolute top-full left-0 mt-1 z-30 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-[300px] overflow-y-auto min-w-[200px]">
+                {months.map((m) => (
+                  <button
+                    key={`${m.year}-${m.month}`}
+                    type="button"
+                    onClick={() => selectMonth(m.year, m.month)}
+                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-700 transition-colors ${
+                      m.year === selectedYear && m.month === selectedMonth
+                        ? "bg-primary-600/15 text-primary-400"
+                        : "text-neutral-300"
+                    }`}
+                  >
+                    <span className="font-medium">{MONTH_NAMES[m.month - 1]} {m.year}</span>
+                    <span className="ml-2 text-neutral-500">({m.job_count} jobs)</span>
+                  </button>
+                ))}
+                {months.length === 0 && (
+                  <div className="px-4 py-3 text-sm text-neutral-500">No months available</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* GLI Exclusion Toggle */}
           <button
             type="button"
-            onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-            className="flex items-center gap-2 px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 hover:bg-neutral-750 hover:border-neutral-600 transition-colors"
+            onClick={() => setExcludeGLI(!excludeGLI)}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm border transition-colors ${
+              excludeGLI
+                ? "bg-primary-600/15 border-primary-700/50 text-primary-300"
+                : "bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-neutral-300 hover:border-neutral-600"
+            }`}
           >
-            <BarChart3 size={16} className="text-primary-400" />
-            <span className="font-medium">
-              {selectedMonth !== null && selectedYear !== null
-                ? `${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`
-                : "Select Month"}
-            </span>
-            <ChevronDown size={14} className="text-neutral-500" />
-          </button>
-
-          {showMonthDropdown && (
-            <div className="absolute top-full left-0 mt-1 z-30 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-[300px] overflow-y-auto min-w-[200px]">
-              {months.map((m) => (
-                <button
-                  key={`${m.year}-${m.month}`}
-                  type="button"
-                  onClick={() => selectMonth(m.year, m.month)}
-                  className={`w-full text-left px-4 py-2.5 text-sm hover:bg-neutral-700 transition-colors ${
-                    m.year === selectedYear && m.month === selectedMonth
-                      ? "bg-primary-600/15 text-primary-400"
-                      : "text-neutral-300"
-                  }`}
-                >
-                  <span className="font-medium">{MONTH_NAMES[m.month - 1]} {m.year}</span>
-                  <span className="ml-2 text-neutral-500">({m.job_count} jobs)</span>
-                </button>
-              ))}
-              {months.length === 0 && (
-                <div className="px-4 py-3 text-sm text-neutral-500">No months available</div>
-              )}
+            <div
+              className={`relative w-8 h-[18px] rounded-full transition-colors ${
+                excludeGLI ? "bg-primary-600" : "bg-neutral-600"
+              }`}
+            >
+              <div
+                className={`absolute top-[3px] w-3 h-3 rounded-full bg-white transition-transform ${
+                  excludeGLI ? "translate-x-[18px]" : "translate-x-[3px]"
+                }`}
+              />
             </div>
-          )}
+            Exclude GLI (Fab Shop)
+          </button>
         </div>
 
         {loading && (
@@ -423,6 +525,7 @@ export default function WipDashboard() {
           detail={fmtCurrency(kpis.earnedRevenue)}
           accent="text-emerald-400"
           accentBg="bg-emerald-950/40"
+          badge={kpiTimeLabel}
         />
         <KpiCard
           icon={<DollarSign size={18} />}
@@ -431,6 +534,7 @@ export default function WipDashboard() {
           detail={`${fmtPct(kpis.marginPct)} margin`}
           accent={kpis.grossProfit >= 0 ? "text-emerald-400" : "text-red-400"}
           accentBg={kpis.grossProfit >= 0 ? "bg-emerald-950/40" : "bg-red-950/40"}
+          badge={kpiTimeLabel}
         />
       </div>
 
@@ -467,13 +571,13 @@ export default function WipDashboard() {
       </div>
 
       {/* ── PM Performance Summary ─────────────────────── */}
-      {(pmSummary || []).length > 0 && (
+      {effectivePmSummary.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-3">
             PM Performance
           </h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {(pmSummary || []).map((pm) => {
+            {effectivePmSummary.map((pm) => {
               const pmCode = pm.projectManager ?? "??";
               const colors = PM_COLORS[pmCode] ?? {
                 bg: "bg-neutral-800",
@@ -645,7 +749,7 @@ export default function WipDashboard() {
         <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-3">
           All Jobs
         </h3>
-        <WipJobTable jobs={jobs || []} mode="admin" />
+        <WipJobTable jobs={effectiveJobs} mode="admin" />
       </div>
     </div>
   );
@@ -660,6 +764,7 @@ function KpiCard({
   detail,
   accent,
   accentBg,
+  badge,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -667,6 +772,7 @@ function KpiCard({
   detail?: string;
   accent: string;
   accentBg: string;
+  badge?: string;
 }) {
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
@@ -675,6 +781,11 @@ function KpiCard({
           <span className={accent}>{icon}</span>
         </div>
         <span className="text-xs text-neutral-500 uppercase tracking-wider">{label}</span>
+        {badge && (
+          <span className="ml-auto text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary-600/20 text-primary-400">
+            {badge}
+          </span>
+        )}
       </div>
       <div className={`text-2xl font-bold ${accent} tabular-nums`}>{value}</div>
       {detail && <div className="text-xs text-neutral-500 mt-1">{detail}</div>}

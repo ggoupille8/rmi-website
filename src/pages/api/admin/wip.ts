@@ -153,6 +153,14 @@ export const GET: APIRoute = async ({ request }) => {
         AND snapshot_month = ${prevMonth}
     `;
 
+    // Prior year end (December) snapshots for YTD calculation
+    const priorYearDecResult = await sql`
+      SELECT * FROM wip_snapshots
+      WHERE snapshot_year = ${year - 1}
+        AND snapshot_month = 12
+      ORDER BY job_number
+    `;
+
     const currentTotals = totalsResult.rows[0] ?? null;
     const prevTotals = prevTotalsResult.rows[0] ?? null;
 
@@ -183,6 +191,10 @@ export const GET: APIRoute = async ({ request }) => {
           totalRevisedContract: Number(row.total_revised_contract),
         })),
         monthOverMonth,
+        priorYearEndSnapshots:
+          priorYearDecResult.rows.length > 0
+            ? priorYearDecResult.rows
+            : null,
       }),
       { status: 200, headers: SECURITY_HEADERS }
     );
