@@ -1,0 +1,126 @@
+---
+import '../../styles/global.css';
+
+export const prerender = false;
+
+// If already authenticated, redirect to dashboard
+import { isPmAuthenticated } from '../../lib/pm-auth';
+if (isPmAuthenticated(Astro.request)) {
+  return Astro.redirect('/pm/dashboard');
+}
+---
+
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>PM Portal | RMI</title>
+    <meta name="theme-color" content="#0a0a0a" />
+  </head>
+  <body class="h-full bg-neutral-950 text-neutral-100 flex items-center justify-center">
+    <div class="w-full max-w-sm mx-4">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center gap-2 mb-2">
+          <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+            <span class="text-white font-bold text-sm">R</span>
+          </div>
+          <span class="text-lg font-semibold text-neutral-200 tracking-wide">PM Portal</span>
+        </div>
+        <p class="text-sm text-neutral-500">Sign in to view your WIP dashboard</p>
+      </div>
+
+      <form id="login-form" class="space-y-5">
+        <div>
+          <label for="pm-code" class="block text-sm font-medium text-neutral-400 mb-1.5">
+            PM Code
+          </label>
+          <select
+            id="pm-code"
+            name="pmCode"
+            required
+            class="w-full px-3 py-2.5 bg-neutral-900 border border-neutral-700 rounded-md text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none cursor-pointer"
+          >
+            <option value="" disabled selected>Select your PM code</option>
+            <option value="GG">GG — Graham Goupille</option>
+            <option value="RG">RG — Rich Goupille</option>
+            <option value="MD">MD — Mark Donnal</option>
+            <option value="SB">SB — Scott Brown</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium text-neutral-400 mb-1.5">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            class="w-full px-3 py-2.5 bg-neutral-900 border border-neutral-700 rounded-md text-neutral-100 placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            placeholder="Enter your password"
+          />
+        </div>
+
+        <div id="error-message" class="hidden text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-md px-3 py-2">
+        </div>
+
+        <button
+          type="submit"
+          id="submit-btn"
+          class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-neutral-950 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Sign In
+        </button>
+      </form>
+
+      <p class="mt-6 text-center text-xs text-neutral-600">
+        Resource Mechanical Insulation
+      </p>
+    </div>
+
+    <script is:inline>
+      const form = document.getElementById('login-form');
+      const errorDiv = document.getElementById('error-message');
+      const submitBtn = document.getElementById('submit-btn');
+      const pmCodeSelect = document.getElementById('pm-code');
+      const passwordInput = document.getElementById('password');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorDiv.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Signing in...';
+
+        try {
+          const res = await fetch('/api/pm/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              pmCode: pmCodeSelect.value,
+              password: passwordInput.value,
+            }),
+          });
+
+          if (res.ok) {
+            window.location.href = '/pm/dashboard';
+            return;
+          }
+
+          const data = await res.json();
+          errorDiv.textContent = data.error || 'Invalid credentials';
+          errorDiv.classList.remove('hidden');
+        } catch {
+          errorDiv.textContent = 'Network error. Please try again.';
+          errorDiv.classList.remove('hidden');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign In';
+        }
+      });
+    </script>
+  </body>
+</html>
