@@ -122,7 +122,7 @@ export default function WipDashboard() {
   useEffect(() => {
     async function loadMonths() {
       try {
-        const res = await fetch("/api/admin/wip/months");
+        const res = await fetch("/api/admin/wip-months");
         if (!res.ok) throw new Error(`Failed to load months: ${res.status}`);
         const data: WipMonth[] = await res.json();
         setMonths(data);
