@@ -1,0 +1,31 @@
+---
+import '../../styles/global.css';
+import PmDashboard from '../../components/pm/PmDashboard';
+
+export const prerender = false;
+
+// Auth is enforced by middleware, but extract PM code for the component
+import { getPmCodeFromRequest, getPmName } from '../../lib/pm-auth';
+const pmCode = getPmCodeFromRequest(Astro.request);
+
+// Middleware should have redirected, but guard just in case
+if (!pmCode) {
+  return Astro.redirect('/pm');
+}
+
+const pmName = getPmName(pmCode);
+---
+
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>WIP Dashboard — {pmName} | RMI</title>
+    <meta name="theme-color" content="#0a0a0a" />
+  </head>
+  <body class="h-full bg-neutral-950 text-neutral-100">
+    <PmDashboard client:load pmCode={pmCode} pmName={pmName} />
+  </body>
+</html>
