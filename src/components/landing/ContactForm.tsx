@@ -89,11 +89,22 @@ export default function ContactForm({
     message?: string;
   }>({});
   const [contactError, setContactError] = useState(false); // email-or-phone group error
+  const [submittedName, setSubmittedName] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const projectTypeRef = useRef<HTMLSelectElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-reset success message after 3 seconds
+  useEffect(() => {
+    if (submitStatus !== "success") return;
+    const timer = setTimeout(() => {
+      setSubmitStatus("idle");
+      setSubmittedName("");
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [submitStatus]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -328,6 +339,7 @@ export default function ContactForm({
         throw new Error(`Contact submit failed: ${response.status}`);
       }
 
+      setSubmittedName(formData.name.trim());
       setSubmitStatus("success");
       setFieldErrors({});
       setContactError(false);
@@ -358,7 +370,7 @@ export default function ContactForm({
 
   const inputBase =
     "block w-full rounded-md shadow-sm text-base px-3 py-2 border bg-neutral-800/50 text-white placeholder:text-neutral-400 leading-relaxed min-w-0 min-h-[48px] outline-none transition-all duration-200 ease-out";
-  const inputNormal = `${inputBase} border-neutral-700/30 hover:border-neutral-600/50 focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20`;
+  const inputNormal = `${inputBase} border-neutral-700/30 hover:border-neutral-600/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 focus:shadow-[0_0_16px_rgba(59,130,246,0.15)]`;
   const inputError = `${inputBase} border-red-500 ring-2 ring-red-500/20 focus:border-red-500 focus:ring-2 focus:ring-red-500/20`;
 
   return (
@@ -609,7 +621,9 @@ export default function ContactForm({
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-1">Thank you!</h3>
+                <h3 className="text-lg font-bold text-white mb-1">
+                  Thank you{submittedName ? `, ${submittedName}` : ""}!
+                </h3>
                 <p className="text-neutral-300 text-sm mb-4">
                   We'll review your request and get back to you within 48 hours.
                 </p>
