@@ -21,16 +21,16 @@ interface WipMonth {
 }
 
 interface PmSummary {
-  pm_code: string;
-  job_count: number;
-  total_backlog: number;
-  total_earned: number;
-  total_profit: number;
-  avg_margin: number;
+  projectManager: string;
+  jobCount: number;
+  totalBacklog: number;
+  avgMargin: number | null;
+  totalProfit: number;
+  totalRevisedContract: number;
 }
 
 interface WipApiResponse {
-  jobs: WipSnapshot[];
+  snapshots: WipSnapshot[];
   totals: {
     revised_contract: number;
     backlog_revenue: number;
@@ -38,8 +38,8 @@ interface WipApiResponse {
     gross_profit: number;
     gross_margin_pct: number;
     job_count: number;
-  };
-  pm_summary: PmSummary[];
+  } | null;
+  pmSummary: PmSummary[];
 }
 
 interface AlertFlag {
@@ -151,9 +151,9 @@ export default function WipDashboard() {
         );
         if (!res.ok) throw new Error(`Failed to load WIP data: ${res.status}`);
         const data: WipApiResponse = await res.json();
-        setJobs(data.jobs);
+        setJobs(data.snapshots ?? []);
         setTotals(data.totals);
-        setPmSummary(data.pm_summary);
+        setPmSummary(data.pmSummary ?? []);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
@@ -427,44 +427,45 @@ export default function WipDashboard() {
           </h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {pmSummary.map((pm) => {
-              const colors = PM_COLORS[pm.pm_code] ?? {
+              const pmCode = pm.projectManager ?? "??";
+              const colors = PM_COLORS[pmCode] ?? {
                 bg: "bg-neutral-800",
                 text: "text-neutral-300",
                 border: "border-neutral-700",
               };
               return (
                 <div
-                  key={pm.pm_code}
+                  key={pmCode}
                   className={`${colors.bg} border ${colors.border} rounded-lg p-4 space-y-2`}
                 >
                   <div className="flex items-center justify-between">
                     <span className={`text-lg font-bold ${colors.text}`}>
-                      {pm.pm_code}
+                      {pmCode}
                     </span>
                     <span className="text-xs text-neutral-500">
-                      {PM_NAMES[pm.pm_code] ?? pm.pm_code}
+                      {PM_NAMES[pmCode] ?? pmCode}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                     <div className="text-neutral-500">Jobs</div>
                     <div className="text-neutral-200 text-right tabular-nums">
-                      {pm.job_count}
+                      {pm.jobCount}
                     </div>
                     <div className="text-neutral-500">Backlog</div>
                     <div className="text-neutral-200 text-right tabular-nums">
-                      {fmtCompact(pm.total_backlog)}
+                      {fmtCompact(pm.totalBacklog)}
                     </div>
-                    <div className="text-neutral-500">Earned</div>
+                    <div className="text-neutral-500">Profit</div>
                     <div className="text-neutral-200 text-right tabular-nums">
-                      {fmtCompact(pm.total_earned)}
+                      {fmtCompact(pm.totalProfit)}
                     </div>
                     <div className="text-neutral-500">Avg Margin</div>
                     <div
                       className={`text-right tabular-nums ${
-                        pm.avg_margin < 0 ? "text-red-400" : "text-neutral-200"
+                        pm.avgMargin !== null && pm.avgMargin < 0 ? "text-red-400" : "text-neutral-200"
                       }`}
                     >
-                      {fmtPct(pm.avg_margin)}
+                      {fmtPct(pm.avgMargin)}
                     </div>
                   </div>
                 </div>
