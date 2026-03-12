@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Upload, BarChart3, GitCompare, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Upload, BarChart3, GitCompare, ChevronDown, ChevronUp, Loader2, AlertCircle, RefreshCw, FileText } from "lucide-react";
 import FinancialUpload from "./FinancialUpload";
 import ReconciliationMatrix from "./ReconciliationMatrix";
 
@@ -122,14 +122,16 @@ export default function FinancialDashboard() {
   const [tab, setTab] = useState<Tab>("upload");
   const [months, setMonths] = useState<MonthsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const initialLoadDone = useRef(false);
 
   const fetchMonths = useCallback(() => {
     setLoading(true);
+    setError(null);
     fetch("/api/admin/financials")
       .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        if (!r.ok) throw new Error(`Server error: ${r.status}`);
         return r.json();
       })
       .then((d) => {
@@ -148,7 +150,10 @@ export default function FinancialDashboard() {
           if (unique.length > 0) setSelectedDate(unique[0]);
         }
       })
-      .catch(() => setMonths({ arAging: [], balanceSheet: [], incomeStatement: [] }))
+      .catch((e: unknown) => {
+        setError(e instanceof Error ? e.message : "Failed to load financial data");
+        setMonths({ arAging: [], balanceSheet: [], incomeStatement: [] });
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -217,7 +222,13 @@ export default function FinancialDashboard() {
           <FinancialUpload onUploadComplete={fetchMonths} />
 
           {/* Upload history */}
-          {months && (
+          {months && months.arAging.length === 0 && months.balanceSheet.length === 0 && months.incomeStatement.length === 0 && !loading && (
+            <div className="text-center py-8 text-neutral-500">
+              <FileText size={24} className="mx-auto mb-2 text-neutral-600" />
+              <p className="text-sm">No reports imported yet. Drop PDF files above to get started.</p>
+            </div>
+          )}
+          {months && (months.arAging.length > 0 || months.balanceSheet.length > 0 || months.incomeStatement.length > 0) && (
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-neutral-300">Import History</h3>
               <div className="overflow-x-auto">
@@ -267,9 +278,30 @@ export default function FinancialDashboard() {
         </div>
       )}
 
+      {/* Error state */}
+      {error && (
+        <div className="flex items-center gap-3 p-4 rounded-lg bg-red-950/20 border border-red-900/40">
+          <AlertCircle size={18} className="text-red-400 shrink-0" />
+          <p className="text-sm text-red-400 flex-1">{error}</p>
+          <button
+            onClick={fetchMonths}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-neutral-800 border border-neutral-700 rounded-md text-neutral-300 hover:bg-neutral-700 transition-colors"
+          >
+            <RefreshCw size={12} /> Retry
+          </button>
+        </div>
+      )}
+
       {/* Reports tab */}
       {tab === "reports" && selectedDate && (
         <ReportsView reportDate={selectedDate} />
+      )}
+      {tab === "reports" && !selectedDate && !loading && (
+        <div className="text-center py-12">
+          <FileText size={32} className="mx-auto mb-3 text-neutral-600" />
+          <p className="text-neutral-400">No financial reports imported yet.</p>
+          <p className="text-sm text-neutral-500 mt-1">Upload PDFs on the Upload tab to get started.</p>
+        </div>
       )}
 
       {/* Reconciliation tab */}
@@ -299,6 +331,7 @@ function ReportsView({ reportDate }: { reportDate: string }) {
   const [bsData, setBsData] = useState<{ snapshot: BsSnapshot; entries: BsEntry[] } | null>(null);
   const [isData, setIsData] = useState<{ snapshot: IsSnapshot; entries: IsEntry[] } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const [arOpen, setArOpen] = useState(true);
   const [bsOpen, setBsOpen] = useState(true);
@@ -313,10 +346,12 @@ function ReportsView({ reportDate }: { reportDate: string }) {
       setArData(cached.ar as typeof arData);
       setBsData(cached.bs as typeof bsData);
       setIsData(cached.is as typeof isData);
+      setFetchError(null);
       return;
     }
 
     setLoading(true);
+    setFetchError(null);
     Promise.all([
       fetch(`/api/admin/financials?action=detail&type=ar_aging&reportDate=${reportDate}`)
         .then((r) => r.json()).then((d) => d.error ? null : d).catch(() => null),
@@ -329,6 +364,9 @@ function ReportsView({ reportDate }: { reportDate: string }) {
       setBsData(bs);
       setIsData(is);
       reportCache.set(reportDate, { ar, bs, is });
+      if (!ar && !bs && !is) setFetchError("No report data found for this month");
+    }).catch(() => {
+      setFetchError("Failed to load reports");
     }).finally(() => setLoading(false));
   }, [reportDate]);
 
@@ -337,6 +375,15 @@ function ReportsView({ reportDate }: { reportDate: string }) {
       <div className="flex items-center justify-center py-12 gap-2 text-neutral-400">
         <Loader2 size={18} className="animate-spin" />
         Loading reports...
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle size={24} className="mx-auto mb-2 text-red-400" />
+        <p className="text-sm text-red-400">{fetchError}</p>
       </div>
     );
   }
