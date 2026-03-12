@@ -10,13 +10,11 @@ import { listDirectory, readFile, searchFiles, getFileInfo, directoryTree } from
 import { readExcel, readPdfText } from './tools/parsers.js';
 
 // ---------------------------------------------------------------------------
-// Validate required config
+// Auth config check
 // ---------------------------------------------------------------------------
 
 if (!config.authToken) {
-  console.error('ERROR: MCP_AUTH_TOKEN environment variable is required.');
-  console.error('Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
-  process.exit(1);
+  console.warn('WARNING: No MCP_AUTH_TOKEN set — running without authentication');
 }
 
 // ---------------------------------------------------------------------------
@@ -175,30 +173,32 @@ function createMcpServer(): McpServer {
 const app = express();
 app.use(express.json());
 
-// Auth middleware — Bearer token check
-app.use('/mcp', (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({
-      jsonrpc: '2.0',
-      error: { code: -32001, message: 'Unauthorized — Bearer token required' },
-      id: null,
-    });
-    return;
-  }
+// Auth middleware — Bearer token check (skipped if no MCP_AUTH_TOKEN set)
+if (config.authToken) {
+  app.use('/mcp', (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({
+        jsonrpc: '2.0',
+        error: { code: -32001, message: 'Unauthorized — Bearer token required' },
+        id: null,
+      });
+      return;
+    }
 
-  const token = authHeader.slice(7);
-  if (token !== config.authToken) {
-    res.status(401).json({
-      jsonrpc: '2.0',
-      error: { code: -32001, message: 'Unauthorized — invalid token' },
-      id: null,
-    });
-    return;
-  }
+    const token = authHeader.slice(7);
+    if (token !== config.authToken) {
+      res.status(401).json({
+        jsonrpc: '2.0',
+        error: { code: -32001, message: 'Unauthorized — invalid token' },
+        id: null,
+      });
+      return;
+    }
 
-  next();
-});
+    next();
+  });
+}
 
 // Rate limiting middleware
 app.use('/mcp', (_req, res, next) => {
