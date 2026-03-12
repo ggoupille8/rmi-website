@@ -9,8 +9,10 @@ import {
   ChevronDown,
   RefreshCw,
   AlertCircle,
+  X,
 } from "lucide-react";
 import WipJobTable, { type WipSnapshot } from "./WipJobTable";
+import { computeWipAlerts, alertDismissKey, type AlertFlag } from "@/lib/wip-alerts";
 
 // ── Types ──────────────────────────────────────────────
 
@@ -40,16 +42,6 @@ interface WipApiResponse {
     job_count: number;
   } | null;
   pmSummary: PmSummary[];
-}
-
-interface AlertFlag {
-  type: "negative-profit" | "over-run" | "under-billed" | "over-billed";
-  severity: "critical" | "warning";
-  job_number: string;
-  description: string | null;
-  project_manager: string | null;
-  metric_label: string;
-  metric_value: number;
 }
 
 // ── Constants ──────────────────────────────────────────
@@ -208,71 +200,130 @@ export default function WipDashboard() {
   }, [jobs, totals]);
 
   // ── Computed: Alert Flags ────────────────────────────
-  const alerts = useMemo((): AlertFlag[] => {
-    const flags: AlertFlag[] = [];
-    if (!jobs) return flags;
+  const alerts = useMemo(() => computeWipAlerts(jobs), [jobs]);
+
+  // ── Dismiss State ──────────────────────────────────
+  const [dismissedKeys, setDismissedKeys] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (selectedYear === null || selectedMonth === null) return;
+    try {
+      const stored = localStorage.getItem(
+        `wip-dismissed-alerts-${selectedYear}-${selectedMonth}`
+      );
+      if (stored) {
+        setDismissedKeys(new Set(JSON.parse(stored) as string[]));
+      } else {
+        setDismissedKeys(new Set());
+      }
+    } catch {
+      setDismissedKeys(new Set());
+    }
+  }, [selectedYear, selectedMonth]);
+
+  const dismissAlert = useCallback(
+    (alert: AlertFlag) => {
+      const key = alertDismissKey(alert);
+      setDismissedKeys((prev) => {
+        const next = new Set(prev);
+        next.add(key);
+        if (selectedYear !== null && selectedMonth !== null) {
+          localStorage.setItem(
+            `wip-dismissed-alerts-${selectedYear}-${selectedMonth}`,
+            JSON.stringify([...next])
+          );
+        }
+        return next;
+      });
+    },
+    [selectedYear, selectedMonth]
+  );
+
+  const visibleAlerts = useMemo(
+    () => alerts.filter((a) => !dismissedKeys.has(alertDismissKey(a))),
+    [alerts, dismissedKeys]
+  );
+
+  const dismissedCount = alerts.length - visibleAlerts.length;
+
+  // ── Computed: Enhanced PM Metrics (New Sales, Completion, GLI exclusion) ──
+  const enhancedPmMetrics = useMemo(() => {
+    if (!jobs || jobs.length === 0 || selectedYear === null) return {};
+
+    const yearPrefix = `${selectedYear.toString().slice(-2)}-`;
+
+    const isGliJob = (job: WipSnapshot) =>
+      (job.description?.toLowerCase().includes("great lakes insulation") ?? false) ||
+      (job.job_number?.endsWith("-0215") ?? false);
+
+    const metrics: Record<string, {
+      newSalesCount: number;
+      newSalesValue: number;
+      completedCount: number;
+      totalJobs: number;
+      backlogExclGli: number;
+      gliExcluded: boolean;
+    }> = {};
 
     for (const job of jobs) {
-      // Negative gross profit
-      if (job.gross_profit !== null && job.gross_profit < 0) {
-        flags.push({
-          type: "negative-profit",
-          severity: "critical",
-          job_number: job.job_number,
-          description: job.description,
-          project_manager: job.project_manager,
-          metric_label: "Gross Profit",
-          metric_value: job.gross_profit,
-        });
+      const pm = job.project_manager ?? "??";
+      if (!metrics[pm]) {
+        metrics[pm] = {
+          newSalesCount: 0,
+          newSalesValue: 0,
+          completedCount: 0,
+          totalJobs: 0,
+          backlogExclGli: 0,
+          gliExcluded: false,
+        };
       }
 
-      // Over-run: >100% complete with negative backlog
-      if (
-        job.pct_complete !== null &&
-        job.pct_complete > 1.0 &&
-        job.backlog_revenue !== null &&
-        job.backlog_revenue < 0
-      ) {
-        flags.push({
-          type: "over-run",
-          severity: "critical",
-          job_number: job.job_number,
-          description: job.description,
-          project_manager: job.project_manager,
-          metric_label: "Backlog",
-          metric_value: job.backlog_revenue,
-        });
+      const m = metrics[pm];
+      const gli = isGliJob(job);
+
+      m.totalJobs++;
+
+      if (job.job_number?.startsWith(yearPrefix)) {
+        m.newSalesCount++;
+        m.newSalesValue += job.revised_contract ?? 0;
       }
 
-      // Under-billed by >$10K
-      if (job.billings_excess !== null && job.billings_excess < -10000) {
-        flags.push({
-          type: "under-billed",
-          severity: "warning",
-          job_number: job.job_number,
-          description: job.description,
-          project_manager: job.project_manager,
-          metric_label: "Billings Excess",
-          metric_value: job.billings_excess,
-        });
+      if (job.pct_complete !== null && job.pct_complete >= 1.0) {
+        m.completedCount++;
       }
 
-      // Over-billed by >$10K
-      if (job.revenue_excess !== null && job.revenue_excess > 10000) {
-        flags.push({
-          type: "over-billed",
-          severity: "warning",
-          job_number: job.job_number,
-          description: job.description,
-          project_manager: job.project_manager,
-          metric_label: "Revenue Excess",
-          metric_value: job.revenue_excess,
-        });
+      if (!gli) {
+        m.backlogExclGli += job.backlog_revenue ?? 0;
+      } else {
+        m.gliExcluded = true;
       }
     }
 
-    return flags;
-  }, [jobs]);
+    return metrics;
+  }, [jobs, selectedYear]);
+
+  // PM with lowest backlog (excl. GLI) — pipeline warning
+  const lowestBacklogPm = useMemo(() => {
+    const entries = Object.entries(enhancedPmMetrics);
+    if (entries.length < 2) return null;
+
+    let lowest: string | null = null;
+    let lowestVal = Infinity;
+
+    for (const [pm, m] of entries) {
+      if (m.backlogExclGli < lowestVal) {
+        lowestVal = m.backlogExclGli;
+        lowest = pm;
+      }
+    }
+
+    return lowest;
+  }, [enhancedPmMetrics]);
+
+  const anyGliExcluded = useMemo(
+    () => Object.values(enhancedPmMetrics).some((m) => m.gliExcluded),
+    [enhancedPmMetrics]
+  );
 
   const selectMonth = useCallback((year: number, month: number) => {
     setSelectedYear(year);
@@ -429,19 +480,31 @@ export default function WipDashboard() {
                 text: "text-neutral-300",
                 border: "border-neutral-700",
               };
+              const extra = enhancedPmMetrics[pmCode];
+              const isLowestBacklog = pmCode === lowestBacklogPm;
+
               return (
                 <div
                   key={pmCode}
-                  className={`${colors.bg} border ${colors.border} rounded-lg p-4 space-y-2`}
+                  className={`${
+                    isLowestBacklog
+                      ? "bg-yellow-950/25 border border-yellow-600/50"
+                      : `${colors.bg} border ${colors.border}`
+                  } rounded-lg p-4 space-y-2`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className={`text-lg font-bold ${colors.text}`}>
+                    <span className={`text-lg font-bold ${isLowestBacklog ? "text-yellow-400" : colors.text}`}>
                       {pmCode}
                     </span>
                     <span className="text-xs text-neutral-500">
                       {PM_NAMES[pmCode] ?? pmCode}
                     </span>
                   </div>
+                  {isLowestBacklog && (
+                    <div className="text-[10px] font-medium text-yellow-500 uppercase tracking-wider">
+                      Pipeline Warning — Lowest Backlog{anyGliExcluded ? " (excl. GLI)" : ""}
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                     <div className="text-neutral-500">Jobs</div>
                     <div className="text-neutral-200 text-right tabular-nums">
@@ -463,6 +526,24 @@ export default function WipDashboard() {
                     >
                       {fmtPct(pm.avgMargin)}
                     </div>
+                    {extra && (
+                      <>
+                        <div className="col-span-2 border-t border-neutral-800 mt-1 pt-1" />
+                        <div className="text-neutral-500">New Sales YTD</div>
+                        <div className="text-neutral-200 text-right tabular-nums">
+                          {extra.newSalesCount} &middot; {fmtCompact(extra.newSalesValue)}
+                        </div>
+                        <div className="text-neutral-500">Completion</div>
+                        <div className="text-neutral-200 text-right tabular-nums">
+                          {extra.completedCount}/{extra.totalJobs}
+                        </div>
+                        {extra.gliExcluded && (
+                          <div className="col-span-2 text-[10px] text-neutral-600 italic mt-1">
+                            (excl. GLI)
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               );
@@ -472,64 +553,90 @@ export default function WipDashboard() {
       )}
 
       {/* ── Alert Flags ────────────────────────────────── */}
-      {(alerts || []).length > 0 && (
+      {alerts.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-3">
-            Alerts ({alerts.length})
-          </h3>
-          <div className="space-y-2 max-h-[400px] overflow-y-auto">
-            {(alerts || []).map((alert, i) => (
-              <div
-                key={`${alert.job_number}-${alert.type}-${i}`}
-                className={`flex items-start gap-3 p-3 rounded-lg border ${
-                  alert.severity === "critical"
-                    ? "bg-red-950/20 border-red-900/40"
-                    : "bg-amber-950/20 border-amber-900/40"
-                }`}
-              >
-                <AlertTriangle
-                  size={16}
-                  className={`mt-0.5 shrink-0 ${
-                    alert.severity === "critical" ? "text-red-400" : "text-amber-400"
-                  }`}
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="font-mono text-neutral-200">{alert.job_number}</span>
-                    <span className="text-neutral-500">·</span>
-                    <span className="text-neutral-400 truncate">
-                      {alert.description ?? "No description"}
-                    </span>
-                    <span className="text-neutral-500">·</span>
-                    <span className="text-neutral-500">{alert.project_manager}</span>
-                  </div>
-                  <div className="text-xs mt-0.5">
-                    <span className="text-neutral-500">{alert.metric_label}: </span>
-                    <span
-                      className={
-                        alert.severity === "critical" ? "text-red-400" : "text-amber-400"
-                      }
-                    >
-                      {fmtCurrency(alert.metric_value)}
-                    </span>
-                  </div>
-                </div>
-                <span
-                  className={`shrink-0 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                    alert.type === "negative-profit"
-                      ? "bg-red-900/40 text-red-400"
-                      : alert.type === "over-run"
-                        ? "bg-red-900/40 text-red-400"
-                        : alert.type === "under-billed"
-                          ? "bg-amber-900/40 text-amber-400"
-                          : "bg-amber-900/40 text-amber-400"
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider">
+              Alerts ({visibleAlerts.length})
+              {dismissedCount > 0 && (
+                <span className="ml-2 text-neutral-600 normal-case tracking-normal">
+                  {dismissedCount} dismissed
+                </span>
+              )}
+            </h3>
+          </div>
+          {visibleAlerts.length > 0 ? (
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {visibleAlerts.map((alert, i) => (
+                <div
+                  key={`${alert.job_number}-${alert.type}-${i}`}
+                  className={`flex items-start gap-3 p-3 rounded-lg border ${
+                    alert.severity === "red"
+                      ? "bg-red-950/20 border-red-900/40"
+                      : "bg-amber-950/20 border-amber-900/40"
                   }`}
                 >
-                  {alert.type.replace("-", " ")}
-                </span>
-              </div>
-            ))}
-          </div>
+                  <AlertTriangle
+                    size={16}
+                    className={`mt-0.5 shrink-0 ${
+                      alert.severity === "red" ? "text-red-400" : "text-amber-400"
+                    }`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-mono text-neutral-200">{alert.job_number}</span>
+                      <span className="text-neutral-500">·</span>
+                      <span className="text-neutral-400 truncate">
+                        {alert.description ?? "No description"}
+                      </span>
+                      <span className="text-neutral-500">·</span>
+                      <span className="text-neutral-500">{alert.project_manager}</span>
+                    </div>
+                    <div className="text-xs mt-0.5">
+                      <span className="text-neutral-500">{alert.metric_label}: </span>
+                      <span
+                        className={
+                          alert.severity === "red" ? "text-red-400" : "text-amber-400"
+                        }
+                      >
+                        {fmtCurrency(alert.metric_value)}
+                      </span>
+                    </div>
+                  </div>
+                  <span
+                    className={`shrink-0 text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded ${
+                      alert.severity === "red"
+                        ? "bg-red-900/40 text-red-400"
+                        : "bg-amber-900/40 text-amber-400"
+                    }`}
+                  >
+                    {alert.severity === "red" ? "RED" : "YELLOW"}
+                  </span>
+                  <span
+                    className={`shrink-0 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                      alert.type === "negative-profit" || alert.type === "over-run"
+                        ? "bg-red-900/40 text-red-400"
+                        : "bg-amber-900/40 text-amber-400"
+                    }`}
+                  >
+                    {alert.type.replace("-", " ")}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => dismissAlert(alert)}
+                    className="shrink-0 p-1 rounded hover:bg-neutral-700/50 text-neutral-600 hover:text-neutral-400 transition-colors"
+                    title="Dismiss alert"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-neutral-600">
+              All alerts dismissed for this snapshot.
+            </p>
+          )}
         </div>
       )}
 

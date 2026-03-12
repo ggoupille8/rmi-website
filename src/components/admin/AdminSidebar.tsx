@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LayoutDashboard, Users, BarChart3, Image, Briefcase, TrendingUp, DollarSign, Building2, Shield, Menu, X } from "lucide-react";
+import { computeWipAlerts } from "@/lib/wip-alerts";
+import type { WipSnapshot } from "./WipJobTable";
 
 interface NavItem {
   label: string;
@@ -26,6 +28,30 @@ interface Props {
 
 export default function AdminSidebar({ currentPath }: Props) {
   const [open, setOpen] = useState(false);
+  const [redAlertCount, setRedAlertCount] = useState<number>(0);
+
+  useEffect(() => {
+    async function fetchAlertCount() {
+      try {
+        const monthsRes = await fetch("/api/admin/wip-months");
+        if (!monthsRes.ok) return;
+        const months: Array<{ year: number; month: number }> = await monthsRes.json();
+        if (!months.length) return;
+        const latest = months[0];
+
+        const wipRes = await fetch(
+          `/api/admin/wip?year=${latest.year}&month=${latest.month}`
+        );
+        if (!wipRes.ok) return;
+        const data: { snapshots?: WipSnapshot[] } = await wipRes.json();
+        const alerts = computeWipAlerts(data.snapshots ?? []);
+        setRedAlertCount(alerts.filter((a) => a.severity === "red").length);
+      } catch {
+        // Non-critical — badge just won't show
+      }
+    }
+    fetchAlertCount();
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/admin") return currentPath === "/admin" || currentPath === "/admin/";
@@ -100,6 +126,11 @@ export default function AdminSidebar({ currentPath }: Props) {
               >
                 <Icon size={18} />
                 <span>{item.label}</span>
+                {item.href === "/admin/wip" && redAlertCount > 0 && (
+                  <span className="ml-auto text-[10px] font-bold bg-red-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                    {redAlertCount}
+                  </span>
+                )}
               </a>
             );
           })}
