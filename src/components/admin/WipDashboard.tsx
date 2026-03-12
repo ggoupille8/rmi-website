@@ -165,15 +165,15 @@ export default function WipDashboard() {
 
   // ── Computed: KPIs from jobs ─────────────────────────
   const kpis = useMemo(() => {
-    if (!totals) {
-      // Compute from jobs as fallback
-      const activeJobs = jobs.filter((j) => j.pct_complete === null || j.pct_complete < 1.0);
-      const completedJobs = jobs.filter((j) => j.pct_complete !== null && j.pct_complete >= 1.0);
-      const overBilled = jobs.filter((j) => j.billings_excess !== null && j.billings_excess < 0);
-      const negativeMargin = jobs.filter((j) => j.gross_profit !== null && j.gross_profit < 0);
+    const safeJobs = jobs || [];
+    const activeJobs = safeJobs.filter((j) => j.pct_complete === null || j.pct_complete < 1.0);
+    const completedJobs = safeJobs.filter((j) => j.pct_complete !== null && j.pct_complete >= 1.0);
+    const overBilled = safeJobs.filter((j) => j.billings_excess !== null && j.billings_excess < 0);
+    const negativeMargin = safeJobs.filter((j) => j.gross_profit !== null && j.gross_profit < 0);
 
+    if (!totals) {
       const sumField = (field: keyof WipSnapshot) =>
-        jobs.reduce((sum, j) => sum + ((j[field] as number) ?? 0), 0);
+        safeJobs.reduce((sum, j) => sum + ((j[field] as number) ?? 0), 0);
 
       const totalRevised = sumField("revised_contract");
       const totalBacklog = sumField("backlog_revenue");
@@ -194,11 +194,6 @@ export default function WipDashboard() {
       };
     }
 
-    const activeJobs = jobs.filter((j) => j.pct_complete === null || j.pct_complete < 1.0);
-    const completedJobs = jobs.filter((j) => j.pct_complete !== null && j.pct_complete >= 1.0);
-    const overBilled = jobs.filter((j) => j.billings_excess !== null && j.billings_excess < 0);
-    const negativeMargin = jobs.filter((j) => j.gross_profit !== null && j.gross_profit < 0);
-
     return {
       revisedContract: totals.revised_contract,
       backlog: totals.backlog_revenue,
@@ -215,6 +210,7 @@ export default function WipDashboard() {
   // ── Computed: Alert Flags ────────────────────────────
   const alerts = useMemo((): AlertFlag[] => {
     const flags: AlertFlag[] = [];
+    if (!jobs) return flags;
 
     for (const job of jobs) {
       // Negative gross profit
@@ -420,13 +416,13 @@ export default function WipDashboard() {
       </div>
 
       {/* ── PM Performance Summary ─────────────────────── */}
-      {pmSummary.length > 0 && (
+      {(pmSummary || []).length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-3">
             PM Performance
           </h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {pmSummary.map((pm) => {
+            {(pmSummary || []).map((pm) => {
               const pmCode = pm.projectManager ?? "??";
               const colors = PM_COLORS[pmCode] ?? {
                 bg: "bg-neutral-800",
@@ -476,13 +472,13 @@ export default function WipDashboard() {
       )}
 
       {/* ── Alert Flags ────────────────────────────────── */}
-      {alerts.length > 0 && (
+      {(alerts || []).length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-3">
             Alerts ({alerts.length})
           </h3>
           <div className="space-y-2 max-h-[400px] overflow-y-auto">
-            {alerts.map((alert, i) => (
+            {(alerts || []).map((alert, i) => (
               <div
                 key={`${alert.job_number}-${alert.type}-${i}`}
                 className={`flex items-start gap-3 p-3 rounded-lg border ${
@@ -542,7 +538,7 @@ export default function WipDashboard() {
         <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-3">
           All Jobs
         </h3>
-        <WipJobTable jobs={jobs} mode="admin" />
+        <WipJobTable jobs={jobs || []} mode="admin" />
       </div>
     </div>
   );
