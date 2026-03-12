@@ -85,6 +85,82 @@ describe('parseArAging', () => {
 });
 
 // ─────────────────────────────────────────────
+// AR Aging Parser — Old format (2023)
+// ─────────────────────────────────────────────
+
+describe('parseArAging (2023 old format)', () => {
+  const jan2023 = 'RMI AR Aging - January 2023.pdf';
+  const dec2023 = 'RMI AR Aging - Dec  2023.pdf';
+
+  it.skipIf(!hasFile(jan2023))('Jan 2023: extracts 42 customers', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, jan2023));
+    const result = await parseArAging(buf);
+    expect(result.customers.length).toBe(42);
+  });
+
+  it.skipIf(!hasFile(jan2023))('Jan 2023: total matches $1,073,876.07', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, jan2023));
+    const result = await parseArAging(buf);
+    expect(result.totals.total).toBeCloseTo(1073876.07, 2);
+  });
+
+  it.skipIf(!hasFile(jan2023))('Jan 2023: retainage matches -$215,111.17', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, jan2023));
+    const result = await parseArAging(buf);
+    expect(result.totals.retainage).toBeCloseTo(-215111.17, 2);
+  });
+
+  it.skipIf(!hasFile(jan2023))('Jan 2023: self-validation passes', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, jan2023));
+    const result = await parseArAging(buf);
+    expect(result.validation.matches).toBe(true);
+  });
+
+  it.skipIf(!hasFile(jan2023))('Jan 2023: extracts report date 2023-01-31', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, jan2023));
+    const result = await parseArAging(buf);
+    expect(result.reportDate.toISOString().split('T')[0]).toBe('2023-01-31');
+  });
+
+  it.skipIf(!hasFile(jan2023))('Jan 2023: extracts generated date 2023-02-09', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, jan2023));
+    const result = await parseArAging(buf);
+    expect(result.generatedDate.toISOString().split('T')[0]).toBe('2023-02-09');
+  });
+
+  it.skipIf(!hasFile(jan2023))('Jan 2023: over120 combines Over 120 + Over 150 buckets', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, jan2023));
+    const result = await parseArAging(buf);
+    // Report Over 120 = 48,698.16 + Over 150 = 26,055.07 = 74,753.23
+    expect(result.totals.over120).toBeCloseTo(74753.23, 2);
+  });
+
+  it.skipIf(!hasFile(dec2023))('Dec 2023: self-validation passes', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, dec2023));
+    const result = await parseArAging(buf);
+    expect(result.validation.matches).toBe(true);
+  });
+
+  it.skipIf(!hasFile(dec2023))('Dec 2023: total matches $2,111,980.85', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, dec2023));
+    const result = await parseArAging(buf);
+    expect(result.totals.total).toBeCloseTo(2111980.85, 2);
+  });
+
+  it.skipIf(!hasFile(dec2023))('Dec 2023: extracts report date 2023-12-31', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, dec2023));
+    const result = await parseArAging(buf);
+    expect(result.reportDate.toISOString().split('T')[0]).toBe('2023-12-31');
+  });
+
+  it.skipIf(!hasFile(dec2023))('Dec 2023: extracts generated date 2024-01-25', async () => {
+    const buf = fs.readFileSync(path.join(DATA_DIR, dec2023));
+    const result = await parseArAging(buf);
+    expect(result.generatedDate.toISOString().split('T')[0]).toBe('2024-01-25');
+  });
+});
+
+// ─────────────────────────────────────────────
 // Balance Sheet Parser
 // ─────────────────────────────────────────────
 

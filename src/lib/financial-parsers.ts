@@ -137,6 +137,12 @@ function parseMMDDYYYY(s: string): Date {
   return new Date(yyyy, mm - 1, dd);
 }
 
+/** Parse a date like "1/31/2023" or "12/31/2023" (M/D/YYYY with slashes) */
+function parseSlashDate(s: string): Date {
+  const [mm, dd, yyyy] = s.split('/').map(Number);
+  return new Date(yyyy, mm - 1, dd);
+}
+
 /** Parse a date like "January 31, 2026" or "December 31, 2025" */
 function parseWrittenDate(s: string): Date {
   const months: Record<string, number> = {
@@ -157,6 +163,7 @@ function isSkipLine(line: string): boolean {
   if (line.includes('Confidential: For Internal Use Only')) return true;
   if (line.startsWith('Resource Mechanical Insulation')) return true;
   if (line.startsWith('Aging Detail by Customer Name')) return true;
+  if (line.startsWith('Aging Detail by Customer')) return true;
   if (line.startsWith('Aging As of Date')) return true;
   if (line.startsWith('Aging Basis')) return true;
   if (line.startsWith('Include Retainage')) return true;
@@ -164,6 +171,12 @@ function isSkipLine(line: string): boolean {
   if (line.startsWith('Age Finance Charges')) return true;
   if (line.startsWith('Current Over 30')) return true;
   if (line.startsWith('Tran Type')) return true;
+  // Old-format (2023-era Sage) header lines
+  if (line.startsWith('Aging as of date:')) return true;
+  if (line.startsWith('Aging basis:')) return true;
+  if (line.startsWith('Include Finance Charges')) return true;
+  if (line.startsWith('Unpaid only')) return true;
+  if (line.startsWith('Show detail')) return true;
   return false;
 }
 
@@ -189,15 +202,27 @@ export async function parseArAging(buffer: Buffer): Promise<ArAgingResult> {
 
     // Extract report generated date from page header
     if (trimmed.startsWith('Resource Mechanical Insulation') && !generatedDate) {
-      const dateMatch = trimmed.match(/(\d{2}-\d{2}-\d{4})/);
-      if (dateMatch) generatedDate = parseMMDDYYYY(dateMatch[1]);
+      const dashMatch = trimmed.match(/(\d{2}-\d{2}-\d{4})/);
+      if (dashMatch) {
+        generatedDate = parseMMDDYYYY(dashMatch[1]);
+      } else {
+        const slashMatch = trimmed.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+        if (slashMatch) generatedDate = parseSlashDate(slashMatch[1]);
+      }
       continue;
     }
 
-    // Extract aging as-of date
+    // Extract aging as-of date (new format: "Aging As of Date  01-31-2026")
     if (trimmed.startsWith('Aging As of Date') && !reportDate) {
       const dateMatch = trimmed.match(/(\d{2}-\d{2}-\d{4})/);
       if (dateMatch) reportDate = parseMMDDYYYY(dateMatch[1]);
+      continue;
+    }
+
+    // Extract aging as-of date (old format: "Aging as of date: 1/31/2023 ...")
+    if (trimmed.startsWith('Aging as of date:') && !reportDate) {
+      const dateMatch = trimmed.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+      if (dateMatch) reportDate = parseSlashDate(dateMatch[1]);
       continue;
     }
 
@@ -256,9 +281,68 @@ export async function parseArAging(buffer: Buffer): Promise<ArAgingResult> {
       continue;
     }
 
+    // ── Old-format (2023-era Sage) totals: "TOTAL RETAINAGE\tNAME Totals: CURRENT OVER120 OVER90 OVER60 OVER30 OVER150"
+    // Normalize tabs to spaces for old-format matching
+    const norm = trimmed.replace(/\t/g, ' ').replace(/ +/g, ' ');
+
+    // Old-format Report Totals (must check before customer totals)
+    const oldReportTotalMatch = norm.match(
+      /^(-?[\d,]+\.\d+) (-?[\d,]+\.\d+) Report Totals: (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+)$/
+    );
+    if (oldReportTotalMatch) {
+      const over120Val = parseArAmount(oldReportTotalMatch[4]);
+      const over150Val = parseArAmount(oldReportTotalMatch[8]);
+      reportTotals = {
+        total: parseArAmount(oldReportTotalMatch[1]),
+        current: parseArAmount(oldReportTotalMatch[3]),
+        over30: parseArAmount(oldReportTotalMatch[7]),
+        over60: parseArAmount(oldReportTotalMatch[6]),
+        over90: parseArAmount(oldReportTotalMatch[5]),
+        over120: Math.round((over120Val + over150Val) * 100) / 100,
+        retainage: parseArAmount(oldReportTotalMatch[2]),
+      };
+      continue;
+    }
+
+    // Old-format Customer Totals
+    const oldTotalsMatch = norm.match(
+      /^(-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (.+?) Totals: (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+)$/
+    );
+    if (oldTotalsMatch) {
+      const name = oldTotalsMatch[3].trim();
+      const info = customerInfo.get(name) ?? { code: null, phone: null };
+
+      if (!info.code) {
+        for (const [key, val] of customerInfo.entries()) {
+          if (name.startsWith(key) || key.startsWith(name)) {
+            info.code = val.code;
+            info.phone = val.phone;
+            break;
+          }
+        }
+      }
+
+      const over120Val = parseArAmount(oldTotalsMatch[5]);
+      const over150Val = parseArAmount(oldTotalsMatch[9]);
+
+      customers.push({
+        name,
+        code: info.code,
+        phone: info.phone,
+        total: parseArAmount(oldTotalsMatch[1]),
+        current: parseArAmount(oldTotalsMatch[4]),
+        over30: parseArAmount(oldTotalsMatch[8]),
+        over60: parseArAmount(oldTotalsMatch[7]),
+        over90: parseArAmount(oldTotalsMatch[6]),
+        over120: Math.round((over120Val + over150Val) * 100) / 100,
+        retainage: parseArAmount(oldTotalsMatch[2]),
+      });
+      continue;
+    }
+
     // Customer header line: "CustomerName CODE (phone)" or "CustomerName CODE"
     // Skip transaction lines (Invoice, Cash receipt, etc.)
-    if (/^(Invoice|Cash receipt|Ret\. Released|Write off|Billed credit)\s/.test(trimmed)) continue;
+    if (/^(Invoice|Cash receipt|Cust Cash Recpt|Ret\. Released|Write off|Billed credit)\s/.test(trimmed)) continue;
 
     // Customer header: extract code and optional phone
     const custHeaderWithPhone = trimmed.match(
@@ -285,7 +369,7 @@ export async function parseArAging(buffer: Buffer): Promise<ArAgingResult> {
     }
   }
 
-  if (!reportDate) throw new Error('Could not find "Aging As of Date" in AR Aging report');
+  if (!reportDate) throw new Error('Could not find aging as-of date in AR Aging report');
   if (!generatedDate) throw new Error('Could not find generated date in AR Aging report');
   if (!reportTotals) throw new Error('Could not find "Report Totals" line in AR Aging report');
 
