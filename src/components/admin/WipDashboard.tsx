@@ -101,6 +101,33 @@ function fmtPct(val: number | null): string {
   return `${(val * 100).toFixed(1)}%`;
 }
 
+// ── Snapshot Normalizer ─────────────────────────────────
+// PostgreSQL returns numeric/decimal columns as strings (e.g. "21953963.00").
+// The + operator concatenates strings instead of adding, producing NaN.
+// Convert all numeric fields to actual numbers on load.
+
+const NUMERIC_FIELDS: (keyof WipSnapshot)[] = [
+  "contract_amount", "change_orders", "pending_change_orders", "revised_contract",
+  "original_estimate", "estimate_changes", "pending_co_estimates", "revised_estimate",
+  "gross_profit", "gross_margin_pct", "pct_complete", "earned_revenue",
+  "costs_to_date", "gross_profit_to_date", "backlog_revenue", "costs_to_complete",
+  "backlog_profit", "billings_to_date", "revenue_billing_excess", "invoicing_remaining",
+  "revenue_excess", "billings_excess",
+];
+
+function normalizeSnapshot(raw: WipSnapshot): WipSnapshot {
+  const snap = { ...raw };
+  for (const field of NUMERIC_FIELDS) {
+    const val = snap[field];
+    if (val === null || val === undefined) {
+      (snap as Record<string, unknown>)[field] = null;
+    } else {
+      (snap as Record<string, unknown>)[field] = Number(val);
+    }
+  }
+  return snap;
+}
+
 // ── Component ──────────────────────────────────────────
 
 export default function WipDashboard() {
@@ -149,10 +176,14 @@ export default function WipDashboard() {
         );
         if (!res.ok) throw new Error(`Failed to load WIP data: ${res.status}`);
         const data: WipApiResponse = await res.json();
-        setJobs(data.snapshots ?? []);
+        setJobs((data.snapshots ?? []).map(normalizeSnapshot));
         setTotals(data.totals);
         setPmSummary(data.pmSummary ?? []);
-        setPriorYearEndSnapshots(data.priorYearEndSnapshots ?? null);
+        setPriorYearEndSnapshots(
+          data.priorYearEndSnapshots
+            ? data.priorYearEndSnapshots.map(normalizeSnapshot)
+            : null
+        );
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load data");
       } finally {
