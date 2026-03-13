@@ -44,6 +44,10 @@ export const GET: APIRoute = async ({ request, url }) => {
       return handleDetail(url);
     }
 
+    if (action === "borrowing_base") {
+      return handleBorrowingBase();
+    }
+
     // Default: return list of available months across all report types
     return handleMonths();
   } catch (err: unknown) {
@@ -71,12 +75,40 @@ async function handleMonths(): Promise<Response> {
     FROM income_statement_snapshots ORDER BY period_end_date DESC
   `;
 
+  let bbcDates = { rows: [] as Record<string, unknown>[] };
+  try {
+    bbcDates = await sql`
+      SELECT report_date, total_borrowing_base, excess_availability, imported_at, source_file as source_filename
+      FROM borrowing_base ORDER BY report_date DESC
+    `;
+  } catch {
+    // Table may not exist yet
+  }
+
   return new Response(
     JSON.stringify({
       arAging: arDates.rows,
       balanceSheet: bsDates.rows,
       incomeStatement: isDates.rows,
+      borrowingBase: bbcDates.rows,
     }),
+    { status: 200, headers: SECURITY_HEADERS }
+  );
+}
+
+async function handleBorrowingBase(): Promise<Response> {
+  const result = await sql`
+    SELECT id, report_date, gross_ar, ar_over_90, eligible_ar,
+           ar_advance_rate, ar_availability,
+           gross_inventory, inventory_advance_rate, inventory_availability,
+           total_borrowing_base, amount_borrowed, excess_availability,
+           source_file, imported_at
+    FROM borrowing_base
+    ORDER BY report_date ASC
+  `;
+
+  return new Response(
+    JSON.stringify({ records: result.rows }),
     { status: 200, headers: SECURITY_HEADERS }
   );
 }

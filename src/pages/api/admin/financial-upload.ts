@@ -14,6 +14,8 @@ import type {
   IncomeStatementResult,
   ReportType,
 } from "../../../lib/financial-parsers";
+import { parseBorrowingBase, isBorrowingBase } from "../../../lib/pdf-parsers";
+import type { BorrowingBaseResult } from "../../../lib/pdf-parsers";
 
 export const prerender = false;
 
@@ -174,6 +176,34 @@ async function storeIncomeStatement(
   return { snapshotId };
 }
 
+async function storeBorrowingBase(
+  result: BorrowingBaseResult,
+  filename: string
+): Promise<{ recordId: string }> {
+  const reportDate = result.reportDate;
+
+  // Idempotent: delete existing record for same date
+  await sql`DELETE FROM borrowing_base WHERE report_date = ${reportDate}`;
+
+  const record = await sql`
+    INSERT INTO borrowing_base (
+      report_date, gross_ar, ar_over_90, eligible_ar,
+      ar_advance_rate, ar_availability,
+      gross_inventory, inventory_advance_rate, inventory_availability,
+      total_borrowing_base, amount_borrowed, excess_availability,
+      raw_data, source_file
+    ) VALUES (
+      ${reportDate}, ${result.grossAr}, ${result.arOver90}, ${result.eligibleAr},
+      ${result.arAdvanceRate}, ${result.arAvailability},
+      ${result.grossInventory}, ${result.inventoryAdvanceRate}, ${result.inventoryAvailability},
+      ${result.totalBorrowingBase}, ${result.amountBorrowed}, ${result.excessAvailability},
+      ${JSON.stringify(result.validation)}, ${filename}
+    ) RETURNING id
+  `;
+
+  return { recordId: record.rows[0].id as string };
+}
+
 export const POST: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -216,7 +246,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!reportType) {
       return new Response(
         JSON.stringify({
-          error: `Could not detect report type from filename "${filename}". Specify reportType parameter (ar_aging, balance_sheet, income_statement).`,
+          error: `Could not detect report type from filename "${filename}". Specify reportType parameter (ar_aging, balance_sheet, income_statement, borrowing_base).`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -266,6 +296,20 @@ export const POST: APIRoute = async ({ request }) => {
           periodEndDate: formatDate(parsed.periodEndDate),
           accountCount: parsed.entries.filter((e) => !e.isSubtotal).length,
           totals: parsed.totals,
+          validation: parsed.validation,
+        },
+      };
+    } else if (reportType === "borrowing_base") {
+      const parsed = await parseBorrowingBase(buffer);
+      const { recordId } = await storeBorrowingBase(parsed, filename);
+      result = {
+        snapshotId: recordId,
+        summary: {
+          reportType: "borrowing_base",
+          reportDate: parsed.reportDate,
+          totalBorrowingBase: parsed.totalBorrowingBase,
+          amountBorrowed: parsed.amountBorrowed,
+          excessAvailability: parsed.excessAvailability,
           validation: parsed.validation,
         },
       };
