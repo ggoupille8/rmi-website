@@ -10,6 +10,11 @@ interface Client {
   seo_value: number;
   active: boolean;
   sort_order: number;
+  logo_url: string | null;
+  logo_type: string;
+  is_featured: boolean;
+  display_scale: number;
+  needs_invert: boolean;
 }
 
 // ── Shared styles ──────────────────────────────────────
@@ -38,11 +43,215 @@ async function aiFillClient(companyName: string): Promise<AIFillResult> {
   return res.json() as Promise<AIFillResult>;
 }
 
+// ── Logo preview (white-on-dark) ───────────────────────
+function LogoPreview({ client }: { client: Client }) {
+  if (!client.logo_url) {
+    return (
+      <div className="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-[10px] text-slate-500">
+        —
+      </div>
+    );
+  }
+
+  if (client.logo_type === "text") {
+    return (
+      <div
+        className="w-10 h-10 rounded bg-neutral-900 flex items-center justify-center text-[9px] font-bold text-white leading-tight text-center px-0.5"
+        style={{ transform: `scale(${client.display_scale})` }}
+      >
+        {client.name.split(" ")[0]}
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-10 h-10 rounded bg-neutral-900 flex items-center justify-center p-1">
+      <img
+        src={client.logo_url}
+        alt={client.name}
+        className={`max-w-full max-h-full object-contain${client.needs_invert ? " brightness-0 invert" : ""}`}
+        style={client.display_scale !== 1 ? { transform: `scale(${client.display_scale})` } : undefined}
+      />
+    </div>
+  );
+}
+
+// ── Edit logo modal ────────────────────────────────────
+function LogoEditor({
+  client,
+  onSave,
+  onClose,
+}: {
+  client: Client;
+  onSave: (updates: Partial<Client>) => void;
+  onClose: () => void;
+}) {
+  const [logoUrl, setLogoUrl] = useState(client.logo_url ?? "");
+  const [logoType, setLogoType] = useState(client.logo_type ?? "svg");
+  const [displayScale, setDisplayScale] = useState(client.display_scale ?? 1.0);
+  const [needsInvert, setNeedsInvert] = useState(client.needs_invert ?? true);
+  const [isFeatured, setIsFeatured] = useState(client.is_featured ?? false);
+  const [checking, setChecking] = useState(false);
+
+  const handleAutoDetect = async () => {
+    setChecking(true);
+    const slug = client.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "")
+      .replace(/\s+/g, "");
+    const cdnUrl = `https://cdn.simpleicons.org/${slug}/white`;
+    try {
+      const res = await fetch(cdnUrl, { method: "HEAD", mode: "no-cors" });
+      if (res.type === "opaque" || res.ok) {
+        setLogoUrl(cdnUrl);
+        setLogoType("cdn");
+        setNeedsInvert(false);
+      }
+    } catch {
+      // CDN not available — keep current values
+    }
+    setChecking(false);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-neutral-900 rounded-xl border border-white/10 p-6 w-full max-w-md space-y-4">
+        <h3 className="text-lg font-semibold text-slate-100">
+          Edit Logo — {client.name}
+        </h3>
+
+        {/* Live preview */}
+        <div className="flex justify-center p-4 rounded-lg bg-neutral-950 border border-white/5">
+          <div className="h-16 flex items-center justify-center">
+            {logoUrl ? (
+              logoType === "text" ? (
+                <span
+                  className="text-white font-bold text-xl"
+                  style={{ transform: `scale(${displayScale})` }}
+                >
+                  {client.name}
+                </span>
+              ) : (
+                <img
+                  src={logoUrl}
+                  alt={client.name}
+                  className={`h-12 object-contain${needsInvert ? " brightness-0 invert" : ""}`}
+                  style={{ transform: `scale(${displayScale})` }}
+                />
+              )
+            ) : (
+              <span className="text-slate-600 text-sm">No logo set</span>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className={labelCls}>Logo URL</label>
+          <input
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
+            placeholder="/images/clients/logo.svg or CDN URL"
+            className={inputCls}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelCls}>Logo Type</label>
+            <select
+              value={logoType}
+              onChange={(e) => setLogoType(e.target.value)}
+              className={inputCls}
+            >
+              <option value="svg">SVG (local)</option>
+              <option value="cdn">CDN</option>
+              <option value="img">Image</option>
+              <option value="text">Text</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Display Scale</label>
+            <input
+              type="number"
+              value={displayScale}
+              onChange={(e) => setDisplayScale(Number(e.target.value))}
+              step={0.1}
+              min={0.1}
+              max={5}
+              className={inputCls}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={needsInvert}
+              onChange={(e) => setNeedsInvert(e.target.checked)}
+              className="accent-blue-500"
+            />
+            Needs invert (dark logos)
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isFeatured}
+              onChange={(e) => setIsFeatured(e.target.checked)}
+              className="accent-blue-500"
+            />
+            Featured on landing
+          </label>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleAutoDetect}
+            disabled={checking}
+            className="px-3 py-2 rounded-lg text-xs font-medium bg-purple-600/20 text-purple-300 hover:bg-purple-600/30 transition-colors disabled:opacity-40"
+          >
+            {checking ? "Checking…" : "Auto-detect (SimpleIcons)"}
+          </button>
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onSave({
+                logo_url: logoUrl || null,
+                logo_type: logoType,
+                display_scale: displayScale,
+                needs_invert: needsInvert,
+                is_featured: isFeatured,
+              });
+              onClose();
+            }}
+            className={btnPrimary}
+          >
+            Save Logo
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────
 export default function ClientsAdmin() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"list" | "add">("list");
+  const [editingLogo, setEditingLogo] = useState<Client | null>(null);
 
   // Add form state
   const emptyForm = {
@@ -136,6 +345,15 @@ export default function ClientsAdmin() {
     load();
   };
 
+  const handleToggleFeatured = async (client: Client) => {
+    await fetch("/api/admin/clients", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: client.id, is_featured: !client.is_featured }),
+    });
+    load();
+  };
+
   const handleSortChange = async (id: number, sort_order: number) => {
     await fetch("/api/admin/clients", {
       method: "PATCH",
@@ -145,19 +363,18 @@ export default function ClientsAdmin() {
     load();
   };
 
-  const activeCount = clients.filter((c) => c.active).length;
+  const handleLogoSave = async (updates: Partial<Client>) => {
+    if (!editingLogo) return;
+    await fetch("/api/admin/clients", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: editingLogo.id, ...updates }),
+    });
+    load();
+  };
 
   return (
     <div className="max-w-4xl">
-      {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-slate-100">Client Showcase</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Manage the logo grid displayed on the public site. {activeCount} of{" "}
-          {clients.length} clients are live.
-        </p>
-      </div>
-
       {/* Tabs */}
       <div className="flex border-b border-white/[0.08] mb-6">
         {(["list", "add"] as const).map((t) => (
@@ -204,10 +421,14 @@ export default function ClientsAdmin() {
                   }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ background: client.color }}
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditingLogo(client)}
+                      className="flex-shrink-0 hover:ring-2 hover:ring-blue-500/40 rounded transition-all"
+                      title="Edit logo"
+                    >
+                      <LogoPreview client={client} />
+                    </button>
                     <div className="min-w-0">
                       <div className="text-sm font-medium text-slate-200 truncate">
                         {client.name}
@@ -232,6 +453,20 @@ export default function ClientsAdmin() {
                       title="Sort order"
                       min={0}
                     />
+                    <button
+                      type="button"
+                      onClick={() => handleToggleFeatured(client)}
+                      className="text-xs px-3 py-1 rounded transition-colors"
+                      style={{
+                        background: client.is_featured
+                          ? "rgba(234,179,8,0.1)"
+                          : "rgba(100,116,139,0.1)",
+                        color: client.is_featured ? "#facc15" : "#64748b",
+                      }}
+                      title={client.is_featured ? "Remove from landing page" : "Feature on landing page"}
+                    >
+                      {client.is_featured ? "Featured" : "—"}
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleToggleActive(client)}
@@ -370,6 +605,15 @@ export default function ClientsAdmin() {
             {saving ? "Saving…" : "Add to Client Showcase"}
           </button>
         </div>
+      )}
+
+      {/* Logo editor modal */}
+      {editingLogo && (
+        <LogoEditor
+          client={editingLogo}
+          onSave={handleLogoSave}
+          onClose={() => setEditingLogo(null)}
+        />
       )}
     </div>
   );
