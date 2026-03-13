@@ -15,29 +15,39 @@ interface NavGroup {
   items: NavItem[];
 }
 
+const dashboardItem: NavItem = {
+  label: "Dashboard",
+  href: "/admin",
+  icon: LayoutDashboard,
+};
+
 const navGroups: NavGroup[] = [
   {
-    label: "Operations",
+    label: "Sales & Leads",
     items: [
-      { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
       { label: "Leads", href: "/admin/leads", icon: Users },
       { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+      { label: "Clients", href: "/admin/clients", icon: Building2 },
+    ],
+  },
+  {
+    label: "Project Management",
+    items: [
+      { label: "Jobs", href: "/admin/jobs", icon: Briefcase },
+      { label: "WIP Dashboard", href: "/admin/wip", icon: TrendingUp },
     ],
   },
   {
     label: "Financial",
     items: [
-      { label: "Jobs", href: "/admin/jobs", icon: Briefcase },
-      { label: "WIP Dashboard", href: "/admin/wip", icon: TrendingUp },
-      { label: "Financials", href: "/admin/financials", icon: DollarSign },
       { label: "Invoices", href: "/admin/invoices", icon: FileText },
+      { label: "Financials", href: "/admin/financials", icon: DollarSign },
     ],
   },
   {
-    label: "Content",
+    label: "Website",
     items: [
       { label: "Media", href: "/admin/media", icon: Image },
-      { label: "Clients", href: "/admin/clients", icon: Building2 },
     ],
   },
   {
@@ -122,9 +132,26 @@ export default function AdminSidebar({ currentPath }: Props) {
 
         {/* Nav */}
         <nav className="flex-1 py-3 px-2 overflow-y-auto">
-          {navGroups.map((group, gi) => (
+          {/* Dashboard — ungrouped */}
+          <div className="space-y-0.5">
+            <a
+              href={dashboardItem.href}
+              onClick={() => setOpen(false)}
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+                isActive(dashboardItem.href)
+                  ? "bg-primary-600/15 text-primary-400 border-l-2 border-primary-400 -ml-0.5 pl-[10px]"
+                  : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+              }`}
+            >
+              <LayoutDashboard size={18} />
+              <span>{dashboardItem.label}</span>
+            </a>
+          </div>
+
+          {/* Grouped sections */}
+          {navGroups.map((group) => (
             <div key={group.label}>
-              {gi > 0 && <div className="mx-3 my-2 border-t border-neutral-800" />}
+              <div className="mx-3 my-2 border-t border-neutral-800" />
               <p className="px-3 pt-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-600">
                 {group.label}
               </p>
