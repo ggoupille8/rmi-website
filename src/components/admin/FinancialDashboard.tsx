@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Upload, BarChart3, GitCompare, ChevronDown, Loader2,
   AlertCircle, RefreshCw, FileText, Calendar, CheckCircle, AlertTriangle,
-  RotateCcw,
+  RotateCcw, Landmark,
 } from "lucide-react";
 import FinancialUpload from "./FinancialUpload";
 import ReconciliationMatrix from "./ReconciliationMatrix";
 
-type Tab = "upload" | "reports" | "reconciliation";
+type Tab = "upload" | "reports" | "reconciliation" | "borrowing_base";
 type ReportSubTab = "ar_aging" | "balance_sheet" | "income_statement";
 
 interface SnapshotRow {
@@ -28,6 +28,7 @@ interface MonthsData {
   arAging: SnapshotRow[];
   balanceSheet: SnapshotRow[];
   incomeStatement: SnapshotRow[];
+  borrowingBase: SnapshotRow[];
 }
 
 // AR Aging detail types
@@ -232,6 +233,7 @@ export default function FinancialDashboard() {
             ...(d.arAging || []).map((s: SnapshotRow) => snapshotDate(s)),
             ...(d.balanceSheet || []).map((s: SnapshotRow) => snapshotDate(s)),
             ...(d.incomeStatement || []).map((s: SnapshotRow) => snapshotDate(s)),
+            ...(d.borrowingBase || []).map((s: SnapshotRow) => snapshotDate(s)),
           ]
             .filter(Boolean)
             .map((dt: string) => dt.includes("T") ? dt.split("T")[0] : dt);
@@ -241,7 +243,7 @@ export default function FinancialDashboard() {
       })
       .catch((e: unknown) => {
         setError(e instanceof Error ? e.message : "Failed to load financial data");
-        setMonths({ arAging: [], balanceSheet: [], incomeStatement: [] });
+        setMonths({ arAging: [], balanceSheet: [], incomeStatement: [], borrowingBase: [] });
       })
       .finally(() => setLoading(false));
   }, []);
@@ -253,6 +255,7 @@ export default function FinancialDashboard() {
         ...months.arAging.map((s) => snapshotDate(s)),
         ...months.balanceSheet.map((s) => snapshotDate(s)),
         ...months.incomeStatement.map((s) => snapshotDate(s)),
+        ...(months.borrowingBase || []).map((s) => snapshotDate(s)),
       ]
       .filter(Boolean)
       .map((d) => (d as string).includes("T") ? (d as string).split("T")[0] : d) as string[]
@@ -262,6 +265,7 @@ export default function FinancialDashboard() {
   const tabs: { key: Tab; label: string; icon: typeof Upload }[] = [
     { key: "upload", label: "Upload", icon: Upload },
     { key: "reports", label: "Reports", icon: BarChart3 },
+    { key: "borrowing_base", label: "Borrowing Base", icon: Landmark },
     { key: "reconciliation", label: "Reconciliation", icon: GitCompare },
   ];
 
@@ -289,7 +293,7 @@ export default function FinancialDashboard() {
       </div>
 
       {/* Month selector (for reports and reconciliation tabs) */}
-      {tab !== "upload" && uniqueDates.length > 0 && (
+      {tab !== "upload" && tab !== "borrowing_base" && uniqueDates.length > 0 && (
         <MonthSelector
           dates={uniqueDates}
           selected={selectedDate}
@@ -304,14 +308,14 @@ export default function FinancialDashboard() {
 
           {loading && <HistorySkeleton />}
 
-          {!loading && months && months.arAging.length === 0 && months.balanceSheet.length === 0 && months.incomeStatement.length === 0 && (
+          {!loading && months && months.arAging.length === 0 && months.balanceSheet.length === 0 && months.incomeStatement.length === 0 && (months.borrowingBase || []).length === 0 && (
             <div className="text-center py-8 text-neutral-500">
               <FileText size={24} className="mx-auto mb-2 text-neutral-600" />
               <p className="text-sm">No reports imported yet. Drop PDF files above to get started.</p>
             </div>
           )}
 
-          {!loading && months && (months.arAging.length > 0 || months.balanceSheet.length > 0 || months.incomeStatement.length > 0) && (
+          {!loading && months && (months.arAging.length > 0 || months.balanceSheet.length > 0 || months.incomeStatement.length > 0 || (months.borrowingBase || []).length > 0) && (
             <ImportHistory months={months} onReimport={fetchMonths} />
           )}
         </div>
@@ -344,6 +348,11 @@ export default function FinancialDashboard() {
         </div>
       )}
 
+      {/* Borrowing Base tab */}
+      {tab === "borrowing_base" && (
+        <BorrowingBaseView />
+      )}
+
       {/* Reconciliation tab */}
       {tab === "reconciliation" && (
         <ReconciliationMatrix reportDate={selectedDate} />
@@ -369,6 +378,7 @@ function ImportHistory({ months, onReimport }: { months: MonthsData; onReimport:
     ...months.arAging.map((s) => ({ ...s, type: "AR Aging", date: snapshotDate(s), records: s.customer_count })),
     ...months.balanceSheet.map((s) => ({ ...s, type: "Balance Sheet", date: snapshotDate(s), records: s.account_count })),
     ...months.incomeStatement.map((s) => ({ ...s, type: "Income Statement", date: snapshotDate(s), records: s.account_count })),
+    ...(months.borrowingBase || []).map((s) => ({ ...s, type: "Borrowing Base", date: snapshotDate(s), records: 1 })),
   ].sort((a, b) => (b.imported_at ?? "").localeCompare(a.imported_at ?? ""));
 
   async function handleReimport(row: HistoryRow, index: number) {
@@ -441,6 +451,8 @@ function ImportHistory({ months, onReimport }: { months: MonthsData; onReimport:
                         ? "bg-blue-500/15 text-blue-400 border border-blue-500/20"
                         : row.type === "Balance Sheet"
                         ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
+                        : row.type === "Borrowing Base"
+                        ? "bg-purple-500/15 text-purple-400 border border-purple-500/20"
                         : "bg-amber-500/15 text-amber-400 border border-amber-500/20"
                     }`}>
                       {row.type}
@@ -851,6 +863,150 @@ function ReportsView({ reportDate }: { reportDate: string }) {
           <EmptyReportState type="Income Statement" />
         )
       )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Borrowing Base View
+// ─────────────────────────────────────────────
+
+interface BbcRow {
+  id: number;
+  report_date: string;
+  gross_ar: string;
+  ar_over_90: string;
+  eligible_ar: string;
+  ar_advance_rate: string;
+  ar_availability: string;
+  gross_inventory: string;
+  inventory_advance_rate: string;
+  inventory_availability: string;
+  total_borrowing_base: string;
+  amount_borrowed: string;
+  excess_availability: string;
+  source_file: string;
+  imported_at: string;
+}
+
+function BorrowingBaseView() {
+  const [data, setData] = useState<BbcRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [bbcError, setBbcError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch("/api/admin/financials?action=borrowing_base")
+      .then((r) => {
+        if (!r.ok) throw new Error(`Server error: ${r.status}`);
+        return r.json();
+      })
+      .then((d) => setData(d.records ?? []))
+      .catch((e: unknown) => setBbcError(e instanceof Error ? e.message : "Failed to load"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <ReportSkeleton />;
+
+  if (bbcError) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle size={24} className="mx-auto mb-2 text-red-400" />
+        <p className="text-sm text-red-400">{bbcError}</p>
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="text-center py-12 bg-neutral-900/30 border border-neutral-800/50 rounded-lg">
+        <Landmark size={28} className="mx-auto mb-2 text-neutral-600" />
+        <p className="text-neutral-400 text-sm">No Borrowing Base data imported yet</p>
+        <p className="text-neutral-600 text-xs mt-1">Upload BBC PDFs on the Upload tab</p>
+      </div>
+    );
+  }
+
+  const latest = data[data.length - 1];
+  const chartMax = Math.max(...data.map((r) => Math.max(num(r.total_borrowing_base), num(r.amount_borrowed), num(r.excess_availability))));
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <KPI label="Total Borrowing Base" value={fmt(latest.total_borrowing_base)} />
+        <KPI label="Amount Borrowed" value={fmt(latest.amount_borrowed)} />
+        <KPI label="Availability" value={fmt(latest.excess_availability)} warn={num(latest.excess_availability) < 200000} />
+        <KPI label="Eligible AR" value={fmt(latest.eligible_ar)} />
+        <KPI label="Gross Inventory" value={fmt(latest.gross_inventory)} />
+      </div>
+
+      <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-5">
+        <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-4">Monthly Trend</h3>
+        <div className="space-y-1.5">
+          {data.map((row) => {
+            const base = num(row.total_borrowing_base);
+            const borrowed = num(row.amount_borrowed);
+            const avail = num(row.excess_availability);
+            const baseW = chartMax > 0 ? (base / chartMax) * 100 : 0;
+            const borrowedW = chartMax > 0 ? (borrowed / chartMax) * 100 : 0;
+            return (
+              <div key={row.report_date} className="flex items-center gap-3">
+                <span className="text-xs text-neutral-500 w-16 shrink-0 tabular-nums">{dateLabel(row.report_date)}</span>
+                <div className="flex-1 relative h-6">
+                  <div className="absolute inset-y-0 left-0 rounded bg-purple-600/30 border border-purple-500/20" style={{ width: `${baseW}%` }} />
+                  <div className="absolute inset-y-0 left-0 rounded bg-blue-500/40" style={{ width: `${borrowedW}%` }} />
+                </div>
+                <span className="text-xs tabular-nums text-neutral-400 w-20 text-right shrink-0" title={`Availability: ${fmt(avail)}`}>{fmtInt(avail)}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="flex gap-4 mt-3 text-xs text-neutral-500">
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-purple-600/30 border border-purple-500/20" /> Total Base</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-500/40" /> Borrowed</span>
+          <span>Values = Availability</span>
+        </div>
+      </div>
+
+      <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-neutral-500 text-xs uppercase tracking-wider border-b border-neutral-800">
+                <th className="px-4 py-3 font-medium">Month</th>
+                <th className="px-4 py-3 font-medium text-right">Gross AR</th>
+                <th className="px-4 py-3 font-medium text-right">Over 90</th>
+                <th className="px-4 py-3 font-medium text-right">Eligible AR</th>
+                <th className="px-4 py-3 font-medium text-right">AR Avail</th>
+                <th className="px-4 py-3 font-medium text-right">Inventory</th>
+                <th className="px-4 py-3 font-medium text-right">Inv Avail</th>
+                <th className="px-4 py-3 font-medium text-right">Total Base</th>
+                <th className="px-4 py-3 font-medium text-right">Borrowed</th>
+                <th className="px-4 py-3 font-medium text-right">Availability</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-800/50">
+              {[...data].reverse().map((row) => {
+                const avail = num(row.excess_availability);
+                return (
+                  <tr key={row.report_date} className="hover:bg-neutral-800/30 transition-colors">
+                    <td className="px-4 py-2.5 text-neutral-200 font-medium">{dateLabel(row.report_date)}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums text-neutral-300">{fmt(row.gross_ar)}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums text-neutral-300">{fmt(row.ar_over_90)}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums text-neutral-300">{fmt(row.eligible_ar)}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums text-neutral-300">{fmt(row.ar_availability)}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums text-neutral-300">{fmt(row.gross_inventory)}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums text-neutral-300">{fmt(row.inventory_availability)}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums font-medium text-neutral-100">{fmt(row.total_borrowing_base)}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums text-blue-400">{fmt(row.amount_borrowed)}</td>
+                    <td className={`px-4 py-2.5 text-right tabular-nums font-medium ${avail < 200000 ? "text-red-400" : avail < 500000 ? "text-amber-400" : "text-emerald-400"}`}>{fmt(row.excess_availability)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

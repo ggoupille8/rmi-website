@@ -93,7 +93,7 @@ export default function FinancialUpload({ onUploadComplete }: { onUploadComplete
           Drop PDF files here or click to browse
         </p>
         <p className="text-xs text-neutral-500 mt-1">
-          Supports AR Aging, Balance Sheet, and Income Statement reports
+          Supports AR Aging, Balance Sheet, Income Statement, and Borrowing Base reports
         </p>
         <input
           ref={fileRef}
@@ -149,6 +149,9 @@ function formatSummary(summary: Record<string, unknown>): string {
   if (type === "income_statement") {
     const totals = summary.totals as Record<string, Record<string, number>>;
     return `Income Statement: Net Income $${totals.netIncome.balance.toLocaleString()}`;
+  }
+  if (type === "borrowing_base") {
+    return `Borrowing Base: Availability $${Number(summary.excessAvailability).toLocaleString()}`;
   }
   return "Uploaded successfully";
 }

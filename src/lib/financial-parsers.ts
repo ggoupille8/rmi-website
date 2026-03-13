@@ -98,11 +98,12 @@ export interface IncomeStatementResult {
   };
 }
 
-export type ReportType = 'ar_aging' | 'balance_sheet' | 'income_statement';
+export type ReportType = 'ar_aging' | 'balance_sheet' | 'income_statement' | 'borrowing_base';
 
 /** Detect financial report type from filename via keyword matching */
 export function detectReportType(filename: string): ReportType | null {
   const lower = filename.toLowerCase();
+  if (lower.includes('borrowing base')) return 'borrowing_base';
   if (lower.includes('ar aging')) return 'ar_aging';
   if (lower.includes('balance sheet')) return 'balance_sheet';
   if (lower.includes('income stat') || lower.includes('income stmt')) return 'income_statement';
