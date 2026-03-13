@@ -59,9 +59,23 @@ interface ActivityEvent {
   link: string;
 }
 
+interface JobStats {
+  totalJobs: number;
+  needsTaxClassification: number;
+  openJobs: number;
+}
+
+interface InvoiceStats {
+  totalInvoices: number;
+  totalAmount: number;
+  thisMonthCount: number;
+}
+
 interface Props {
   leadStats: LeadStats;
   recentLeads: RecentLead[];
+  jobStats?: JobStats;
+  invoiceStats?: InvoiceStats;
 }
 
 // ── Formatters ─────────────────────────────────────────
@@ -199,7 +213,7 @@ function ActivityIcon({ type }: { type: string }) {
 
 // ── Main Component ─────────────────────────────────────
 
-export default function ExecutiveDashboard({ leadStats, recentLeads }: Props) {
+export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, invoiceStats }: Props) {
   const [wip, setWip] = useState<WipSummary | null>(null);
   const [financials, setFinancials] = useState<FinancialSummary | null>(null);
   const [activity, setActivity] = useState<ActivityEvent[] | null>(null);
@@ -669,6 +683,61 @@ export default function ExecutiveDashboard({ leadStats, recentLeads }: Props) {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ── Jobs & Invoices Summary ──────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Jobs Card */}
+        <a
+          href="/admin/jobs"
+          className="block rounded-lg border border-neutral-800 bg-neutral-900 p-4 hover:border-neutral-700 transition-colors group"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Briefcase size={16} className="text-amber-400" />
+            <h3 className="text-sm font-semibold text-neutral-200 group-hover:text-white transition-colors">Jobs</h3>
+            <ArrowRight size={14} className="ml-auto text-neutral-600 group-hover:text-neutral-400 transition-colors" />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-lg font-bold text-neutral-100">{jobStats?.totalJobs ?? 0}</p>
+              <p className="text-[11px] text-neutral-500">Total</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-neutral-100">{jobStats?.openJobs ?? 0}</p>
+              <p className="text-[11px] text-neutral-500">Open</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-amber-400">{jobStats?.needsTaxClassification ?? 0}</p>
+              <p className="text-[11px] text-neutral-500">Needs Tax Class.</p>
+            </div>
+          </div>
+        </a>
+
+        {/* Invoices Card */}
+        <a
+          href="/admin/invoices"
+          className="block rounded-lg border border-neutral-800 bg-neutral-900 p-4 hover:border-neutral-700 transition-colors group"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <FileText size={16} className="text-emerald-400" />
+            <h3 className="text-sm font-semibold text-neutral-200 group-hover:text-white transition-colors">Invoices</h3>
+            <ArrowRight size={14} className="ml-auto text-neutral-600 group-hover:text-neutral-400 transition-colors" />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-lg font-bold text-neutral-100">{invoiceStats?.totalInvoices ?? 0}</p>
+              <p className="text-[11px] text-neutral-500">Total Entered</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-neutral-100">{fmtCompact(invoiceStats?.totalAmount ?? 0)}</p>
+              <p className="text-[11px] text-neutral-500">Total Amount</p>
+            </div>
+            <div>
+              <p className="text-lg font-bold text-emerald-400">{invoiceStats?.thisMonthCount ?? 0}</p>
+              <p className="text-[11px] text-neutral-500">This Month</p>
+            </div>
+          </div>
+        </a>
       </div>
 
       {/* ── Quick Actions ──────────────────────────────── */}

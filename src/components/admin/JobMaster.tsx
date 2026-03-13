@@ -378,14 +378,6 @@ export default function JobMaster() {
 
   return (
     <div className="max-w-[1400px]">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-slate-100">Job Master</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Tax classification, filtering, and bulk editing for all jobs
-        </p>
-      </div>
-
       {/* Stats Banner */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
         <StatCard label="Total Jobs" value={stats?.totalJobs ?? 0} />

@@ -7,6 +7,6 @@ export const prerender = false;
 const statusParam = Astro.url.searchParams.get('status') || '';
 ---
 
-<AdminLayout title="Lead Management">
+<AdminLayout title="Lead Management" subtitle="Track, filter, and follow up on incoming leads">
   <LeadsTable initialStatus={statusParam} client:load />
 </AdminLayout>

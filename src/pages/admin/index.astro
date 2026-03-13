@@ -17,6 +17,18 @@ let leadStats = {
 };
 let recentLeads: Array<{ id: string; name: string; email: string; status: string; created_at: string }> = [];
 
+let jobStats = {
+  totalJobs: 0,
+  needsTaxClassification: 0,
+  openJobs: 0,
+};
+
+let invoiceStats = {
+  totalInvoices: 0,
+  totalAmount: 0,
+  thisMonthCount: 0,
+};
+
 const { url: postgresUrl } = getPostgresEnv();
 
 if (postgresUrl) {
@@ -42,13 +54,47 @@ if (postgresUrl) {
   } catch (error) {
     console.error('Failed to fetch admin stats:', error instanceof Error ? error.message : 'Unknown error');
   }
+
+  // Fetch job stats from jobs_master
+  try {
+    const [totalJobsRes, needsTaxRes, openJobsRes] = await Promise.all([
+      sql`SELECT COUNT(*)::int as count FROM jobs_master WHERE is_hidden = false`,
+      sql`SELECT COUNT(*)::int as count FROM jobs_master WHERE tax_status = 'unknown' AND is_hidden = false`,
+      sql`SELECT COUNT(*)::int as count FROM jobs_master WHERE close_date IS NULL AND is_hidden = false`,
+    ]);
+    jobStats = {
+      totalJobs: totalJobsRes.rows[0]?.count ?? 0,
+      needsTaxClassification: needsTaxRes.rows[0]?.count ?? 0,
+      openJobs: openJobsRes.rows[0]?.count ?? 0,
+    };
+  } catch (error) {
+    console.error('Failed to fetch job stats:', error instanceof Error ? error.message : 'Unknown error');
+  }
+
+  // Fetch invoice stats
+  try {
+    const [totalInvRes, totalAmtRes, thisMonthRes] = await Promise.all([
+      sql`SELECT COUNT(*)::int as count FROM invoices`,
+      sql`SELECT COALESCE(SUM(total), 0)::numeric as total FROM invoices`,
+      sql`SELECT COUNT(*)::int as count FROM invoices WHERE created_at >= date_trunc('month', CURRENT_DATE)`,
+    ]);
+    invoiceStats = {
+      totalInvoices: totalInvRes.rows[0]?.count ?? 0,
+      totalAmount: parseFloat(totalAmtRes.rows[0]?.total || '0'),
+      thisMonthCount: thisMonthRes.rows[0]?.count ?? 0,
+    };
+  } catch (error) {
+    console.error('Failed to fetch invoice stats:', error instanceof Error ? error.message : 'Unknown error');
+  }
 }
 ---
 
-<AdminLayout title="Dashboard">
+<AdminLayout title="Dashboard" subtitle="Executive overview">
   <ExecutiveDashboard
     leadStats={leadStats}
     recentLeads={recentLeads}
+    jobStats={jobStats}
+    invoiceStats={invoiceStats}
     client:load
   />
 </AdminLayout>

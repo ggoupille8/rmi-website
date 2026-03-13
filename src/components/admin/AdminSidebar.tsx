@@ -10,17 +10,42 @@ interface NavItem {
   disabled?: boolean;
 }
 
-const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Leads", href: "/admin/leads", icon: Users },
-  { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-  { label: "Media", href: "/admin/media", icon: Image },
-  { label: "Jobs", href: "/admin/jobs", icon: Briefcase },
-  { label: "WIP Dashboard", href: "/admin/wip", icon: TrendingUp },
-  { label: "Financials", href: "/admin/financials", icon: DollarSign },
-  { label: "Invoices", href: "/admin/invoices", icon: FileText },
-  { label: "Clients", href: "/admin/clients", icon: Building2 },
-  { label: "Security", href: "/admin/security", icon: Shield },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const navGroups: NavGroup[] = [
+  {
+    label: "Operations",
+    items: [
+      { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+      { label: "Leads", href: "/admin/leads", icon: Users },
+      { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Financial",
+    items: [
+      { label: "Jobs", href: "/admin/jobs", icon: Briefcase },
+      { label: "WIP Dashboard", href: "/admin/wip", icon: TrendingUp },
+      { label: "Financials", href: "/admin/financials", icon: DollarSign },
+      { label: "Invoices", href: "/admin/invoices", icon: FileText },
+    ],
+  },
+  {
+    label: "Content",
+    items: [
+      { label: "Media", href: "/admin/media", icon: Image },
+      { label: "Clients", href: "/admin/clients", icon: Building2 },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { label: "Security", href: "/admin/security", icon: Shield },
+    ],
+  },
 ];
 
 interface Props {
@@ -96,45 +121,55 @@ export default function AdminSidebar({ currentPath }: Props) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-3 px-2 space-y-0.5">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.href);
-            if (item.disabled) {
-              return (
-                <div
-                  key={item.label}
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-md text-neutral-600 cursor-not-allowed text-sm"
-                >
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                  <span className="ml-auto text-[10px] uppercase tracking-wider bg-neutral-800 text-neutral-600 px-1.5 py-0.5 rounded">
-                    Soon
-                  </span>
-                </div>
-              );
-            }
-            return (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
-                  active
-                    ? "bg-primary-600/15 text-primary-400"
-                    : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
-                }`}
-              >
-                <Icon size={18} />
-                <span>{item.label}</span>
-                {item.href === "/admin/wip" && redAlertCount > 0 && (
-                  <span className="ml-auto text-[10px] font-bold bg-red-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                    {redAlertCount}
-                  </span>
-                )}
-              </a>
-            );
-          })}
+        <nav className="flex-1 py-3 px-2 overflow-y-auto">
+          {navGroups.map((group, gi) => (
+            <div key={group.label}>
+              {gi > 0 && <div className="mx-3 my-2 border-t border-neutral-800" />}
+              <p className="px-3 pt-1 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-600">
+                {group.label}
+              </p>
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  if (item.disabled) {
+                    return (
+                      <div
+                        key={item.label}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-md text-neutral-600 cursor-not-allowed text-sm"
+                      >
+                        <Icon size={18} />
+                        <span>{item.label}</span>
+                        <span className="ml-auto text-[10px] uppercase tracking-wider bg-neutral-800 text-neutral-600 px-1.5 py-0.5 rounded">
+                          Soon
+                        </span>
+                      </div>
+                    );
+                  }
+                  return (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+                        active
+                          ? "bg-primary-600/15 text-primary-400 border-l-2 border-primary-400 -ml-0.5 pl-[10px]"
+                          : "text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+                      }`}
+                    >
+                      <Icon size={18} />
+                      <span>{item.label}</span>
+                      {item.href === "/admin/wip" && redAlertCount > 0 && (
+                        <span className="ml-auto text-[10px] font-bold bg-red-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                          {redAlertCount}
+                        </span>
+                      )}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Footer */}

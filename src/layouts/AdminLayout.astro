@@ -7,10 +7,11 @@ export const prerender = false;
 
 interface Props {
   title: string;
+  subtitle?: string;
   pageTitle?: string;
 }
 
-const { title, pageTitle } = Astro.props;
+const { title, subtitle, pageTitle } = Astro.props;
 const displayTitle = pageTitle ?? title;
 const currentPath = Astro.url.pathname;
 ---
@@ -28,7 +29,7 @@ const currentPath = Astro.url.pathname;
     <AdminSidebar currentPath={currentPath} client:load />
 
     <div class="lg:ml-60 min-h-full flex flex-col">
-      <AdminHeader title={title} client:load />
+      <AdminHeader title={title} subtitle={subtitle} client:load />
 
       <main class="flex-1 p-4 lg:p-6">
         <slot />
