@@ -1,0 +1,28 @@
+Resource Mechanical Insulation  03-15-2026
+Aging Detail by Customer Name
+Aging As of Date  02-28-2026
+Aging Basis  Invoice Date
+Include Retainage  Yes
+Unpaid Only  Yes
+Age Finance Charges  No
+Current Over 30 Over 60 Over 90 Over 120 Retainage
+Tran Type  Date  Number  Description  Total  Current  Over 30  Over 60  Over 90  Over 120  Retainage
+Alpha Manufacturing ALPHAMFG (313)555-0101
+Invoice  02-01-2026  INV-1001  Job 2026-001 Pipe Insulation  45,000.00  45,000.00  0.00  0.00  0.00  0.00  0.00
+Invoice  01-15-2026  INV-0985  Job 2025-042 Duct Wrap  12,500.00  0.00  12,500.00  0.00  0.00  0.00  0.00
+Ret. Released  02-15-2026  RET-201  Retainage Release  5,250.00-  0.00  0.00  0.00  0.00  0.00  5,250.00-
+Alpha Manufacturing Totals  52,250.00*  45,000.00*  12,500.00*  0.00*  0.00*  0.00*  5,250.00-*
+Baker Construction BAKERCON (248)555-0202
+Invoice  02-10-2026  INV-1005  Job 2026-003 Mechanical Rm  28,750.00  28,750.00  0.00  0.00  0.00  0.00  0.00
+Invoice  11-20-2025  INV-0940  Job 2025-038 Boiler Room  8,200.00  0.00  0.00  0.00  8,200.00  0.00  0.00
+Cash receipt  02-01-2026  PMT-445  Payment received  15,000.00-  15,000.00-  0.00  0.00  0.00  0.00  0.00
+Baker Construction Totals  21,950.00*  13,750.00*  0.00*  0.00*  8,200.00*  0.00*  0.00*
+Crosstown Electric CROSSTOW
+Invoice  02-20-2026  INV-1010  Job 2026-005 Data Center  135,000.00  135,000.00  0.00  0.00  0.00  0.00  0.00
+Invoice  01-05-2026  INV-0978  Job 2025-050 Hospital Wing  67,500.00  0.00  67,500.00  0.00  0.00  0.00  0.00
+Ret. Released  02-28-2026  RET-215  Retainage Release  18,750.00-  0.00  0.00  0.00  0.00  0.00  18,750.00-
+Crosstown Electric Totals  183,750.00*  135,000.00*  67,500.00*  0.00*  0.00*  0.00*  18,750.00-*
+Delta Plumbing DELTAPLM (734)555-0303
+Invoice  12-15-2025  INV-0955  Job 2025-044 School Reno  22,100.00  0.00  0.00  22,100.00  0.00  0.00  0.00
+Delta Plumbing Totals  22,100.00*  0.00*  0.00*  22,100.00*  0.00*  0.00*  0.00*
+Report Totals  280,050.00*  193,750.00*  80,000.00*  22,100.00*  8,200.00*  0.00*  24,000.00-*
