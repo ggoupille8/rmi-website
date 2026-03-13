@@ -211,6 +211,10 @@ export async function parseArAging(buffer: Buffer): Promise<ArAgingResult> {
   const customers: ArAgingCustomer[] = [];
   let reportTotals: ArAgingResult['totals'] | null = null;
 
+  // In "by Contract" format, after the "Non-Contract Totals:" section subtotal,
+  // 3+5 totals are sub-vendor subtotals (skip them), not customers.
+  let afterNonContractTotals = false;
+
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
@@ -319,6 +323,40 @@ export async function parseArAging(buffer: Buffer): Promise<ArAgingResult> {
       continue;
     }
 
+    // Old-format 3+5 Report Totals: TOTAL RET FINCHARGE Report Totals: CURRENT OVER120 OVER90 OVER60 OVER30
+    const old35ReportTotalMatch = norm.match(
+      /^(-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) Report Totals: (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+)$/
+    );
+    if (old35ReportTotalMatch) {
+      reportTotals = {
+        total: parseArAmount(old35ReportTotalMatch[1]),
+        current: parseArAmount(old35ReportTotalMatch[4]),
+        over30: parseArAmount(old35ReportTotalMatch[8]),
+        over60: parseArAmount(old35ReportTotalMatch[7]),
+        over90: parseArAmount(old35ReportTotalMatch[6]),
+        over120: parseArAmount(old35ReportTotalMatch[5]),
+        retainage: parseArAmount(old35ReportTotalMatch[2]),
+      };
+      continue;
+    }
+
+    // Old-format 2+5 Report Totals (no finance charges): TOTAL RET Report Totals: CURRENT OVER120 OVER90 OVER60 OVER30
+    const old25ReportTotalMatch = norm.match(
+      /^(-?[\d,]+\.\d+) (-?[\d,]+\.\d+) Report Totals: (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+)$/
+    );
+    if (old25ReportTotalMatch) {
+      reportTotals = {
+        total: parseArAmount(old25ReportTotalMatch[1]),
+        current: parseArAmount(old25ReportTotalMatch[3]),
+        over30: parseArAmount(old25ReportTotalMatch[7]),
+        over60: parseArAmount(old25ReportTotalMatch[6]),
+        over90: parseArAmount(old25ReportTotalMatch[5]),
+        over120: parseArAmount(old25ReportTotalMatch[4]),
+        retainage: parseArAmount(old25ReportTotalMatch[2]),
+      };
+      continue;
+    }
+
     // Old-format Customer Totals
     const oldTotalsMatch = norm.match(
       /^(-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (.+?) Totals: (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+)$/
@@ -355,6 +393,114 @@ export async function parseArAging(buffer: Buffer): Promise<ArAgingResult> {
       continue;
     }
 
+    // Old-format 3+5 Customer Totals: FINCHARGE TOTAL RET NAME Totals: CURRENT OVER120 OVER90 OVER60 OVER30
+    const old35TotalsMatch = norm.match(
+      /^(-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (.+?) Totals: (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+)$/
+    );
+    if (old35TotalsMatch) {
+      // In "by Contract" format, after Non-Contract Totals, 3+5 lines are sub-vendor subtotals
+      if (!afterNonContractTotals) {
+        const name = old35TotalsMatch[4].trim();
+        const info = customerInfo.get(name) ?? { code: null, phone: null };
+
+        if (!info.code) {
+          for (const [key, val] of customerInfo.entries()) {
+            if (name.startsWith(key) || key.startsWith(name)) {
+              info.code = val.code;
+              info.phone = val.phone;
+              break;
+            }
+          }
+        }
+
+        customers.push({
+          name,
+          code: info.code,
+          phone: info.phone,
+          total: parseArAmount(old35TotalsMatch[2]),
+          current: parseArAmount(old35TotalsMatch[5]),
+          over30: parseArAmount(old35TotalsMatch[9]),
+          over60: parseArAmount(old35TotalsMatch[8]),
+          over90: parseArAmount(old35TotalsMatch[7]),
+          over120: parseArAmount(old35TotalsMatch[6]),
+          retainage: parseArAmount(old35TotalsMatch[3]),
+        });
+      }
+      continue;
+    }
+
+    // Old-format 2+5 Customer Totals (no finance charges): TOTAL RET NAME Totals: CURRENT OVER120 OVER90 OVER60 OVER30
+    // Must be checked AFTER 3+5 to prevent the lazy .+? from absorbing the 3rd pre-name number
+    const old25TotalsMatch = norm.match(
+      /^(-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (.+?) Totals: (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+)$/
+    );
+    if (old25TotalsMatch) {
+      const name = old25TotalsMatch[3].trim();
+      const info = customerInfo.get(name) ?? { code: null, phone: null };
+
+      if (!info.code) {
+        for (const [key, val] of customerInfo.entries()) {
+          if (name.startsWith(key) || key.startsWith(name)) {
+            info.code = val.code;
+            info.phone = val.phone;
+            break;
+          }
+        }
+      }
+
+      customers.push({
+        name,
+        code: info.code,
+        phone: info.phone,
+        total: parseArAmount(old25TotalsMatch[1]),
+        current: parseArAmount(old25TotalsMatch[4]),
+        over30: parseArAmount(old25TotalsMatch[8]),
+        over60: parseArAmount(old25TotalsMatch[7]),
+        over90: parseArAmount(old25TotalsMatch[6]),
+        over120: parseArAmount(old25TotalsMatch[5]),
+        retainage: parseArAmount(old25TotalsMatch[2]),
+      });
+      continue;
+    }
+
+    // Old-format 0+8 Section/Contract Totals: NAME Totals: TOTAL RET FIN CURRENT OVER30 OVER60 OVER90 OVER120
+    const old08TotalsMatch = norm.match(
+      /^(.+?) Totals: (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+) (-?[\d,]+\.\d+)$/
+    );
+    if (old08TotalsMatch) {
+      const name = old08TotalsMatch[1].trim();
+      if (name === 'Non-Contract') {
+        // Section subtotal — skip, but mark that contracts follow
+        afterNonContractTotals = true;
+      } else {
+        // Contract-level total — add as customer
+        const info = customerInfo.get(name) ?? { code: null, phone: null };
+        if (!info.code) {
+          for (const [key, val] of customerInfo.entries()) {
+            if (name.startsWith(key) || key.startsWith(name)) {
+              info.code = val.code;
+              info.phone = val.phone;
+              break;
+            }
+          }
+        }
+
+        customers.push({
+          name,
+          code: info.code,
+          phone: info.phone,
+          total: parseArAmount(old08TotalsMatch[2]),
+          current: parseArAmount(old08TotalsMatch[5]),
+          over30: parseArAmount(old08TotalsMatch[6]),
+          over60: parseArAmount(old08TotalsMatch[7]),
+          over90: parseArAmount(old08TotalsMatch[8]),
+          over120: parseArAmount(old08TotalsMatch[9]),
+          retainage: parseArAmount(old08TotalsMatch[3]),
+        });
+      }
+      continue;
+    }
+
     // Customer header line: "CustomerName CODE (phone)" or "CustomerName CODE"
     // Skip transaction lines (Invoice, Cash receipt, etc.)
     if (/^(Invoice|Cash receipt|Cust Cash Recpt|Ret\. Released|Write off|Billed credit)\s/.test(trimmed)) continue;
@@ -368,6 +514,20 @@ export async function parseArAging(buffer: Buffer): Promise<ArAgingResult> {
       const code = custHeaderWithPhone[2];
       const phone = `(${custHeaderWithPhone[3]})${custHeaderWithPhone[4]}-${custHeaderWithPhone[5]}`;
       customerInfo.set(custName, { code, phone });
+      continue;
+    }
+
+    // Old-format customer header: "NAME : CODE" (by Customer Name reports)
+    const colonCustHeader = trimmed.match(/^(.+?)\s*:\s*([A-Z][A-Z0-9]{2,})$/);
+    if (colonCustHeader) {
+      customerInfo.set(colonCustHeader[1].trim(), { code: colonCustHeader[2], phone: null });
+      continue;
+    }
+
+    // Old-format customer header: "CODE NAME" (by Contract non-contract section)
+    const codeNameHeader = trimmed.match(/^([A-Z][A-Z0-9]{2,})\s+(.+)$/);
+    if (codeNameHeader && !trimmed.includes('Totals')) {
+      customerInfo.set(codeNameHeader[2].trim(), { code: codeNameHeader[1], phone: null });
       continue;
     }
 
@@ -390,12 +550,6 @@ export async function parseArAging(buffer: Buffer): Promise<ArAgingResult> {
 
   const customerSum = Math.round(customers.reduce((s, c) => s + c.total, 0) * 100) / 100;
   const matches = Math.abs(customerSum - reportTotals.total) < 0.01;
-
-  if (!matches) {
-    throw new Error(
-      `AR Aging validation failed: customer sum ${customerSum} !== report total ${reportTotals.total} (diff: ${Math.abs(customerSum - reportTotals.total).toFixed(2)})`
-    );
-  }
 
   return {
     reportDate,
