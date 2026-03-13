@@ -241,9 +241,15 @@ export const PATCH: APIRoute = async ({ request }) => {
       UPDATE jobs_master
       SET ${setClauses.join(", ")}
       WHERE id = $${idx}
-      RETURNING id, job_number, year, description, customer_id, customer_name_raw,
-                contract_type, tax_status, tax_exemption_type, general_contractor,
-                project_manager, is_hidden, po_number, timing, updated_at
+      RETURNING id, job_number, year,
+                NULLIF(description, 'undefined') AS description,
+                customer_id,
+                NULLIF(customer_name_raw, 'undefined') AS customer_name_raw,
+                NULLIF(contract_type, 'undefined') AS contract_type,
+                tax_status, tax_exemption_type,
+                NULLIF(general_contractor, 'undefined') AS general_contractor,
+                NULLIF(project_manager, 'undefined') AS project_manager,
+                is_hidden, po_number, timing, updated_at
     `;
 
     const result = await sql.query(updateQuery, values);
@@ -474,11 +480,17 @@ async function handleList(url: URL): Promise<Response> {
   }
   const sortOrder = orderParam === "asc" ? "ASC" : "DESC";
 
-  // Main query
+  // Main query — NULLIF guards against the string 'undefined' stored by the
+  // import script when Excel cells exist (have formatting) but no value.
   const queryText = `
-    SELECT jm.id, jm.job_number, jm.year, jm.description, jm.customer_id,
-           jm.customer_name_raw, jm.contract_type, jm.tax_status,
-           jm.tax_exemption_type, jm.general_contractor, jm.project_manager,
+    SELECT jm.id, jm.job_number, jm.year,
+           NULLIF(jm.description, 'undefined') AS description,
+           jm.customer_id,
+           NULLIF(jm.customer_name_raw, 'undefined') AS customer_name_raw,
+           NULLIF(jm.contract_type, 'undefined') AS contract_type,
+           jm.tax_status, jm.tax_exemption_type,
+           NULLIF(jm.general_contractor, 'undefined') AS general_contractor,
+           NULLIF(jm.project_manager, 'undefined') AS project_manager,
            jm.is_hidden, jm.po_number, jm.timing
     FROM jobs_master jm
     ${whereClause}

@@ -391,25 +391,25 @@ export default function JobMaster() {
         <StatCard label="Total Jobs" value={stats?.totalJobs ?? 0} />
         <StatCard
           label="Taxable"
-          value={taxBreakdown.taxable}
+          value={stats?.byTaxStatus?.taxable ?? 0}
           color="text-red-400"
           dotColor="bg-red-400"
         />
         <StatCard
           label="Exempt"
-          value={taxBreakdown.exempt}
+          value={stats?.byTaxStatus?.exempt ?? 0}
           color="text-green-400"
           dotColor="bg-green-400"
         />
         <StatCard
           label="Mixed"
-          value={taxBreakdown.mixed}
+          value={stats?.byTaxStatus?.mixed ?? 0}
           color="text-amber-400"
           dotColor="bg-amber-400"
         />
         <StatCard
           label="Unknown"
-          value={taxBreakdown.unknown}
+          value={stats?.byTaxStatus?.unknown ?? 0}
           color="text-slate-400"
           dotColor="bg-slate-400"
         />
