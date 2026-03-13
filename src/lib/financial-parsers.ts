@@ -98,6 +98,17 @@ export interface IncomeStatementResult {
   };
 }
 
+export type ReportType = 'ar_aging' | 'balance_sheet' | 'income_statement';
+
+/** Detect financial report type from filename via keyword matching */
+export function detectReportType(filename: string): ReportType | null {
+  const lower = filename.toLowerCase();
+  if (lower.includes('ar aging')) return 'ar_aging';
+  if (lower.includes('balance sheet')) return 'balance_sheet';
+  if (lower.includes('income stat') || lower.includes('income stmt')) return 'income_statement';
+  return null;
+}
+
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
@@ -110,7 +121,7 @@ async function extractText(buffer: Buffer): Promise<string> {
 }
 
 /** Parse an AR Aging amount: strip commas, trailing `-` = negative, `*` suffix */
-function parseArAmount(raw: string): number {
+export function parseArAmount(raw: string): number {
   let s = raw.replace(/\*/g, '').replace(/,/g, '').trim();
   const negative = s.endsWith('-');
   if (negative) s = s.slice(0, -1);
@@ -120,7 +131,7 @@ function parseArAmount(raw: string): number {
 }
 
 /** Parse a BS/IS amount: strip `$`, commas; parenthetical = negative */
-function parseAccountAmount(raw: string): number {
+export function parseAccountAmount(raw: string): number {
   let s = raw.replace(/\$/g, '').replace(/,/g, '').trim();
   const parenMatch = s.match(/^\((.+)\)$/);
   if (parenMatch) {
@@ -177,6 +188,10 @@ function isSkipLine(line: string): boolean {
   if (line.startsWith('Include Finance Charges')) return true;
   if (line.startsWith('Unpaid only')) return true;
   if (line.startsWith('Show detail')) return true;
+  if (line.startsWith('Aging Detail by Contract')) return true;
+  if (line === 'Non-Contract') return true;
+  if (line === 'Finance') return true;
+  if (line === 'Charge') return true;
   return false;
 }
 

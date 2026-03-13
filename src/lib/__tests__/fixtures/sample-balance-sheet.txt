@@ -1,0 +1,45 @@
+Resource Mechanical Insulation
+Balance Sheet
+January 31, 2026
+Confidential: For Internal Use Only
+-- 1 of 2 --
+
+Assets
+Current Assets
+1-1100 Accounts Receivable 1,250,000.50
+1-1110 Accounts Receivable - Retainage 325,000.00
+1-1200 Cash - Operating 187,500.75
+1-1300 Prepaid Insurance 12,000.00
+1-1500 Costs in Excess of Billings 45,000.00
+Total Current Assets $ 1,819,501.25
+
+Long Term Assets
+1-1600 Vehicles 95,000.00
+1-1690 Accumulated Depreciation - Vehicles (42,500.00)
+1-1700 Equipment 67,000.00
+1-1790 Accumulated Depreciation - Equipment (28,000.00)
+Total Long Term Assets $ 91,500.00
+
+Total Assets $ 1,911,001.25
+
+Liabilities and Equity
+Current Liabilities
+1-2000 Accounts Payable 185,000.00
+1-2100 Waterford Bank Loan (Note 150,000.14
+1-2200 Billings in Excess of Costs 275,000.00
+1-2300 Accrued Payroll 42,500.00
+Total Current Liabilities $ 652,500.14
+
+Long Term Liabilities
+1-2500 Long Term Note Payable 125,000.00
+Long Term Liabilities $ 125,000.00
+
+Total Liabilities $ 777,500.14
+
+Equity
+1-3000 Owners Equity 850,000.00
+1-3100 Retained Earnings 163,076.11
+Net Income 120,425.00
+Total Equity $ 1,133,501.11
+
+Total Liabilities & Equity $ 1,911,001.25

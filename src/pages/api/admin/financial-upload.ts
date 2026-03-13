@@ -6,11 +6,13 @@ import {
   parseArAging,
   parseBalanceSheet,
   parseIncomeStatement,
+  detectReportType,
 } from "../../../lib/financial-parsers";
 import type {
   ArAgingResult,
   BalanceSheetResult,
   IncomeStatementResult,
+  ReportType,
 } from "../../../lib/financial-parsers";
 
 export const prerender = false;
@@ -22,16 +24,6 @@ const SECURITY_HEADERS = {
 };
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for large AR reports
-
-type ReportType = "ar_aging" | "balance_sheet" | "income_statement";
-
-function detectReportType(filename: string): ReportType | null {
-  const lower = filename.toLowerCase();
-  if (lower.includes("ar aging")) return "ar_aging";
-  if (lower.includes("balance sheet")) return "balance_sheet";
-  if (lower.includes("income stat") || lower.includes("income stmt")) return "income_statement";
-  return null;
-}
 
 function detectVariant(filename: string): string {
   const lower = filename.toLowerCase();

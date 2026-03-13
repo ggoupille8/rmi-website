@@ -1,0 +1,41 @@
+Resource Mechanical Insulation
+Income Statement
+For the Period Ended January 31, 2026
+Current Current
+Account Title Activity Balance
+
+Income
+1-4000 Contract Revenue 875,000 875,000
+1-4010 Sales Discounts (5,500) (5,500)
+1-4020 Service Revenue 150,575 150,575
+Total Income $ 1,020,075 $ 1,020,075
+
+Cost of Sales
+1-5000 Direct Labor 285,000 285,000
+1-5100 Materials 195,000 195,000
+1-5200 Subcontractor Costs 125,000 125,000
+1-5300 Equipment Rental 18,500 18,500
+Total Cost of Sales $ 623,500 $ 623,500
+
+Gross Margin $ 396,575 $ 396,575
+
+Expenses
+1-6000 Salaries - Office 85,000 85,000
+1-6100 Payroll Taxes 42,500 42,500
+1-6110 Workers Compensation 28,750 28,750
+1-6120 Health Insurance 35,000 35,000
+1-6130 401(k) Match 1,735 1,735
+1-6135 Advertising & Promotion 2,099
+1-6200 Vehicle Expense 22,500 22,500
+1-6300 Insurance - General 15,000 15,000
+1-6400 Office Supplies 3,500 3,500
+1-6500 Rent 18,000 18,000
+1-6600 Professional Fees 8,500 8,500
+1-6700 Utilities 5,250 5,250
+1-6800 Depreciation 6,815 6,815
+Total Expenses $ 274,649 $ 276,150
+
+Other Income
+Total Other Income
+
+Net Income (Loss) $ 121,926 $ 120,425
