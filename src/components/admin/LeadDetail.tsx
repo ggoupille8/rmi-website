@@ -356,7 +356,7 @@ export default function LeadDetail({ contact, onClose, onUpdate }: Props) {
               <p className="text-sm font-medium text-neutral-100">
                 {contact.name}
               </p>
-              {contact.metadata?.company && (
+              {!!contact.metadata?.company && (
                 <p className="text-sm text-accent-400 font-medium">
                   {String(contact.metadata.company)}
                 </p>

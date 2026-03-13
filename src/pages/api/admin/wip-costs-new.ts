@@ -86,7 +86,7 @@ export const GET: APIRoute = async ({ request }) => {
         SELECT DISTINCT ON (job_number)
           job_number, description, project_manager
         FROM jobs_master
-        WHERE job_number = ANY(${jobNumbers})
+        WHERE job_number = ANY(${jobNumbers as unknown as string})
         ORDER BY job_number, year DESC
       `;
       for (const row of jobsResult.rows) {

@@ -260,7 +260,7 @@ export default function ContactForm({
 
     // Collect browser/device metadata for lead intelligence
     const searchParams = new URLSearchParams(window.location.search);
-    const nav = navigator as Record<string, unknown>;
+    const nav = navigator as unknown as Record<string, unknown>;
     const conn = nav.connection as Record<string, unknown> | undefined;
     const clientMetadata = {
       elapsedMs,

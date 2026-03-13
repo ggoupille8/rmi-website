@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const mockedQuery = vi.hoisted(() => vi.fn());
+
 vi.mock("@vercel/postgres", () => ({
   sql: {
-    query: vi.fn(),
+    query: mockedQuery,
   },
 }));
 
@@ -19,11 +21,9 @@ vi.mock("../../../../lib/ensure-contacts-soft-delete", () => ({
 }));
 
 import { GET, PATCH } from "../contacts";
-import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../../lib/db-env";
 import { isAdminAuthorized } from "../../../../lib/admin-auth";
 
-const mockedQuery = vi.mocked(sql.query);
 const mockedGetPostgresEnv = vi.mocked(getPostgresEnv);
 const mockedIsAdminAuthorized = vi.mocked(isAdminAuthorized);
 

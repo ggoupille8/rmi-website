@@ -129,12 +129,10 @@ export const GET: APIRoute = async ({ request }) => {
         ownJobs: ownJobs.rows,
         otherJobs: otherJobs.rows,
         companyTotals: totals.rows[0] ?? null,
-        availableMonths: availableMonths.rows.map(
-          (r: { snapshot_year: number; snapshot_month: number }) => ({
-            year: r.snapshot_year,
-            month: r.snapshot_month,
-          })
-        ),
+        availableMonths: availableMonths.rows.map((r) => ({
+          year: r.snapshot_year as number,
+          month: r.snapshot_month as number,
+        })),
       }),
       { status: 200, headers: SECURITY_HEADERS }
     );

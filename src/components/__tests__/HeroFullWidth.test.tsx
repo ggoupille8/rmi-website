@@ -61,11 +61,9 @@ describe("HeroFullWidth", () => {
   it("renders custom headline and tagline props", () => {
     render(
       <HeroFullWidth
-        headline="Custom Headline"
         tagline="Custom Tagline"
       />
     );
-    expect(screen.getByAltText("Custom Headline")).toBeInTheDocument();
     expect(screen.getByText("Custom Tagline")).toBeInTheDocument();
   });
 

@@ -315,17 +315,17 @@ export default function ClientsAdmin() {
                   type: "number",
                 },
               ] as const
-            ).map(({ key, label, type, placeholder }) => (
-              <div key={key}>
-                <label className={labelCls}>{label}</label>
+            ).map((field) => (
+              <div key={field.key}>
+                <label className={labelCls}>{field.label}</label>
                 <input
-                  type={type}
-                  value={String(form[key])}
-                  onChange={(e) => setField(key, e.target.value)}
-                  placeholder={placeholder}
+                  type={field.type}
+                  value={String(form[field.key])}
+                  onChange={(e) => setField(field.key, e.target.value)}
+                  placeholder={"placeholder" in field ? field.placeholder : undefined}
                   className={inputCls}
-                  min={type === "number" ? 1 : undefined}
-                  max={type === "number" ? 100 : undefined}
+                  min={field.type === "number" ? 1 : undefined}
+                  max={field.type === "number" ? 100 : undefined}
                 />
               </div>
             ))}

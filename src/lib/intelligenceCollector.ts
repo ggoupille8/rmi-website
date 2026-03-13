@@ -461,7 +461,7 @@ function getReferrerDomain(referrer: string): string {
 
 function getConnection(): NetworkInformation | null {
   try {
-    const nav = navigator as Record<string, unknown>;
+    const nav = navigator as unknown as Record<string, unknown>;
     return (nav.connection as NetworkInformation) ?? null;
   } catch {
     return null;
@@ -590,7 +590,7 @@ export function collectIntelligence(
     // localStorage unavailable — treat as new visitor
   }
 
-  const nav = navigator as Record<string, unknown>;
+  const nav = navigator as unknown as Record<string, unknown>;
   const perf = getPerformanceTiming();
   const storage = probeStorage();
 

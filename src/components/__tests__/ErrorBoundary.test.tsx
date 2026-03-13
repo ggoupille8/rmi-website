@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { ErrorBoundary } from "../ErrorBoundary";
 
 // Component that throws on render
-function ThrowingChild({ message }: { message: string }) {
+function ThrowingChild({ message }: { message: string }): JSX.Element {
   throw new Error(message);
 }
 

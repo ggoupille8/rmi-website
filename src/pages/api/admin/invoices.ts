@@ -149,7 +149,7 @@ export const POST: APIRoute = async ({ request }) => {
       const materialsResult = await sql`
         SELECT id, description, tax_category
         FROM materials
-        WHERE id = ANY(${materialIds})
+        WHERE id = ANY(${materialIds as unknown as number})
       `;
       for (const row of materialsResult.rows) {
         materialsMap.set(Number(row.id), {
