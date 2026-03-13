@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { LayoutDashboard, Users, BarChart3, Image, Briefcase, TrendingUp, DollarSign, Building2, Shield, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, BarChart3, Image, Briefcase, TrendingUp, DollarSign, FileText, Building2, Shield, Menu, X } from "lucide-react";
 import { computeWipAlerts } from "@/lib/wip-alerts";
 import type { WipSnapshot } from "./WipJobTable";
 
@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
   { label: "Jobs", href: "/admin/jobs", icon: Briefcase },
   { label: "WIP Dashboard", href: "/admin/wip", icon: TrendingUp },
   { label: "Financials", href: "/admin/financials", icon: DollarSign },
+  { label: "Invoices", href: "/admin/invoices", icon: FileText },
   { label: "Clients", href: "/admin/clients", icon: Building2 },
   { label: "Security", href: "/admin/security", icon: Shield },
 ];
