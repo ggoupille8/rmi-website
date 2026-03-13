@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
+import { computeLineTax } from "@/lib/tax-engine";
 
 // ── Types ─────────────────────────────────────────────────
 
@@ -418,71 +419,18 @@ export default function InvoiceEntry() {
     reason: string;
     tier: string;
   } {
-    const materialTaxCategory = selectedMaterial?.taxCategory ?? "installed";
-    const jobTaxStatus = jobInfo?.tax_status ?? (jobNotFound ? "unknown" : "taxable");
-    const resolvedOverride = taxOverride;
+    const materialTaxCategory =
+      selectedMaterial?.taxCategory === "consumable" ? "consumable" : "installed";
+    const jobTaxStatus = (jobInfo?.tax_status ?? (jobNotFound ? "unknown" : "taxable")) as
+      | "taxable"
+      | "exempt"
+      | "mixed"
+      | "unknown";
     const qty = Number(quantity) || 0;
     const price = Number(pricePerItem) || 0;
     const totalCost = Math.round(qty * price * 100) / 100;
 
-    // Tier 2: Consumable always taxable
-    if (materialTaxCategory === "consumable") {
-      const taxAmt = Math.round(totalCost * 0.06 * 100) / 100;
-      return {
-        isTaxable: true,
-        taxRate: 0.06,
-        taxAmount: taxAmt,
-        reason: "PPE/tools always taxable per RAB 2019-15",
-        tier: "line_item",
-      };
-    }
-
-    // Tier 3: Invoice-level override
-    if (resolvedOverride !== null) {
-      const taxable = resolvedOverride === "taxable";
-      const taxAmt = taxable ? Math.round(totalCost * 0.06 * 100) / 100 : 0;
-      return {
-        isTaxable: taxable,
-        taxRate: taxable ? 0.06 : 0,
-        taxAmount: taxAmt,
-        reason: taxable ? "Invoice marked taxable" : "Invoice marked exempt",
-        tier: "invoice",
-      };
-    }
-
-    // Tier 4: Job default
-    if (jobTaxStatus === "taxable") {
-      const taxAmt = Math.round(totalCost * 0.06 * 100) / 100;
-      return {
-        isTaxable: true,
-        taxRate: 0.06,
-        taxAmount: taxAmt,
-        reason: "Job default: taxable",
-        tier: "job",
-      };
-    }
-    if (jobTaxStatus === "exempt") {
-      return {
-        isTaxable: false,
-        taxRate: 0,
-        taxAmount: 0,
-        reason: "Job default: exempt",
-        tier: "job",
-      };
-    }
-
-    // Mixed/unknown without override
-    const taxAmt = Math.round(totalCost * 0.06 * 100) / 100;
-    return {
-      isTaxable: true,
-      taxRate: 0.06,
-      taxAmount: taxAmt,
-      reason:
-        jobTaxStatus === "mixed"
-          ? "Mixed job without invoice override: defaulting to taxable"
-          : "Unknown tax status: defaulting to taxable",
-      tier: "job",
-    };
+    return computeLineTax(jobTaxStatus, taxOverride, materialTaxCategory, null, totalCost);
   }
 
   function addLineItem() {
@@ -1029,16 +977,27 @@ export default function InvoiceEntry() {
                       return rest;
                     });
                   }}
+                  onFocus={() => {
+                    if (selectedMaterial) {
+                      setSelectedMaterial(null);
+                      setMaterialQuery("");
+                      setPricePerItem("");
+                      setPriceAlert(null);
+                    }
+                  }}
                   onKeyDown={handleMaterialKeyDown}
                   placeholder="Search materials or type description..."
                   className={`w-full bg-white/10 border rounded-lg pl-9 pr-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                     validationErrors.description ? "border-red-500" : "border-neutral-700"
                   }`}
                 />
-                {selectedMaterial && (
+                {materialQuery && (
                   <button
                     type="button"
-                    onClick={clearMaterialSelection}
+                    onClick={() => {
+                      clearMaterialSelection();
+                      descriptionRef.current?.focus();
+                    }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300"
                   >
                     <X size={14} />
