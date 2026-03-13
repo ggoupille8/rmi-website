@@ -686,7 +686,7 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
       </div>
 
       {/* ── Jobs & Invoices Summary ──────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Jobs Card */}
         <a
           href="/admin/jobs"
@@ -737,36 +737,6 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
               <p className="text-[11px] text-neutral-500">This Month</p>
             </div>
           </div>
-        </a>
-      </div>
-
-      {/* ── Quick Actions ──────────────────────────────── */}
-      <div className="flex flex-wrap gap-2">
-        {leadStats.newCount > 0 && (
-          <a
-            href="/admin/leads?status=new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-md transition-colors"
-          >
-            {leadStats.newCount} {leadStats.newCount === 1 ? "Lead Needs" : "Leads Need"} Follow-up
-          </a>
-        )}
-        <a
-          href="/admin/analytics"
-          className="inline-flex items-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-medium rounded-md transition-colors border border-neutral-700"
-        >
-          Analytics
-        </a>
-        <a
-          href="/admin/wip"
-          className="inline-flex items-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-medium rounded-md transition-colors border border-neutral-700"
-        >
-          WIP Dashboard
-        </a>
-        <a
-          href="/admin/financials"
-          className="inline-flex items-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-medium rounded-md transition-colors border border-neutral-700"
-        >
-          Financials
         </a>
       </div>
 
