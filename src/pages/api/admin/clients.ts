@@ -58,13 +58,21 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const body = await request.json();
-    const { name, domain, color, description, seo_value, sort_order } = body as {
+    const {
+      name, domain, color, description, seo_value, sort_order,
+      logo_url, logo_type, is_featured, display_scale, needs_invert,
+    } = body as {
       name?: string;
       domain?: string;
       color?: string;
       description?: string;
       seo_value?: number;
       sort_order?: number;
+      logo_url?: string;
+      logo_type?: string;
+      is_featured?: boolean;
+      display_scale?: number;
+      needs_invert?: boolean;
     };
 
     if (!name || !domain) {
@@ -78,10 +86,17 @@ export const POST: APIRoute = async ({ request }) => {
     const descVal = description ?? "";
     const seoVal = seo_value ?? 70;
     const sortVal = sort_order ?? 0;
+    const logoUrlVal = logo_url ?? null;
+    const logoTypeVal = logo_type ?? "svg";
+    const isFeaturedVal = is_featured ?? false;
+    const displayScaleVal = display_scale ?? 1.0;
+    const needsInvertVal = needs_invert ?? true;
 
     const result = await sql`
-      INSERT INTO clients (name, domain, color, description, seo_value, sort_order)
-      VALUES (${name}, ${domain}, ${colorVal}, ${descVal}, ${seoVal}, ${sortVal})
+      INSERT INTO clients (name, domain, color, description, seo_value, sort_order,
+                           logo_url, logo_type, is_featured, display_scale, needs_invert)
+      VALUES (${name}, ${domain}, ${colorVal}, ${descVal}, ${seoVal}, ${sortVal},
+              ${logoUrlVal}, ${logoTypeVal}, ${isFeaturedVal}, ${displayScaleVal}, ${needsInvertVal})
       RETURNING *
     `;
     return new Response(JSON.stringify(result.rows[0]), {
@@ -105,7 +120,10 @@ export const PATCH: APIRoute = async ({ request }) => {
 
   try {
     const body = await request.json();
-    const { id, name, domain, color, description, seo_value, sort_order, active } = body as {
+    const {
+      id, name, domain, color, description, seo_value, sort_order, active,
+      logo_url, logo_type, is_featured, display_scale, needs_invert,
+    } = body as {
       id?: number;
       name?: string;
       domain?: string;
@@ -114,6 +132,11 @@ export const PATCH: APIRoute = async ({ request }) => {
       seo_value?: number;
       sort_order?: number;
       active?: boolean;
+      logo_url?: string | null;
+      logo_type?: string;
+      is_featured?: boolean;
+      display_scale?: number;
+      needs_invert?: boolean;
     };
 
     if (!id) {
@@ -139,6 +162,11 @@ export const PATCH: APIRoute = async ({ request }) => {
     const newSeo = seo_value ?? row.seo_value;
     const newSort = sort_order ?? row.sort_order;
     const newActive = active ?? row.active;
+    const newLogoUrl = logo_url === null ? null : (logo_url ?? row.logo_url);
+    const newLogoType = logo_type ?? row.logo_type ?? "svg";
+    const newIsFeatured = is_featured ?? row.is_featured ?? false;
+    const newDisplayScale = display_scale ?? row.display_scale ?? 1.0;
+    const newNeedsInvert = needs_invert ?? row.needs_invert ?? true;
 
     const result = await sql`
       UPDATE clients SET
@@ -149,6 +177,11 @@ export const PATCH: APIRoute = async ({ request }) => {
         seo_value = ${newSeo},
         sort_order = ${newSort},
         active = ${newActive},
+        logo_url = ${newLogoUrl},
+        logo_type = ${newLogoType},
+        is_featured = ${newIsFeatured},
+        display_scale = ${newDisplayScale},
+        needs_invert = ${newNeedsInvert},
         updated_at = NOW()
       WHERE id = ${id}
       RETURNING *

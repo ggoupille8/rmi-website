@@ -4,7 +4,7 @@ import { getPostgresEnv } from "../../lib/db-env";
 
 export const prerender = false;
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
   const { url: postgresUrl } = getPostgresEnv();
   if (!postgresUrl) {
     return new Response(JSON.stringify([]), {
@@ -15,13 +15,24 @@ export const GET: APIRoute = async () => {
     });
   }
 
+  const url = new URL(request.url);
+  const featured = url.searchParams.get("featured");
+
   try {
-    const result = await sql`
-      SELECT id, name, domain, color, description, logo_scale
-      FROM clients
-      WHERE active = TRUE
-      ORDER BY sort_order, id
-    `;
+    const result = featured
+      ? await sql`
+          SELECT id, name, logo_url, logo_type, display_scale, needs_invert
+          FROM clients
+          WHERE active = TRUE AND is_featured = TRUE AND logo_url IS NOT NULL
+          ORDER BY sort_order, id
+        `
+      : await sql`
+          SELECT id, name, domain, color, description, logo_scale,
+                 logo_url, logo_type, display_scale, needs_invert, is_featured
+          FROM clients
+          WHERE active = TRUE
+          ORDER BY sort_order, id
+        `;
     return new Response(JSON.stringify(result.rows), {
       headers: {
         "Content-Type": "application/json",

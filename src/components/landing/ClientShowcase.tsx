@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 
-interface Client {
+// ── Static fallback data (hardcoded logos — always available) ──
+interface StaticClient {
   name: string;
   logo: string;
-  /** true when the SVG has dark/colored fill and needs CSS inversion to appear white */
   needsInvert?: boolean;
-  /** CSS transform scale multiplier (default 1) — icon logos need boosting vs wordmarks */
   scale?: number;
 }
 
-const clients: Client[] = [
+const STATIC_CLIENTS: StaticClient[] = [
   // Row 1 — Automotive heavyweights + tech giants
   { name: "Ford Motor Company", logo: "/images/clients/ford.svg", scale: 2.4 },
   { name: "General Motors", logo: "/images/clients/generalmotors.svg", scale: 1.4 },
@@ -47,6 +46,26 @@ const clients: Client[] = [
   { name: "Edward Jones", logo: "/images/clients/edward-jones.svg", scale: 1.2 },
 ];
 
+// ── DB client shape from /api/clients?featured=1 ──
+interface DBClient {
+  id: number;
+  name: string;
+  logo_url: string;
+  logo_type: string;
+  display_scale: number;
+  needs_invert: boolean;
+}
+
+/** Normalize DB row into the same shape used for rendering */
+function dbToRenderClient(db: DBClient): StaticClient {
+  return {
+    name: db.name,
+    logo: db.logo_url,
+    needsInvert: db.needs_invert,
+    scale: db.display_scale,
+  };
+}
+
 /** Max stagger delay = 200ms heading lead + 29 logos * 60ms + 500ms duration */
 const ANIMATION_TOTAL_MS = 200 + 29 * 60 + 500;
 
@@ -54,6 +73,7 @@ export default function ClientShowcase() {
   const [isVisible, setIsVisible] = useState(false);
   const [animationDone, setAnimationDone] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+  const [displayClients, setDisplayClients] = useState<StaticClient[]>(STATIC_CLIENTS);
   const sectionRef = useRef<HTMLElement>(null);
 
   const prefersReducedMotion = typeof window !== "undefined"
@@ -63,6 +83,27 @@ export default function ClientShowcase() {
   // Without this, SSR renders opacity:0 which collapses the astro-island to 0×0.
   useEffect(() => {
     setHasMounted(true);
+  }, []);
+
+  // Fetch featured clients from DB — fall back to hardcoded on failure
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/clients?featured=1", { signal: controller.signal })
+      .then((r) => {
+        if (!r.ok) throw new Error("API error");
+        return r.json() as Promise<DBClient[]>;
+      })
+      .then((rows) => {
+        // Only switch to DB data if we got a reasonable number of clients
+        if (rows.length >= 6) {
+          setDisplayClients(rows.map(dbToRenderClient));
+        }
+        // Otherwise keep hardcoded fallback — never show a worse grid
+      })
+      .catch(() => {
+        // Network/API failure — keep hardcoded grid, no blank state ever
+      });
+    return () => controller.abort();
   }, []);
 
   // Observe section entering viewport
@@ -169,9 +210,9 @@ export default function ClientShowcase() {
           </p>
         </div>
 
-        {/* Logo grid — 30 items = 5 rows of 6 (desktop), 10 rows of 3 (mobile) */}
+        {/* Logo grid — responsive: 3 cols mobile, 6 cols desktop */}
         <div className="grid grid-cols-3 md:grid-cols-6 gap-x-2 sm:gap-x-3 lg:gap-x-4 gap-y-3 sm:gap-y-4 lg:gap-y-5 items-center justify-items-center">
-          {clients.map((client, index) => (
+          {displayClients.map((client, index) => (
             <div
               key={client.name}
               className="flex items-center justify-center h-12 sm:h-14 lg:h-16 w-full px-2 overflow-visible opacity-[0.65] hover:opacity-100 hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
