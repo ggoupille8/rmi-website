@@ -11,9 +11,11 @@ import {
   RefreshCw,
   AlertCircle,
   X,
+  Scale,
 } from "lucide-react";
 import WipJobTable, { type WipSnapshot } from "./WipJobTable";
 import { computeWipAlerts, alertDismissKey, isGliJob, type AlertFlag } from "@/lib/wip-alerts";
+import WipCostReconciliation from "./WipCostReconciliation";
 
 // ── Types ──────────────────────────────────────────────
 
@@ -53,6 +55,7 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
+type DashboardTab = "wip" | "reconciliation";
 
 const PM_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   GG: { bg: "bg-blue-950/40", text: "text-blue-400", border: "border-blue-800/50" },
@@ -130,6 +133,7 @@ function normalizeSnapshot(raw: WipSnapshot): WipSnapshot {
 // ── Component ──────────────────────────────────────────
 
 export default function WipDashboard() {
+  const [activeTab, setActiveTab] = useState<DashboardTab>("wip");
   const [months, setMonths] = useState<WipMonth[]>([]);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
@@ -487,6 +491,12 @@ export default function WipDashboard() {
     return "text-red-400";
   }, [kpis.marginPct]);
 
+  // ── Computed: month string for reconciliation tab ─────
+  const monthParam = useMemo(() => {
+    if (selectedYear === null || selectedMonth === null) return "";
+    return `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`;
+  }, [selectedYear, selectedMonth]);
+
   // ── Render ───────────────────────────────────────────
 
   if (error && jobs.length === 0) {
@@ -549,28 +559,30 @@ export default function WipDashboard() {
           </div>
 
           {/* GLI Exclusion Toggle */}
-          <button
-            type="button"
-            onClick={() => setExcludeGLI(!excludeGLI)}
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm border transition-colors ${
-              excludeGLI
-                ? "bg-primary-600/15 border-primary-700/50 text-primary-300"
-                : "bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-neutral-300 hover:border-neutral-600"
-            }`}
-          >
-            <div
-              className={`relative w-8 h-[18px] rounded-full transition-colors ${
-                excludeGLI ? "bg-primary-600" : "bg-neutral-600"
+          {activeTab === "wip" && (
+            <button
+              type="button"
+              onClick={() => setExcludeGLI(!excludeGLI)}
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm border transition-colors ${
+                excludeGLI
+                  ? "bg-primary-600/15 border-primary-700/50 text-primary-300"
+                  : "bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-neutral-300 hover:border-neutral-600"
               }`}
             >
               <div
-                className={`absolute top-[3px] w-3 h-3 rounded-full bg-white transition-transform ${
-                  excludeGLI ? "translate-x-[18px]" : "translate-x-[3px]"
+                className={`relative w-8 h-[18px] rounded-full transition-colors ${
+                  excludeGLI ? "bg-primary-600" : "bg-neutral-600"
                 }`}
-              />
-            </div>
-            Exclude GLI (Fab Shop)
-          </button>
+              >
+                <div
+                  className={`absolute top-[3px] w-3 h-3 rounded-full bg-white transition-transform ${
+                    excludeGLI ? "translate-x-[18px]" : "translate-x-[3px]"
+                  }`}
+                />
+              </div>
+              Exclude GLI (Fab Shop)
+            </button>
+          )}
         </div>
 
         {loading && (
@@ -580,6 +592,42 @@ export default function WipDashboard() {
           </div>
         )}
       </div>
+
+      {/* ── Tab Selector ────────────────────────────────── */}
+      <div className="flex gap-1 border-b border-neutral-800">
+        <button
+          type="button"
+          onClick={() => setActiveTab("wip")}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === "wip"
+              ? "border-primary-500 text-primary-400"
+              : "border-transparent text-neutral-500 hover:text-neutral-300"
+          }`}
+        >
+          <BarChart3 size={15} />
+          WIP Dashboard
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("reconciliation")}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === "reconciliation"
+              ? "border-primary-500 text-primary-400"
+              : "border-transparent text-neutral-500 hover:text-neutral-300"
+          }`}
+        >
+          <Scale size={15} />
+          Cost Reconciliation
+        </button>
+      </div>
+
+      {/* ── Reconciliation Tab ──────────────────────────── */}
+      {activeTab === "reconciliation" && monthParam && (
+        <WipCostReconciliation month={monthParam} />
+      )}
+
+      {/* ── WIP Tab ─────────────────────────────────────── */}
+      {activeTab === "wip" && (<>
 
       {/* ── Loading Skeleton ──────────────────────────── */}
       {loading && jobs.length === 0 && <LoadingSkeleton />}
@@ -871,6 +919,7 @@ export default function WipDashboard() {
         <WipJobTable jobs={effectiveJobs} mode="admin" />
       </div>
 
+      </>)}
       </>)}
     </div>
   );
