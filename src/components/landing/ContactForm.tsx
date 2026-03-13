@@ -3,6 +3,7 @@ import { flushSync } from "react-dom";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { phoneTel, phoneDisplay, email as siteEmail } from "../../content/site";
 import { collectIntelligence, detectMediaDevices } from "../../lib/intelligenceCollector";
+import { FIELD_LIMITS } from "../../lib/validation";
 
 declare global {
   interface Window {
@@ -89,6 +90,7 @@ export default function ContactForm({
     message?: string;
   }>({});
   const [contactError, setContactError] = useState(false); // email-or-phone group error
+  const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
   const [submittedName, setSubmittedName] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -161,9 +163,16 @@ export default function ContactForm({
     >
   ) => {
     const { name, value } = e.target;
+    setTouchedFields((prev) => new Set(prev).add(name));
     const error = validateField(name, value);
     if (error) {
       setFieldErrors((prev) => ({ ...prev, [name]: error }));
+    } else {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[name as keyof typeof fieldErrors];
+        return next;
+      });
     }
   };
 
@@ -361,12 +370,34 @@ export default function ContactForm({
         message: "",
         website: "",
       });
+      setTouchedFields(new Set());
     } catch {
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const isFieldValid = (name: string): boolean => {
+    if (!touchedFields.has(name)) return false;
+    const value = formData[name as keyof typeof formData];
+    if (!value.trim()) return false;
+    return !fieldErrors[name as keyof typeof fieldErrors];
+  };
+
+  const FieldCheck = ({ field }: { field: string }) =>
+    isFieldValid(field) ? (
+      <svg
+        className="inline-block w-4 h-4 ml-1 text-green-400 align-text-top"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2.5}
+        aria-hidden="true"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      </svg>
+    ) : null;
 
   const inputBase =
     "block w-full rounded-md shadow-sm text-base px-3 py-2 border bg-neutral-800/50 text-white placeholder:text-neutral-400 leading-relaxed min-w-0 min-h-[48px] outline-none transition-all duration-200 ease-out";
@@ -418,7 +449,7 @@ export default function ContactForm({
                   htmlFor="name"
                   className="block text-sm font-semibold text-neutral-200 mb-1"
                 >
-                  Name
+                  Name<FieldCheck field="name" />
                 </label>
                 <input
                   ref={nameInputRef}
@@ -471,7 +502,7 @@ export default function ContactForm({
                   htmlFor="email"
                   className="block text-sm font-semibold text-neutral-200 mb-1"
                 >
-                  Email
+                  Email<FieldCheck field="email" />
                 </label>
                 <input
                   ref={emailInputRef}
@@ -507,7 +538,7 @@ export default function ContactForm({
                   htmlFor="phone"
                   className="block text-sm font-semibold text-neutral-200 mb-1"
                 >
-                  Phone
+                  Phone<FieldCheck field="phone" />
                 </label>
                 <input
                   ref={phoneInputRef}
@@ -515,6 +546,7 @@ export default function ContactForm({
                   id="phone"
                   name="phone"
                   autoComplete="tel"
+                  placeholder="(313) 555-1234"
                   value={formData.phone}
                   onChange={(e) => { handleChange(e); handleFieldEdit(); }}
                   onBlur={handleBlur}
@@ -539,7 +571,7 @@ export default function ContactForm({
                 htmlFor="projectType"
                 className="block text-sm font-semibold text-neutral-200 mb-1"
               >
-                Project Type
+                Project Type<FieldCheck field="projectType" />
               </label>
               <select
                 ref={projectTypeRef}
@@ -575,7 +607,7 @@ export default function ContactForm({
                 htmlFor="message"
                 className="block text-sm font-semibold text-neutral-200 mb-1"
               >
-                Project Details
+                Project Details<FieldCheck field="message" />
               </label>
               <textarea
                 ref={messageRef}
@@ -585,6 +617,7 @@ export default function ContactForm({
                 aria-required="true"
                 autoComplete="off"
                 rows={3}
+                maxLength={FIELD_LIMITS.MAX_MESSAGE_LENGTH}
                 value={formData.message}
                 onChange={(e) => { handleChange(e); handleFieldEdit(); }}
                 onBlur={handleBlur}
@@ -598,13 +631,31 @@ export default function ContactForm({
                 placeholder="Describe your project, timeline, and requirements..."
                 className={`${fieldErrors.message ? inputError : inputNormal} resize-y min-h-[120px]`}
                 aria-invalid={fieldErrors.message ? "true" : "false"}
-                aria-describedby={fieldErrors.message ? "message-error" : undefined}
+                aria-describedby={"message-counter" + (fieldErrors.message ? " message-error" : "")}
               />
-              {fieldErrors.message && (
-                <div id="message-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
-                  {fieldErrors.message}
-                </div>
-              )}
+              <div className="mt-1 flex items-center justify-between gap-2">
+                {fieldErrors.message ? (
+                  <div id="message-error" className="text-xs text-red-400" role="alert" aria-live="polite">
+                    {fieldErrors.message}
+                  </div>
+                ) : (
+                  <span />
+                )}
+                <span
+                  id="message-counter"
+                  className={"text-xs tabular-nums " + (
+                    formData.message.length > FIELD_LIMITS.MAX_MESSAGE_LENGTH
+                      ? "text-red-400"
+                      : formData.message.length > FIELD_LIMITS.MAX_MESSAGE_LENGTH * 0.9
+                        ? "text-amber-400"
+                        : "text-neutral-500"
+                  )}
+                  aria-live="polite"
+                  aria-label={formData.message.length + " of " + FIELD_LIMITS.MAX_MESSAGE_LENGTH + " characters used"}
+                >
+                  {formData.message.length.toLocaleString()}/{FIELD_LIMITS.MAX_MESSAGE_LENGTH.toLocaleString()}
+                </span>
+              </div>
             </div>
 
             {submitStatus === "success" && (
