@@ -17,6 +17,10 @@ vi.mock("../../../lib/leadEnrichment", () => ({
   enrichLeadAsync: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("../../../lib/ipBlacklist", () => ({
+  checkAndEnforceBlacklist: vi.fn().mockResolvedValue({ blocked: false }),
+}));
+
 import { POST, ALL } from "../contact";
 import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../lib/db-env";
@@ -63,6 +67,7 @@ function setupDefaults() {
   // checkContactsTable: sql`SELECT to_regclass(...)` → table exists
   // verifyDatabaseReady: sql`SELECT 1`
   // checkDbRateLimit: sql`SELECT COUNT(*)` → count 0 (not rate limited)
+  // dedup check: sql`SELECT id FROM contacts WHERE...` → no duplicates
   // saveContact: sql`INSERT INTO contacts...`
   mockedSql
     .mockResolvedValueOnce({
@@ -76,6 +81,10 @@ function setupDefaults() {
     .mockResolvedValueOnce({
       rows: [{ cnt: "0" }],
       command: "", rowCount: 1, oid: 0, fields: [],
+    })
+    .mockResolvedValueOnce({
+      rows: [],
+      command: "", rowCount: 0, oid: 0, fields: [],
     })
     .mockResolvedValueOnce({
       rows: [{ id: "test-uuid" }],
@@ -277,6 +286,11 @@ describe("POST /api/contact", () => {
     mockedSql.mockResolvedValueOnce({
       rows: [{ cnt: "0" }],
       command: "", rowCount: 1, oid: 0, fields: [],
+    });
+    // dedup check: no duplicates
+    mockedSql.mockResolvedValueOnce({
+      rows: [],
+      command: "", rowCount: 0, oid: 0, fields: [],
     });
     // saveContact: failure
     mockedSql.mockRejectedValueOnce(new Error("Insert failed"));

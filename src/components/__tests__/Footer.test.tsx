@@ -114,10 +114,10 @@ describe("Footer", () => {
   });
 
   describe("back to top buttons", () => {
-    it("renders inline and floating back to top buttons", () => {
+    it("renders floating back to top button", () => {
       render(<Footer />);
       const buttons = screen.getAllByRole("button", { name: "Back to top" });
-      expect(buttons.length).toBe(2);
+      expect(buttons.length).toBe(1);
     });
 
     it("calls window.scrollTo on click", () => {
@@ -134,11 +134,12 @@ describe("Footer", () => {
       });
     });
 
-    it("inline button has minimum 44px touch target", () => {
+    it("floating button has 44px touch target (w-11 h-11)", () => {
       render(<Footer />);
       const buttons = screen.getAllByRole("button", { name: "Back to top" });
-      const inlineButton = buttons[0];
-      expect(inlineButton.className).toContain("min-h-[44px]");
+      const floatingButton = buttons[0];
+      expect(floatingButton.className).toContain("w-11");
+      expect(floatingButton.className).toContain("h-11");
     });
 
     it("both buttons have focus-visible ring styles", () => {

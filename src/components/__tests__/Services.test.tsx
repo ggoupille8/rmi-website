@@ -142,8 +142,9 @@ describe("Services", () => {
         screen.getByLabelText("Learn more about Pipe Insulation")
       );
 
-      // Click the backdrop (the overlay behind the modal)
-      const backdrop = document.querySelector(".bg-black\\/40");
+      // Click the backdrop — it's the previous sibling of the dialog element
+      const dialog = screen.getByRole("dialog");
+      const backdrop = dialog.previousElementSibling;
       expect(backdrop).toBeTruthy();
       fireEvent.click(backdrop!);
 

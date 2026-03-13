@@ -192,13 +192,13 @@ describe("ImageSlideshow", () => {
   });
 
   describe("image loading", () => {
-    it("first image loads eagerly, rest lazy", () => {
+    it("all images load eagerly for immediate display", () => {
       render(<ImageSlideshow images={mockImages} />);
 
       const images = screen.getAllByRole("img", { hidden: true });
-      expect(images[0]).toHaveAttribute("loading", "eager");
-      expect(images[1]).toHaveAttribute("loading", "lazy");
-      expect(images[2]).toHaveAttribute("loading", "lazy");
+      for (const img of images) {
+        expect(img).toHaveAttribute("loading", "eager");
+      }
     });
 
     it("images are not draggable", () => {
@@ -225,12 +225,11 @@ describe("ImageSlideshow", () => {
   });
 
   describe("responsive image display", () => {
-    it("uses object-cover on mobile and object-contain on desktop", () => {
+    it("uses object-cover for full-bleed image display", () => {
       render(<ImageSlideshow images={mockImages} />);
 
       const firstImg = screen.getByAltText("First pipe insulation image");
       expect(firstImg.className).toContain("object-cover");
-      expect(firstImg.className).toContain("md:object-contain");
     });
 
     it("applies default focus point when none specified", () => {

@@ -44,14 +44,14 @@ describe("ProjectShowcase", () => {
     }
   });
 
-  it("renders picture element with webp source", () => {
+  it("renders picture element with responsive webp source", () => {
     const { container } = render(<ProjectShowcase />);
     const sources = container.querySelectorAll("source[type='image/webp']");
     expect(sources.length).toBe(projectHighlights.length);
     for (let i = 0; i < projectHighlights.length; i++) {
-      expect(sources[i].getAttribute("srcSet")).toBe(
-        `${projectHighlights[i].image}.webp`
-      );
+      const srcSet = sources[i].getAttribute("srcSet");
+      expect(srcSet).toContain(`${projectHighlights[i].image}-480w.webp`);
+      expect(srcSet).toContain(`${projectHighlights[i].image}-960w.webp`);
     }
   });
 
@@ -69,15 +69,14 @@ describe("ProjectShowcase", () => {
       projectHighlights[0].alt
     ) as HTMLImageElement;
     expect(img.getAttribute("width")).toBe("960");
-    expect(img.getAttribute("height")).toBe("720");
+    expect(img.getAttribute("height")).toBe("540");
   });
 
-  it("applies 4/3 aspect ratio class to images", () => {
+  it("applies object-cover class to images", () => {
     render(<ProjectShowcase />);
     const img = screen.getByAltText(
       projectHighlights[0].alt
     ) as HTMLImageElement;
-    expect(img.className).toContain("aspect-[4/3]");
     expect(img.className).toContain("object-cover");
   });
 

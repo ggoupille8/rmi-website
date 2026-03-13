@@ -37,10 +37,8 @@ describe("MaterialsMarquee", () => {
     const { container } = render(<MaterialsMarquee />);
     const tracks = container.querySelectorAll(".service-ticker__track");
     expect(tracks.length).toBe(2);
-    // Second track has reversed animation
-    expect(tracks[1].getAttribute("style")).toContain(
-      "animation-direction: reverse"
-    );
+    // Second track has reversed animation via Tailwind utility class
+    expect(tracks[1].className).toContain("[animation-direction:reverse]");
   });
 
   it("renders screen-reader accessible list of all materials", () => {
@@ -61,10 +59,12 @@ describe("MaterialsMarquee", () => {
 
   it("applies mask-image CSS for fade effect on rows", () => {
     const { container } = render(<MaterialsMarquee />);
-    const rows = container.querySelectorAll('[aria-hidden="true"]');
-    for (const row of rows) {
-      const el = row as HTMLElement;
-      expect(el.style.maskImage).toContain("linear-gradient");
+    // The mask-image is on the overflow-hidden wrapper divs around each ticker row
+    const tickers = container.querySelectorAll(".service-ticker");
+    expect(tickers.length).toBe(2);
+    for (const ticker of tickers) {
+      const wrapper = ticker.parentElement as HTMLElement;
+      expect(wrapper.style.maskImage).toContain("linear-gradient");
     }
   });
 
