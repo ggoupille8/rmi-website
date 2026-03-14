@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, RefreshCw, Trash2 } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, ChevronDown, RefreshCw, Trash2 } from "lucide-react";
 import LeadDetail from "./LeadDetail";
 
 interface ContactMetadata {
@@ -52,6 +52,31 @@ const STATUS_CYCLE: Record<string, string> = {
 
 const PAGE_SIZE = 20;
 
+function getRelativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? "s" : ""} ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
+  if (diffDays < 30) return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return `${diffMonths} month${diffMonths !== 1 ? "s" : ""} ago`;
+  const diffYears = Math.floor(diffDays / 365);
+  return `${diffYears} year${diffYears !== 1 ? "s" : ""} ago`;
+}
+
+function getCompany(contact: Contact): string | null {
+  if (contact.metadata && typeof contact.metadata.company === "string" && contact.metadata.company) {
+    return contact.metadata.company;
+  }
+  return null;
+}
+
 interface Props {
   initialStatus?: string;
 }
@@ -68,7 +93,7 @@ export default function LeadsTable({ initialStatus }: Props) {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
 
   const fetchContacts = useCallback(async () => {
@@ -117,11 +142,10 @@ export default function LeadsTable({ initialStatus }: Props) {
         c.id === id ? { ...c, status: newStatus, notes: newNotes } : c
       )
     );
-    if (selectedContact?.id === id) {
-      setSelectedContact((prev) =>
-        prev ? { ...prev, status: newStatus, notes: newNotes } : null
-      );
-    }
+  };
+
+  const toggleExpanded = (contactId: string) => {
+    setExpandedId((prev) => (prev === contactId ? null : contactId));
   };
 
   const cycleStatus = async (contact: Contact, e: React.MouseEvent) => {
@@ -133,9 +157,6 @@ export default function LeadsTable({ initialStatus }: Props) {
     setContacts((prev) =>
       prev.map((c) => (c.id === contact.id ? { ...c, status: newStatus } : c))
     );
-    if (selectedContact?.id === contact.id) {
-      setSelectedContact((prev) => (prev ? { ...prev, status: newStatus } : null));
-    }
 
     try {
       const res = await fetch("/api/admin/contacts", {
@@ -149,9 +170,6 @@ export default function LeadsTable({ initialStatus }: Props) {
       setContacts((prev) =>
         prev.map((c) => (c.id === contact.id ? { ...c, status: oldStatus } : c))
       );
-      if (selectedContact?.id === contact.id) {
-        setSelectedContact((prev) => (prev ? { ...prev, status: oldStatus } : null));
-      }
     }
   };
 
@@ -163,6 +181,7 @@ export default function LeadsTable({ initialStatus }: Props) {
     const prevContacts = contacts;
     setContacts((prev) => prev.filter((c) => c.id !== contact.id));
     setPagination((prev) => ({ ...prev, total: prev.total - 1 }));
+    if (expandedId === contact.id) setExpandedId(null);
 
     try {
       const res = await fetch(`/api/admin/contacts?id=${contact.id}`, {
@@ -260,6 +279,9 @@ export default function LeadsTable({ initialStatus }: Props) {
                     Name
                   </th>
                   <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                    Company
+                  </th>
+                  <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
                     Email
                   </th>
                   <th className="text-left px-4 py-2.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">
@@ -272,89 +294,169 @@ export default function LeadsTable({ initialStatus }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {contacts.map((contact) => (
-                    <tr
-                      key={contact.id}
-                      onClick={() => setSelectedContact(contact)}
-                      className="border-b border-neutral-800/50 hover:bg-neutral-800/40 cursor-pointer transition-colors"
-                    >
-                      <td className="px-4 py-3 text-sm text-neutral-400">
-                        {formatDate(contact.created_at)}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-medium text-neutral-200">
-                        {contact.name}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-neutral-400">
-                        {contact.email || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-neutral-400">
-                        {contact.phone || "-"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={(e) => cycleStatus(contact, e)}
-                          title={`Click to change to "${STATUS_CYCLE[contact.status] || "new"}"`}
-                          className={`inline-block px-2 py-0.5 text-xs font-medium rounded border cursor-pointer hover:opacity-80 transition-opacity ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
-                        >
-                          {contact.status}
-                        </button>
-                      </td>
-                      <td className="px-2 py-3">
-                        <button
-                          type="button"
-                          onClick={(e) => deleteContact(contact, e)}
-                          title="Delete lead"
-                          className="p-1.5 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                {contacts.map((contact) => {
+                  const isExpanded = expandedId === contact.id;
+                  const company = getCompany(contact);
+                  return (
+                    <tr key={contact.id} className="contents">
+                      <td colSpan={7} className="p-0">
+                        <table className="w-full">
+                          <tbody>
+                            {/* Main row */}
+                            <tr
+                              onClick={() => toggleExpanded(contact.id)}
+                              className={`border-b border-neutral-800/50 hover:bg-neutral-800/40 cursor-pointer transition-colors ${
+                                isExpanded ? "bg-neutral-800/30" : ""
+                              }`}
+                            >
+                              <td className="px-4 py-3 text-sm text-neutral-400" title={getRelativeTime(contact.created_at)}>
+                                <span className="cursor-help border-b border-dotted border-neutral-700">
+                                  {formatDate(contact.created_at)}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm font-medium text-neutral-200">
+                                <div className="flex items-center gap-1.5">
+                                  <ChevronDown
+                                    size={14}
+                                    className={`text-neutral-600 transition-transform shrink-0 ${
+                                      isExpanded ? "rotate-180" : ""
+                                    }`}
+                                  />
+                                  {contact.name}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-neutral-400">
+                                {company || <span className="text-neutral-600">-</span>}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-neutral-400">
+                                {contact.email || "-"}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-neutral-400">
+                                {contact.phone || "-"}
+                              </td>
+                              <td className="px-4 py-3">
+                                <button
+                                  type="button"
+                                  onClick={(e) => cycleStatus(contact, e)}
+                                  title={`Click to change to "${STATUS_CYCLE[contact.status] || "new"}"`}
+                                  className={`inline-block px-2 py-0.5 text-xs font-medium rounded border cursor-pointer hover:opacity-80 transition-opacity ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
+                                >
+                                  {contact.status}
+                                </button>
+                              </td>
+                              <td className="px-2 py-3">
+                                <button
+                                  type="button"
+                                  onClick={(e) => deleteContact(contact, e)}
+                                  title="Delete lead"
+                                  className="p-1.5 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                            {/* Accordion detail */}
+                            {isExpanded && (
+                              <tr>
+                                <td colSpan={7} className="p-0">
+                                  <LeadDetail
+                                    inline
+                                    contact={contact}
+                                    onClose={() => setExpandedId(null)}
+                                    onUpdate={handleUpdate}
+                                  />
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
                       </td>
                     </tr>
-                  ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           {/* Mobile Cards */}
           <div className="md:hidden space-y-2">
-            {contacts.map((contact) => (
+            {contacts.map((contact) => {
+              const isExpanded = expandedId === contact.id;
+              const company = getCompany(contact);
+              return (
                 <div
                   key={contact.id}
-                  onClick={() => setSelectedContact(contact)}
-                  className="w-full text-left bg-neutral-900 border border-neutral-800 rounded-lg p-3 hover:bg-neutral-800/60 transition-colors cursor-pointer"
+                  className={`bg-neutral-900 border border-neutral-800 rounded-lg overflow-hidden transition-colors ${
+                    isExpanded ? "ring-1 ring-neutral-700" : ""
+                  }`}
                 >
-                  <div className="flex items-start justify-between mb-1">
-                    <p className="text-sm font-medium text-neutral-200">
-                      {contact.name}
-                    </p>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={(e) => cycleStatus(contact, e)}
-                        title={`Click to change to "${STATUS_CYCLE[contact.status] || "new"}"`}
-                        className={`inline-block px-2 py-0.5 text-[10px] font-medium rounded border cursor-pointer hover:opacity-80 transition-opacity ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
-                      >
-                        {contact.status}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => deleteContact(contact, e)}
-                        title="Delete lead"
-                        className="p-1 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
-                      >
-                        <Trash2 size={12} />
-                      </button>
+                  {/* Card header */}
+                  <div
+                    onClick={() => toggleExpanded(contact.id)}
+                    className="w-full text-left p-3 hover:bg-neutral-800/60 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <ChevronDown
+                          size={14}
+                          className={`text-neutral-600 transition-transform shrink-0 ${
+                            isExpanded ? "rotate-180" : ""
+                          }`}
+                        />
+                        <p className="text-sm font-medium text-neutral-200">
+                          {contact.name}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={(e) => cycleStatus(contact, e)}
+                          title={`Click to change to "${STATUS_CYCLE[contact.status] || "new"}"`}
+                          className={`inline-block px-2 py-0.5 text-[10px] font-medium rounded border cursor-pointer hover:opacity-80 transition-opacity ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
+                        >
+                          {contact.status}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => deleteContact(contact, e)}
+                          title="Delete lead"
+                          className="p-1 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </div>
+                    {company && (
+                      <p className="text-xs text-accent-400 font-medium ml-5 mb-0.5">
+                        {company}
+                      </p>
+                    )}
+                    <p className="text-xs text-neutral-500 ml-5">
+                      {contact.email || contact.phone || "No contact info"}
+                    </p>
+                    <p
+                      className="text-xs text-neutral-600 mt-1 ml-5"
+                      title={getRelativeTime(contact.created_at)}
+                    >
+                      {formatDate(contact.created_at)}
+                      <span className="text-neutral-700 ml-1.5">
+                        ({getRelativeTime(contact.created_at)})
+                      </span>
+                    </p>
                   </div>
-                  <p className="text-xs text-neutral-500">
-                    {contact.email || contact.phone || "No contact info"}
-                  </p>
-                  <p className="text-xs text-neutral-600 mt-1">
-                    {formatDate(contact.created_at)}
-                  </p>
+
+                  {/* Accordion detail */}
+                  {isExpanded && (
+                    <LeadDetail
+                      inline
+                      contact={contact}
+                      onClose={() => setExpandedId(null)}
+                      onUpdate={handleUpdate}
+                    />
+                  )}
                 </div>
-              ))}
+              );
+            })}
           </div>
 
           {/* Pagination */}
@@ -393,15 +495,6 @@ export default function LeadsTable({ initialStatus }: Props) {
             </div>
           )}
         </>
-      )}
-
-      {/* Detail Panel */}
-      {selectedContact && (
-        <LeadDetail
-          contact={selectedContact}
-          onClose={() => setSelectedContact(null)}
-          onUpdate={handleUpdate}
-        />
       )}
     </div>
   );
