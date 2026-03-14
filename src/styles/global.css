@@ -388,3 +388,97 @@
     animation-iteration-count: infinite !important;
   }
 }
+
+/* ── Print styles for PM Portal ──────────────────────── */
+@media print {
+  html, body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .pm-no-print {
+    display: none !important;
+  }
+
+  .pm-print-area {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .pm-print-area table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 10pt !important;
+  }
+
+  .pm-print-area th,
+  .pm-print-area td {
+    border: 1px solid #ccc !important;
+    padding: 4px 8px !important;
+    color: black !important;
+    background: white !important;
+  }
+
+  .pm-print-area th {
+    background: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+
+  .pm-print-area .pm-card-mobile {
+    border: 1px solid #ccc !important;
+    padding: 8px !important;
+    margin-bottom: 8px !important;
+    background: white !important;
+    color: black !important;
+    break-inside: avoid;
+  }
+
+  .pm-print-area .pm-card-mobile * {
+    color: black !important;
+  }
+
+  .pm-print-area [class*="grid"] > * {
+    border: 1px solid #ccc !important;
+    padding: 6px !important;
+    background: white !important;
+    break-inside: avoid;
+  }
+
+  .pm-print-area [class*="grid"] > * * {
+    color: black !important;
+  }
+
+  .pm-print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid black;
+  }
+
+  .pm-print-header h1 {
+    color: black !important;
+    font-size: 16pt !important;
+    margin: 0 !important;
+  }
+
+  .pm-print-header p {
+    color: #333 !important;
+    font-size: 10pt !important;
+    margin: 4px 0 0 !important;
+  }
+
+  .pm-print-area * {
+    box-shadow: none !important;
+  }
+
+  .pm-print-area .pm-detail-grid * {
+    color: black !important;
+  }
+
+  .pm-print-area tr {
+    break-inside: avoid;
+  }
+}
