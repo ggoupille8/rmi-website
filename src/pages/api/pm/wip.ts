@@ -114,6 +114,14 @@ export const GET: APIRoute = async ({ request }) => {
         AND snapshot_month = ${month}
     `;
 
+    // Latest import timestamp for "last synced" display
+    const lastImport = await sql`
+      SELECT MAX(imported_at) AS last_imported
+      FROM wip_snapshots
+      WHERE snapshot_year = ${year}
+        AND snapshot_month = ${month}
+    `;
+
     // Available months for the month selector
     const availableMonths = await sql`
       SELECT DISTINCT snapshot_year, snapshot_month
@@ -129,6 +137,7 @@ export const GET: APIRoute = async ({ request }) => {
         ownJobs: ownJobs.rows,
         otherJobs: otherJobs.rows,
         companyTotals: totals.rows[0] ?? null,
+        lastImported: lastImport.rows[0]?.last_imported ?? null,
         availableMonths: availableMonths.rows.map((r) => ({
           year: r.snapshot_year as number,
           month: r.snapshot_month as number,
