@@ -195,17 +195,17 @@ export default function JobMaster() {
 
       const res = await fetch(`/api/admin/jobs-master?${params}`);
       if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json() as {
+      const data = (await res.json()) as {
         jobs: JobMasterRecord[];
         pagination: Pagination;
         taxBreakdown: TaxBreakdown;
       };
       setJobs(data.jobs ?? []);
       setPagination(
-        data.pagination ?? { total: 0, page: 1, limit: 50, pages: 0, hasMore: false }
+        data.pagination ?? { total: 0, page: 1, limit: 50, pages: 0, hasMore: false },
       );
       setTaxBreakdown(
-        data.taxBreakdown ?? { taxable: 0, exempt: 0, mixed: 0, unknown: 0 }
+        data.taxBreakdown ?? { taxable: 0, exempt: 0, mixed: 0, unknown: 0 },
       );
     } catch {
       setJobs([]);
@@ -235,9 +235,22 @@ export default function JobMaster() {
     }
   };
 
-  const SortIcon = ({ col }: { col: string }) => {
-    if (sort !== col) return null;
-    return order === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
+  // Sort indicator — active column shows colored arrow, inactive sortable columns show hint on hover
+  const SortIcon = ({ col, sortable }: { col: string; sortable: boolean }) => {
+    if (!sortable) return null;
+    if (sort === col) {
+      return order === "asc" ? (
+        <ChevronUp size={14} className="text-primary-400" />
+      ) : (
+        <ChevronDown size={14} className="text-primary-400" />
+      );
+    }
+    return (
+      <ChevronDown
+        size={12}
+        className="text-slate-600 opacity-0 group-hover/th:opacity-100 transition-opacity"
+      />
+    );
   };
 
   // Inline edit handlers
@@ -295,14 +308,16 @@ export default function JobMaster() {
       });
 
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({ error: "Update failed" })) as { error?: string };
+        const errData = (await res
+          .json()
+          .catch(() => ({ error: "Update failed" }))) as { error?: string };
         throw new Error(errData.error ?? "Update failed");
       }
 
-      const data = await res.json() as { job: JobMasterRecord };
+      const data = (await res.json()) as { job: JobMasterRecord };
       // Update job in local state
       setJobs((prev) =>
-        prev.map((j) => (j.id === editingJobId ? { ...j, ...data.job } : j))
+        prev.map((j) => (j.id === editingJobId ? { ...j, ...data.job } : j)),
       );
       setEditingJobId(null);
     } catch (err) {
@@ -405,10 +420,7 @@ export default function JobMaster() {
           color="text-slate-400"
           dotColor="bg-slate-400"
         />
-        <StatCard
-          label="This Year"
-          value={stats?.byYear?.[String(year)] ?? 0}
-        />
+        <StatCard label="This Year" value={stats?.byYear?.[String(year)] ?? 0} />
       </div>
 
       {/* Needs Classification Alert */}
@@ -424,9 +436,12 @@ export default function JobMaster() {
               setTaxFilter("unknown");
               setPage(1);
             }}
-            className="ml-auto underline hover:text-amber-300 transition-colors"
+            className="ml-auto inline-flex items-center gap-1.5 underline hover:text-amber-300 transition-colors"
           >
             Show unknown jobs
+            <span className="no-underline inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold leading-none tabular-nums">
+              {stats?.needsClassification ?? 0}
+            </span>
           </button>
         </div>
       )}
@@ -621,31 +636,29 @@ export default function JobMaster() {
                   { key: "general_contractor", label: "GC" },
                   { key: "year", label: "Year" },
                 ] as const
-              ).map((col) => (
-                <th
-                  key={col.key}
-                  className={`px-3 py-2.5 font-medium select-none whitespace-nowrap ${
-                    VALID_SORT_COLS.includes(
-                      col.key as (typeof VALID_SORT_COLS)[number]
-                    )
-                      ? "cursor-pointer hover:text-slate-300 transition-colors"
-                      : ""
-                  }`}
-                  onClick={() => {
-                    if (
-                      VALID_SORT_COLS.includes(
-                        col.key as (typeof VALID_SORT_COLS)[number]
-                      )
-                    ) {
-                      handleSort(col.key);
-                    }
-                  }}
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {col.label} <SortIcon col={col.key} />
-                  </span>
-                </th>
-              ))}
+              ).map((col) => {
+                const isSortable = VALID_SORT_COLS.includes(
+                  col.key as (typeof VALID_SORT_COLS)[number],
+                );
+                return (
+                  <th
+                    key={col.key}
+                    className={`group/th px-3 py-2.5 font-medium select-none whitespace-nowrap ${
+                      isSortable
+                        ? "cursor-pointer hover:text-slate-300 transition-colors"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      if (isSortable) handleSort(col.key);
+                    }}
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      {col.label}{" "}
+                      <SortIcon col={col.key} sortable={isSortable} />
+                    </span>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -680,9 +693,7 @@ export default function JobMaster() {
                   isSelected={selectedIds.has(job.id)}
                   editForm={editForm}
                   saving={saving}
-                  saveError={
-                    editingJobId === job.id ? saveError : null
-                  }
+                  saveError={editingJobId === job.id ? saveError : null}
                   onToggleSelect={() => toggleSelect(job.id)}
                   onStartEdit={() => startEdit(job)}
                   onCancelEdit={cancelEdit}
@@ -700,8 +711,7 @@ export default function JobMaster() {
         <div className="flex items-center justify-between mt-4 text-xs text-slate-500">
           <span>
             Showing {(page - 1) * 50 + 1}–
-            {Math.min(page * 50, pagination.total)} of{" "}
-            {pagination.total}
+            {Math.min(page * 50, pagination.total)} of {pagination.total}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -730,7 +740,7 @@ export default function JobMaster() {
                 >
                   {p}
                 </button>
-              )
+              ),
             )}
             <button
               type="button"
@@ -853,7 +863,7 @@ function JobRow({
   return (
     <>
       <tr
-        className={`border-b border-white/[0.04] hover:bg-white/[0.02] cursor-pointer transition-colors ${hiddenClass} ${
+        className={`border-b border-white/[0.04] hover:bg-white/[0.04] cursor-pointer transition-colors ${hiddenClass} ${
           isSelected ? "bg-primary-500/[0.06]" : ""
         }`}
         onClick={() => {
@@ -884,11 +894,19 @@ function JobRow({
             <span className="ml-1.5 text-[10px] text-slate-600">(hidden)</span>
           )}
         </td>
-        <td className="px-3 py-2 text-slate-400 max-w-[200px] truncate">
-          {job.description ?? "—"}
+        <td className="px-3 py-2 max-w-[200px] truncate">
+          {job.description ? (
+            <span className="text-slate-400">{job.description}</span>
+          ) : (
+            <span className="text-slate-600 italic">No description</span>
+          )}
         </td>
-        <td className="px-3 py-2 text-slate-400 max-w-[150px] truncate">
-          {job.customer_name_raw ?? "—"}
+        <td className="px-3 py-2 max-w-[150px] truncate">
+          {job.customer_name_raw ? (
+            <span className="text-slate-400">{job.customer_name_raw}</span>
+          ) : (
+            <span className="text-slate-600">—</span>
+          )}
         </td>
         <td className="px-3 py-2 text-slate-500">{job.contract_type ?? "—"}</td>
         <td className="px-3 py-2">
