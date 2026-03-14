@@ -12,7 +12,7 @@ const SECURITY_HEADERS = {
 };
 
 function unauthorizedResponse(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized" }), {
     status: 401,
     headers: {
       ...SECURITY_HEADERS,
@@ -23,7 +23,7 @@ function unauthorizedResponse(): Response {
 
 function dbNotConfiguredResponse(): Response {
   return new Response(
-    JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
+    JSON.stringify({ error: "Database not configured" }),
     { status: 500, headers: SECURITY_HEADERS }
   );
 }
@@ -91,7 +91,7 @@ export const GET: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -112,7 +112,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (!id || typeof id !== "number") {
       return new Response(
-        JSON.stringify({ error: "id (number) is required", code: "BAD_REQUEST" }),
+        JSON.stringify({ error: "id (number) is required" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -162,6 +162,28 @@ export const PATCH: APIRoute = async ({ request }) => {
       }
     }
 
+    // description (inline edit)
+    if (body.description !== undefined) {
+      if (body.description === null) {
+        setClauses.push("description = NULL");
+      } else if (typeof body.description === "string") {
+        setClauses.push(`description = $${idx}`);
+        values.push(body.description);
+        idx++;
+      }
+    }
+
+    // customer_name_raw (inline edit)
+    if (body.customer_name_raw !== undefined) {
+      if (body.customer_name_raw === null) {
+        setClauses.push("customer_name_raw = NULL");
+      } else if (typeof body.customer_name_raw === "string") {
+        setClauses.push(`customer_name_raw = $${idx}`);
+        values.push(body.customer_name_raw);
+        idx++;
+      }
+    }
+
     // project_manager
     if (body.project_manager !== undefined) {
       if (
@@ -175,7 +197,7 @@ export const PATCH: APIRoute = async ({ request }) => {
         setClauses.push("project_manager = NULL");
       } else {
         return new Response(
-          JSON.stringify({ error: "Invalid project_manager", code: "BAD_REQUEST" }),
+          JSON.stringify({ error: "Invalid project_manager" }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
@@ -196,7 +218,7 @@ export const PATCH: APIRoute = async ({ request }) => {
         setClauses.push("contract_type = NULL");
       } else {
         return new Response(
-          JSON.stringify({ error: "Invalid contract_type", code: "BAD_REQUEST" }),
+          JSON.stringify({ error: "Invalid contract_type" }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
@@ -212,7 +234,7 @@ export const PATCH: APIRoute = async ({ request }) => {
         idx++;
       } else {
         return new Response(
-          JSON.stringify({ error: "Invalid customer_id", code: "BAD_REQUEST" }),
+          JSON.stringify({ error: "Invalid customer_id" }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
@@ -231,7 +253,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (setClauses.length <= 1) {
       return new Response(
-        JSON.stringify({ error: "No valid fields to update", code: "BAD_REQUEST" }),
+        JSON.stringify({ error: "No valid fields to update" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -256,7 +278,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (result.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Job not found", code: "NOT_FOUND" }),
+        JSON.stringify({ error: "Job not found" }),
         { status: 404, headers: SECURITY_HEADERS }
       );
     }
@@ -280,14 +302,14 @@ export const PATCH: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
 };
 
 // ---------------------------------------------------------------------------
-// POST — bulk classify
+// POST — bulk update (tax status, PM, or contract type)
 // ---------------------------------------------------------------------------
 export const POST: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) return unauthorizedResponse();
@@ -298,31 +320,25 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const body = (await request.json()) as Record<string, unknown>;
 
-    const { jobIds, taxStatus, taxExemptionType } = body as {
-      jobIds?: unknown;
-      taxStatus?: unknown;
-      taxExemptionType?: unknown;
-    };
+    const { jobIds, taxStatus, taxExemptionType, projectManager, contractType } =
+      body as {
+        jobIds?: unknown;
+        taxStatus?: unknown;
+        taxExemptionType?: unknown;
+        projectManager?: unknown;
+        contractType?: unknown;
+      };
 
     if (!Array.isArray(jobIds) || jobIds.length === 0) {
       return new Response(
-        JSON.stringify({ error: "jobIds must be a non-empty array", code: "BAD_REQUEST" }),
+        JSON.stringify({ error: "jobIds must be a non-empty array" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
     if (jobIds.length > 500) {
       return new Response(
-        JSON.stringify({ error: "Cannot bulk update more than 500 jobs at once", code: "BAD_REQUEST" }),
-        { status: 400, headers: SECURITY_HEADERS }
-      );
-    }
-
-    if (!isValidTaxStatus(taxStatus)) {
-      return new Response(
-        JSON.stringify({
-          error: `Invalid taxStatus. Must be one of: ${VALID_TAX_STATUSES.join(", ")}`,
-        }),
+        JSON.stringify({ error: "Cannot bulk update more than 500 jobs at once" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -330,33 +346,97 @@ export const POST: APIRoute = async ({ request }) => {
     // Validate all IDs are numbers
     if (!jobIds.every((id) => typeof id === "number")) {
       return new Response(
-        JSON.stringify({ error: "All jobIds must be numbers", code: "BAD_REQUEST" }),
+        JSON.stringify({ error: "All jobIds must be numbers" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
-    // Build SET clause
-    const setClauses: string[] = [
-      "tax_status = $1",
-      "updated_at = NOW()",
-    ];
-    const values: unknown[] = [taxStatus];
-    let paramIdx = 2;
+    // Must provide at least one action
+    const hasAction =
+      taxStatus !== undefined ||
+      projectManager !== undefined ||
+      contractType !== undefined;
 
-    if (taxStatus === "taxable") {
-      setClauses.push("tax_exemption_type = NULL");
-    } else if (taxExemptionType !== undefined && taxExemptionType !== null) {
-      if (!isValidExemptionType(taxExemptionType)) {
+    if (!hasAction) {
+      return new Response(
+        JSON.stringify({
+          error: "Must provide taxStatus, projectManager, or contractType",
+        }),
+        { status: 400, headers: SECURITY_HEADERS }
+      );
+    }
+
+    // Build SET clause dynamically
+    const setClauses: string[] = ["updated_at = NOW()"];
+    const values: unknown[] = [];
+    let paramIdx = 1;
+
+    if (taxStatus !== undefined) {
+      if (!isValidTaxStatus(taxStatus)) {
         return new Response(
           JSON.stringify({
-            error: `Invalid taxExemptionType. Must be one of: ${VALID_EXEMPTION_TYPES.join(", ")}`,
+            error: `Invalid taxStatus. Must be one of: ${VALID_TAX_STATUSES.join(", ")}`,
           }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
-      setClauses.push(`tax_exemption_type = $${paramIdx}`);
-      values.push(taxExemptionType);
+      setClauses.push(`tax_status = $${paramIdx}`);
+      values.push(taxStatus);
       paramIdx++;
+
+      if (taxStatus === "taxable") {
+        setClauses.push("tax_exemption_type = NULL");
+      } else if (taxExemptionType !== undefined && taxExemptionType !== null) {
+        if (!isValidExemptionType(taxExemptionType)) {
+          return new Response(
+            JSON.stringify({
+              error: `Invalid taxExemptionType. Must be one of: ${VALID_EXEMPTION_TYPES.join(", ")}`,
+            }),
+            { status: 400, headers: SECURITY_HEADERS }
+          );
+        }
+        setClauses.push(`tax_exemption_type = $${paramIdx}`);
+        values.push(taxExemptionType);
+        paramIdx++;
+      }
+    }
+
+    if (projectManager !== undefined) {
+      if (projectManager === null) {
+        setClauses.push("project_manager = NULL");
+      } else if (
+        typeof projectManager === "string" &&
+        VALID_PMS.includes(projectManager as (typeof VALID_PMS)[number])
+      ) {
+        setClauses.push(`project_manager = $${paramIdx}`);
+        values.push(projectManager);
+        paramIdx++;
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Invalid projectManager" }),
+          { status: 400, headers: SECURITY_HEADERS }
+        );
+      }
+    }
+
+    if (contractType !== undefined) {
+      if (contractType === null) {
+        setClauses.push("contract_type = NULL");
+      } else if (
+        typeof contractType === "string" &&
+        VALID_CONTRACT_TYPES.includes(
+          contractType as (typeof VALID_CONTRACT_TYPES)[number]
+        )
+      ) {
+        setClauses.push(`contract_type = $${paramIdx}`);
+        values.push(contractType);
+        paramIdx++;
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Invalid contractType" }),
+          { status: 400, headers: SECURITY_HEADERS }
+        );
+      }
     }
 
     // Build WHERE IN with parameterized placeholders
@@ -382,11 +462,11 @@ export const POST: APIRoute = async ({ request }) => {
     );
   } catch (error) {
     console.error(
-      "Admin jobs-master bulk classify error:",
+      "Admin jobs-master bulk update error:",
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

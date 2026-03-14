@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Search,
   ChevronLeft,
@@ -11,6 +11,7 @@ import {
   CheckSquare,
   Square,
   Loader2,
+  Undo2,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────
@@ -56,6 +57,31 @@ interface Stats {
   needsClassification: number;
 }
 
+type InlineField = "description" | "customer_name_raw" | "contract_type";
+
+interface InlineEditState {
+  jobId: number;
+  field: InlineField;
+  value: string;
+}
+
+interface PendingBulkAction {
+  type: "tax_status" | "project_manager" | "contract_type";
+  value: string;
+  label: string;
+  exemptionType?: string;
+}
+
+interface UndoEntry {
+  jobId: number;
+  previousValues: Record<string, string | null>;
+}
+
+interface UndoState {
+  label: string;
+  entries: UndoEntry[];
+}
+
 // ── Constants ──────────────────────────────────────────
 
 const YEARS = [2026, 2025, 2024, 2023, 2022, 2021];
@@ -78,7 +104,7 @@ const CONTRACT_TYPE_OPTIONS = [
 ];
 
 const EXEMPTION_TYPES = [
-  { value: "", label: "Select exemption type…" },
+  { value: "", label: "Select exemption type\u2026" },
   { value: "nonprofit_hospital", label: "Nonprofit Hospital" },
   { value: "church_sanctuary", label: "Church Sanctuary" },
   { value: "pollution_control", label: "Pollution Control" },
@@ -149,7 +175,7 @@ export default function JobMaster() {
   const [sort, setSort] = useState("job_number");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
 
-  // UI state
+  // Row expand edit (existing)
   const [editingJobId, setEditingJobId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<{
     tax_status: string;
@@ -162,10 +188,19 @@ export default function JobMaster() {
 
   // Bulk selection
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [showBulkForm, setShowBulkForm] = useState(false);
-  const [bulkTaxStatus, setBulkTaxStatus] = useState("");
-  const [bulkExemptionType, setBulkExemptionType] = useState("");
+
+  // Bulk action bar
+  const [activeBulkDropdown, setActiveBulkDropdown] = useState<string | null>(null);
+  const [pendingBulk, setPendingBulk] = useState<PendingBulkAction | null>(null);
   const [bulkSaving, setBulkSaving] = useState(false);
+
+  // Inline cell editing
+  const [inlineEdit, setInlineEdit] = useState<InlineEditState | null>(null);
+  const [inlineSaving, setInlineSaving] = useState(false);
+
+  // Undo state
+  const [undoState, setUndoState] = useState<UndoState | null>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounce search
   useEffect(() => {
@@ -177,6 +212,13 @@ export default function JobMaster() {
   useEffect(() => {
     setPage(1);
   }, [year, pm, taxFilter, typeFilter, searchDebounced]);
+
+  // Cleanup undo timer
+  useEffect(() => {
+    return () => {
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    };
+  }, []);
 
   // Fetch jobs
   const fetchJobs = useCallback(async () => {
@@ -235,7 +277,7 @@ export default function JobMaster() {
     }
   };
 
-  // Sort indicator — active column shows colored arrow, inactive sortable columns show hint on hover
+  // Sort indicator
   const SortIcon = ({ col, sortable }: { col: string; sortable: boolean }) => {
     if (!sortable) return null;
     if (sort === col) {
@@ -253,7 +295,8 @@ export default function JobMaster() {
     );
   };
 
-  // Inline edit handlers
+  // ── Row expand edit handlers ────────────────────────
+
   const startEdit = (job: JobMasterRecord) => {
     setEditingJobId(job.id);
     setEditForm({
@@ -277,8 +320,6 @@ export default function JobMaster() {
 
     try {
       const body: Record<string, unknown> = { id: editingJobId };
-
-      // Find original job to detect changes
       const original = jobs.find((j) => j.id === editingJobId);
       if (!original) return;
 
@@ -295,7 +336,6 @@ export default function JobMaster() {
         body.contract_type = editForm.contract_type || null;
       }
 
-      // Only call API if something changed
       if (Object.keys(body).length <= 1) {
         cancelEdit();
         return;
@@ -315,7 +355,6 @@ export default function JobMaster() {
       }
 
       const data = (await res.json()) as { job: JobMasterRecord };
-      // Update job in local state
       setJobs((prev) =>
         prev.map((j) => (j.id === editingJobId ? { ...j, ...data.job } : j)),
       );
@@ -327,7 +366,62 @@ export default function JobMaster() {
     }
   };
 
-  // Bulk selection handlers
+  // ── Inline cell edit handlers ────────────────────────
+
+  const startInlineEdit = (jobId: number, field: InlineField, currentValue: string) => {
+    setInlineEdit({ jobId, field, value: currentValue });
+  };
+
+  const cancelInlineEdit = () => {
+    setInlineEdit(null);
+  };
+
+  const saveInlineEdit = async () => {
+    if (!inlineEdit) return;
+    const { jobId, field, value } = inlineEdit;
+    const original = jobs.find((j) => j.id === jobId);
+    if (!original) return;
+
+    const originalValue = original[field] ?? "";
+    if (value === originalValue) {
+      cancelInlineEdit();
+      return;
+    }
+
+    setInlineSaving(true);
+    try {
+      const body: Record<string, unknown> = {
+        id: jobId,
+        [field]: value || null,
+      };
+
+      const res = await fetch("/api/admin/jobs-master", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errData = (await res
+          .json()
+          .catch(() => ({ error: "Update failed" }))) as { error?: string };
+        throw new Error(errData.error ?? "Update failed");
+      }
+
+      const data = (await res.json()) as { job: JobMasterRecord };
+      setJobs((prev) =>
+        prev.map((j) => (j.id === jobId ? { ...j, ...data.job } : j)),
+      );
+      setInlineEdit(null);
+    } catch {
+      // Keep inline edit open on error
+    } finally {
+      setInlineSaving(false);
+    }
+  };
+
+  // ── Bulk selection handlers ────────────────────────
+
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -348,17 +442,52 @@ export default function JobMaster() {
     }
   };
 
-  const handleBulkClassify = async () => {
-    if (selectedIds.size === 0 || !bulkTaxStatus) return;
+  // ── Bulk action handlers ────────────────────────────
+
+  const startBulkAction = (action: PendingBulkAction) => {
+    setPendingBulk(action);
+    setActiveBulkDropdown(null);
+  };
+
+  const cancelBulk = () => {
+    setPendingBulk(null);
+  };
+
+  const confirmBulk = async () => {
+    if (!pendingBulk || selectedIds.size === 0) return;
     setBulkSaving(true);
+
+    // Capture previous values for undo
+    const entries: UndoEntry[] = [];
+    const selectedJobs = jobs.filter((j) => selectedIds.has(j.id));
+
+    for (const job of selectedJobs) {
+      const prev: Record<string, string | null> = {};
+      if (pendingBulk.type === "tax_status") {
+        prev.tax_status = job.tax_status;
+        prev.tax_exemption_type = job.tax_exemption_type;
+      } else if (pendingBulk.type === "project_manager") {
+        prev.project_manager = job.project_manager;
+      } else if (pendingBulk.type === "contract_type") {
+        prev.contract_type = job.contract_type;
+      }
+      entries.push({ jobId: job.id, previousValues: prev });
+    }
 
     try {
       const body: Record<string, unknown> = {
         jobIds: Array.from(selectedIds),
-        taxStatus: bulkTaxStatus,
       };
-      if (bulkTaxStatus === "exempt" && bulkExemptionType) {
-        body.taxExemptionType = bulkExemptionType;
+
+      if (pendingBulk.type === "tax_status") {
+        body.taxStatus = pendingBulk.value;
+        if (pendingBulk.exemptionType) {
+          body.taxExemptionType = pendingBulk.exemptionType;
+        }
+      } else if (pendingBulk.type === "project_manager") {
+        body.projectManager = pendingBulk.value;
+      } else if (pendingBulk.type === "contract_type") {
+        body.contractType = pendingBulk.value;
       }
 
       const res = await fetch("/api/admin/jobs-master", {
@@ -367,13 +496,17 @@ export default function JobMaster() {
         body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error("Bulk classify failed");
+      if (!res.ok) throw new Error("Bulk update failed");
 
-      // Refresh data
+      // Set undo state
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+      setUndoState({ label: pendingBulk.label, entries });
+      undoTimerRef.current = setTimeout(() => {
+        setUndoState(null);
+      }, 10_000);
+
       setSelectedIds(new Set());
-      setShowBulkForm(false);
-      setBulkTaxStatus("");
-      setBulkExemptionType("");
+      setPendingBulk(null);
       await fetchJobs();
 
       // Refresh stats
@@ -386,6 +519,35 @@ export default function JobMaster() {
     } finally {
       setBulkSaving(false);
     }
+  };
+
+  // ── Undo handler ────────────────────────────────────
+
+  const handleUndo = async () => {
+    if (!undoState) return;
+
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+
+    const promises = undoState.entries.map((entry) => {
+      const body: Record<string, unknown> = { id: entry.jobId };
+      for (const [key, val] of Object.entries(entry.previousValues)) {
+        body[key] = val;
+      }
+      return fetch("/api/admin/jobs-master", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    });
+
+    await Promise.allSettled(promises);
+    setUndoState(null);
+    await fetchJobs();
+
+    fetch("/api/admin/jobs-master?action=stats")
+      .then((r) => r.json())
+      .then((d: Stats) => setStats(d))
+      .catch(() => {});
   };
 
   // Computed
@@ -442,6 +604,33 @@ export default function JobMaster() {
             <span className="no-underline inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold leading-none tabular-nums">
               {stats?.needsClassification ?? 0}
             </span>
+          </button>
+        </div>
+      )}
+
+      {/* Undo Toast */}
+      {undoState && (
+        <div className="flex items-center gap-3 mb-4 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.06] px-4 py-2.5 text-xs">
+          <Undo2 size={14} className="text-emerald-400" />
+          <span className="text-emerald-400">
+            Applied: {undoState.label} to {undoState.entries.length} job{undoState.entries.length !== 1 ? "s" : ""}
+          </span>
+          <button
+            type="button"
+            onClick={handleUndo}
+            className="ml-auto px-3 py-1 rounded bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-500 transition-colors"
+          >
+            Undo last change
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+              setUndoState(null);
+            }}
+            className="text-slate-500 hover:text-slate-300"
+          >
+            <X size={14} />
           </button>
         </div>
       )}
@@ -516,92 +705,104 @@ export default function JobMaster() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search job #, description, customer, GC…"
+            placeholder="Search job #, description, customer, GC\u2026"
             className="w-full rounded-lg pl-8 pr-3 py-1.5 text-xs bg-white/5 border border-white/[0.08] text-slate-200 outline-none placeholder:text-slate-600 focus:border-primary-500/40"
           />
         </div>
       </div>
 
-      {/* Bulk Classify Bar */}
+      {/* Bulk Action Bar */}
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-3 mb-4 rounded-lg border border-primary-500/20 bg-primary-500/[0.06] px-4 py-2.5 text-xs">
           <span className="text-primary-400 font-medium">
             {selectedIds.size} job{selectedIds.size !== 1 ? "s" : ""} selected
           </span>
 
-          {!showBulkForm ? (
-            <button
-              type="button"
-              onClick={() => setShowBulkForm(true)}
-              className="ml-auto px-3 py-1 rounded bg-primary-600 text-white font-medium hover:bg-primary-500 transition-colors"
-            >
-              Set Tax Status
-            </button>
-          ) : (
-            <div className="ml-auto flex items-center gap-2">
-              <select
-                value={bulkTaxStatus}
-                onChange={(e) => {
-                  setBulkTaxStatus(e.target.value);
-                  if (e.target.value !== "exempt") setBulkExemptionType("");
-                }}
-                className="text-xs rounded px-2 py-1 bg-white/5 border border-white/[0.08] text-slate-300 outline-none"
-              >
-                <option value="">Tax status…</option>
-                <option value="taxable">Taxable</option>
-                <option value="exempt">Exempt</option>
-                <option value="mixed">Mixed</option>
-                <option value="unknown">Unknown</option>
-              </select>
-
-              {bulkTaxStatus === "exempt" && (
-                <select
-                  value={bulkExemptionType}
-                  onChange={(e) => setBulkExemptionType(e.target.value)}
-                  className="text-xs rounded px-2 py-1 bg-white/5 border border-white/[0.08] text-slate-300 outline-none"
-                >
-                  {EXEMPTION_TYPES.map((et) => (
-                    <option key={et.value} value={et.value}>
-                      {et.label}
-                    </option>
-                  ))}
-                </select>
-              )}
-
+          {/* Confirmation overlay */}
+          {pendingBulk ? (
+            <div className="ml-auto flex items-center gap-3">
+              <span className="text-slate-300">
+                Set <span className="text-primary-300 font-medium">{pendingBulk.label}</span> on{" "}
+                <span className="text-white font-bold">{selectedIds.size}</span> job{selectedIds.size !== 1 ? "s" : ""}?
+              </span>
               <button
                 type="button"
-                onClick={handleBulkClassify}
-                disabled={!bulkTaxStatus || bulkSaving}
-                className="px-3 py-1 rounded bg-primary-600 text-white font-medium hover:bg-primary-500 transition-colors disabled:opacity-40 disabled:cursor-default flex items-center gap-1.5"
+                onClick={confirmBulk}
+                disabled={bulkSaving}
+                className="px-3 py-1 rounded bg-primary-600 text-white font-medium hover:bg-primary-500 transition-colors disabled:opacity-40 flex items-center gap-1.5"
               >
                 {bulkSaving && <Loader2 size={12} className="animate-spin" />}
-                Apply
+                Save Changes
               </button>
-
               <button
                 type="button"
-                onClick={() => {
-                  setShowBulkForm(false);
-                  setBulkTaxStatus("");
-                  setBulkExemptionType("");
-                }}
+                onClick={cancelBulk}
                 className="text-slate-500 hover:text-slate-300"
               >
                 <X size={16} />
               </button>
             </div>
-          )}
+          ) : (
+            <>
+              {/* Bulk action dropdowns */}
+              <div className="ml-auto flex items-center gap-2">
+                <BulkDropdown
+                  label="Set Tax Status"
+                  isOpen={activeBulkDropdown === "tax"}
+                  onToggle={() =>
+                    setActiveBulkDropdown(activeBulkDropdown === "tax" ? null : "tax")
+                  }
+                  options={[
+                    { value: "taxable", label: "Taxable" },
+                    { value: "exempt", label: "Exempt" },
+                    { value: "mixed", label: "Mixed" },
+                    { value: "unknown", label: "Unknown" },
+                  ]}
+                  onSelect={(value, label) =>
+                    startBulkAction({ type: "tax_status", value, label: `Tax: ${label}` })
+                  }
+                />
+                <BulkDropdown
+                  label="Assign PM"
+                  isOpen={activeBulkDropdown === "pm"}
+                  onToggle={() =>
+                    setActiveBulkDropdown(activeBulkDropdown === "pm" ? null : "pm")
+                  }
+                  options={PMS.map((p) => ({ value: p, label: p }))}
+                  onSelect={(value, label) =>
+                    startBulkAction({ type: "project_manager", value, label: `PM: ${label}` })
+                  }
+                />
+                <BulkDropdown
+                  label="Set Type"
+                  isOpen={activeBulkDropdown === "type"}
+                  onToggle={() =>
+                    setActiveBulkDropdown(activeBulkDropdown === "type" ? null : "type")
+                  }
+                  options={[
+                    { value: "LS", label: "Lump Sum" },
+                    { value: "TM", label: "T&M" },
+                    { value: "TM NTE", label: "TM NTE" },
+                    { value: "NTE", label: "NTE" },
+                  ]}
+                  onSelect={(value, label) =>
+                    startBulkAction({ type: "contract_type", value, label: `Type: ${label}` })
+                  }
+                />
+              </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedIds(new Set());
-              setShowBulkForm(false);
-            }}
-            className="text-slate-500 hover:text-slate-300 text-xs underline ml-2"
-          >
-            Clear
-          </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedIds(new Set());
+                  setActiveBulkDropdown(null);
+                }}
+                className="text-slate-500 hover:text-slate-300 text-xs underline ml-2"
+              >
+                Clear
+              </button>
+            </>
+          )}
         </div>
       )}
 
@@ -610,7 +811,6 @@ export default function JobMaster() {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-white/[0.06] text-slate-500 text-left">
-              {/* Checkbox column */}
               <th className="px-3 py-2.5 w-8">
                 <button
                   type="button"
@@ -672,7 +872,7 @@ export default function JobMaster() {
                     size={20}
                     className="animate-spin inline-block mr-2"
                   />
-                  Loading…
+                  Loading{"\u2026"}
                 </td>
               </tr>
             ) : jobs.length === 0 ? (
@@ -699,6 +899,16 @@ export default function JobMaster() {
                   onCancelEdit={cancelEdit}
                   onSaveEdit={saveEdit}
                   onEditFormChange={setEditForm}
+                  inlineEdit={inlineEdit?.jobId === job.id ? inlineEdit : null}
+                  inlineSaving={inlineSaving}
+                  onStartInlineEdit={(field, currentValue) =>
+                    startInlineEdit(job.id, field, currentValue)
+                  }
+                  onInlineEditChange={(value) =>
+                    setInlineEdit((prev) => (prev ? { ...prev, value } : null))
+                  }
+                  onSaveInlineEdit={saveInlineEdit}
+                  onCancelInlineEdit={cancelInlineEdit}
                 />
               ))
             )}
@@ -710,7 +920,7 @@ export default function JobMaster() {
       {pagination.pages > 1 && (
         <div className="flex items-center justify-between mt-4 text-xs text-slate-500">
           <span>
-            Showing {(page - 1) * 50 + 1}–
+            Showing {(page - 1) * 50 + 1}{"\u2013"}
             {Math.min(page * 50, pagination.total)} of {pagination.total}
           </span>
           <div className="flex items-center gap-1">
@@ -725,7 +935,7 @@ export default function JobMaster() {
             {generatePageNumbers(page, pagination.pages).map((p, i) =>
               p === -1 ? (
                 <span key={`ellipsis-${i}`} className="px-1 text-slate-600">
-                  …
+                  {"\u2026"}
                 </span>
               ) : (
                 <button
@@ -763,20 +973,20 @@ function generatePageNumbers(current: number, total: number): number[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
 
   const pages: number[] = [1];
-  if (current > 3) pages.push(-1); // ellipsis
+  if (current > 3) pages.push(-1);
 
   const start = Math.max(2, current - 1);
   const end = Math.min(total - 1, current + 1);
   for (let i = start; i <= end; i++) pages.push(i);
 
-  if (current < total - 2) pages.push(-1); // ellipsis
+  if (current < total - 2) pages.push(-1);
   if (pages[pages.length - 1] !== total) pages.push(total);
 
   return pages;
 }
 
 function formatExemptionType(type: string | null): string {
-  if (!type) return "—";
+  if (!type) return "\u2014";
   return type
     .replace(/_/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
@@ -823,6 +1033,47 @@ function TaxBadge({ status }: { status: string }) {
   );
 }
 
+function BulkDropdown({
+  label,
+  isOpen,
+  onToggle,
+  options,
+  onSelect,
+}: {
+  label: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  options: { value: string; label: string }[];
+  onSelect: (value: string, label: string) => void;
+}) {
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="px-3 py-1 rounded bg-white/[0.08] text-slate-300 font-medium hover:bg-white/[0.12] transition-colors flex items-center gap-1.5"
+      >
+        {label}
+        <ChevronDown size={12} />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full mt-1 left-0 z-50 min-w-[140px] rounded-lg border border-white/[0.08] bg-neutral-800 shadow-xl py-1">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onSelect(opt.value, opt.label)}
+              className="w-full text-left px-3 py-1.5 text-xs text-slate-300 hover:bg-white/[0.08] hover:text-white transition-colors"
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function JobRow({
   job,
   isEditing,
@@ -835,6 +1086,12 @@ function JobRow({
   onCancelEdit,
   onSaveEdit,
   onEditFormChange,
+  inlineEdit,
+  inlineSaving,
+  onStartInlineEdit,
+  onInlineEditChange,
+  onSaveInlineEdit,
+  onCancelInlineEdit,
 }: {
   job: JobMasterRecord;
   isEditing: boolean;
@@ -857,8 +1114,142 @@ function JobRow({
     project_manager: string;
     contract_type: string;
   }) => void;
+  inlineEdit: InlineEditState | null;
+  inlineSaving: boolean;
+  onStartInlineEdit: (field: InlineField, currentValue: string) => void;
+  onInlineEditChange: (value: string) => void;
+  onSaveInlineEdit: () => void;
+  onCancelInlineEdit: () => void;
 }) {
   const hiddenClass = job.is_hidden ? "opacity-50" : "";
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onSaveInlineEdit();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      onCancelInlineEdit();
+    }
+  };
+
+  // Inline editable cell renderers
+  const renderDescriptionCell = () => {
+    if (inlineEdit?.field === "description") {
+      return (
+        <td className="px-3 py-2 max-w-[200px]" onClick={(e) => e.stopPropagation()}>
+          <input
+            type="text"
+            value={inlineEdit.value}
+            onChange={(e) => onInlineEditChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={onSaveInlineEdit}
+            disabled={inlineSaving}
+            autoFocus
+            className="w-full text-xs rounded px-1.5 py-0.5 bg-white/10 border border-primary-500/40 text-slate-200 outline-none"
+          />
+        </td>
+      );
+    }
+    return (
+      <td
+        className="px-3 py-2 max-w-[200px] truncate cursor-text group/cell"
+        onClick={(e) => {
+          e.stopPropagation();
+          onStartInlineEdit("description", job.description ?? "");
+        }}
+        title="Click to edit"
+      >
+        {job.description ? (
+          <span className="text-slate-400 group-hover/cell:text-slate-200 transition-colors">
+            {job.description}
+          </span>
+        ) : (
+          <span className="text-slate-600 italic group-hover/cell:text-slate-400 transition-colors">
+            Click to edit
+          </span>
+        )}
+      </td>
+    );
+  };
+
+  const renderCustomerCell = () => {
+    if (inlineEdit?.field === "customer_name_raw") {
+      return (
+        <td className="px-3 py-2 max-w-[150px]" onClick={(e) => e.stopPropagation()}>
+          <input
+            type="text"
+            value={inlineEdit.value}
+            onChange={(e) => onInlineEditChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={onSaveInlineEdit}
+            disabled={inlineSaving}
+            autoFocus
+            className="w-full text-xs rounded px-1.5 py-0.5 bg-white/10 border border-primary-500/40 text-slate-200 outline-none"
+          />
+        </td>
+      );
+    }
+    return (
+      <td
+        className="px-3 py-2 max-w-[150px] truncate cursor-text group/cell"
+        onClick={(e) => {
+          e.stopPropagation();
+          onStartInlineEdit("customer_name_raw", job.customer_name_raw ?? "");
+        }}
+        title="Click to edit"
+      >
+        {job.customer_name_raw ? (
+          <span className="text-slate-400 group-hover/cell:text-slate-200 transition-colors">
+            {job.customer_name_raw}
+          </span>
+        ) : (
+          <span className="text-slate-600 group-hover/cell:text-slate-400 transition-colors">
+            {"\u2014"}
+          </span>
+        )}
+      </td>
+    );
+  };
+
+  const renderTypeCell = () => {
+    if (inlineEdit?.field === "contract_type") {
+      return (
+        <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+          <select
+            value={inlineEdit.value}
+            onChange={(e) => {
+              onInlineEditChange(e.target.value);
+              // Auto-save on select change
+              setTimeout(onSaveInlineEdit, 0);
+            }}
+            onKeyDown={handleKeyDown}
+            onBlur={onSaveInlineEdit}
+            autoFocus
+            className="text-xs rounded px-1.5 py-0.5 bg-white/10 border border-primary-500/40 text-slate-200 outline-none"
+          >
+            <option value="">{"\u2014"}</option>
+            <option value="LS">LS</option>
+            <option value="TM">TM</option>
+            <option value="TM NTE">TM NTE</option>
+            <option value="NTE">NTE</option>
+          </select>
+        </td>
+      );
+    }
+    return (
+      <td
+        className="px-3 py-2 text-slate-500 cursor-pointer group/cell hover:text-slate-300 transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          onStartInlineEdit("contract_type", job.contract_type ?? "");
+        }}
+        title="Click to edit"
+      >
+        {job.contract_type ?? "\u2014"}
+      </td>
+    );
+  };
 
   return (
     <>
@@ -894,21 +1285,11 @@ function JobRow({
             <span className="ml-1.5 text-[10px] text-slate-600">(hidden)</span>
           )}
         </td>
-        <td className="px-3 py-2 max-w-[200px] truncate">
-          {job.description ? (
-            <span className="text-slate-400">{job.description}</span>
-          ) : (
-            <span className="text-slate-600 italic">No description</span>
-          )}
-        </td>
-        <td className="px-3 py-2 max-w-[150px] truncate">
-          {job.customer_name_raw ? (
-            <span className="text-slate-400">{job.customer_name_raw}</span>
-          ) : (
-            <span className="text-slate-600">—</span>
-          )}
-        </td>
-        <td className="px-3 py-2 text-slate-500">{job.contract_type ?? "—"}</td>
+
+        {renderDescriptionCell()}
+        {renderCustomerCell()}
+        {renderTypeCell()}
+
         <td className="px-3 py-2">
           <TaxBadge status={job.tax_status} />
         </td>
@@ -916,15 +1297,15 @@ function JobRow({
           {formatExemptionType(job.tax_exemption_type)}
         </td>
         <td className="px-3 py-2 text-slate-400 font-mono">
-          {job.project_manager ?? "—"}
+          {job.project_manager ?? "\u2014"}
         </td>
         <td className="px-3 py-2 text-slate-500 max-w-[120px] truncate">
-          {job.general_contractor ?? "—"}
+          {job.general_contractor ?? "\u2014"}
         </td>
         <td className="px-3 py-2 text-slate-500">{job.year}</td>
       </tr>
 
-      {/* Inline edit panel */}
+      {/* Expand edit panel */}
       {isEditing && (
         <tr className="border-b border-white/[0.04]">
           <td colSpan={10} className="px-4 py-3 bg-white/[0.02]">
@@ -996,7 +1377,7 @@ function JobRow({
                   }
                   className="text-xs rounded px-2 py-1.5 bg-white/5 border border-white/[0.08] text-slate-300 outline-none focus:border-primary-500/40"
                 >
-                  <option value="">—</option>
+                  <option value="">{"\u2014"}</option>
                   {PMS.map((p) => (
                     <option key={p} value={p}>
                       {p}
@@ -1020,7 +1401,7 @@ function JobRow({
                   }
                   className="text-xs rounded px-2 py-1.5 bg-white/5 border border-white/[0.08] text-slate-300 outline-none focus:border-primary-500/40"
                 >
-                  <option value="">—</option>
+                  <option value="">{"\u2014"}</option>
                   <option value="LS">Lump Sum</option>
                   <option value="TM">T&M</option>
                   <option value="TM NTE">TM NTE</option>
