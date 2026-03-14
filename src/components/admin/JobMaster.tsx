@@ -82,6 +82,42 @@ interface UndoState {
   entries: UndoEntry[];
 }
 
+interface WipSnapshot {
+  job_number: string;
+  snapshot_year: number;
+  snapshot_month: number;
+  revised_contract: string | number | null;
+  earned_revenue: string | number | null;
+  backlog_revenue: string | number | null;
+  gross_profit: string | number | null;
+  gross_margin_pct: string | number | null;
+  pct_complete: string | number | null;
+  costs_to_date: string | number | null;
+  billings_to_date: string | number | null;
+  contract_amount: string | number | null;
+  change_orders: string | number | null;
+  costs_to_complete: string | number | null;
+  backlog_profit: string | number | null;
+}
+
+interface InvoiceRecord {
+  id: number;
+  invoice_number: string;
+  invoice_date: string;
+  subtotal: string | number;
+  tax_amount: string | number;
+  total: string | number;
+  notes: string | null;
+  vendor_code: string | null;
+  vendor_name: string | null;
+}
+
+interface JobDetail {
+  jobNumber: string;
+  wip: WipSnapshot | null;
+  invoices: InvoiceRecord[];
+}
+
 // ── Constants ──────────────────────────────────────────
 
 const YEARS = [2026, 2025, 2024, 2023, 2022, 2021];
@@ -201,6 +237,11 @@ export default function JobMaster() {
   // Undo state
   const [undoState, setUndoState] = useState<UndoState | null>(null);
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Drill-down state
+  const [expandedJobId, setExpandedJobId] = useState<number | null>(null);
+  const [jobDetail, setJobDetail] = useState<JobDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -997,6 +1038,30 @@ function formatExemptionType(type: string | null): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function formatCurrency(val: string | number | null | undefined): string {
+  if (val === null || val === undefined) return "\u2014";
+  const n = typeof val === "string" ? parseFloat(val) : val;
+  if (!Number.isFinite(n)) return "\u2014";
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}
+
+function formatPct(val: string | number | null | undefined): string {
+  if (val === null || val === undefined) return "\u2014";
+  const n = typeof val === "string" ? parseFloat(val) : val;
+  if (!Number.isFinite(n)) return "\u2014";
+  return `${n.toFixed(1)}%`;
+}
+
+const MONTH_NAMES = [
+  "", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
 // ── Sub-components ─────────────────────────────────────
 
 interface StatCardProps {
@@ -1041,6 +1106,45 @@ function TaxBadge({ status }: TaxBadgeProps) {
       {status === "unknown" && <AlertTriangle size={10} />}
       {TAX_BADGE_LABELS[status] ?? status}
     </span>
+  );
+}
+
+interface WipKpiProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  subLabel?: string;
+  color?: string;
+}
+
+function WipKpi({ icon, label, value, subLabel, color }: WipKpiProps) {
+  return (
+    <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2">
+      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-slate-500 mb-1">
+        {icon}
+        {label}
+      </div>
+      <div className={`text-sm font-bold ${color ?? "text-slate-200"}`}>{value}</div>
+      {subLabel && (
+        <div className="text-[10px] text-slate-500 mt-0.5">{subLabel}</div>
+      )}
+    </div>
+  );
+}
+
+interface DetailFieldProps {
+  label: string;
+  value: string | null | undefined;
+}
+
+function DetailField({ label, value }: DetailFieldProps) {
+  return (
+    <div>
+      <span className="text-[10px] uppercase tracking-wider text-slate-500 block mb-0.5">
+        {label}
+      </span>
+      <span className="text-xs text-slate-300">{value || "\u2014"}</span>
+    </div>
   );
 }
 

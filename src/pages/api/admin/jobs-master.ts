@@ -692,3 +692,46 @@ async function handleCustomers(): Promise<Response> {
     { status: 200, headers: SECURITY_HEADERS }
   );
 }
+
+
+// ---------------------------------------------------------------------------
+// Handler: job detail (WIP snapshot + invoices for a single job)
+// ---------------------------------------------------------------------------
+async function handleDetail(url: URL): Promise<Response> {
+  const jobNumber = url.searchParams.get("job_number");
+  if (!jobNumber || jobNumber.trim().length === 0) {
+    return new Response(
+      JSON.stringify({ error: "job_number parameter is required" }),
+      { status: 400, headers: SECURITY_HEADERS }
+    );
+  }
+
+  const jn = jobNumber.trim();
+
+  const wipResult = await sql`
+    SELECT * FROM wip_snapshots
+    WHERE job_number = ${jn}
+    ORDER BY snapshot_year DESC, snapshot_month DESC
+    LIMIT 1
+  `;
+
+  const invoiceResult = await sql`
+    SELECT i.id, i.invoice_number, i.invoice_date, i.subtotal,
+           i.tax_amount, i.total, i.notes,
+           v.code AS vendor_code, v.full_name AS vendor_name
+    FROM invoices i
+    LEFT JOIN vendors v ON v.id = i.vendor_id
+    WHERE i.job_number = ${jn}
+    ORDER BY i.invoice_date DESC
+    LIMIT 50
+  `;
+
+  return new Response(
+    JSON.stringify({
+      jobNumber: jn,
+      wip: wipResult.rows[0] ?? null,
+      invoices: invoiceResult.rows,
+    }),
+    { status: 200, headers: SECURITY_HEADERS }
+  );
+}
