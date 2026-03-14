@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
 import {
   Upload, BarChart3, GitCompare, ChevronDown, Loader2,
   AlertCircle, RefreshCw, FileText, Calendar, CheckCircle, AlertTriangle,
-  RotateCcw, Landmark,
+  XCircle, RotateCcw, Landmark,
 } from "lucide-react";
 import FinancialUpload from "./FinancialUpload";
 import ReconciliationMatrix from "./ReconciliationMatrix";
@@ -272,25 +272,7 @@ export default function FinancialDashboard() {
   return (
     <div className="space-y-6">
       {/* Tab bar */}
-      <div className="flex gap-1 p-1 bg-neutral-800/50 rounded-lg border border-neutral-700/50 w-fit">
-        {tabs.map((t) => {
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                tab === t.key
-                  ? "bg-blue-600/20 text-blue-400 border border-blue-500/30"
-                  : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700/50 border border-transparent"
-              }`}
-            >
-              <Icon size={16} />
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      <TabBar tabs={tabs} activeTab={tab} onTabChange={setTab} />
 
       {/* Month selector (for reports and reconciliation tabs) */}
       {tab !== "upload" && tab !== "borrowing_base" && uniqueDates.length > 0 && (
@@ -405,17 +387,24 @@ function ImportHistory({ months, onReimport }: { months: MonthsData; onReimport:
   }
 
   function validationIcon(row: HistoryRow) {
+    if (row.validation_passed === true) {
+      return (
+        <span title="Validation passed" className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10">
+          <CheckCircle size={14} className="text-emerald-400" />
+        </span>
+      );
+    }
     if (row.validation_passed === false) {
       return (
-        <span title="Validation flagged issues">
-          <AlertTriangle size={14} className="text-amber-400" />
+        <span title="Validation failed" className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500/10">
+          <XCircle size={14} className="text-red-400" />
         </span>
       );
     }
     if (row.records && row.records > 0) {
       return (
-        <span title="Self-validation passed">
-          <CheckCircle size={14} className="text-emerald-400" />
+        <span title="Data imported — not validated" className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10">
+          <AlertTriangle size={14} className="text-amber-400" />
         </span>
       );
     }
@@ -441,7 +430,7 @@ function ImportHistory({ months, onReimport }: { months: MonthsData; onReimport:
             </thead>
             <tbody className="divide-y divide-neutral-800/50">
               {rows.map((row, i) => (
-                <tr key={i} className="hover:bg-neutral-800/30 transition-colors">
+                <tr key={i} className={`transition-colors hover:bg-neutral-800/40 ${i % 2 === 1 ? "bg-neutral-800/15" : ""}`}>
                   <td className="px-4 py-2.5 text-neutral-200 font-medium">
                     {row.date ? dateLabel(row.date) : "--"}
                   </td>
@@ -467,8 +456,12 @@ function ImportHistory({ months, onReimport }: { months: MonthsData; onReimport:
                   <td className="px-4 py-2.5 text-center">
                     {validationIcon(row)}
                   </td>
-                  <td className="px-4 py-2.5 text-neutral-500 text-xs" title={row.imported_at ? new Date(row.imported_at).toLocaleString() : ""}>
-                    {row.imported_at ? importedAgo(row.imported_at) : "--"}
+                  <td className="px-4 py-2.5 text-xs">
+                    {row.imported_at ? (
+                      <ImportedTimeCell importedAt={row.imported_at} />
+                    ) : (
+                      <span className="text-neutral-600">--</span>
+                    )}
                   </td>
                   <td className="px-4 py-2.5">
                     <button
@@ -1082,6 +1075,102 @@ function MonthSelector({
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Imported Time with Tooltip
+// ─────────────────────────────────────────────
+
+function ImportedTimeCell({ importedAt }: { importedAt: string }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  const fullDate = new Date(importedAt).toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  return (
+    <span
+      className="relative text-neutral-500 cursor-default"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {importedAgo(importedAt)}
+      {showTooltip && (
+        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 text-xs text-neutral-200 bg-neutral-700 border border-neutral-600 rounded-md shadow-lg whitespace-nowrap z-50 pointer-events-none">
+          {fullDate}
+          <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-neutral-700" />
+        </span>
+      )}
+    </span>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Animated Tab Bar
+// ─────────────────────────────────────────────
+
+function TabBar({
+  tabs,
+  activeTab,
+  onTabChange,
+}: {
+  tabs: { key: Tab; label: string; icon: typeof Upload }[];
+  activeTab: Tab;
+  onTabChange: (tab: Tab) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Map<Tab, HTMLButtonElement>>(new Map());
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+  useLayoutEffect(() => {
+    const el = tabRefs.current.get(activeTab);
+    const container = containerRef.current;
+    if (el && container) {
+      const containerRect = container.getBoundingClientRect();
+      const tabRect = el.getBoundingClientRect();
+      setIndicator({
+        left: tabRect.left - containerRect.left,
+        width: tabRect.width,
+      });
+    }
+  }, [activeTab]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative flex gap-1 p-1 bg-neutral-800/50 rounded-lg border border-neutral-700/50 w-fit"
+    >
+      {/* Sliding underline indicator */}
+      <div
+        className="absolute bottom-0 h-0.5 bg-blue-400 rounded-full transition-all duration-300 ease-out"
+        style={{ left: indicator.left, width: indicator.width }}
+      />
+      {tabs.map((t) => {
+        const Icon = t.icon;
+        return (
+          <button
+            key={t.key}
+            ref={(el) => { if (el) tabRefs.current.set(t.key, el); }}
+            onClick={() => onTabChange(t.key)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === t.key
+                ? "bg-blue-600/20 text-blue-400"
+                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700/50"
+            }`}
+          >
+            <Icon size={16} />
+            {t.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
