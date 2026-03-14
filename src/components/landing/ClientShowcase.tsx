@@ -228,6 +228,7 @@ export default function ClientShowcase() {
                 className={`object-contain h-8 sm:h-9 lg:h-10 max-w-[100px] sm:max-w-[120px] lg:max-w-[130px] w-auto${client.needsInvert ? " brightness-0 invert" : ""}`}
                 style={client.scale && client.scale !== 1 ? { transform: `scale(${client.scale})` } : undefined}
                 loading="lazy"
+                decoding="async"
                 width={130}
                 height={40}
               />
