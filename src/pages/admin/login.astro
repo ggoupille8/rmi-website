@@ -18,47 +18,129 @@ if (isAuthenticated(Astro.request)) {
     <meta name="robots" content="noindex, nofollow" />
     <title>Admin Login | RMI</title>
     <meta name="theme-color" content="#0a0a0a" />
+    <style>
+      .login-bg {
+        background-color: #0a0a0a;
+        background-image:
+          radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+        background-size: 32px 32px;
+      }
+      .login-card {
+        background: linear-gradient(
+          145deg,
+          rgba(23, 23, 23, 0.95) 0%,
+          rgba(23, 23, 23, 0.8) 100%
+        );
+        border: 1px solid rgba(64, 64, 64, 0.5);
+        box-shadow:
+          0 4px 24px rgba(0, 0, 0, 0.4),
+          0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+      }
+      .login-input {
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .login-input:focus {
+        border-color: rgb(96, 165, 250);
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+      }
+      .login-input.input-error {
+        border-color: rgb(248, 113, 113);
+        box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.1);
+      }
+      .field-error {
+        color: rgb(248, 113, 113);
+        font-size: 0.8125rem;
+        margin-top: 0.375rem;
+        display: none;
+      }
+      .field-error.visible {
+        display: block;
+      }
+      .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .btn-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+    </style>
   </head>
-  <body class="h-full bg-neutral-950 text-neutral-100 flex items-center justify-center">
-    <div class="w-full max-w-sm mx-4">
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center gap-2 mb-2">
-          <div class="w-8 h-8 bg-primary-600 rounded flex items-center justify-center">
-            <span class="text-white font-bold text-sm">R</span>
+  <body class="h-full login-bg text-neutral-100 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm">
+      <!-- Login Card -->
+      <div class="login-card rounded-xl p-8">
+        <!-- Logo + Branding -->
+        <div class="text-center mb-8">
+          <div class="flex justify-center mb-4">
+            <img
+              src="/images/logo/rmi-logo-mark-200.webp"
+              alt="RMI"
+              width="72"
+              height="72"
+              class="invert"
+            />
           </div>
-          <span class="text-lg font-semibold text-neutral-200 tracking-wide">RMI Admin</span>
+          <div class="flex items-center justify-center gap-2 mb-1.5">
+            <span class="text-lg font-semibold text-neutral-200 tracking-wide">RMI Admin</span>
+          </div>
+          <p class="text-sm text-neutral-500">Sign in to manage leads</p>
         </div>
-        <p class="text-sm text-neutral-500">Sign in to manage leads</p>
+
+        <!-- Login Form -->
+        <form id="login-form" class="space-y-5" novalidate>
+          <div>
+            <label for="password" class="block text-sm font-medium text-neutral-400 mb-1.5">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              autocomplete="current-password"
+              class="login-input w-full px-3.5 py-3 bg-neutral-900/80 border border-neutral-700 rounded-lg text-neutral-100 placeholder-neutral-600 focus:outline-none transition-colors"
+              placeholder="Enter admin password"
+            />
+            <p id="field-error" class="field-error">Please enter a password.</p>
+          </div>
+
+          <div id="error-message" class="hidden text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3.5 py-2.5">
+          </div>
+
+          <button
+            type="submit"
+            id="submit-btn"
+            class="w-full py-3 px-4 bg-accent-600 hover:bg-accent-500 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-400 focus:ring-offset-2 focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span class="btn-content">
+              <span id="btn-text">Sign In</span>
+            </span>
+          </button>
+        </form>
+
+        <!-- Forgot Password -->
+        <div class="mt-4 text-center">
+          <a
+            href="mailto:ggoupille8@gmail.com?subject=RMI Admin Password Reset"
+            class="text-xs text-neutral-500 hover:text-accent-400 transition-colors"
+          >
+            Forgot password?
+          </a>
+        </div>
       </div>
 
-      <form id="login-form" class="space-y-5">
-        <div>
-          <label for="password" class="block text-sm font-medium text-neutral-400 mb-1.5">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            autocomplete="current-password"
-            class="w-full px-3 py-2.5 bg-neutral-900 border border-neutral-700 rounded-md text-neutral-100 placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-            placeholder="Enter admin password"
-          />
-        </div>
-
-        <div id="error-message" class="hidden text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-md px-3 py-2">
-        </div>
-
-        <button
-          type="submit"
-          id="submit-btn"
-          class="w-full py-2.5 px-4 bg-primary-600 hover:bg-primary-500 text-white font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-neutral-950 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Sign In
-        </button>
-      </form>
-
+      <!-- Footer -->
       <p class="mt-6 text-center text-xs text-neutral-600">
         Resource Mechanical Insulation
       </p>
@@ -68,13 +150,39 @@ if (isAuthenticated(Astro.request)) {
       const form = document.getElementById('login-form');
       const errorDiv = document.getElementById('error-message');
       const submitBtn = document.getElementById('submit-btn');
+      const btnText = document.getElementById('btn-text');
       const passwordInput = document.getElementById('password');
+      const fieldError = document.getElementById('field-error');
+
+      // Clear validation on input
+      passwordInput.addEventListener('input', () => {
+        passwordInput.classList.remove('input-error');
+        fieldError.classList.remove('visible');
+        errorDiv.classList.add('hidden');
+      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Client-side validation
+        const password = passwordInput.value.trim();
+        if (!password) {
+          passwordInput.classList.add('input-error');
+          fieldError.classList.add('visible');
+          passwordInput.focus();
+          return;
+        }
+
         errorDiv.classList.add('hidden');
+        passwordInput.classList.remove('input-error');
+        fieldError.classList.remove('visible');
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Signing in...';
+        btnText.textContent = 'Signing in\u2026';
+
+        // Add spinner
+        const spinner = document.createElement('span');
+        spinner.className = 'spinner';
+        btnText.parentNode.insertBefore(spinner, btnText);
 
         try {
           const res = await fetch('/api/admin/auth', {
@@ -96,7 +204,9 @@ if (isAuthenticated(Astro.request)) {
           errorDiv.classList.remove('hidden');
         } finally {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Sign In';
+          btnText.textContent = 'Sign In';
+          const spinnerEl = submitBtn.querySelector('.spinner');
+          if (spinnerEl) spinnerEl.remove();
         }
       });
     </script>

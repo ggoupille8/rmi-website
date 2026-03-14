@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Search, ChevronLeft, ChevronRight, ChevronDown, RefreshCw, Trash2 } from "lucide-react";
 import LeadDetail from "./LeadDetail";
+import { showToast } from "./Toast";
 
 interface ContactMetadata {
   enrichment?: {
@@ -165,11 +166,13 @@ export default function LeadsTable({ initialStatus }: Props) {
         body: JSON.stringify({ id: contact.id, status: newStatus }),
       });
       if (!res.ok) throw new Error("Failed to update status");
+      showToast("success", `Lead status changed to ${newStatus}`);
     } catch {
       // Revert on failure
       setContacts((prev) =>
         prev.map((c) => (c.id === contact.id ? { ...c, status: oldStatus } : c))
       );
+      showToast("error", "Failed to update lead status");
     }
   };
 
@@ -189,10 +192,12 @@ export default function LeadsTable({ initialStatus }: Props) {
         headers: { "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error("Failed to delete");
+      showToast("success", `"${contact.name}" deleted`);
     } catch {
       // Revert on failure
       setContacts(prevContacts);
       setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
+      showToast("error", "Failed to delete lead");
     }
   };
 

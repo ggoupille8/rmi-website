@@ -4,15 +4,35 @@ import { ErrorBoundary } from "../ErrorBoundary";
 
 export default function ProjectShowcase() {
   const gridRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(
-    typeof IntersectionObserver === "undefined"
-  );
+  const headingRef = useRef<HTMLDivElement>(null);
+  const skipAnimations =
+    typeof IntersectionObserver === "undefined" ||
+    (typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const [headingVisible, setHeadingVisible] = useState(skipAnimations);
+  const [isVisible, setIsVisible] = useState(skipAnimations);
 
   useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
+    if (headingVisible) return;
+    const el = headingRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHeadingVisible(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [headingVisible]);
+
+  useEffect(() => {
+    if (isVisible) return;
     const el = gridRef.current;
     if (!el) return;
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -22,10 +42,9 @@ export default function ProjectShowcase() {
       },
       { threshold: 0.1 }
     );
-
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [isVisible]);
 
   return (
     <ErrorBoundary>
@@ -35,7 +54,12 @@ export default function ProjectShowcase() {
     >
       <div className="container-custom">
         {/* Section Header */}
-        <div className="flex flex-col items-center mb-3">
+        <div
+          ref={headingRef}
+          className={`flex flex-col items-center mb-3 transition-all duration-700 ease-out ${
+            headingVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+          }`}
+        >
           <h2
             id="projects-heading"
             className="font-bold tracking-wider text-white uppercase text-xl sm:text-2xl lg:text-3xl"
@@ -46,7 +70,9 @@ export default function ProjectShowcase() {
         </div>
 
         {/* Subtitle */}
-        <p className="text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-4">
+        <p className={`text-center text-neutral-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-4 transition-all duration-700 ease-out delay-100 ${
+          headingVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+        }`}>
           Projects we've contributed to across Michigan
         </p>
 

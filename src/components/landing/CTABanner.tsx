@@ -2,11 +2,16 @@ import { useState, useEffect, useRef } from "react";
 import { ctaBannerHeading, ctaBannerSubtitle, ctaBannerButton } from "../../content/site";
 
 export default function CTABanner() {
-  const [isVisible, setIsVisible] = useState(false);
+  const skipAnimations =
+    typeof IntersectionObserver === "undefined" ||
+    (typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const [isVisible, setIsVisible] = useState(skipAnimations);
   const sectionRef = useRef<HTMLElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (isVisible) return;
     const el = sectionRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
@@ -20,10 +25,11 @@ export default function CTABanner() {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [isVisible]);
 
-  // Subtle parallax scroll on background
+  // Subtle parallax scroll on background (disabled for reduced motion)
   useEffect(() => {
+    if (skipAnimations) return;
     const onScroll = () => {
       const el = sectionRef.current;
       const bg = bgRef.current;
@@ -38,7 +44,7 @@ export default function CTABanner() {
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [skipAnimations]);
 
   return (
     <section

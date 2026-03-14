@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { showToast } from "./Toast";
 
 // ── Types ──────────────────────────────────────────────
 interface Client {
@@ -320,8 +321,10 @@ export default function ClientsAdmin() {
       setAiNote(null);
       setTab("list");
       load();
+      showToast("success", `Client "${form.name}" added`);
     } else {
       setError("Failed to save. Check fields and try again.");
+      showToast("error", "Failed to add client");
     }
     setSaving(false);
   };
@@ -334,6 +337,7 @@ export default function ClientsAdmin() {
       body: JSON.stringify({ id }),
     });
     load();
+    showToast("success", `"${name}" removed from showcase`);
   };
 
   const handleToggleActive = async (client: Client) => {
@@ -343,6 +347,7 @@ export default function ClientsAdmin() {
       body: JSON.stringify({ id: client.id, active: !client.active }),
     });
     load();
+    showToast("info", `${client.name} ${client.active ? "hidden" : "activated"}`);
   };
 
   const handleToggleFeatured = async (client: Client) => {
@@ -371,6 +376,7 @@ export default function ClientsAdmin() {
       body: JSON.stringify({ id: editingLogo.id, ...updates }),
     });
     load();
+    showToast("success", "Logo updated");
   };
 
   return (
