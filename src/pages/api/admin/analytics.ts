@@ -1,6 +1,8 @@
 import type { APIRoute } from "astro";
 import { BetaAnalyticsDataClient } from "@google-analytics/data";
+import { sql } from "@vercel/postgres";
 import { isAdminAuthorized } from "../../../lib/admin-auth";
+import { getPostgresEnv } from "../../../lib/db-env";
 
 export const prerender = false;
 
@@ -63,8 +65,24 @@ export const GET: APIRoute = async ({ request }) => {
   }
 
   const url = new URL(request.url);
+  const customStart = url.searchParams.get("startDate");
+  const customEnd = url.searchParams.get("endDate");
   const days = parseInt(url.searchParams.get("days") || "30", 10);
-  const startDate = `${Math.min(Math.max(days, 1), 365)}daysAgo`;
+
+  let startDate: string;
+  let endDate: string;
+  let dbStartDate: Date;
+
+  if (customStart && customEnd) {
+    startDate = customStart;
+    endDate = customEnd;
+    dbStartDate = new Date(customStart);
+  } else {
+    startDate = `${Math.min(Math.max(days, 1), 365)}daysAgo`;
+    endDate = "today";
+    dbStartDate = new Date();
+    dbStartDate.setDate(dbStartDate.getDate() - days);
+  }
 
   try {
     // Handle multiple possible formats of the private key from env vars
@@ -84,7 +102,7 @@ export const GET: APIRoute = async ({ request }) => {
     });
 
     const property = `properties/${propertyId}`;
-    const dateRanges = [{ startDate, endDate: "today" }];
+    const dateRanges = [{ startDate, endDate }];
 
     const [
       overview,
@@ -98,6 +116,8 @@ export const GET: APIRoute = async ({ request }) => {
       devices,
       dailyTrend,
       engagedByDateCity,
+      topPages,
+      pageViewsReport,
     ] = await Promise.all([
       // 1. Overview (aggregate, no dimensions)
       client.runReport({
@@ -209,7 +229,7 @@ export const GET: APIRoute = async ({ request }) => {
       // 11. Engaged sessions by date + city (prospect activity timeline)
       client.runReport({
         property,
-        dateRanges: [{ startDate, endDate: "today" }],
+        dateRanges,
         dimensions: [{ name: "date" }, { name: "city" }, { name: "region" }],
         metrics: [
           { name: "engagedSessions" },
@@ -217,6 +237,29 @@ export const GET: APIRoute = async ({ request }) => {
         ],
         orderBys: [{ dimension: { dimensionName: "date" }, desc: true }],
         limit: 50,
+      }),
+
+      // 12. Top Pages by page path
+      client.runReport({
+        property,
+        dateRanges,
+        dimensions: [{ name: "pagePath" }],
+        metrics: [
+          { name: "screenPageViews" },
+          { name: "engagedSessions" },
+          { name: "averageSessionDuration" },
+        ],
+        orderBys: [
+          { metric: { metricName: "screenPageViews" }, desc: true },
+        ],
+        limit: 20,
+      }),
+
+      // 13. Total page views (for funnel)
+      client.runReport({
+        property,
+        dateRanges,
+        metrics: [{ name: "screenPageViews" }],
       }),
     ]);
 
@@ -346,6 +389,41 @@ export const GET: APIRoute = async ({ request }) => {
       users: metricInt(row, 1),
     }));
 
+    const topPagesData = rows(topPages[0])
+      .filter((row) => {
+        const path = dimVal(row, 0);
+        return path && path !== "(not set)";
+      })
+      .map((row) => ({
+        path: dimVal(row, 0),
+        views: metricInt(row, 0),
+        engaged: metricInt(row, 1),
+        avgDuration: metricFloat(row, 2),
+      }));
+
+    const totalPageViews =
+      rows(pageViewsReport[0])[0]
+        ? metricInt(rows(pageViewsReport[0])[0], 0)
+        : 0;
+
+    let formSubmissions = 0;
+    try {
+      const { url: postgresUrl } = getPostgresEnv();
+      if (postgresUrl) {
+        const dbResult =
+          await sql`SELECT COUNT(*)::int as count FROM contacts WHERE created_at >= ${dbStartDate.toISOString()}`;
+        formSubmissions = dbResult.rows[0]?.count ?? 0;
+      }
+    } catch {
+      // DB query failure is non-fatal for analytics
+    }
+
+    const funnelData = {
+      pageViews: totalPageViews,
+      engagedSessions: overviewData.engaged,
+      formSubmissions,
+    };
+
     return new Response(
       JSON.stringify({
         configured: true,
@@ -363,6 +441,8 @@ export const GET: APIRoute = async ({ request }) => {
         referrers: referrersData,
         devices: devicesData,
         daily: dailyData,
+        topPages: topPagesData,
+        funnel: funnelData,
       }),
       { status: 200, headers: SECURITY_HEADERS },
     );

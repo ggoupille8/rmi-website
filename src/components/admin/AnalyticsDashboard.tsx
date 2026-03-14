@@ -7,7 +7,19 @@ import {
   RefreshCw,
   AlertCircle,
   Settings,
+  Calendar,
+  FileText,
+  ArrowDown,
 } from "lucide-react";
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Area,
+  AreaChart,
+} from "recharts";
 
 // --- Data interfaces ---
 
@@ -90,6 +102,19 @@ interface DailyPoint {
   users: number;
 }
 
+interface TopPageRow {
+  path: string;
+  views: number;
+  engaged: number;
+  avgDuration: number;
+}
+
+interface FunnelData {
+  pageViews: number;
+  engagedSessions: number;
+  formSubmissions: number;
+}
+
 interface AnalyticsResponse {
   configured: boolean;
   days?: number;
@@ -106,6 +131,8 @@ interface AnalyticsResponse {
   referrers?: ReferrerRow[];
   devices?: Device[];
   daily?: DailyPoint[];
+  topPages?: TopPageRow[];
+  funnel?: FunnelData;
   error?: string;
 }
 
@@ -220,7 +247,7 @@ function SkeletonChart() {
   );
 }
 
-// --- Chart components (inline SVG, no external libraries) ---
+// --- Chart components ---
 
 function DailyTrendChart({ data }: { data: DailyPoint[] }) {
   if (data.length === 0) {
@@ -231,75 +258,130 @@ function DailyTrendChart({ data }: { data: DailyPoint[] }) {
     );
   }
 
-  const maxVal = Math.max(...data.map((d) => d.engaged), 1);
-  const chartW = 800;
-  const chartH = 200;
-  const padL = 45;
-  const padR = 10;
-  const padT = 10;
-  const padB = 30;
-  const plotW = chartW - padL - padR;
-  const plotH = chartH - padT - padB;
-
-  const points = data.map((d, i) => {
-    const x = padL + (i / Math.max(data.length - 1, 1)) * plotW;
-    const y = padT + plotH - (d.engaged / maxVal) * plotH;
-    return { x, y, ...d };
-  });
-
-  const polyline = points.map((p) => `${p.x},${p.y}`).join(" ");
-  const areaPath = `M ${points[0].x},${padT + plotH} ${points.map((p) => `L ${p.x},${p.y}`).join(" ")} L ${points[points.length - 1].x},${padT + plotH} Z`;
-
-  const gridLines = 4;
-  const gridValues = Array.from({ length: gridLines + 1 }, (_, i) =>
-    Math.round((maxVal / gridLines) * i)
-  );
-
-  const labelCount = Math.min(6, data.length);
-  const labelIndices = Array.from({ length: labelCount }, (_, i) =>
-    Math.round((i / (labelCount - 1)) * (data.length - 1))
-  );
+  const chartData = data.map((d) => ({
+    ...d,
+    label: formatDate(d.date),
+  }));
 
   return (
-    <svg
-      viewBox={`0 0 ${chartW} ${chartH}`}
-      className="w-full h-auto"
-      preserveAspectRatio="xMidYMid meet"
-    >
-      {gridValues.map((val, i) => {
-        const y = padT + plotH - (val / maxVal) * plotH;
+    <ResponsiveContainer width="100%" height={220}>
+      <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+        <defs>
+          <linearGradient id="engagedGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} />
+            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.02} />
+          </linearGradient>
+          <linearGradient id="usersGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.2} />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="4 4" stroke="#404040" strokeOpacity={0.5} />
+        <XAxis
+          dataKey="label"
+          tick={{ fill: "#737373", fontSize: 10 }}
+          axisLine={{ stroke: "#404040" }}
+          tickLine={false}
+          interval="preserveStartEnd"
+        />
+        <YAxis
+          tick={{ fill: "#737373", fontSize: 10 }}
+          axisLine={false}
+          tickLine={false}
+          width={40}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "#1a1a1a",
+            border: "1px solid #404040",
+            borderRadius: "6px",
+            fontSize: "12px",
+          }}
+          labelStyle={{ color: "#a3a3a3" }}
+          itemStyle={{ padding: "2px 0" }}
+        />
+        <Area
+          type="monotone"
+          dataKey="users"
+          stroke="#3b82f6"
+          strokeWidth={1.5}
+          fill="url(#usersGradient)"
+          name="Total Users"
+          dot={data.length <= 14}
+        />
+        <Area
+          type="monotone"
+          dataKey="engaged"
+          stroke="#22c55e"
+          strokeWidth={2}
+          fill="url(#engagedGradient)"
+          name="Engaged"
+          dot={data.length <= 14}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function ConversionFunnel({ funnel }: { funnel: FunnelData }) {
+  const stages = [
+    { label: "Page Views", value: funnel.pageViews, color: "#3b82f6" },
+    { label: "Engaged Sessions", value: funnel.engagedSessions, color: "#f59e0b" },
+    { label: "Form Submissions", value: funnel.formSubmissions, color: "#22c55e" },
+  ];
+
+  const maxVal = Math.max(...stages.map((s) => s.value), 1);
+
+  return (
+    <div className="space-y-3">
+      {stages.map((stage, i) => {
+        const pct = ((stage.value / maxVal) * 100).toFixed(1);
+        const convRate =
+          i > 0 && stages[i - 1].value > 0
+            ? ((stage.value / stages[i - 1].value) * 100).toFixed(1)
+            : null;
         return (
-          <g key={i}>
-            <line
-              x1={padL} y1={y} x2={chartW - padR} y2={y}
-              stroke="#404040" strokeWidth={0.5} strokeDasharray="4,4"
-            />
-            <text x={padL - 6} y={y + 3} textAnchor="end" fill="#737373" fontSize={10}>
-              {formatNumber(val)}
-            </text>
-          </g>
+          <div key={stage.label}>
+            <div className="flex items-center justify-between text-sm mb-1.5">
+              <span className="text-neutral-300">{stage.label}</span>
+              <span className="text-neutral-200 font-semibold tabular-nums">
+                {stage.value.toLocaleString()}
+                {convRate && (
+                  <span className="text-neutral-500 font-normal ml-2 text-xs">
+                    {convRate}% of previous
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="h-3 bg-neutral-800 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${pct}%`,
+                  backgroundColor: stage.color,
+                  minWidth: stage.value > 0 ? "4px" : "0",
+                }}
+              />
+            </div>
+            {i < stages.length - 1 && (
+              <div className="flex justify-center py-1">
+                <ArrowDown size={14} className="text-neutral-600" />
+              </div>
+            )}
+          </div>
         );
       })}
-      <path d={areaPath} fill="url(#engagedGradient)" />
-      <defs>
-        <linearGradient id="engagedGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} />
-          <stop offset="100%" stopColor="#22c55e" stopOpacity={0.02} />
-        </linearGradient>
-      </defs>
-      <polyline
-        points={polyline} fill="none" stroke="#22c55e"
-        strokeWidth={2} strokeLinejoin="round" strokeLinecap="round"
-      />
-      {points.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={data.length <= 14 ? 3 : 1.5} fill="#22c55e" />
-      ))}
-      {labelIndices.map((idx) => (
-        <text key={idx} x={points[idx].x} y={chartH - 5} textAnchor="middle" fill="#737373" fontSize={10}>
-          {formatDate(data[idx].date)}
-        </text>
-      ))}
-    </svg>
+      {funnel.pageViews > 0 && (
+        <div className="pt-2 border-t border-neutral-800">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-neutral-500">Overall Conversion Rate</span>
+            <span className="text-green-400 font-semibold">
+              {((funnel.formSubmissions / funnel.pageViews) * 100).toFixed(2)}%
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -562,18 +644,32 @@ function DataTable<T>({
 
 // --- Main component ---
 
+function toYYYYMMDD(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
 export default function AnalyticsDashboard() {
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(30);
   const [classFilter, setClassFilter] = useState<string>("");
+  const [customRange, setCustomRange] = useState(false);
+  const [customStart, setCustomStart] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return toYYYYMMDD(d);
+  });
+  const [customEnd, setCustomEnd] = useState(() => toYYYYMMDD(new Date()));
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/analytics?days=${days}`);
+      const params = customRange
+        ? `startDate=${customStart}&endDate=${customEnd}`
+        : `days=${days}`;
+      const res = await fetch(`/api/admin/analytics?${params}`);
       if (!res.ok && res.status !== 200) {
         throw new Error(`HTTP ${res.status}`);
       }
@@ -587,7 +683,7 @@ export default function AnalyticsDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [days]);
+  }, [days, customRange, customStart, customEnd]);
 
   useEffect(() => {
     fetchData();
@@ -607,15 +703,18 @@ export default function AnalyticsDashboard() {
   return (
     <div className="space-y-6">
       {/* Date range selector */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 rounded-lg p-1">
           {DATE_RANGES.map((range) => (
             <button
               key={range.days}
               type="button"
-              onClick={() => setDays(range.days)}
+              onClick={() => {
+                setCustomRange(false);
+                setDays(range.days);
+              }}
               className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                days === range.days
+                !customRange && days === range.days
                   ? "bg-neutral-700 text-neutral-100 font-medium"
                   : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
               }`}
@@ -623,12 +722,41 @@ export default function AnalyticsDashboard() {
               {range.label}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setCustomRange(true)}
+            className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-md transition-colors ${
+              customRange
+                ? "bg-neutral-700 text-neutral-100 font-medium"
+                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
+            }`}
+          >
+            <Calendar size={13} />
+            Custom
+          </button>
         </div>
+        {customRange && (
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={customStart}
+              onChange={(e) => setCustomStart(e.target.value)}
+              className="bg-neutral-900 border border-neutral-700 rounded-md px-2 py-1.5 text-sm text-neutral-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            <span className="text-neutral-500 text-sm">to</span>
+            <input
+              type="date"
+              value={customEnd}
+              onChange={(e) => setCustomEnd(e.target.value)}
+              className="bg-neutral-900 border border-neutral-700 rounded-md px-2 py-1.5 text-sm text-neutral-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+        )}
         <button
           type="button"
           onClick={fetchData}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-md transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-md transition-colors disabled:opacity-50 ml-auto"
         >
           <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
           Refresh
@@ -753,6 +881,60 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
       )}
+
+      {/* Lead Conversion Funnel + Top Pages */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Section title="Lead Conversion Funnel">
+          {isLoading ? (
+            <SkeletonChart />
+          ) : data?.funnel ? (
+            <ConversionFunnel funnel={data.funnel} />
+          ) : (
+            <div className="text-sm text-neutral-500 text-center py-4">No funnel data available</div>
+          )}
+        </Section>
+
+        <Section title="Top Pages">
+          {isLoading ? (
+            <SkeletonTable rows={6} />
+          ) : (
+            <DataTable
+              columns={[
+                { label: "Page" },
+                { label: "Views", align: "right" },
+                { label: "Engaged", align: "right" },
+                { label: "Avg Duration", align: "right" },
+              ]}
+              data={data?.topPages || []}
+              renderRow={(page, i) => {
+                const isHome = page.path === "/" || page.path === "/index.html";
+                return (
+                  <tr
+                    key={i}
+                    className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors"
+                  >
+                    <td className="py-1.5 px-2 text-neutral-300 font-mono text-xs max-w-[250px] truncate" title={page.path}>
+                      <span className="flex items-center gap-1.5">
+                        <FileText size={12} className={isHome ? "text-blue-400" : "text-neutral-600"} />
+                        {page.path}
+                      </span>
+                    </td>
+                    <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                      {(page.views ?? 0).toLocaleString()}
+                    </td>
+                    <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">
+                      {(page.engaged ?? 0).toLocaleString()}
+                    </td>
+                    <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums text-xs">
+                      {formatDuration(page.avgDuration)}
+                    </td>
+                  </tr>
+                );
+              }}
+            />
+          )}
+        </Section>
+      </div>
 
       {/* Section 2 + 3: Geographic Intelligence + Visitor Fingerprint */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
