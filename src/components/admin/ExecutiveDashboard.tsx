@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { computeWipAlerts } from "@/lib/wip-alerts";
 import type { WipSnapshot } from "./WipJobTable";
+import Sparkline from "./Sparkline";
 
 // ── Types ──────────────────────────────────────────────
 
@@ -69,6 +70,12 @@ interface InvoiceStats {
   totalInvoices: number;
   totalAmount: number;
   thisMonthCount: number;
+}
+
+interface TrendData {
+  leads: { month: string; count: number }[];
+  wip: { month: string; backlog: number; earned: number }[];
+  financials: { month: string; ar: number | null; netIncome: number | null }[];
 }
 
 interface Props {
@@ -247,6 +254,15 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
   const [activityLoading, setActivityLoading] = useState(true);
   const [wipError, setWipError] = useState<string | null>(null);
   const [financialsError, setFinancialsError] = useState<string | null>(null);
+  const [trends, setTrends] = useState<TrendData | null>(null);
+
+  // ── Fetch Sparkline Trends ──────────────────────────
+  useEffect(() => {
+    fetch("/api/admin/dashboard-trends")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: TrendData | null) => { if (d) setTrends(d); })
+      .catch(() => {});
+  }, []);
 
   // ── Fetch WIP Summary ─────────────────────────────────
   useEffect(() => {
@@ -410,6 +426,12 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
     return "text-red-400";
   }, [financials]);
 
+  const leadSparkData = trends && trends.leads.length >= 2 ? trends.leads.map((l) => l.count) : null;
+  const wipBacklogData = trends && trends.wip.length >= 2 ? trends.wip.map((w) => w.backlog) : null;
+  const wipEarnedData = trends && trends.wip.length >= 2 ? trends.wip.map((w) => w.earned) : null;
+  const arSparkData = trends ? trends.financials.filter((f) => f.ar !== null).map((f) => f.ar as number) : null;
+  const niSparkData = trends ? trends.financials.filter((f) => f.netIncome !== null).map((f) => f.netIncome as number) : null;
+
   // ── Render ────────────────────────────────────────────
 
   return (
@@ -437,9 +459,17 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
 
           {/* Big number: Total */}
           <div className="mb-5">
-            <p className="text-3xl font-bold text-neutral-100 tabular-nums">
-              {leadStats.total}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-3xl font-bold text-neutral-100 tabular-nums">
+                {leadStats.total}
+              </p>
+              {leadSparkData && (
+                <div className="flex flex-col items-end">
+                  <Sparkline data={leadSparkData} color="#60a5fa" width={72} height={28} />
+                  <span className="text-[9px] text-neutral-600 mt-0.5">6 mo</span>
+                </div>
+              )}
+            </div>
             <p className="text-xs text-neutral-500 mt-1">Total Active Leads</p>
           </div>
 
@@ -561,18 +591,24 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
               <div className="grid grid-cols-2 gap-x-4 gap-y-5">
                 {/* Total Backlog */}
                 <div>
-                  <p className="text-2xl font-bold text-amber-400 tabular-nums">
-                    {fmtCompact(wip.totalBacklog)}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-2xl font-bold text-amber-400 tabular-nums">
+                      {fmtCompact(wip.totalBacklog)}
+                    </p>
+                    {wipBacklogData && <Sparkline data={wipBacklogData} color="#fbbf24" width={48} height={20} />}
+                  </div>
                   <p className="text-[11px] text-neutral-500 mt-0.5">Total Backlog</p>
                   <p className="text-[10px] text-neutral-600">{fmtCurrency(wip.totalBacklog)}</p>
                 </div>
 
                 {/* Earned Revenue */}
                 <div>
-                  <p className="text-2xl font-bold text-emerald-400 tabular-nums">
-                    {fmtCompact(wip.earnedRevenue)}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-2xl font-bold text-emerald-400 tabular-nums">
+                      {fmtCompact(wip.earnedRevenue)}
+                    </p>
+                    {wipEarnedData && <Sparkline data={wipEarnedData} color="#34d399" width={48} height={20} />}
+                  </div>
                   <p className="text-[11px] text-neutral-500 mt-0.5">Earned Revenue</p>
                   <p className="text-[10px] text-neutral-600">{fmtCurrency(wip.earnedRevenue)}</p>
                 </div>
@@ -650,9 +686,14 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
             <div className="space-y-5">
               {/* AR Total */}
               <div>
-                <p className="text-2xl font-bold text-blue-400 tabular-nums">
-                  {fmtCompact(financials.arTotal)}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-2xl font-bold text-blue-400 tabular-nums">
+                    {fmtCompact(financials.arTotal)}
+                  </p>
+                  {arSparkData && arSparkData.length >= 2 && (
+                    <Sparkline data={arSparkData} color="#60a5fa" width={56} height={22} />
+                  )}
+                </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <p className="text-[11px] text-neutral-500">Accounts Receivable</p>
                   {financials.arDate && (
@@ -668,15 +709,25 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
 
               {/* Net Income */}
               <div>
-                <p
-                  className={`text-2xl font-bold tabular-nums ${
-                    financials.netIncome !== null && financials.netIncome >= 0
-                      ? "text-emerald-400"
-                      : "text-red-400"
-                  }`}
-                >
-                  {fmtCompact(financials.netIncome)}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p
+                    className={`text-2xl font-bold tabular-nums ${
+                      financials.netIncome !== null && financials.netIncome >= 0
+                        ? "text-emerald-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {fmtCompact(financials.netIncome)}
+                  </p>
+                  {niSparkData && niSparkData.length >= 2 && (
+                    <Sparkline
+                      data={niSparkData}
+                      color={financials.netIncome !== null && financials.netIncome >= 0 ? "#34d399" : "#f87171"}
+                      width={56}
+                      height={22}
+                    />
+                  )}
+                </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <p className="text-[11px] text-neutral-500">Net Income</p>
                   {financials.isDate && (
