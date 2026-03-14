@@ -158,13 +158,29 @@ function SkeletonKpi() {
   );
 }
 
-function ColumnSkeleton() {
+function WipSkeleton() {
+  return (
+    <div className="space-y-4">
+      <SkeletonLine width="w-28" height="h-3" />
+      <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+        <SkeletonKpi />
+        <SkeletonKpi />
+        <SkeletonKpi />
+        <SkeletonKpi />
+      </div>
+    </div>
+  );
+}
+
+function FinancialSkeleton() {
   return (
     <div className="space-y-5">
-      <SkeletonLine width="w-40" height="h-5" />
       <SkeletonKpi />
       <SkeletonKpi />
-      <SkeletonKpi />
+      <div className="space-y-2">
+        <SkeletonLine width="w-16" height="h-8" />
+        <SkeletonLine width="w-36" height="h-3" />
+      </div>
     </div>
   );
 }
@@ -392,7 +408,7 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
       {/* ── Three-Column Grid ──────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* ── LEFT: Lead Pipeline ─────────────────────── */}
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-5">
+        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-800/50 hover:shadow-[0_8px_24px_-6px_rgba(59,130,246,0.15)]">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded bg-blue-950/40">
@@ -489,7 +505,7 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
         </div>
 
         {/* ── CENTER: WIP Summary ─────────────────────── */}
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-5">
+        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-5 transition-all duration-300 hover:-translate-y-1 hover:border-amber-800/50 hover:shadow-[0_8px_24px_-6px_rgba(217,119,6,0.15)]">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded bg-amber-950/40">
@@ -508,7 +524,7 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
           </div>
 
           {wipLoading ? (
-            <ColumnSkeleton />
+            <WipSkeleton />
           ) : wipError ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <AlertTriangle size={24} className="text-neutral-600 mb-2" />
@@ -562,18 +578,21 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
 
                 {/* RED Alerts */}
                 <div>
-                  <div className="flex items-baseline gap-2">
-                    <p
-                      className={`text-2xl font-bold tabular-nums ${
-                        wip.redAlertCount > 0 ? "text-red-400" : "text-neutral-400"
-                      }`}
+                  {wip.redAlertCount > 0 ? (
+                    <span
+                      className="inline-flex items-center gap-2 px-3 py-1.5 -mx-3 -my-1.5 rounded-md border border-red-800/40"
+                      style={{ animation: "red-alert-pulse 2s ease-in-out infinite" }}
                     >
+                      <p className="text-2xl font-bold tabular-nums text-red-400 drop-shadow-[0_0_6px_rgba(248,113,113,0.5)]">
+                        {wip.redAlertCount}
+                      </p>
+                      <AlertTriangle size={16} className="text-red-400 drop-shadow-[0_0_4px_rgba(248,113,113,0.5)]" />
+                    </span>
+                  ) : (
+                    <p className="text-2xl font-bold tabular-nums text-neutral-400">
                       {wip.redAlertCount}
                     </p>
-                    {wip.redAlertCount > 0 && (
-                      <AlertTriangle size={14} className="text-red-400" />
-                    )}
-                  </div>
+                  )}
                   <p className="text-[11px] text-neutral-500 mt-0.5">RED Alerts</p>
                 </div>
               </div>
@@ -582,7 +601,7 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
         </div>
 
         {/* ── RIGHT: Financial Health ─────────────────── */}
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-5">
+        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-5 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-800/50 hover:shadow-[0_8px_24px_-6px_rgba(16,185,129,0.15)]">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded bg-emerald-950/40">
@@ -601,7 +620,7 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
           </div>
 
           {financialsLoading ? (
-            <ColumnSkeleton />
+            <FinancialSkeleton />
           ) : financialsError ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <AlertTriangle size={24} className="text-neutral-600 mb-2" />
