@@ -22,7 +22,13 @@ export default defineConfig({
       applyBaseStyles: false,
     }),
     sitemap({
-      filter: (page) => !page.includes('/admin') && !page.includes('/pm'),
+      filter: (page) =>
+        !page.includes('/admin') &&
+        !page.includes('/pm') &&
+        !page.includes('/404'),
+      serialize(item) {
+        return { ...item, lastmod: new Date().toISOString().split('T')[0] };
+      },
     }),
     {
       name: "db-env-log",
