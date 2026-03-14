@@ -385,7 +385,7 @@ export default function HeroFullWidth({
                   setActiveIndex(idx);
                   startAutoAdvance();
                 }}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
                 aria-current={idx === activeIndex ? "true" : undefined}
                 aria-label={`Go to slide ${idx + 1}`}
               >
