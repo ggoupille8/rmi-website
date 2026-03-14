@@ -48,6 +48,22 @@ export const GET: APIRoute = async ({ request, url }) => {
       return handleBorrowingBase();
     }
 
+    if (action === "pl_summary") {
+      const limit = parseInt(url.searchParams.get("months") ?? "6", 10);
+      const cap = Math.min(Math.max(limit, 1), 24);
+      const result = await sql`
+        SELECT period_end_date, total_income, total_cost_of_sales,
+               gross_margin, total_expenses, net_income
+        FROM income_statement_snapshots
+        ORDER BY period_end_date DESC
+        LIMIT ${cap}
+      `;
+      return new Response(
+        JSON.stringify({ snapshots: result.rows }),
+        { status: 200, headers: SECURITY_HEADERS }
+      );
+    }
+
     // Default: return list of available months across all report types
     return handleMonths();
   } catch (err: unknown) {

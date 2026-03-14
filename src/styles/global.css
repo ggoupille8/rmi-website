@@ -481,4 +481,83 @@
   .pm-print-area tr {
     break-inside: avoid;
   }
+
+  /* ── Financial Reports print styles ──────────────── */
+  .fin-no-print,
+  .fin-no-print-chart {
+    display: none !important;
+  }
+
+  .fin-print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid black;
+  }
+
+  .fin-print-header h1 {
+    color: black !important;
+    font-size: 18pt !important;
+    margin: 0 !important;
+  }
+
+  .fin-print-header p {
+    color: #333 !important;
+    font-size: 11pt !important;
+    margin: 4px 0 0 !important;
+  }
+
+  .fin-print-area {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .fin-print-area * {
+    box-shadow: none !important;
+  }
+
+  .fin-print-area table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 10pt !important;
+  }
+
+  .fin-print-area th,
+  .fin-print-area td {
+    border: 1px solid #ccc !important;
+    padding: 4px 8px !important;
+    color: black !important;
+    background: white !important;
+  }
+
+  .fin-print-area th {
+    background: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+
+  .fin-print-area tr {
+    break-inside: avoid;
+  }
+
+  .fin-print-area [class*="grid"] > * {
+    border: 1px solid #ccc !important;
+    padding: 6px !important;
+    background: white !important;
+    break-inside: avoid;
+  }
+
+  .fin-print-area [class*="grid"] > * * {
+    color: black !important;
+  }
+
+  .fin-print-area [class*="rounded"] {
+    border-radius: 0 !important;
+  }
+
+  .fin-print-area [class*="bg-neutral"],
+  .fin-print-area [class*="bg-emerald"],
+  .fin-print-area [class*="bg-red"] {
+    background: white !important;
+  }
 }

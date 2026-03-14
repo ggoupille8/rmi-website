@@ -6,6 +6,8 @@ import {
 } from "lucide-react";
 import FinancialUpload from "./FinancialUpload";
 import ReconciliationMatrix from "./ReconciliationMatrix";
+import ProfitLossReport from "./financials/ProfitLossReport";
+import BalanceSheetReport from "./financials/BalanceSheetReport";
 
 type Tab = "upload" | "reports" | "reconciliation" | "borrowing_base";
 type ReportSubTab = "ar_aging" | "balance_sheet" | "income_statement";
@@ -711,150 +713,15 @@ function ReportsView({ reportDate }: { reportDate: string }) {
       {/* Balance Sheet view */}
       {subTab === "balance_sheet" && (
         bsData ? (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <KPI label="Total Assets" value={fmt(bsData.snapshot.total_assets)} />
-              <KPI label="Total Liabilities" value={fmt(bsData.snapshot.total_liabilities)} />
-              <KPI label="Equity" value={fmt(bsData.snapshot.total_equity)} />
-              <KPI label="Net Income" value={fmt(bsData.snapshot.net_income)} />
-            </div>
-
-            <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-neutral-500 text-xs uppercase tracking-wider border-b border-neutral-800">
-                      <th className="px-4 py-3 font-medium w-24">Acct #</th>
-                      <th className="px-4 py-3 font-medium">Account Name</th>
-                      <th className="px-4 py-3 font-medium text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bsData.entries.map((e, i) => {
-                      const isSection = e.is_subtotal;
-                      return (
-                        <tr
-                          key={i}
-                          className={
-                            isSection
-                              ? "bg-neutral-800/40 border-y border-neutral-700/50"
-                              : "border-b border-neutral-800/30 hover:bg-neutral-800/20 transition-colors"
-                          }
-                        >
-                          <td className={`px-4 py-2 tabular-nums text-xs ${
-                            isSection ? "text-neutral-400 font-medium" : "text-neutral-600"
-                          }`}>
-                            {e.account_number ?? ""}
-                          </td>
-                          <td className={`py-2 ${
-                            isSection
-                              ? "px-4 text-neutral-100 font-semibold text-sm"
-                              : "pl-8 pr-4 text-neutral-300"
-                          }`}>
-                            {e.account_name}
-                          </td>
-                          <td className={`px-4 py-2 text-right tabular-nums ${
-                            isSection
-                              ? "text-neutral-100 font-semibold"
-                              : "text-neutral-300"
-                          }`}>
-                            {fmt(e.amount)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          <BalanceSheetReport snapshot={bsData.snapshot} entries={bsData.entries} />
         ) : (
           <EmptyReportState type="Balance Sheet" />
         )
       )}
 
-      {/* Income Statement view */}
+      {/* Income Statement / P&L view */}
       {subTab === "income_statement" && (
-        isData ? (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <KPI label="Revenue" value={fmtInt(isData.snapshot.total_income)} />
-              <KPI label="COGS" value={fmtInt(isData.snapshot.total_cost_of_sales)} />
-              <KPI label="Gross Margin" value={fmtInt(isData.snapshot.gross_margin)} />
-              <KPI label="Expenses" value={fmtInt(isData.snapshot.total_expenses)} />
-              <KPI
-                label="Net Income"
-                value={fmtInt(isData.snapshot.net_income)}
-                warn={num(isData.snapshot.net_income) < 0}
-              />
-            </div>
-
-            <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-neutral-500 text-xs uppercase tracking-wider border-b border-neutral-800">
-                      <th className="px-4 py-3 font-medium w-24">Acct #</th>
-                      <th className="px-4 py-3 font-medium">Account Name</th>
-                      <th className="px-4 py-3 font-medium text-right">Activity</th>
-                      <th className="px-4 py-3 font-medium text-right">Balance (YTD)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isData.entries.map((e, i) => {
-                      const isSection = e.is_subtotal;
-                      const activityVal = num(e.current_activity);
-                      const balanceVal = num(e.current_balance);
-                      return (
-                        <tr
-                          key={i}
-                          className={
-                            isSection
-                              ? "bg-neutral-800/40 border-y border-neutral-700/50"
-                              : "border-b border-neutral-800/30 hover:bg-neutral-800/20 transition-colors"
-                          }
-                        >
-                          <td className={`px-4 py-2 tabular-nums text-xs ${
-                            isSection ? "text-neutral-400 font-medium" : "text-neutral-600"
-                          }`}>
-                            {e.account_number ?? ""}
-                          </td>
-                          <td className={`py-2 ${
-                            isSection
-                              ? "px-4 text-neutral-100 font-semibold text-sm"
-                              : "pl-8 pr-4 text-neutral-300"
-                          }`}>
-                            {e.account_name}
-                          </td>
-                          <td className={`px-4 py-2 text-right tabular-nums ${
-                            isSection
-                              ? "text-neutral-100 font-semibold"
-                              : activityVal < 0
-                              ? "text-red-400"
-                              : "text-neutral-300"
-                          }`}>
-                            {e.current_activity !== null ? fmtInt(e.current_activity) : "--"}
-                          </td>
-                          <td className={`px-4 py-2 text-right tabular-nums ${
-                            isSection
-                              ? "text-neutral-100 font-semibold"
-                              : balanceVal < 0
-                              ? "text-red-400"
-                              : "text-neutral-300"
-                          }`}>
-                            {e.current_balance !== null ? fmtInt(e.current_balance) : "--"}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <EmptyReportState type="Income Statement" />
-        )
+        <ProfitLossReport />
       )}
     </div>
   );
