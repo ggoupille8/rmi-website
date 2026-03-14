@@ -187,8 +187,13 @@ export default function AdminSidebar({ currentPath }: Props) {
                       <Icon size={18} />
                       <span>{item.label}</span>
                       {item.href === "/admin/wip" && redAlertCount > 0 && (
-                        <span className="ml-auto text-[10px] font-bold bg-red-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                          {redAlertCount}
+                        <span className="relative group ml-auto">
+                          <span className="text-[10px] font-bold bg-red-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center inline-block">
+                            {redAlertCount}
+                          </span>
+                          <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 px-2 py-1 bg-neutral-800 text-neutral-200 text-[11px] rounded shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 border border-neutral-700">
+                            {redAlertCount} RED Alert{redAlertCount !== 1 ? "s" : ""}
+                          </span>
                         </span>
                       )}
                     </a>
