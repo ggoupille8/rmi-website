@@ -46,7 +46,7 @@ export const GET: APIRoute = async () => {
       error instanceof Error ? error.message : "Unknown"
     );
     return new Response(
-      JSON.stringify({ ok: false, error: "Failed to fetch blacklist" }),
+      JSON.stringify({ error: "Failed to fetch blacklist", code: "INTERNAL_ERROR" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -66,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!ip || !reason) {
       return new Response(
-        JSON.stringify({ ok: false, error: "IP and reason are required" }),
+        JSON.stringify({ error: "IP and reason are required", code: "BAD_REQUEST" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -74,7 +74,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Validate IP format (basic check)
     if (!/^[\d.:a-fA-F]+$/.test(ip)) {
       return new Response(
-        JSON.stringify({ ok: false, error: "Invalid IP address format" }),
+        JSON.stringify({ error: "Invalid IP address format", code: "BAD_REQUEST" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -99,7 +99,7 @@ export const POST: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown"
     );
     return new Response(
-      JSON.stringify({ ok: false, error: "Failed to block IP" }),
+      JSON.stringify({ error: "Failed to block IP", code: "INTERNAL_ERROR" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -113,7 +113,7 @@ export const DELETE: APIRoute = async ({ url }) => {
     const ip = url.searchParams.get("ip");
     if (!ip) {
       return new Response(
-        JSON.stringify({ ok: false, error: "IP parameter required" }),
+        JSON.stringify({ error: "IP parameter required", code: "BAD_REQUEST" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -130,7 +130,7 @@ export const DELETE: APIRoute = async ({ url }) => {
       error instanceof Error ? error.message : "Unknown"
     );
     return new Response(
-      JSON.stringify({ ok: false, error: "Failed to unblock IP" }),
+      JSON.stringify({ error: "Failed to unblock IP", code: "INTERNAL_ERROR" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

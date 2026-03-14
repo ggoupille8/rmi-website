@@ -163,7 +163,7 @@ function runQualityChecks(jobs: JobPayload[]): QualityFlag[] {
 export const POST: APIRoute = async ({ request }) => {
   if (!isSyncKeyValid(request)) {
     return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
+      JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }),
       { status: 401, headers: SECURITY_HEADERS }
     );
   }
@@ -171,7 +171,7 @@ export const POST: APIRoute = async ({ request }) => {
   const { url: postgresUrl } = getPostgresEnv();
   if (!postgresUrl) {
     return new Response(
-      JSON.stringify({ error: "Database not configured" }),
+      JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -183,7 +183,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!body.jobs || !Array.isArray(body.jobs)) {
       return new Response(
-        JSON.stringify({ error: "Missing or invalid 'jobs' array" }),
+        JSON.stringify({ error: "Missing or invalid 'jobs' array", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -331,7 +331,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

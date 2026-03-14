@@ -12,7 +12,7 @@ const SECURITY_HEADERS = {
 };
 
 function unauthorizedResponse(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
     status: 401,
     headers: {
       ...SECURITY_HEADERS,
@@ -23,7 +23,7 @@ function unauthorizedResponse(): Response {
 
 function dbNotConfiguredResponse(): Response {
   return new Response(
-    JSON.stringify({ error: "Database not configured" }),
+    JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
     { status: 500, headers: SECURITY_HEADERS }
   );
 }
@@ -48,7 +48,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     if (!query || query.length < 1) {
       return new Response(
-        JSON.stringify({ error: "Query parameter 'q' is required" }),
+        JSON.stringify({ error: "Query parameter 'q' is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -225,7 +225,7 @@ export const GET: APIRoute = async ({ request }) => {
       "Materials search error:",
       error instanceof Error ? error.message : "Unknown error"
     );
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });

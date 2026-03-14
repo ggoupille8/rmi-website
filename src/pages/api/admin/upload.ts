@@ -21,7 +21,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export const POST: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: {
         ...SECURITY_HEADERS,
@@ -37,7 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!file || !(file instanceof File)) {
       return new Response(
-        JSON.stringify({ error: "No file provided. Use multipart/form-data with a 'file' field." }),
+        JSON.stringify({ error: "No file provided. Use multipart/form-data with a 'file' field.", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -46,7 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!ALLOWED_TYPES.has(file.type)) {
       return new Response(
         JSON.stringify({
-          error: `Invalid file type: ${file.type}. Allowed: JPEG, PNG, WebP.`,
+          error: `Invalid file type: ${file.type, code: "BAD_REQUEST"}. Allowed: JPEG, PNG, WebP.`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -56,7 +56,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (file.size > MAX_FILE_SIZE) {
       return new Response(
         JSON.stringify({
-          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum: 10MB.`,
+          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1), code: "BAD_REQUEST"}MB. Maximum: 10MB.`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -70,7 +70,7 @@ export const POST: APIRoute = async ({ request }) => {
     const validation = validateImage(imageBuffer);
     if (!validation.valid) {
       return new Response(
-        JSON.stringify({ error: validation.error }),
+        JSON.stringify({ error: validation.error, code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -130,7 +130,7 @@ export const POST: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Upload failed" }),
+      JSON.stringify({ error: "Upload failed", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

@@ -24,7 +24,7 @@ interface ActivityEvent {
  */
 export const GET: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: { ...SECURITY_HEADERS, "WWW-Authenticate": 'Bearer realm="admin"' },
     });
@@ -32,7 +32,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   const { url: postgresUrl } = getPostgresEnv();
   if (!postgresUrl) {
-    return new Response(JSON.stringify({ error: "Database not configured" }), {
+    return new Response(JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });
@@ -142,7 +142,7 @@ export const GET: APIRoute = async ({ request }) => {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[activity] Error:", message);
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: message, code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });

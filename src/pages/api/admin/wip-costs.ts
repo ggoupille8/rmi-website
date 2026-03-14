@@ -12,7 +12,7 @@ const SECURITY_HEADERS = {
 };
 
 function unauthorizedResponse(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
     status: 401,
     headers: {
       ...SECURITY_HEADERS,
@@ -23,7 +23,7 @@ function unauthorizedResponse(): Response {
 
 function dbNotConfiguredResponse(): Response {
   return new Response(
-    JSON.stringify({ error: "Database not configured" }),
+    JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
     { status: 500, headers: SECURITY_HEADERS }
   );
 }
@@ -80,7 +80,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     if (!monthParam || !/^\d{4}-\d{2}$/.test(monthParam)) {
       return new Response(
-        JSON.stringify({ error: "month parameter required (format: YYYY-MM)" }),
+        JSON.stringify({ error: "month parameter required (format: YYYY-MM)", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -91,7 +91,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
       return new Response(
-        JSON.stringify({ error: "Invalid month parameter" }),
+        JSON.stringify({ error: "Invalid month parameter", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -278,7 +278,7 @@ export const GET: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

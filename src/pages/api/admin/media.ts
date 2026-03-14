@@ -21,7 +21,7 @@ function isValidCategory(s: unknown): s is MediaCategory {
 }
 
 function unauthorizedResponse(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
     status: 401,
     headers: {
       ...SECURITY_HEADERS,
@@ -32,7 +32,7 @@ function unauthorizedResponse(): Response {
 
 function dbNotConfiguredResponse(): Response {
   return new Response(
-    JSON.stringify({ error: "Database not configured" }),
+    JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
     { status: 500, headers: SECURITY_HEADERS }
   );
 }
@@ -77,7 +77,7 @@ export const GET: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -108,7 +108,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Validate required fields
     if (!slot || typeof slot !== "string" || slot.trim().length === 0) {
       return new Response(
-        JSON.stringify({ error: "Slot name is required" }),
+        JSON.stringify({ error: "Slot name is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -116,7 +116,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!isValidCategory(category)) {
       return new Response(
         JSON.stringify({
-          error: `Invalid category. Must be one of: ${VALID_CATEGORIES.join(", ")}`,
+          error: `Invalid category. Must be one of: ${VALID_CATEGORIES.join(", "), code: "BAD_REQUEST"}`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -124,21 +124,21 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!blobUrl || typeof blobUrl !== "string") {
       return new Response(
-        JSON.stringify({ error: "Blob URL is required" }),
+        JSON.stringify({ error: "Blob URL is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
     if (!fileName || typeof fileName !== "string") {
       return new Response(
-        JSON.stringify({ error: "File name is required" }),
+        JSON.stringify({ error: "File name is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
     if (typeof fileSize !== "number" || fileSize <= 0) {
       return new Response(
-        JSON.stringify({ error: "File size must be a positive number" }),
+        JSON.stringify({ error: "File size must be a positive number", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -208,7 +208,7 @@ export const POST: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -233,7 +233,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (!id || typeof id !== "string") {
       return new Response(
-        JSON.stringify({ error: "Media ID is required" }),
+        JSON.stringify({ error: "Media ID is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -243,7 +243,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
     ) {
       return new Response(
-        JSON.stringify({ error: "Invalid media ID format" }),
+        JSON.stringify({ error: "Invalid media ID format", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -256,7 +256,7 @@ export const PATCH: APIRoute = async ({ request }) => {
     if (altText !== undefined) {
       if (typeof altText !== "string") {
         return new Response(
-          JSON.stringify({ error: "Alt text must be a string" }),
+          JSON.stringify({ error: "Alt text must be a string", code: "BAD_REQUEST" }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
@@ -268,7 +268,7 @@ export const PATCH: APIRoute = async ({ request }) => {
     if (blobUrl !== undefined) {
       if (typeof blobUrl !== "string" || blobUrl.trim().length === 0) {
         return new Response(
-          JSON.stringify({ error: "Blob URL must be a non-empty string" }),
+          JSON.stringify({ error: "Blob URL must be a non-empty string", code: "BAD_REQUEST" }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
@@ -279,7 +279,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (setClauses.length === 1) {
       return new Response(
-        JSON.stringify({ error: "No fields to update" }),
+        JSON.stringify({ error: "No fields to update", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -295,7 +295,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (result.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Media not found" }),
+        JSON.stringify({ error: "Media not found", code: "NOT_FOUND" }),
         { status: 404, headers: SECURITY_HEADERS }
       );
     }
@@ -310,7 +310,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -332,7 +332,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     if (!id || typeof id !== "string") {
       return new Response(
-        JSON.stringify({ error: "Media ID is required" }),
+        JSON.stringify({ error: "Media ID is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -342,7 +342,7 @@ export const DELETE: APIRoute = async ({ request }) => {
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
     ) {
       return new Response(
-        JSON.stringify({ error: "Invalid media ID format" }),
+        JSON.stringify({ error: "Invalid media ID format", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -355,7 +355,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     if (existing.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Media not found" }),
+        JSON.stringify({ error: "Media not found", code: "NOT_FOUND" }),
         { status: 404, headers: SECURITY_HEADERS }
       );
     }
@@ -386,7 +386,7 @@ export const DELETE: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

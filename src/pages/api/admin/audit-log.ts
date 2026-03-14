@@ -18,7 +18,7 @@ const VALID_ACTIONS: AuditAction[] = [
 
 export const GET: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: HEADERS });
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), { status: 401, headers: HEADERS });
   }
 
   try {
@@ -41,7 +41,7 @@ export const GET: APIRoute = async ({ request }) => {
     );
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to fetch audit log" }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to fetch audit log", code: "INTERNAL_ERROR" }),
       { status: 500, headers: HEADERS }
     );
   }

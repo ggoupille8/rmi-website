@@ -21,7 +21,7 @@ const SECURITY_HEADERS = {
  */
 export const GET: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: {
         ...SECURITY_HEADERS,
@@ -33,7 +33,7 @@ export const GET: APIRoute = async ({ request }) => {
   const { url: postgresUrl } = getPostgresEnv();
   if (!postgresUrl) {
     return new Response(
-      JSON.stringify({ error: "Database not configured" }),
+      JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -44,7 +44,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     if (!sinceParam || !/^\d{4}-\d{2}-\d{2}$/.test(sinceParam)) {
       return new Response(
-        JSON.stringify({ error: "since parameter required (format: YYYY-MM-DD)" }),
+        JSON.stringify({ error: "since parameter required (format: YYYY-MM-DD)", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -53,7 +53,7 @@ export const GET: APIRoute = async ({ request }) => {
     const sinceDate = new Date(sinceParam);
     if (isNaN(sinceDate.getTime())) {
       return new Response(
-        JSON.stringify({ error: "Invalid date" }),
+        JSON.stringify({ error: "Invalid date", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -135,7 +135,7 @@ export const GET: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

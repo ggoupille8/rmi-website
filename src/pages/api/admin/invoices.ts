@@ -19,7 +19,7 @@ const SECURITY_HEADERS = {
 };
 
 function unauthorizedResponse(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
     status: 401,
     headers: {
       ...SECURITY_HEADERS,
@@ -30,7 +30,7 @@ function unauthorizedResponse(): Response {
 
 function dbNotConfiguredResponse(): Response {
   return new Response(
-    JSON.stringify({ error: "Database not configured" }),
+    JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
     { status: 500, headers: SECURITY_HEADERS }
   );
 }
@@ -80,14 +80,14 @@ export const POST: APIRoute = async ({ request }) => {
     // Validate required fields
     if (!invoiceNumber || !vendorId || !jobNumber || !invoiceDate) {
       return new Response(
-        JSON.stringify({ error: "invoiceNumber, vendorId, jobNumber, and invoiceDate are required" }),
+        JSON.stringify({ error: "invoiceNumber, vendorId, jobNumber, and invoiceDate are required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
     if (!Array.isArray(lineItems) || lineItems.length === 0) {
       return new Response(
-        JSON.stringify({ error: "At least one line item is required" }),
+        JSON.stringify({ error: "At least one line item is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -98,7 +98,7 @@ export const POST: APIRoute = async ({ request }) => {
     `;
     if (vendorResult.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: `Vendor ${vendorId} not found` }),
+        JSON.stringify({ error: `Vendor ${vendorId} not found`, code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -112,7 +112,7 @@ export const POST: APIRoute = async ({ request }) => {
     `;
     if (jobResult.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: `Job ${jobNumber} not found` }),
+        JSON.stringify({ error: `Job ${jobNumber} not found`, code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -130,6 +130,7 @@ export const POST: APIRoute = async ({ request }) => {
           error:
             "This job has mixed tax status. Please specify taxable or exempt for this invoice.",
           jobTaxStatus,
+          code: "BAD_REQUEST",
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -275,7 +276,7 @@ export const POST: APIRoute = async ({ request }) => {
       "Invoice create error:",
       error instanceof Error ? error.message : "Unknown error"
     );
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });
@@ -305,7 +306,7 @@ export const GET: APIRoute = async ({ request }) => {
 
       if (invoiceResult.rows.length === 0) {
         return new Response(
-          JSON.stringify({ error: "Invoice not found" }),
+          JSON.stringify({ error: "Invoice not found", code: "NOT_FOUND" }),
           { status: 404, headers: SECURITY_HEADERS }
         );
       }
@@ -458,7 +459,7 @@ export const GET: APIRoute = async ({ request }) => {
       "Invoice list error:",
       error instanceof Error ? error.message : "Unknown error"
     );
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });
@@ -479,7 +480,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     if (!id) {
       return new Response(
-        JSON.stringify({ error: "id is required" }),
+        JSON.stringify({ error: "id is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -488,7 +489,7 @@ export const DELETE: APIRoute = async ({ request }) => {
     const existing = await sql`SELECT id FROM invoices WHERE id = ${id}`;
     if (existing.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Invoice not found" }),
+        JSON.stringify({ error: "Invoice not found", code: "NOT_FOUND" }),
         { status: 404, headers: SECURITY_HEADERS }
       );
     }
@@ -504,7 +505,7 @@ export const DELETE: APIRoute = async ({ request }) => {
       "Invoice delete error:",
       error instanceof Error ? error.message : "Unknown error"
     );
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });

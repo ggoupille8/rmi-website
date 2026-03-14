@@ -22,7 +22,7 @@ const SECURITY_HEADERS = {
  */
 export const GET: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: {
         ...SECURITY_HEADERS,
@@ -34,7 +34,7 @@ export const GET: APIRoute = async ({ request }) => {
   const { url: postgresUrl } = getPostgresEnv();
   if (!postgresUrl) {
     return new Response(
-      JSON.stringify({ error: "Database not configured" }),
+      JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -55,7 +55,7 @@ export const GET: APIRoute = async ({ request }) => {
       month = parseInt(monthParam, 10);
       if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
         return new Response(
-          JSON.stringify({ error: "Invalid year or month parameter" }),
+          JSON.stringify({ error: "Invalid year or month parameter", code: "BAD_REQUEST" }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
@@ -68,7 +68,7 @@ export const GET: APIRoute = async ({ request }) => {
       `;
       if (latest.rows.length === 0) {
         return new Response(
-          JSON.stringify({ error: "No WIP data available" }),
+          JSON.stringify({ error: "No WIP data available", code: "NOT_FOUND" }),
           { status: 404, headers: SECURITY_HEADERS }
         );
       }
@@ -204,7 +204,7 @@ export const GET: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

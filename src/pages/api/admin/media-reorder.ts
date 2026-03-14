@@ -15,7 +15,7 @@ const SECURITY_HEADERS = {
 /** POST /api/admin/media-reorder — swap images between two slots */
 export const POST: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: {
         ...SECURITY_HEADERS,
@@ -27,7 +27,7 @@ export const POST: APIRoute = async ({ request }) => {
   const { url: postgresUrl } = getPostgresEnv();
   if (!postgresUrl) {
     return new Response(
-      JSON.stringify({ error: "Database not configured" }),
+      JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -45,7 +45,7 @@ export const POST: APIRoute = async ({ request }) => {
       typeof slotB !== "string"
     ) {
       return new Response(
-        JSON.stringify({ error: "Both slotA and slotB are required strings" }),
+        JSON.stringify({ error: "Both slotA and slotB are required strings", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -78,7 +78,7 @@ export const POST: APIRoute = async ({ request }) => {
       "Admin media reorder error:",
       error instanceof Error ? error.message : "Unknown error"
     );
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });

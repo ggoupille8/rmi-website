@@ -14,7 +14,7 @@ const SECURITY_HEADERS = {
 };
 
 function unauthorizedResponse(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
     status: 401,
     headers: {
       ...SECURITY_HEADERS,
@@ -25,7 +25,7 @@ function unauthorizedResponse(): Response {
 
 function dbNotConfiguredResponse(): Response {
   return new Response(
-    JSON.stringify({ error: "Database not configured" }),
+    JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
     { status: 500, headers: SECURITY_HEADERS }
   );
 }
@@ -93,7 +93,7 @@ export const GET: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -119,14 +119,14 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!action || typeof action !== "string") {
       return new Response(
-        JSON.stringify({ error: "Action is required" }),
+        JSON.stringify({ error: "Action is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
     if (!slot || typeof slot !== "string") {
       return new Response(
-        JSON.stringify({ error: "Slot is required" }),
+        JSON.stringify({ error: "Slot is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -143,7 +143,7 @@ export const POST: APIRoute = async ({ request }) => {
 
       if (lastChange.rows.length === 0) {
         return new Response(
-          JSON.stringify({ error: "No history found for this slot" }),
+          JSON.stringify({ error: "No history found for this slot", code: "NOT_FOUND" }),
           { status: 404, headers: SECURITY_HEADERS }
         );
       }
@@ -206,14 +206,14 @@ export const POST: APIRoute = async ({ request }) => {
         // Undo a delete — restore the override
         if (!entry.previous_blob_url) {
           return new Response(
-            JSON.stringify({ error: "No image to restore" }),
+            JSON.stringify({ error: "No image to restore", code: "BAD_REQUEST" }),
             { status: 400, headers: SECURITY_HEADERS }
           );
         }
 
         if (!category || typeof category !== "string") {
           return new Response(
-            JSON.stringify({ error: "Category is required for restore" }),
+            JSON.stringify({ error: "Category is required for restore", code: "BAD_REQUEST" }),
             { status: 400, headers: SECURITY_HEADERS }
           );
         }
@@ -276,19 +276,19 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         return new Response(
-          JSON.stringify({ error: "Nothing to undo" }),
+          JSON.stringify({ error: "Nothing to undo", code: "INTERNAL_ERROR" }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
 
       return new Response(
-        JSON.stringify({ error: "Cannot undo this action" }),
+        JSON.stringify({ error: "Cannot undo this action", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
     return new Response(
-      JSON.stringify({ error: `Unknown action: ${String(action)}` }),
+      JSON.stringify({ error: `Unknown action: ${String(action)}`, code: "BAD_REQUEST" }),
       { status: 400, headers: SECURITY_HEADERS }
     );
   } catch (error) {
@@ -297,7 +297,7 @@ export const POST: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

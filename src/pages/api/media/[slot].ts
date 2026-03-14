@@ -10,7 +10,7 @@ export const GET: APIRoute = async ({ params }) => {
 
   if (!slot || typeof slot !== "string" || slot.trim().length === 0) {
     return new Response(
-      JSON.stringify({ error: "Slot parameter is required" }),
+      JSON.stringify({ error: "Slot parameter is required", code: "BAD_REQUEST" }),
       {
         status: 400,
         headers: {

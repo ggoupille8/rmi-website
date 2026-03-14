@@ -12,7 +12,7 @@ const SECURITY_HEADERS = {
 };
 
 function unauthorizedResponse(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
     status: 401,
     headers: {
       ...SECURITY_HEADERS,
@@ -23,7 +23,7 @@ function unauthorizedResponse(): Response {
 
 function dbNotConfiguredResponse(): Response {
   return new Response(
-    JSON.stringify({ error: "Database not configured" }),
+    JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
     { status: 500, headers: SECURITY_HEADERS }
   );
 }
@@ -177,7 +177,7 @@ export const GET: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -195,7 +195,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (!body.flag_id || typeof body.flag_id !== "number") {
       return new Response(
-        JSON.stringify({ error: "flag_id (number) is required" }),
+        JSON.stringify({ error: "flag_id (number) is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -207,7 +207,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (result.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Flag not found" }),
+        JSON.stringify({ error: "Flag not found", code: "NOT_FOUND" }),
         { status: 404, headers: SECURITY_HEADERS }
       );
     }
@@ -222,7 +222,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

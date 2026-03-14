@@ -6,7 +6,7 @@ import {
   isValidEmail,
   FIELD_LIMITS,
 } from "../../lib/validation";
-import { getClientIP } from "../../lib/rate-limiter";
+import { contactRateLimiter, getClientIP } from "../../lib/rate-limiter";
 import { enrichLeadAsync } from "../../lib/leadEnrichment";
 import type { IntelligencePayload, ContactRecord } from "../../lib/leadEnrichment";
 import { checkAndEnforceBlacklist } from "../../lib/ipBlacklist";
@@ -281,7 +281,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     data = await request.json();
   } catch {
-    return new Response(JSON.stringify({ ok: false, error: "Invalid JSON" }), {
+    return new Response(JSON.stringify({ error: "Invalid JSON", code: "BAD_REQUEST" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
@@ -364,7 +364,7 @@ export const POST: APIRoute = async ({ request }) => {
     name.length > FIELD_LIMITS.MAX_NAME_LENGTH ||
     message.length > FIELD_LIMITS.MAX_MESSAGE_LENGTH
   ) {
-    return new Response(JSON.stringify({ ok: false, error: "Invalid input" }), {
+    return new Response(JSON.stringify({ error: "Invalid input", code: "VALIDATION_ERROR" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
@@ -372,14 +372,14 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (!email) {
     return new Response(
-      JSON.stringify({ ok: false, error: "Email is required", field: "email" }),
+      JSON.stringify({ error: "Email is required", code: "VALIDATION_ERROR" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
 
   if (!isValidEmail(email) || email.length > FIELD_LIMITS.MAX_EMAIL_LENGTH) {
     return new Response(
-      JSON.stringify({ ok: false, error: "Invalid email format", field: "email" }),
+      JSON.stringify({ error: "Invalid email format", code: "VALIDATION_ERROR" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -390,7 +390,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (!postgresUrl) {
     return new Response(
-      JSON.stringify({ ok: false, error: "Database not configured" }),
+      JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -398,7 +398,7 @@ export const POST: APIRoute = async ({ request }) => {
   const contactsTableReady = await checkContactsTable();
   if (!contactsTableReady.ok) {
     return new Response(
-      JSON.stringify({ ok: false, error: "Database schema missing" }),
+      JSON.stringify({ error: "Database schema missing", code: "INTERNAL_ERROR" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -406,7 +406,7 @@ export const POST: APIRoute = async ({ request }) => {
   const dbReady = await verifyDatabaseReady();
   if (!dbReady.ok) {
     return new Response(
-      JSON.stringify({ ok: false, error: "Server error" }),
+      JSON.stringify({ error: "Server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -416,7 +416,7 @@ export const POST: APIRoute = async ({ request }) => {
     const rateLimited = await checkDbRateLimit(clientIP);
     if (rateLimited) {
       return new Response(
-        JSON.stringify({ ok: false, error: "Too many requests. Please try again later." }),
+        JSON.stringify({ error: "Too many requests. Please try again later.", code: "RATE_LIMITED" }),
         {
           status: 429,
           headers: {
@@ -490,7 +490,7 @@ export const POST: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ ok: false, error: "Server error" }),
+      JSON.stringify({ error: "Server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -520,7 +520,7 @@ export const POST: APIRoute = async ({ request }) => {
 // Ensure non-POST methods get a clear response
 export async function ALL() {
   return new Response(
-    JSON.stringify({ ok: false, error: "Method not allowed" }),
+    JSON.stringify({ error: "Method not allowed", code: "METHOD_NOT_ALLOWED" }),
     {
       status: 405,
       headers: { "Content-Type": "application/json" },

@@ -19,7 +19,7 @@ const SECURITY_HEADERS = {
 };
 
 function unauthorizedResponse(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
     status: 401,
     headers: {
       ...SECURITY_HEADERS,
@@ -30,7 +30,7 @@ function unauthorizedResponse(): Response {
 
 function dbNotConfiguredResponse(): Response {
   return new Response(
-    JSON.stringify({ error: "Database not configured" }),
+    JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
     { status: 500, headers: SECURITY_HEADERS }
   );
 }
@@ -67,7 +67,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!jobNumber || !Array.isArray(lineItems) || lineItems.length === 0) {
       return new Response(
-        JSON.stringify({ error: "jobNumber and at least one line item required" }),
+        JSON.stringify({ error: "jobNumber and at least one line item required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -82,7 +82,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (jobResult.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: `Job ${jobNumber} not found` }),
+        JSON.stringify({ error: `Job ${jobNumber} not found`, code: "NOT_FOUND" }),
         { status: 404, headers: SECURITY_HEADERS }
       );
     }
@@ -167,7 +167,7 @@ export const POST: APIRoute = async ({ request }) => {
       "Tax compute error:",
       error instanceof Error ? error.message : "Unknown error"
     );
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });

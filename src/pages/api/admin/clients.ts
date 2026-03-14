@@ -12,7 +12,7 @@ const SECURITY_HEADERS = {
 };
 
 function unauthorizedResponse(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
     status: 401,
     headers: {
       ...SECURITY_HEADERS,
@@ -23,7 +23,7 @@ function unauthorizedResponse(): Response {
 
 function dbNotConfiguredResponse(): Response {
   return new Response(
-    JSON.stringify({ error: "Database not configured" }),
+    JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
     { status: 500, headers: SECURITY_HEADERS }
   );
 }
@@ -43,7 +43,7 @@ export const GET: APIRoute = async ({ request }) => {
     });
   } catch (error) {
     console.error("Admin clients fetch error:", error instanceof Error ? error.message : "Unknown error");
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });
@@ -77,7 +77,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!name || !domain) {
       return new Response(
-        JSON.stringify({ error: "name and domain required" }),
+        JSON.stringify({ error: "name and domain required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -105,7 +105,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   } catch (error) {
     console.error("Admin clients create error:", error instanceof Error ? error.message : "Unknown error");
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });
@@ -141,7 +141,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (!id) {
       return new Response(
-        JSON.stringify({ error: "id required" }),
+        JSON.stringify({ error: "id required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -149,7 +149,7 @@ export const PATCH: APIRoute = async ({ request }) => {
     const current = await sql`SELECT * FROM clients WHERE id = ${id}`;
     if (current.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Client not found" }),
+        JSON.stringify({ error: "Client not found", code: "NOT_FOUND" }),
         { status: 404, headers: SECURITY_HEADERS }
       );
     }
@@ -191,7 +191,7 @@ export const PATCH: APIRoute = async ({ request }) => {
     });
   } catch (error) {
     console.error("Admin clients update error:", error instanceof Error ? error.message : "Unknown error");
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });
@@ -210,7 +210,7 @@ export const DELETE: APIRoute = async ({ request }) => {
 
     if (!id) {
       return new Response(
-        JSON.stringify({ error: "id required" }),
+        JSON.stringify({ error: "id required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -221,7 +221,7 @@ export const DELETE: APIRoute = async ({ request }) => {
     });
   } catch (error) {
     console.error("Admin clients delete error:", error instanceof Error ? error.message : "Unknown error");
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });

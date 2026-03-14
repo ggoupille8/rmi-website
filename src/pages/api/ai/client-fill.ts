@@ -5,7 +5,7 @@ export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
     });
@@ -15,7 +15,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+    return new Response(JSON.stringify({ error: "Invalid JSON", code: "BAD_REQUEST" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const { name } = body;
   if (!name || typeof name !== "string" || !name.trim()) {
-    return new Response(JSON.stringify({ error: "name required" }), {
+    return new Response(JSON.stringify({ error: "name required", code: "BAD_REQUEST" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const apiKey = import.meta.env.ANTHROPIC_API_KEY ?? process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not set" }), {
+    return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not set", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
@@ -70,7 +70,7 @@ Return ONLY raw JSON, no markdown:
 
     if (!res.ok) {
       console.error("Anthropic API error:", res.status, res.statusText);
-      return new Response(JSON.stringify({ error: "AI service error" }), {
+      return new Response(JSON.stringify({ error: "AI service error", code: "INTERNAL_ERROR" }), {
         status: 502,
         headers: { "Content-Type": "application/json" },
       });
@@ -89,7 +89,7 @@ Return ONLY raw JSON, no markdown:
     });
   } catch (error) {
     console.error("AI fill error:", error instanceof Error ? error.message : "Unknown error");
-    return new Response(JSON.stringify({ error: "AI parse failed" }), {
+    return new Response(JSON.stringify({ error: "AI parse failed", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

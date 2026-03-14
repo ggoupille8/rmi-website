@@ -13,7 +13,7 @@ const HEADERS = {
 // GET — fetch notifications + unread count
 export const GET: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: HEADERS });
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), { status: 401, headers: HEADERS });
   }
 
   try {
@@ -32,7 +32,7 @@ export const GET: APIRoute = async ({ request }) => {
     );
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to fetch notifications" }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to fetch notifications", code: "INTERNAL_ERROR" }),
       { status: 500, headers: HEADERS }
     );
   }
@@ -41,7 +41,7 @@ export const GET: APIRoute = async ({ request }) => {
 // PATCH — mark as read
 export const PATCH: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: HEADERS });
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), { status: 401, headers: HEADERS });
   }
 
   try {
@@ -56,7 +56,7 @@ export const PATCH: APIRoute = async ({ request }) => {
     );
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to mark as read" }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Failed to mark as read", code: "INTERNAL_ERROR" }),
       { status: 500, headers: HEADERS }
     );
   }

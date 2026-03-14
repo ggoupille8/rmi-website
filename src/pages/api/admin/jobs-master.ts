@@ -12,7 +12,7 @@ const SECURITY_HEADERS = {
 };
 
 function unauthorizedResponse(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
     status: 401,
     headers: {
       ...SECURITY_HEADERS,
@@ -23,7 +23,7 @@ function unauthorizedResponse(): Response {
 
 function dbNotConfiguredResponse(): Response {
   return new Response(
-    JSON.stringify({ error: "Database not configured" }),
+    JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
     { status: 500, headers: SECURITY_HEADERS }
   );
 }
@@ -91,7 +91,7 @@ export const GET: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -112,7 +112,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (!id || typeof id !== "number") {
       return new Response(
-        JSON.stringify({ error: "id (number) is required" }),
+        JSON.stringify({ error: "id (number) is required", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -126,7 +126,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       if (!isValidTaxStatus(body.tax_status)) {
         return new Response(
           JSON.stringify({
-            error: `Invalid tax_status. Must be one of: ${VALID_TAX_STATUSES.join(", ")}`,
+            error: `Invalid tax_status. Must be one of: ${VALID_TAX_STATUSES.join(", "), code: "BAD_REQUEST"}`,
           }),
           { status: 400, headers: SECURITY_HEADERS }
         );
@@ -155,7 +155,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       } else {
         return new Response(
           JSON.stringify({
-            error: `Invalid tax_exemption_type. Must be one of: ${VALID_EXEMPTION_TYPES.join(", ")}`,
+            error: `Invalid tax_exemption_type. Must be one of: ${VALID_EXEMPTION_TYPES.join(", "), code: "BAD_REQUEST"}`,
           }),
           { status: 400, headers: SECURITY_HEADERS }
         );
@@ -175,7 +175,7 @@ export const PATCH: APIRoute = async ({ request }) => {
         setClauses.push("project_manager = NULL");
       } else {
         return new Response(
-          JSON.stringify({ error: "Invalid project_manager" }),
+          JSON.stringify({ error: "Invalid project_manager", code: "BAD_REQUEST" }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
@@ -196,7 +196,7 @@ export const PATCH: APIRoute = async ({ request }) => {
         setClauses.push("contract_type = NULL");
       } else {
         return new Response(
-          JSON.stringify({ error: "Invalid contract_type" }),
+          JSON.stringify({ error: "Invalid contract_type", code: "BAD_REQUEST" }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
@@ -212,7 +212,7 @@ export const PATCH: APIRoute = async ({ request }) => {
         idx++;
       } else {
         return new Response(
-          JSON.stringify({ error: "Invalid customer_id" }),
+          JSON.stringify({ error: "Invalid customer_id", code: "BAD_REQUEST" }),
           { status: 400, headers: SECURITY_HEADERS }
         );
       }
@@ -231,7 +231,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (setClauses.length <= 1) {
       return new Response(
-        JSON.stringify({ error: "No valid fields to update" }),
+        JSON.stringify({ error: "No valid fields to update", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -256,7 +256,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 
     if (result.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Job not found" }),
+        JSON.stringify({ error: "Job not found", code: "NOT_FOUND" }),
         { status: 404, headers: SECURITY_HEADERS }
       );
     }
@@ -280,7 +280,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -306,14 +306,14 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!Array.isArray(jobIds) || jobIds.length === 0) {
       return new Response(
-        JSON.stringify({ error: "jobIds must be a non-empty array" }),
+        JSON.stringify({ error: "jobIds must be a non-empty array", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
     if (jobIds.length > 500) {
       return new Response(
-        JSON.stringify({ error: "Cannot bulk update more than 500 jobs at once" }),
+        JSON.stringify({ error: "Cannot bulk update more than 500 jobs at once", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -321,7 +321,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!isValidTaxStatus(taxStatus)) {
       return new Response(
         JSON.stringify({
-          error: `Invalid taxStatus. Must be one of: ${VALID_TAX_STATUSES.join(", ")}`,
+          error: `Invalid taxStatus. Must be one of: ${VALID_TAX_STATUSES.join(", "), code: "BAD_REQUEST"}`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -330,7 +330,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Validate all IDs are numbers
     if (!jobIds.every((id) => typeof id === "number")) {
       return new Response(
-        JSON.stringify({ error: "All jobIds must be numbers" }),
+        JSON.stringify({ error: "All jobIds must be numbers", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -349,7 +349,7 @@ export const POST: APIRoute = async ({ request }) => {
       if (!isValidExemptionType(taxExemptionType)) {
         return new Response(
           JSON.stringify({
-            error: `Invalid taxExemptionType. Must be one of: ${VALID_EXEMPTION_TYPES.join(", ")}`,
+            error: `Invalid taxExemptionType. Must be one of: ${VALID_EXEMPTION_TYPES.join(", "), code: "BAD_REQUEST"}`,
           }),
           { status: 400, headers: SECURITY_HEADERS }
         );
@@ -386,7 +386,7 @@ export const POST: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

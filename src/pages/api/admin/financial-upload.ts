@@ -206,7 +206,7 @@ async function storeBorrowingBase(
 
 export const POST: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: { ...SECURITY_HEADERS, "WWW-Authenticate": 'Bearer realm="admin"' },
     });
@@ -214,7 +214,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const env = getPostgresEnv();
   if (!env) {
-    return new Response(JSON.stringify({ error: "Database not configured" }), {
+    return new Response(JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });
@@ -228,14 +228,14 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!file || !(file instanceof File)) {
       return new Response(
-        JSON.stringify({ error: "No file provided. Use multipart/form-data with a 'file' field." }),
+        JSON.stringify({ error: "No file provided. Use multipart/form-data with a 'file' field.", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
     if (file.size > MAX_FILE_SIZE) {
       return new Response(
-        JSON.stringify({ error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum: 50MB.` }),
+        JSON.stringify({ error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum: 50MB.`, code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -246,7 +246,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!reportType) {
       return new Response(
         JSON.stringify({
-          error: `Could not detect report type from filename "${filename}". Specify reportType parameter (ar_aging, balance_sheet, income_statement, borrowing_base).`,
+          error: `Could not detect report type from filename "${filename, code: "BAD_REQUEST"}". Specify reportType parameter (ar_aging, balance_sheet, income_statement, borrowing_base).`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -315,7 +315,7 @@ export const POST: APIRoute = async ({ request }) => {
       };
     } else {
       return new Response(
-        JSON.stringify({ error: `Invalid report type: ${reportType}` }),
+        JSON.stringify({ error: `Invalid report type: ${reportType}`, code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -328,7 +328,7 @@ export const POST: APIRoute = async ({ request }) => {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[financial-upload] Error:", message);
     return new Response(
-      JSON.stringify({ error: `Parse/import failed: ${message}` }),
+      JSON.stringify({ error: `Parse/import failed: ${message}`, code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

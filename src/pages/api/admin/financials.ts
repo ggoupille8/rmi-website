@@ -12,14 +12,14 @@ const SECURITY_HEADERS = {
 };
 
 function unauthorized(): Response {
-  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
     status: 401,
     headers: { ...SECURITY_HEADERS, "WWW-Authenticate": 'Bearer realm="admin"' },
   });
 }
 
 function dbError(): Response {
-  return new Response(JSON.stringify({ error: "Database not configured" }), {
+  return new Response(JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }), {
     status: 500,
     headers: SECURITY_HEADERS,
   });
@@ -53,7 +53,7 @@ export const GET: APIRoute = async ({ request, url }) => {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[financials] Error:", message);
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: message, code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });
@@ -149,7 +149,7 @@ async function handleSnapshots(url: URL): Promise<Response> {
   }
 
   return new Response(
-    JSON.stringify({ error: "type parameter required (ar_aging, balance_sheet, income_statement)" }),
+    JSON.stringify({ error: "type parameter required (ar_aging, balance_sheet, income_statement)", code: "BAD_REQUEST" }),
     { status: 400, headers: SECURITY_HEADERS }
   );
 }
@@ -166,12 +166,12 @@ async function handleDetail(url: URL): Promise<Response> {
     } else if (reportDate) {
       snapshot = await sql`SELECT * FROM ar_aging_snapshots WHERE report_date = ${reportDate} ORDER BY imported_at DESC LIMIT 1`;
     } else {
-      return new Response(JSON.stringify({ error: "snapshotId or reportDate required" }), {
+      return new Response(JSON.stringify({ error: "snapshotId or reportDate required", code: "BAD_REQUEST" }), {
         status: 400, headers: SECURITY_HEADERS,
       });
     }
     if (snapshot.rows.length === 0) {
-      return new Response(JSON.stringify({ error: "Snapshot not found" }), {
+      return new Response(JSON.stringify({ error: "Snapshot not found", code: "BAD_REQUEST" }), {
         status: 404, headers: SECURITY_HEADERS,
       });
     }
@@ -191,12 +191,12 @@ async function handleDetail(url: URL): Promise<Response> {
     } else if (reportDate) {
       snapshot = await sql`SELECT * FROM balance_sheet_snapshots WHERE report_date = ${reportDate} ORDER BY imported_at DESC LIMIT 1`;
     } else {
-      return new Response(JSON.stringify({ error: "snapshotId or reportDate required" }), {
+      return new Response(JSON.stringify({ error: "snapshotId or reportDate required", code: "BAD_REQUEST" }), {
         status: 400, headers: SECURITY_HEADERS,
       });
     }
     if (snapshot.rows.length === 0) {
-      return new Response(JSON.stringify({ error: "Snapshot not found" }), {
+      return new Response(JSON.stringify({ error: "Snapshot not found", code: "BAD_REQUEST" }), {
         status: 404, headers: SECURITY_HEADERS,
       });
     }
@@ -216,12 +216,12 @@ async function handleDetail(url: URL): Promise<Response> {
     } else if (reportDate) {
       snapshot = await sql`SELECT * FROM income_statement_snapshots WHERE period_end_date = ${reportDate} ORDER BY imported_at DESC LIMIT 1`;
     } else {
-      return new Response(JSON.stringify({ error: "snapshotId or reportDate required" }), {
+      return new Response(JSON.stringify({ error: "snapshotId or reportDate required", code: "BAD_REQUEST" }), {
         status: 400, headers: SECURITY_HEADERS,
       });
     }
     if (snapshot.rows.length === 0) {
-      return new Response(JSON.stringify({ error: "Snapshot not found" }), {
+      return new Response(JSON.stringify({ error: "Snapshot not found", code: "BAD_REQUEST" }), {
         status: 404, headers: SECURITY_HEADERS,
       });
     }
@@ -235,7 +235,7 @@ async function handleDetail(url: URL): Promise<Response> {
   }
 
   return new Response(
-    JSON.stringify({ error: "type parameter required (ar_aging, balance_sheet, income_statement)" }),
+    JSON.stringify({ error: "type parameter required (ar_aging, balance_sheet, income_statement)", code: "INTERNAL_ERROR" }),
     { status: 400, headers: SECURITY_HEADERS }
   );
 }
@@ -244,7 +244,7 @@ async function handleReconciliation(url: URL): Promise<Response> {
   const reportDate = url.searchParams.get("reportDate");
   if (!reportDate) {
     return new Response(
-      JSON.stringify({ error: "reportDate parameter required (YYYY-MM-DD)" }),
+      JSON.stringify({ error: "reportDate parameter required (YYYY-MM-DD)", code: "BAD_REQUEST" }),
       { status: 400, headers: SECURITY_HEADERS }
     );
   }

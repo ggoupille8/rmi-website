@@ -47,7 +47,7 @@ function classifyTraffic(
 
 export const GET: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: SECURITY_HEADERS,
     });
@@ -449,7 +449,7 @@ export const GET: APIRoute = async ({ request }) => {
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
     console.error("GA4 API error:", errMsg);
-    return new Response(JSON.stringify({ error: errMsg, configured: true }), {
+    return new Response(JSON.stringify({ error: errMsg, configured: true, code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: SECURITY_HEADERS,
     });

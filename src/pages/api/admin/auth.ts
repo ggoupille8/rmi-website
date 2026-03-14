@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!password || typeof password !== "string") {
       return new Response(
-        JSON.stringify({ error: "Password is required" }),
+        JSON.stringify({ error: "Password is required", code: "BAD_REQUEST" }),
         {
           status: 400,
           headers: { "Content-Type": "application/json", ...SECURITY_HEADERS },
@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
     const valid = await verifyPassword(password);
     if (!valid) {
       return new Response(
-        JSON.stringify({ error: "Invalid password" }),
+        JSON.stringify({ error: "Invalid password", code: "UNAUTHORIZED" }),
         {
           status: 401,
           headers: { "Content-Type": "application/json", ...SECURITY_HEADERS },
@@ -57,7 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...SECURITY_HEADERS },

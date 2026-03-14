@@ -35,7 +35,7 @@ function isAuthorized(request: Request): boolean {
 export const GET: APIRoute = async ({ request }) => {
   // Check authorization
   if (!isAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +47,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   const { url: postgresUrl } = getPostgresEnv();
   if (!postgresUrl) {
-    return new Response(JSON.stringify({ error: "Database not configured" }), {
+    return new Response(JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
@@ -114,7 +114,7 @@ export const GET: APIRoute = async ({ request }) => {
       "Admin quotes fetch error:",
       error instanceof Error ? error.message : "Unknown error"
     );
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: "Internal server error", code: "INTERNAL_ERROR" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

@@ -19,7 +19,7 @@ const ALLOWED_EXTENSIONS = new Set([".xlsx", ".xls"]);
 
 export const POST: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: {
         ...SECURITY_HEADERS,
@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
   const { url: postgresUrl } = getPostgresEnv();
   if (!postgresUrl) {
     return new Response(
-      JSON.stringify({ error: "Database not configured" }),
+      JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (!file || !(file instanceof File)) {
       return new Response(
-        JSON.stringify({ error: "No file provided. Use multipart/form-data with a 'file' field." }),
+        JSON.stringify({ error: "No file provided. Use multipart/form-data with a 'file' field.", code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
     const ext = fileName.substring(fileName.lastIndexOf("."));
     if (!ALLOWED_EXTENSIONS.has(ext)) {
       return new Response(
-        JSON.stringify({ error: `Invalid file type. Allowed: .xlsx, .xls` }),
+        JSON.stringify({ error: `Invalid file type. Allowed: .xlsx, .xls`, code: "BAD_REQUEST" }),
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
@@ -63,7 +63,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (file.size > MAX_FILE_SIZE) {
       return new Response(
         JSON.stringify({
-          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum: 50MB.`,
+          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1), code: "BAD_REQUEST"}MB. Maximum: 50MB.`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -79,6 +79,7 @@ export const POST: APIRoute = async ({ request }) => {
         JSON.stringify({
           error: "Failed to parse any job data from the file",
           parseErrors: parseResult.errors,
+          code: "BAD_REQUEST",
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -154,7 +155,7 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (error) {
     console.error("WIP upload error:", error instanceof Error ? error.message : "Unknown error");
     return new Response(
-      JSON.stringify({ error: "Upload processing failed" }),
+      JSON.stringify({ error: "Upload processing failed", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }

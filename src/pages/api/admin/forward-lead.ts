@@ -220,7 +220,7 @@ function buildEmailHtml(contact: Record<string, unknown>): string {
 
 export const POST: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
       status: 401,
       headers: {
         ...SECURITY_HEADERS,
@@ -232,7 +232,7 @@ export const POST: APIRoute = async ({ request }) => {
   const apiKey = import.meta.env.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
   if (!apiKey) {
     return new Response(
-      JSON.stringify({ error: "RESEND_API_KEY not configured" }),
+      JSON.stringify({ error: "RESEND_API_KEY not configured", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -240,7 +240,7 @@ export const POST: APIRoute = async ({ request }) => {
   const { url: postgresUrl } = getPostgresEnv();
   if (!postgresUrl) {
     return new Response(
-      JSON.stringify({ error: "Database not configured" }),
+      JSON.stringify({ error: "Database not configured", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
@@ -249,7 +249,7 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     body = (await request.json()) as { contactId?: unknown };
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+    return new Response(JSON.stringify({ error: "Invalid JSON", code: "BAD_REQUEST" }), {
       status: 400,
       headers: SECURITY_HEADERS,
     });
@@ -258,7 +258,7 @@ export const POST: APIRoute = async ({ request }) => {
   const contactId = body.contactId;
   if (!contactId || typeof contactId !== "string") {
     return new Response(
-      JSON.stringify({ error: "contactId is required" }),
+      JSON.stringify({ error: "contactId is required", code: "BAD_REQUEST" }),
       { status: 400, headers: SECURITY_HEADERS }
     );
   }
@@ -270,7 +270,7 @@ export const POST: APIRoute = async ({ request }) => {
     )
   ) {
     return new Response(
-      JSON.stringify({ error: "Invalid contact ID format" }),
+      JSON.stringify({ error: "Invalid contact ID format", code: "BAD_REQUEST" }),
       { status: 400, headers: SECURITY_HEADERS }
     );
   }
@@ -285,7 +285,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     if (result.rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: "Contact not found" }),
+        JSON.stringify({ error: "Contact not found", code: "NOT_FOUND" }),
         { status: 404, headers: SECURITY_HEADERS }
       );
     }
@@ -325,7 +325,7 @@ export const POST: APIRoute = async ({ request }) => {
       error instanceof Error ? error.message : "Unknown error"
     );
     return new Response(
-      JSON.stringify({ error: "Failed to forward lead" }),
+      JSON.stringify({ error: "Failed to forward lead", code: "INTERNAL_ERROR" }),
       { status: 500, headers: SECURITY_HEADERS }
     );
   }
