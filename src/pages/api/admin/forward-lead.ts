@@ -13,7 +13,7 @@ const SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
 };
 
-const SALES_EMAIL = "rgoupille@rmi-llc.net";
+const SALES_EMAIL = "fab@rmi-llc.net";
 
 interface GeoData {
   country?: string;
@@ -305,13 +305,13 @@ export const POST: APIRoute = async ({ request }) => {
       html,
     });
 
-    // Update status to "contacted" and add forwarding note
+    // Update status to "forwarded" and add forwarding note
     const forwardNote = `Forwarded to ${SALES_EMAIL} on ${new Date().toLocaleDateString("en-US")}`;
     const existingNotes = contact.notes ? `${contact.notes}\n${forwardNote}` : forwardNote;
 
     await sql`
       UPDATE contacts
-      SET status = 'contacted', notes = ${existingNotes}, updated_at = NOW()
+      SET status = 'forwarded', notes = ${existingNotes}, updated_at = NOW()
       WHERE id = ${contactId}
     `;
 

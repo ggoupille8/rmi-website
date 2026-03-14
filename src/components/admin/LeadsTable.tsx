@@ -36,18 +36,21 @@ const STATUS_FILTERS = [
   { value: "", label: "All" },
   { value: "new", label: "New" },
   { value: "contacted", label: "Contacted" },
+  { value: "forwarded", label: "Forwarded" },
   { value: "archived", label: "Archived" },
 ];
 
 const STATUS_BADGE: Record<string, string> = {
   new: "bg-primary-600/20 text-primary-400 border-primary-600/30",
   contacted: "bg-green-600/20 text-green-400 border-green-600/30",
+  forwarded: "bg-accent-600/20 text-accent-400 border-accent-600/30",
   archived: "bg-neutral-700/50 text-neutral-500 border-neutral-700",
 };
 
 const STATUS_CYCLE: Record<string, string> = {
   new: "contacted",
-  contacted: "archived",
+  contacted: "forwarded",
+  forwarded: "archived",
   archived: "new",
 };
 

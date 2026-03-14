@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { X, ChevronUp, Mail, Save, Send, Clock } from "lucide-react";
+import { showToast } from "./Toast";
 
 interface GeoData {
   country?: string;
@@ -80,6 +81,7 @@ interface Props {
 const STATUS_OPTIONS = [
   { value: "new", label: "New", color: "bg-primary-500" },
   { value: "contacted", label: "Contacted", color: "bg-green-500" },
+  { value: "forwarded", label: "Forwarded", color: "bg-accent-500" },
   { value: "archived", label: "Archived", color: "bg-neutral-600" },
 ];
 
@@ -291,14 +293,16 @@ export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props
       });
       if (res.ok) {
         setForwarded(true);
-        // Auto-update status to "contacted"
-        setStatus("contacted");
-        onUpdate(contact.id, "contacted", notes || null);
+        setStatus("forwarded");
+        onUpdate(contact.id, "forwarded", notes || null);
+        showToast("success", "Lead forwarded to fab@rmi-llc.net");
       } else {
         setForwardError(true);
+        showToast("error", "Failed to forward lead — please try again");
       }
     } catch {
       setForwardError(true);
+      showToast("error", "Failed to forward lead — please try again");
     } finally {
       setForwarding(false);
     }
@@ -411,7 +415,8 @@ export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props
               <div className="flex items-center gap-2">
                 <span className={`w-3 h-3 rounded-full shrink-0 ${
                   status === "new" ? "bg-primary-500" :
-                  status === "contacted" ? "bg-green-500" : "bg-neutral-600"
+                  status === "contacted" ? "bg-green-500" :
+                  status === "forwarded" ? "bg-accent-500" : "bg-neutral-600"
                 }`} />
                 <span className="text-xs text-neutral-300">
                   Current status: <span className="font-medium capitalize">{status}</span>

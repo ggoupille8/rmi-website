@@ -13,7 +13,7 @@ const SECURITY_HEADERS = {
   "X-Content-Type-Options": "nosniff",
 };
 
-const VALID_STATUSES = ["new", "contacted", "archived"] as const;
+const VALID_STATUSES = ["new", "contacted", "forwarded", "archived"] as const;
 type LeadStatus = (typeof VALID_STATUSES)[number];
 
 function isValidStatus(s: unknown): s is LeadStatus {
