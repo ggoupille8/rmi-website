@@ -9,6 +9,8 @@ import {
   Search,
   Download,
   Calendar,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────
@@ -96,12 +98,12 @@ const PM_COLORS: Record<string, { bg: string; text: string; border: string }> = 
   SB: { bg: "bg-purple-950/40", text: "text-purple-400", border: "border-purple-800/50" },
 };
 
-const STATUS_BADGES: Record<string, { label: string; className: string }> = {
-  match: { label: "Match", className: "bg-emerald-900/40 text-emerald-400" },
-  over: { label: "Over", className: "bg-amber-900/40 text-amber-400" },
-  under: { label: "Under", className: "bg-red-900/40 text-red-400" },
-  invoice_only: { label: "Invoice Only", className: "bg-neutral-700/40 text-neutral-400" },
-  wip_only: { label: "WIP Only", className: "bg-neutral-700/40 text-neutral-400" },
+const STATUS_BADGES: Record<string, { label: string; className: string; dot: string }> = {
+  match: { label: "Matched", className: "bg-emerald-900/40 text-emerald-400 border border-emerald-800/50", dot: "bg-emerald-400" },
+  over: { label: "Partial", className: "bg-amber-900/40 text-amber-400 border border-amber-800/50", dot: "bg-amber-400" },
+  under: { label: "Partial", className: "bg-amber-900/40 text-amber-400 border border-amber-800/50", dot: "bg-amber-400" },
+  invoice_only: { label: "Unreconciled", className: "bg-red-900/40 text-red-400 border border-red-800/50", dot: "bg-red-400" },
+  wip_only: { label: "Unreconciled", className: "bg-red-900/40 text-red-400 border border-red-800/50", dot: "bg-red-400" },
 };
 
 type SortField = "variance" | "invoiceCost" | "wipCostsToDate" | "jobNumber";
@@ -241,15 +243,18 @@ export default function WipCostReconciliation({ month }: WipCostReconciliationPr
     if (!data) return [];
     let jobs = [...data.jobs];
 
-    // Search filter
+    // Search filter (job number, description, customer, and vendor names from loaded invoices)
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      jobs = jobs.filter(
-        (j) =>
-          j.jobNumber.toLowerCase().includes(term) ||
-          (j.description?.toLowerCase().includes(term) ?? false) ||
-          (j.customer?.toLowerCase().includes(term) ?? false)
-      );
+      jobs = jobs.filter((j) => {
+        if (j.jobNumber.toLowerCase().includes(term)) return true;
+        if (j.description?.toLowerCase().includes(term)) return true;
+        if (j.customer?.toLowerCase().includes(term)) return true;
+        // Also search vendor names in loaded invoices
+        const invoices = jobInvoices.get(j.jobNumber);
+        if (invoices?.some((inv) => inv.vendor_name.toLowerCase().includes(term))) return true;
+        return false;
+      });
     }
 
     // PM filter
@@ -283,7 +288,7 @@ export default function WipCostReconciliation({ month }: WipCostReconciliationPr
     });
 
     return jobs;
-  }, [data, searchTerm, pmFilter, statusFilter, sortField, sortAsc]);
+  }, [data, searchTerm, pmFilter, statusFilter, sortField, sortAsc, jobInvoices]);
 
   // ── Unique PMs for filter ──────────────────────────
   const uniquePms = useMemo(() => {
@@ -355,13 +360,102 @@ export default function WipCostReconciliation({ month }: WipCostReconciliationPr
   const { summary, pmBreakdown } = data;
   const needsUpdateCount = data.jobs.filter((j) => j.status !== "match" && j.status !== "wip_only").length;
 
+  // Reconciliation breakdown
+  const matchedJobs = data.jobs.filter((j) => j.status === "match");
+  const partialJobs = data.jobs.filter((j) => j.status === "over" || j.status === "under");
+  const unreconciledJobs = data.jobs.filter((j) => j.status === "invoice_only" || j.status === "wip_only");
+  const reconciledAmount = matchedJobs.reduce((sum, j) => sum + j.invoiceCost, 0);
+  const partialAmount = partialJobs.reduce((sum, j) => sum + j.invoiceCost, 0);
+  const unreconciledAmount = unreconciledJobs.reduce((sum, j) => sum + j.invoiceCost, 0);
+  const totalTracked = reconciledAmount + partialAmount + unreconciledAmount;
+  const reconciledPct = totalTracked > 0 ? (reconciledAmount / totalTracked) * 100 : 0;
+  const partialPct = totalTracked > 0 ? (partialAmount / totalTracked) * 100 : 0;
+  const unreconciledPct = totalTracked > 0 ? (unreconciledAmount / totalTracked) * 100 : 0;
+
   // Largest PM variance
   const largestPmGap = pmBreakdown.length > 0
     ? pmBreakdown.reduce((max, pm) => (Math.abs(pm.variance) > Math.abs(max.variance) ? pm : max), pmBreakdown[0])
     : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ animation: "fadeIn 0.3s ease-out" }}>
+      {/* ── Reconciliation Header ─────────────────────── */}
+      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider">
+            Reconciliation Status
+          </h3>
+          <span className="text-xs text-neutral-500">
+            {summary.totalJobs} jobs &middot; {fmtCurrency(totalTracked)} tracked
+          </span>
+        </div>
+
+        {/* Progress bar */}
+        <div className="h-3 rounded-full bg-neutral-800 overflow-hidden flex mb-4">
+          {reconciledPct > 0 && (
+            <div
+              className="bg-emerald-500 transition-all duration-500"
+              style={{ width: `${reconciledPct}%` }}
+              title={`Matched: ${fmtCurrency(reconciledAmount)}`}
+            />
+          )}
+          {partialPct > 0 && (
+            <div
+              className="bg-amber-500 transition-all duration-500"
+              style={{ width: `${partialPct}%` }}
+              title={`Partial: ${fmtCurrency(partialAmount)}`}
+            />
+          )}
+          {unreconciledPct > 0 && (
+            <div
+              className="bg-red-500 transition-all duration-500"
+              style={{ width: `${unreconciledPct}%` }}
+              title={`Unreconciled: ${fmtCurrency(unreconciledAmount)}`}
+            />
+          )}
+        </div>
+
+        {/* Legend row */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={14} className="text-emerald-400" />
+            <div>
+              <div className="text-xs text-neutral-500">Matched</div>
+              <div className="text-sm font-semibold text-emerald-400 tabular-nums">
+                {fmtCurrency(reconciledAmount)}
+              </div>
+              <div className="text-[10px] text-neutral-600">
+                {matchedJobs.length} jobs &middot; {reconciledPct.toFixed(0)}%
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={14} className="text-amber-400" />
+            <div>
+              <div className="text-xs text-neutral-500">Partial</div>
+              <div className="text-sm font-semibold text-amber-400 tabular-nums">
+                {fmtCurrency(partialAmount)}
+              </div>
+              <div className="text-[10px] text-neutral-600">
+                {partialJobs.length} jobs &middot; {partialPct.toFixed(0)}%
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <XCircle size={14} className="text-red-400" />
+            <div>
+              <div className="text-xs text-neutral-500">Unreconciled</div>
+              <div className="text-sm font-semibold text-red-400 tabular-nums">
+                {fmtCurrency(unreconciledAmount)}
+              </div>
+              <div className="text-[10px] text-neutral-600">
+                {unreconciledJobs.length} jobs &middot; {unreconciledPct.toFixed(0)}%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── Summary Cards ─────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryCard
@@ -488,7 +582,7 @@ export default function WipCostReconciliation({ month }: WipCostReconciliationPr
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
               <input
                 type="text"
-                placeholder="Search jobs…"
+                placeholder="Search job #, customer, vendor…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-sm text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-primary-600"
@@ -510,11 +604,11 @@ export default function WipCostReconciliation({ month }: WipCostReconciliationPr
               className="px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-sm text-neutral-200 focus:outline-none focus:border-primary-600"
             >
               <option value="all">All Statuses</option>
-              <option value="match">Match</option>
-              <option value="over">Over</option>
-              <option value="under">Under</option>
-              <option value="invoice_only">Invoice Only</option>
-              <option value="wip_only">WIP Only</option>
+              <option value="match">Matched</option>
+              <option value="over">Partial (Over)</option>
+              <option value="under">Partial (Under)</option>
+              <option value="invoice_only">Unreconciled (Invoice Only)</option>
+              <option value="wip_only">Unreconciled (WIP Only)</option>
             </select>
             <button
               type="button"
@@ -714,7 +808,7 @@ function JobRow({
   job: JobCost;
   expanded: boolean;
   invoices: InvoiceRow[] | undefined;
-  badge: { label: string; className: string };
+  badge: { label: string; className: string; dot: string };
   onToggle: () => void;
 }) {
   return (
@@ -756,7 +850,8 @@ function JobRow({
           )}
         </td>
         <td className="p-3 text-center">
-          <span className={`text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded ${badge.className}`}>
+          <span className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full ${badge.className}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
             {badge.label}
           </span>
         </td>
