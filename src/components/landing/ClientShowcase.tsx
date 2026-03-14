@@ -215,7 +215,7 @@ export default function ClientShowcase() {
           {displayClients.map((client, index) => (
             <div
               key={client.name}
-              className="flex items-center justify-center h-12 sm:h-14 lg:h-16 w-full px-2 overflow-visible opacity-[0.65] hover:opacity-100 hover:scale-110 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
+              className="group relative flex items-center justify-center h-12 sm:h-14 lg:h-16 w-full px-2 overflow-visible opacity-[0.65] grayscale hover:opacity-100 hover:grayscale-0 hover:scale-105 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
               style={skipAnimation ? undefined : {
                 transitionDelay: `${200 + index * 60}ms`,
                 opacity: isVisible ? undefined : 0,
@@ -231,6 +231,9 @@ export default function ClientShowcase() {
                 width={130}
                 height={40}
               />
+              <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-neutral-800 px-2 py-0.5 text-xs text-neutral-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg border border-neutral-700 z-10">
+                {client.name}
+              </span>
             </div>
           ))}
         </div>
