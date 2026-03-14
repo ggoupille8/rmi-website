@@ -3,6 +3,7 @@ import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../lib/db-env";
 import { isAdminAuthorized } from "../../../lib/admin-auth";
 import { ensureContactsSoftDelete } from "../../../lib/ensure-contacts-soft-delete";
+import { logActivity } from "../../../lib/activity-log";
 
 export const prerender = false;
 
@@ -227,8 +228,14 @@ export const PATCH: APIRoute = async ({ request }) => {
       );
     }
 
+    const updated = result.rows[0];
+    logActivity("status_change", "lead", String(id), {
+      name: updated.name ?? "",
+      new_status: updated.status,
+    }).catch(() => {});
+
     return new Response(
-      JSON.stringify({ ok: true, contact: result.rows[0] }),
+      JSON.stringify({ ok: true, contact: updated }),
       { status: 200, headers: SECURITY_HEADERS }
     );
   } catch (error) {

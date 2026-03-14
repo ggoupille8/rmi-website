@@ -16,6 +16,7 @@ import type {
 } from "../../../lib/financial-parsers";
 import { parseBorrowingBase } from "../../../lib/pdf-parsers";
 import type { BorrowingBaseResult } from "../../../lib/pdf-parsers";
+import { logActivity } from "../../../lib/activity-log";
 
 export const prerender = false;
 
@@ -319,6 +320,11 @@ export const POST: APIRoute = async ({ request }) => {
         { status: 400, headers: SECURITY_HEADERS }
       );
     }
+
+    logActivity("import", "financial", result.snapshotId, {
+      report_type: reportType,
+      filename,
+    }).catch(() => {});
 
     return new Response(JSON.stringify(result), {
       status: 200,

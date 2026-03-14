@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../lib/db-env";
 import { isAdminAuthorized } from "../../../lib/admin-auth";
+import { getActivityLog, getRecentActivity } from "../../../lib/activity-log";
 
 export const prerender = false;
 
@@ -18,9 +19,45 @@ interface ActivityEvent {
   link: string;
 }
 
+function linkForAction(action: string, entityType: string): string {
+  if (entityType === "lead") return "/admin/leads";
+  if (entityType === "client") return "/admin/clients";
+  if (entityType === "invoice") return "/admin/invoices";
+  if (entityType === "financial") return "/admin/financials";
+  if (entityType === "job") return "/admin/jobs";
+  return "/admin/activity";
+}
+
+function descriptionForEntry(
+  action: string,
+  entityType: string,
+  details: Record<string, unknown>
+): string {
+  switch (action) {
+    case "status_change":
+      return `Lead ${details.name ?? ""} → ${details.new_status ?? "unknown"}`;
+    case "create":
+      if (entityType === "client") return `New client: ${details.name ?? ""}`;
+      if (entityType === "invoice") return `Invoice #${details.invoice_number ?? ""}`;
+      return `Created ${entityType}`;
+    case "update":
+      return `Updated ${entityType}: ${details.name ?? ""}`;
+    case "import":
+      return `Imported ${details.report_type ?? "report"}: ${details.filename ?? ""}`;
+    case "tax_status_change":
+      return `Job ${details.job_number ?? ""} tax → ${details.new_status ?? ""}`;
+    case "bulk_tax_update":
+      return `Bulk: ${details.count ?? 0} jobs → ${details.new_status ?? ""}`;
+    default:
+      return action;
+  }
+}
+
 /**
- * GET /api/admin/activity — Returns the most recent events across all systems.
- * Aggregates: new leads, WIP uploads, financial report imports.
+ * GET /api/admin/activity
+ *
+ * mode=full: Paginated activity_log entries (for Activity Log page)
+ * default: Dashboard widget — merges activity_log with legacy aggregated events
  */
 export const GET: APIRoute = async ({ request }) => {
   if (!isAdminAuthorized(request)) {
@@ -39,9 +76,43 @@ export const GET: APIRoute = async ({ request }) => {
   }
 
   try {
+    const url = new URL(request.url);
+    const mode = url.searchParams.get("mode");
+
+    // Full mode: paginated activity_log entries
+    if (mode === "full") {
+      const result = await getActivityLog({
+        limit: parseInt(url.searchParams.get("limit") ?? "25", 10),
+        offset: parseInt(url.searchParams.get("offset") ?? "0", 10),
+        action: url.searchParams.get("action") ?? undefined,
+        entityType: url.searchParams.get("entity_type") ?? undefined,
+        from: url.searchParams.get("from") ?? undefined,
+        to: url.searchParams.get("to") ?? undefined,
+      });
+
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: SECURITY_HEADERS,
+      });
+    }
+
+    // Dashboard widget mode: merge activity_log + legacy events
     const events: ActivityEvent[] = [];
 
-    // Recent leads
+    // Pull from activity_log first
+    try {
+      const recent = await getRecentActivity(10);
+      for (const entry of recent) {
+        events.push({
+          event_type: entry.action,
+          description: descriptionForEntry(entry.action, entry.entity_type, entry.details),
+          event_time: entry.created_at,
+          link: linkForAction(entry.action, entry.entity_type),
+        });
+      }
+    } catch { /* activity_log may not exist yet */ }
+
+    // Legacy: recent leads (dedup against activity_log events)
     try {
       const leads = await sql`
         SELECT name, created_at FROM contacts
@@ -49,22 +120,27 @@ export const GET: APIRoute = async ({ request }) => {
         ORDER BY created_at DESC LIMIT 5
       `;
       for (const row of leads.rows) {
-        events.push({
-          event_type: "lead",
-          description: `New lead: ${row.name}`,
-          event_time: row.created_at,
-          link: "/admin/leads",
-        });
+        const isDup = events.some(
+          (e) => e.event_type === "lead" || (e.description.includes(row.name) && e.event_type === "status_change")
+        );
+        if (!isDup) {
+          events.push({
+            event_type: "lead",
+            description: `New lead: ${row.name}`,
+            event_time: row.created_at,
+            link: "/admin/leads",
+          });
+        }
       }
     } catch { /* table may not exist */ }
 
-    // WIP uploads from sync_log
+    // Legacy: WIP uploads
     try {
       const uploads = await sql`
-        SELECT source_file, jobs_total, jobs_created, jobs_updated, created_at
+        SELECT source_file, jobs_total, created_at
         FROM sync_log
         WHERE sync_type = 'wip-upload'
-        ORDER BY created_at DESC LIMIT 5
+        ORDER BY created_at DESC LIMIT 3
       `;
       for (const row of uploads.rows) {
         const file = row.source_file ?? "Unknown file";
@@ -78,61 +154,28 @@ export const GET: APIRoute = async ({ request }) => {
       }
     } catch { /* table may not exist */ }
 
-    // AR Aging imports
+    // Legacy: financial imports
     try {
       const ar = await sql`
         SELECT source_filename, report_date, imported_at
         FROM ar_aging_snapshots
-        ORDER BY imported_at DESC LIMIT 3
+        ORDER BY imported_at DESC LIMIT 2
       `;
       for (const row of ar.rows) {
-        const name = row.source_filename ?? `AR Aging ${row.report_date}`;
-        events.push({
-          event_type: "financial_import",
-          description: `AR Aging imported: ${name}`,
-          event_time: row.imported_at,
-          link: "/admin/financials",
-        });
+        const isDup = events.some(
+          (e) => e.event_type === "import" && e.description.includes(row.source_filename ?? "")
+        );
+        if (!isDup) {
+          events.push({
+            event_type: "financial_import",
+            description: `AR Aging imported: ${row.source_filename ?? row.report_date}`,
+            event_time: row.imported_at,
+            link: "/admin/financials",
+          });
+        }
       }
     } catch { /* table may not exist */ }
 
-    // Balance Sheet imports
-    try {
-      const bs = await sql`
-        SELECT source_filename, report_date, imported_at
-        FROM balance_sheet_snapshots
-        ORDER BY imported_at DESC LIMIT 3
-      `;
-      for (const row of bs.rows) {
-        const name = row.source_filename ?? `Balance Sheet ${row.report_date}`;
-        events.push({
-          event_type: "financial_import",
-          description: `Balance Sheet imported: ${name}`,
-          event_time: row.imported_at,
-          link: "/admin/financials",
-        });
-      }
-    } catch { /* table may not exist */ }
-
-    // Income Statement imports
-    try {
-      const is_ = await sql`
-        SELECT source_filename, period_end_date, imported_at
-        FROM income_statement_snapshots
-        ORDER BY imported_at DESC LIMIT 3
-      `;
-      for (const row of is_.rows) {
-        const name = row.source_filename ?? `Income Statement ${row.period_end_date}`;
-        events.push({
-          event_type: "financial_import",
-          description: `Income Statement imported: ${name}`,
-          event_time: row.imported_at,
-          link: "/admin/financials",
-        });
-      }
-    } catch { /* table may not exist */ }
-
-    // Sort by time descending and take top 5
     events.sort((a, b) => new Date(b.event_time).getTime() - new Date(a.event_time).getTime());
 
     return new Response(JSON.stringify({ events: events.slice(0, 5) }), {

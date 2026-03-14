@@ -9,6 +9,7 @@ import {
   type TaxOverride,
   type MaterialTaxCategory,
 } from "../../../lib/tax-engine";
+import { logActivity } from "../../../lib/activity-log";
 
 export const prerender = false;
 
@@ -260,6 +261,13 @@ export const POST: APIRoute = async ({ request }) => {
         }
       }
     }
+
+    logActivity("create", "invoice", String(invoiceId), {
+      invoice_number: invoiceNumber,
+      job_number: jobNumber,
+      total: invoiceTotals.total,
+      line_count: computedLines.length,
+    }).catch(() => {});
 
     return new Response(
       JSON.stringify({

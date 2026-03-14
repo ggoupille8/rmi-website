@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../lib/db-env";
 import { isAdminAuthorized } from "../../../lib/admin-auth";
+import { logActivity } from "../../../lib/activity-log";
 
 export const prerender = false;
 
@@ -292,6 +293,13 @@ export const PATCH: APIRoute = async ({ request }) => {
       );
     }
 
+    if (body.tax_status !== undefined) {
+      logActivity("tax_status_change", "job", String(id), {
+        job_number: job.job_number,
+        new_status: body.tax_status,
+      }).catch(() => {});
+    }
+
     return new Response(
       JSON.stringify({ ok: true, job, warnings }),
       { status: 200, headers: SECURITY_HEADERS }
@@ -452,11 +460,22 @@ export const POST: APIRoute = async ({ request }) => {
 
     const result = await sql.query(updateQuery, values);
 
+    const updatedCount = result.rowCount ?? result.rows.length;
+    const updatedIds = result.rows.map((r: Record<string, unknown>) => r.id);
+
+    if (taxStatus !== undefined) {
+      logActivity("bulk_tax_update", "job", "", {
+        count: updatedCount,
+        new_status: taxStatus,
+        ids: updatedIds,
+      }).catch(() => {});
+    }
+
     return new Response(
       JSON.stringify({
         ok: true,
-        updated: result.rowCount ?? result.rows.length,
-        ids: result.rows.map((r: Record<string, unknown>) => r.id),
+        updated: updatedCount,
+        ids: updatedIds,
       }),
       { status: 200, headers: SECURITY_HEADERS }
     );

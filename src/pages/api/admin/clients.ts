@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../lib/db-env";
 import { isAdminAuthorized } from "../../../lib/admin-auth";
+import { logActivity } from "../../../lib/activity-log";
 
 export const prerender = false;
 
@@ -99,6 +100,11 @@ export const POST: APIRoute = async ({ request }) => {
               ${logoUrlVal}, ${logoTypeVal}, ${isFeaturedVal}, ${displayScaleVal}, ${needsInvertVal})
       RETURNING *
     `;
+    logActivity("create", "client", String(result.rows[0]?.id ?? ""), {
+      name: name,
+      domain: domain,
+    }).catch(() => {});
+
     return new Response(JSON.stringify(result.rows[0]), {
       status: 201,
       headers: SECURITY_HEADERS,
@@ -186,6 +192,10 @@ export const PATCH: APIRoute = async ({ request }) => {
       WHERE id = ${id}
       RETURNING *
     `;
+    logActivity("update", "client", String(id), {
+      name: newName,
+    }).catch(() => {});
+
     return new Response(JSON.stringify(result.rows[0]), {
       headers: SECURITY_HEADERS,
     });

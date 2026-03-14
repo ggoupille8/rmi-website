@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { LayoutDashboard, Users, BarChart3, Image, Briefcase, TrendingUp, DollarSign, FileText, Building2, Shield, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, BarChart3, Image, Briefcase, TrendingUp, DollarSign, FileText, Building2, Shield, Activity, Menu, X } from "lucide-react";
 import { computeWipAlerts } from "@/lib/wip-alerts";
 import type { WipSnapshot } from "./WipJobTable";
 
@@ -53,6 +53,7 @@ const navGroups: NavGroup[] = [
   {
     label: "System",
     items: [
+      { label: "Activity Log", href: "/admin/activity", icon: Activity },
       { label: "Security", href: "/admin/security", icon: Shield },
     ],
   },
