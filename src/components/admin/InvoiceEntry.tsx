@@ -138,7 +138,7 @@ function todayString(): string {
 export default function InvoiceEntry() {
   // ── Header state ──
   const [invoiceDate, setInvoiceDate] = useState(todayString());
-  const [vendorId, setVendorId] = useState(1);
+  const [vendorId, setVendorId] = useState(0);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [jobNumber, setJobNumber] = useState("");
   const [jobInfo, setJobInfo] = useState<JobResult | null>(null);
@@ -203,7 +203,7 @@ export default function InvoiceEntry() {
   }, []);
 
   // ── Derived ──
-  const vendorCode = VENDORS.find((v) => v.id === vendorId)?.code ?? "DI";
+  const vendorCode = VENDORS.find((v) => v.id === vendorId)?.code ?? "";
 
   const needsTaxOverride =
     jobInfo !== null &&
@@ -216,6 +216,12 @@ export default function InvoiceEntry() {
     pricePerItem !== "" &&
     Number(pricePerItem) >= 0 &&
     !(needsTaxOverride && taxOverride === null);
+
+  const canSave =
+    invoiceNumber.trim().length > 0 &&
+    vendorId > 0 &&
+    jobNumber.trim().length > 0 &&
+    !saving;
 
   const subtotal = lineItems.reduce((sum, li) => sum + li.totalCost, 0);
   const taxTotal = lineItems.reduce((sum, li) => sum + li.taxAmount, 0);
@@ -495,6 +501,7 @@ export default function InvoiceEntry() {
   async function saveInvoice() {
     const errors: Record<string, string> = {};
     if (!invoiceNumber.trim()) errors.invoiceNumber = "Invoice number is required";
+    if (vendorId === 0) errors.vendorId = "Vendor is required";
     if (!jobNumber.trim()) errors.jobNumber = "Job number is required";
     if (!invoiceDate) errors.invoiceDate = "Date is required";
 
@@ -571,6 +578,7 @@ export default function InvoiceEntry() {
       );
 
       setInvoiceNumber("");
+      setVendorId(0);
       setJobNumber("");
       setJobInfo(null);
       setJobNotFound(false);
@@ -596,6 +604,7 @@ export default function InvoiceEntry() {
       if (!window.confirm("Discard unsaved line items?")) return;
     }
     setInvoiceNumber("");
+    setVendorId(0);
     setJobNumber("");
     setJobInfo(null);
     setJobNotFound(false);
@@ -748,14 +757,22 @@ export default function InvoiceEntry() {
                 <select
                   value={vendorId}
                   onChange={(e) => setVendorId(Number(e.target.value))}
-                  className="w-full bg-white/10 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className={`w-full bg-white/10 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 ${
+                    vendorId === 0 ? "text-neutral-500" : "text-neutral-100"
+                  } ${validationErrors.vendorId ? "border-red-500" : "border-neutral-700"}`}
                 >
+                  <option value={0} className="bg-neutral-900 text-neutral-500">
+                    Select vendor...
+                  </option>
                   {VENDORS.map((v) => (
-                    <option key={v.id} value={v.id} className="bg-neutral-900">
-                      {v.code}
+                    <option key={v.id} value={v.id} className="bg-neutral-900 text-neutral-100">
+                      {v.code} &mdash; {v.name}
                     </option>
                   ))}
                 </select>
+                {validationErrors.vendorId && (
+                  <p className="text-xs text-red-400 mt-1">{validationErrors.vendorId}</p>
+                )}
               </div>
 
               {/* Invoice Number */}
@@ -1208,12 +1225,14 @@ export default function InvoiceEntry() {
               >
                 <Plus size={14} />
                 Add Line Item
-                <kbd className="ml-1 text-[10px] bg-white/10 px-1 py-0.5 rounded">Ctrl+Enter</kbd>
+                <kbd className="ml-2 text-[10px] font-mono bg-white/[0.08] border border-neutral-600 px-1.5 py-0.5 rounded shadow-[0_1px_0_0_rgba(255,255,255,0.05)] text-neutral-400">
+                  Ctrl<span className="mx-0.5 text-neutral-600">+</span>Enter
+                </kbd>
               </button>
               <button
                 type="button"
                 onClick={saveInvoice}
-                disabled={saving}
+                disabled={!canSave}
                 className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-neutral-800 disabled:text-neutral-600 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
@@ -1357,7 +1376,21 @@ export default function InvoiceEntry() {
                   <Loader2 size={20} className="text-neutral-500 animate-spin" />
                 </div>
               ) : historyInvoices.length === 0 ? (
-                <div className="py-8 text-center text-sm text-neutral-600">No invoices found</div>
+                <div className="py-12 px-6 text-center">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/5 mb-3">
+                    <Save size={20} className="text-neutral-600" />
+                  </div>
+                  <p className="text-sm text-neutral-400">
+                    {historyVendorFilter || historyJobFilter
+                      ? "No invoices match your filters"
+                      : "No invoices yet"}
+                  </p>
+                  <p className="text-xs text-neutral-600 mt-1">
+                    {historyVendorFilter || historyJobFilter
+                      ? "Try adjusting your vendor or job filters"
+                      : "Enter your first invoice using the form on the left"}
+                  </p>
+                </div>
               ) : (
                 historyInvoices.map((inv) => (
                   <div key={inv.id}>
