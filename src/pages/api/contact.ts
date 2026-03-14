@@ -10,6 +10,7 @@ import { contactRateLimiter, getClientIP } from "../../lib/rate-limiter";
 import { enrichLeadAsync } from "../../lib/leadEnrichment";
 import type { IntelligencePayload, ContactRecord } from "../../lib/leadEnrichment";
 import { checkAndEnforceBlacklist } from "../../lib/ipBlacklist";
+import { isTestSubmission } from "../../lib/emailTemplate";
 
 export const prerender = false;
 
@@ -462,6 +463,9 @@ export const POST: APIRoute = async ({ request }) => {
   }
   const intelligencePayload = parseIntelligence(mergedMetadata);
 
+  // --- Detect test/automated submission ---
+  const testSubmission = isTestSubmission(email, name);
+
   // --- Insert contact record ---
   let savedContactId: string;
   try {
@@ -476,10 +480,10 @@ export const POST: APIRoute = async ({ request }) => {
     const emailVal = email || null;
     const phoneVal = normalizedPhone || phone || null;
     const result = await sql`
-      INSERT INTO contacts (name, email, phone, message, source, metadata)
+      INSERT INTO contacts (name, email, phone, message, source, metadata, is_test)
       VALUES (
         ${name}, ${emailVal}, ${phoneVal}, ${message},
-        ${source}, ${JSON.stringify(fullMetadata)}
+        ${source}, ${JSON.stringify(fullMetadata)}, ${testSubmission}
       )
       RETURNING id
     `;
@@ -493,6 +497,10 @@ export const POST: APIRoute = async ({ request }) => {
       JSON.stringify({ error: "Server error", code: "INTERNAL_ERROR" }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
+  }
+
+  if (testSubmission) {
+    console.log(`[contact] Test submission detected (${email}) — emails will be skipped`);
   }
 
   // --- Fire enrichment async — do NOT await, do NOT block the response ---

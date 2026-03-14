@@ -10,6 +10,44 @@ import type { ContactRecord, IntelligencePayload, ClaudeEnrichment } from "./lea
 import type { GeoResult } from "./ipGeo";
 
 // ---------------------------------------------------------------------------
+// Test / spam detection — skip email for automated submissions
+// ---------------------------------------------------------------------------
+
+const TEST_EMAIL_PATTERNS = [
+  /@example\.com$/i,
+  /@example\.org$/i,
+  /@example\.net$/i,
+  /^test@/i,
+  /^playwright/i,
+  /^e2e[._-]/i,
+  /^automation[._-]/i,
+];
+
+const TEST_NAME_PATTERNS = [
+  /^test\s*user$/i,
+  /^john\s*doe$/i,
+  /^jane\s*doe$/i,
+  /^playwright/i,
+  /^e2e\s/i,
+];
+
+/**
+ * Detect whether a submission is from automated tests (Playwright, unit tests)
+ * or uses well-known disposable test domains. When true, emails are skipped
+ * but the DB record is still created.
+ */
+export function isTestSubmission(email: string, name?: string): boolean {
+  const nodeEnv = (import.meta.env.NODE_ENV ?? process.env.NODE_ENV ?? "").toLowerCase();
+  if (nodeEnv === "test") return true;
+  if (import.meta.env.SKIP_EMAIL === "true" || process.env.SKIP_EMAIL === "true") return true;
+
+  if (TEST_EMAIL_PATTERNS.some((re) => re.test(email))) return true;
+  if (name && TEST_NAME_PATTERNS.some((re) => re.test(name.trim()))) return true;
+
+  return false;
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -455,6 +493,11 @@ function buildEmailHtml(params: LeadEmailParams): string {
 // ---------------------------------------------------------------------------
 
 export async function sendLeadEmail(params: LeadEmailParams): Promise<void> {
+  if (isTestSubmission(params.contact.email, params.contact.name)) {
+    console.log("[email] Skipping lead email — test submission detected");
+    return;
+  }
+
   const apiKey = import.meta.env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn("RESEND_API_KEY not set — skipping lead notification email");
@@ -656,6 +699,11 @@ function buildApprovalEmailHtml(params: ApprovalEmailParams): string {
 }
 
 export async function sendApprovalEmail(params: ApprovalEmailParams): Promise<void> {
+  if (isTestSubmission(params.lead.email, params.lead.name)) {
+    console.log("[email] Skipping approval email — test submission detected");
+    return;
+  }
+
   const apiKey = import.meta.env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn("RESEND_API_KEY not set — skipping approval email");

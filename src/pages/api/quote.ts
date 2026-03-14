@@ -10,6 +10,7 @@ import {
   MIN_SUBMISSION_TIME_MS,
 } from "../../lib/validation";
 import { quoteRateLimiter, getClientIP } from "../../lib/rate-limiter";
+import { isTestSubmission } from "../../lib/emailTemplate";
 
 // Prevent prerendering - API routes must be server-side only
 export const prerender = false;
@@ -97,16 +98,18 @@ async function saveQuote(
     timestamp: data.timestamp || null,
   };
 
+  const testFlag = isTestSubmission(data.email ?? "", data.name);
+
   try {
     const result = await sql`
-      INSERT INTO quotes (name, company, email, phone, service_type, message, metadata)
+      INSERT INTO quotes (name, company, email, phone, service_type, message, metadata, is_test)
       VALUES (${data.name.trim()}, ${data.company.trim()}, ${
       data.email?.trim() || null
     }, ${
       data.phone?.trim() || null
     }, ${data.serviceType.trim()}, ${data.message.trim()}, ${JSON.stringify(
       metadata
-    )})
+    )}, ${testFlag})
       RETURNING id
     `;
     return result.rows[0]?.id || "";
@@ -121,6 +124,11 @@ async function saveQuote(
 }
 
 async function sendEmail(data: QuoteRequest): Promise<void> {
+  if (isTestSubmission(data.email ?? "", data.name)) {
+    console.log("[email] Skipping quote email — test submission detected");
+    return;
+  }
+
   const apiKey = import.meta.env.SENDGRID_API_KEY;
   const toEmail = import.meta.env.QUOTE_TO_EMAIL || "fab@rmi-llc.net";
   const fromEmail = import.meta.env.QUOTE_FROM_EMAIL || "no-reply@rmi-llc.net";
