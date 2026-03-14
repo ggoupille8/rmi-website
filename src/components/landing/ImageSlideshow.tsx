@@ -43,6 +43,22 @@ export default function ImageSlideshow({ images }: ImageSlideshowProps) {
   const goNext = useCallback(() => changeSlide(currentIndex + 1), [changeSlide, currentIndex]);
   const goPrev = useCallback(() => changeSlide(currentIndex - 1), [changeSlide, currentIndex]);
 
+  // Keyboard navigation (left/right arrows)
+  useEffect(() => {
+    if (!hasMultiple) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        changeSlide(currentIndex - 1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        changeSlide(currentIndex + 1);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [hasMultiple, changeSlide, currentIndex]);
+
   // Auto-advance
   useEffect(() => {
     if (!hasMultiple || isPaused) {
