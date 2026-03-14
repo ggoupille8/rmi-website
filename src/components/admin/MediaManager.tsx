@@ -1,5 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { Loader2, RefreshCw } from "lucide-react";
+import {
+  Loader2,
+  RefreshCw,
+  LayoutGrid,
+  List,
+  Trash2,
+  X,
+  AlertTriangle,
+} from "lucide-react";
 import MediaSlotGrid from "./MediaSlotGrid";
 import MediaAuditLog from "./MediaAuditLog";
 
@@ -10,6 +18,8 @@ interface MediaRecord {
   blob_url: string;
   file_name: string;
   file_size: number;
+  width: number | null;
+  height: number | null;
   alt_text: string | null;
   uploaded_at: string;
   updated_at: string;
@@ -99,9 +109,15 @@ type TabId = (typeof tabs)[number]["id"];
 export default function MediaManager() {
   const [activeTab, setActiveTab] = useState<TabId>("hero");
   const [media, setMedia] = useState<MediaRecord[]>([]);
-  const [auditHistory, setAuditHistory] = useState<Record<string, AuditEntry | null>>({});
+  const [auditHistory, setAuditHistory] = useState<
+    Record<string, AuditEntry | null>
+  >({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [viewMode, setViewMode] = useState<"cards" | "thumbnails">("cards");
+  const [selectedSlots, setSelectedSlots] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchMedia = useCallback(async () => {
     try {
@@ -119,12 +135,10 @@ export default function MediaManager() {
 
   const fetchAuditHistory = useCallback(async () => {
     try {
-      // Fetch recent audit entries (enough to cover all slots)
       const res = await fetch("/api/admin/media-audit?limit=200");
       if (!res.ok) return;
       const data = (await res.json()) as { logs: AuditEntry[] };
 
-      // Build a map of slot → most recent audit entry
       const history: Record<string, AuditEntry | null> = {};
       for (const entry of data.logs) {
         if (!history[entry.slot]) {
@@ -133,7 +147,7 @@ export default function MediaManager() {
       }
       setAuditHistory(history);
     } catch {
-      // Non-critical — audit history is informational
+      // Non-critical
     }
   }, []);
 
@@ -142,19 +156,21 @@ export default function MediaManager() {
     fetchAuditHistory();
   }, [fetchMedia, fetchAuditHistory]);
 
+  useEffect(() => {
+    setSelectedSlots(new Set());
+  }, [activeTab]);
+
   const handleRefresh = () => {
     setLoading(true);
     fetchMedia();
     fetchAuditHistory();
   };
 
-  // Build override map from media records
   const overrides: Record<string, MediaRecord> = {};
   for (const record of media) {
     overrides[record.slot] = record;
   }
 
-  // Get current tab's slots
   const getSlots = (): SlotDefinition[] => {
     switch (activeTab) {
       case "hero":
@@ -162,16 +178,79 @@ export default function MediaManager() {
       case "project":
         return projectSlots;
       case "service":
-        // Return all service slots, grouped
         return serviceGroups.flatMap(buildServiceSlots);
       case "audit":
         return [];
     }
   };
 
+  const handleToggleSelect = (slot: string) => {
+    setSelectedSlots((prev) => {
+      const next = new Set(prev);
+      if (next.has(slot)) {
+        next.delete(slot);
+      } else {
+        next.add(slot);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAllVisible = () => {
+    const visibleSlots = getSlots().map((s) => s.slot);
+    setSelectedSlots(new Set(visibleSlots));
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedSlots(new Set());
+  };
+
+  const handleSwap = async (slotA: string, slotB: string) => {
+    try {
+      const res = await fetch("/api/admin/media-reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slotA, slotB }),
+      });
+      if (!res.ok) throw new Error("Swap failed");
+      handleRefresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to swap images");
+    }
+  };
+
+  const customSelected = Array.from(selectedSlots).filter(
+    (s) => overrides[s]
+  );
+
+  const handleBulkDelete = async () => {
+    if (customSelected.length === 0) return;
+
+    setBulkDeleting(true);
+    try {
+      for (const slot of customSelected) {
+        const record = overrides[slot];
+        const res = await fetch("/api/admin/media", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: record.id }),
+        });
+        if (!res.ok) {
+          throw new Error(`Failed to revert ${slot}`);
+        }
+      }
+      setSelectedSlots(new Set());
+      setBulkDeleteOpen(false);
+      handleRefresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Bulk revert failed");
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   return (
     <div>
-      {/* Tab navigation */}
       <div className="flex items-center gap-4 mb-6 border-b border-neutral-800">
         <div className="flex gap-0.5">
           {tabs.map((tab) => (
@@ -192,41 +271,104 @@ export default function MediaManager() {
             </button>
           ))}
         </div>
+
         {activeTab !== "audit" && (
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center bg-neutral-800 rounded-md p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode("cards")}
+                className={`p-1.5 rounded transition-colors ${
+                  viewMode === "cards"
+                    ? "bg-neutral-700 text-white"
+                    : "text-neutral-500 hover:text-neutral-300"
+                }`}
+                title="Card view"
+              >
+                <List size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("thumbnails")}
+                className={`p-1.5 rounded transition-colors ${
+                  viewMode === "thumbnails"
+                    ? "bg-neutral-700 text-white"
+                    : "text-neutral-500 hover:text-neutral-300"
+                }`}
+                title="Thumbnail grid"
+              >
+                <LayoutGrid size={14} />
+              </button>
+            </div>
+
             <button
               type="button"
               onClick={handleRefresh}
               disabled={loading}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-white hover:bg-neutral-800 rounded transition-colors disabled:opacity-50"
             >
-              <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
+              <RefreshCw
+                size={12}
+                className={loading ? "animate-spin" : ""}
+              />
               Refresh
             </button>
           </div>
         )}
       </div>
 
-      {/* Audit Log tab */}
+      {selectedSlots.size > 0 && activeTab !== "audit" && (
+        <div className="flex items-center gap-3 mb-4 px-4 py-2.5 bg-neutral-800/80 border border-neutral-700/50 rounded-lg">
+          <span className="text-sm text-neutral-300">
+            {selectedSlots.size} selected
+          </span>
+
+          <button
+            type="button"
+            onClick={handleSelectAllVisible}
+            className="text-xs text-primary-400 hover:text-primary-300 transition-colors"
+          >
+            Select all
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDeselectAll}
+            className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+          >
+            Deselect all
+          </button>
+
+          <div className="ml-auto">
+            <button
+              type="button"
+              onClick={() => setBulkDeleteOpen(true)}
+              disabled={customSelected.length === 0}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <Trash2 size={12} />
+              Revert to Default ({customSelected.length})
+            </button>
+          </div>
+        </div>
+      )}
+
       {activeTab === "audit" ? (
         <MediaAuditLog />
       ) : (
         <>
-          {/* Error state */}
           {error && (
             <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-300 mb-6">
               {error}
             </div>
           )}
 
-          {/* Loading state */}
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 size={24} className="animate-spin text-neutral-500" />
             </div>
           ) : (
             <>
-              {/* Service photos: show grouped sections */}
               {activeTab === "service" ? (
                 <div className="space-y-8">
                   {serviceGroups.map((group) => {
@@ -244,6 +386,9 @@ export default function MediaManager() {
                           overrides={overrides}
                           auditHistory={auditHistory}
                           onRefresh={handleRefresh}
+                          viewMode={viewMode}
+                          selectedSlots={selectedSlots}
+                          onToggleSelect={handleToggleSelect}
                         />
                       </div>
                     );
@@ -255,11 +400,91 @@ export default function MediaManager() {
                   overrides={overrides}
                   auditHistory={auditHistory}
                   onRefresh={handleRefresh}
+                  viewMode={viewMode}
+                  selectedSlots={selectedSlots}
+                  onToggleSelect={handleToggleSelect}
+                  enableReorder={activeTab === "hero"}
+                  onSwap={activeTab === "hero" ? handleSwap : undefined}
                 />
               )}
             </>
           )}
         </>
+      )}
+
+      {bulkDeleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/70"
+            onClick={() => !bulkDeleting && setBulkDeleteOpen(false)}
+          />
+          <div className="relative bg-neutral-900 border border-neutral-700 rounded-xl w-full max-w-md shadow-2xl">
+            <div className="flex items-start gap-3 px-5 py-4 border-b border-neutral-800">
+              <AlertTriangle size={20} className="text-amber-400 mt-0.5 shrink-0" />
+              <div>
+                <h3 className="text-base font-semibold text-white">
+                  Revert {customSelected.length} image
+                  {customSelected.length !== 1 ? "s" : ""} to default?
+                </h3>
+                <p className="text-sm text-neutral-400 mt-1">
+                  Custom images will be removed from these slots. Previous
+                  uploads are preserved in the audit trail for undo.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBulkDeleteOpen(false)}
+                disabled={bulkDeleting}
+                className="p-1 rounded text-neutral-500 hover:text-white hover:bg-neutral-800 transition-colors ml-auto"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="px-5 py-3 max-h-48 overflow-y-auto">
+              <ul className="space-y-1">
+                {customSelected.map((slot) => {
+                  const record = overrides[slot];
+                  return (
+                    <li
+                      key={slot}
+                      className="flex items-center gap-2 text-sm text-neutral-300"
+                    >
+                      <img
+                        src={record.blob_url}
+                        alt=""
+                        className="w-8 h-8 rounded object-cover border border-neutral-700"
+                      />
+                      <span className="truncate">{slot}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <div className="flex justify-end gap-3 px-5 py-4 border-t border-neutral-800">
+              <button
+                type="button"
+                onClick={() => setBulkDeleteOpen(false)}
+                disabled={bulkDeleting}
+                className="px-4 py-2 text-sm font-medium text-neutral-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-500 text-white rounded-md transition-colors disabled:opacity-50"
+              >
+                {bulkDeleting && (
+                  <Loader2 size={14} className="animate-spin" />
+                )}
+                {bulkDeleting ? "Reverting..." : "Revert All"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

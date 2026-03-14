@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { Upload, RotateCcw, Undo2, Edit3, Loader2, Clock } from "lucide-react";
+import {
+  Upload,
+  RotateCcw,
+  Undo2,
+  Edit3,
+  Loader2,
+  Clock,
+  Copy,
+  Check,
+  GripVertical,
+} from "lucide-react";
 import ImageUploader from "./ImageUploader";
 
 interface SlotDefinition {
@@ -12,8 +22,12 @@ interface SlotDefinition {
 interface MediaRecord {
   id: string;
   slot: string;
+  category?: string;
   blob_url: string;
   file_name: string;
+  file_size?: number;
+  width?: number | null;
+  height?: number | null;
   alt_text: string | null;
   uploaded_at: string;
   updated_at?: string;
@@ -32,6 +46,11 @@ interface MediaSlotGridProps {
   overrides: Record<string, MediaRecord>;
   auditHistory: Record<string, AuditEntry | null>;
   onRefresh: () => void;
+  viewMode: "cards" | "thumbnails";
+  selectedSlots: Set<string>;
+  onToggleSelect: (slot: string) => void;
+  enableReorder?: boolean;
+  onSwap?: (slotA: string, slotB: string) => void;
 }
 
 function formatRelativeTime(dateStr: string): string {
@@ -54,18 +73,37 @@ function formatRelativeTime(dateStr: string): string {
   });
 }
 
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function MediaSlotGrid({
   slots,
   overrides,
   auditHistory,
   onRefresh,
+  viewMode,
+  selectedSlots,
+  onToggleSelect,
+  enableReorder,
+  onSwap,
 }: MediaSlotGridProps) {
-  const [uploadingSlot, setUploadingSlot] = useState<SlotDefinition | null>(null);
+  const [uploadingSlot, setUploadingSlot] = useState<SlotDefinition | null>(
+    null
+  );
   const [editingAlt, setEditingAlt] = useState<string | null>(null);
   const [altText, setAltText] = useState("");
   const [reverting, setReverting] = useState<string | null>(null);
   const [undoing, setUndoing] = useState<string | null>(null);
   const [savingAlt, setSavingAlt] = useState(false);
+  const [copiedSlot, setCopiedSlot] = useState<string | null>(null);
+  const [dragSource, setDragSource] = useState<string | null>(null);
+  const [dragTarget, setDragTarget] = useState<string | null>(null);
+  const [dimensions, setDimensions] = useState<
+    Record<string, { w: number; h: number }>
+  >({});
 
   const handleRevertToDefault = async (slotDef: SlotDefinition) => {
     const record = overrides[slotDef.slot];
@@ -87,7 +125,9 @@ export default function MediaSlotGrid({
         body: JSON.stringify({ id: record.id }),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: "Delete failed" }));
+        const data = (await res
+          .json()
+          .catch(() => ({ error: "Delete failed" }))) as { error: string };
         throw new Error(data.error || "Failed to revert");
       }
       onRefresh();
@@ -111,7 +151,9 @@ export default function MediaSlotGrid({
         }),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: "Undo failed" }));
+        const data = (await res
+          .json()
+          .catch(() => ({ error: "Undo failed" }))) as { error: string };
         throw new Error(data.error || "Failed to undo");
       }
       onRefresh();
@@ -141,17 +183,194 @@ export default function MediaSlotGrid({
         body: JSON.stringify({ id: record.id, altText: altText.trim() }),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({ error: "Update failed" }));
+        const data = (await res
+          .json()
+          .catch(() => ({ error: "Update failed" }))) as { error: string };
         throw new Error(data.error || "Failed to update alt text");
       }
       setEditingAlt(null);
       onRefresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update alt text");
+      alert(
+        err instanceof Error ? err.message : "Failed to update alt text"
+      );
     } finally {
       setSavingAlt(false);
     }
   };
+
+  const handleCopyUrl = async (slotDef: SlotDefinition) => {
+    const record = overrides[slotDef.slot];
+    const url = record
+      ? record.blob_url
+      : `${window.location.origin}${slotDef.defaultImage}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedSlot(slotDef.slot);
+      setTimeout(() => setCopiedSlot(null), 2000);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = url;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopiedSlot(slotDef.slot);
+      setTimeout(() => setCopiedSlot(null), 2000);
+    }
+  };
+
+  const handleImageLoad = (
+    slot: string,
+    e: React.SyntheticEvent<HTMLImageElement>
+  ) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+      setDimensions((prev) => ({
+        ...prev,
+        [slot]: { w: img.naturalWidth, h: img.naturalHeight },
+      }));
+    }
+  };
+
+  const handleDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    slot: string
+  ) => {
+    setDragSource(slot);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", slot);
+  };
+
+  const handleDragOver = (
+    e: React.DragEvent<HTMLDivElement>,
+    slot: string
+  ) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (slot !== dragSource) {
+      setDragTarget(slot);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragTarget(null);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, slot: string) => {
+    e.preventDefault();
+    if (dragSource && dragSource !== slot && onSwap) {
+      onSwap(dragSource, slot);
+    }
+    setDragSource(null);
+    setDragTarget(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragSource(null);
+    setDragTarget(null);
+  };
+
+  if (viewMode === "thumbnails") {
+    return (
+      <>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+          {slots.map((slotDef) => {
+            const record = overrides[slotDef.slot];
+            const isCustom = !!record;
+            const imageSrc = isCustom ? record.blob_url : slotDef.defaultImage;
+            const isSelected = selectedSlots.has(slotDef.slot);
+            const isCopied = copiedSlot === slotDef.slot;
+
+            return (
+              <div
+                key={slotDef.slot}
+                className={`relative group rounded-lg overflow-hidden border transition-all ${
+                  isSelected
+                    ? "border-primary-500 ring-2 ring-primary-500/30"
+                    : "border-neutral-700/50 hover:border-neutral-600"
+                }`}
+              >
+                <div className="aspect-square bg-neutral-950">
+                  <img
+                    src={imageSrc}
+                    alt={record?.alt_text || slotDef.label}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onLoad={(e) => handleImageLoad(slotDef.slot, e)}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onToggleSelect(slotDef.slot)}
+                  className={`absolute top-1 left-1 w-5 h-5 rounded border flex items-center justify-center transition-all ${
+                    isSelected
+                      ? "bg-primary-500 border-primary-500"
+                      : "border-neutral-500/50 bg-black/40 opacity-0 group-hover:opacity-100"
+                  }`}
+                >
+                  {isSelected && <Check size={12} className="text-white" />}
+                </button>
+
+                {isCustom && (
+                  <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[8px] font-medium uppercase bg-primary-600/90 text-white">
+                    Custom
+                  </span>
+                )}
+
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2 pt-6 translate-y-full group-hover:translate-y-0 transition-transform">
+                  <p className="text-[10px] text-white truncate mb-1">
+                    {slotDef.label}
+                  </p>
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setUploadingSlot(slotDef);
+                      }}
+                      className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
+                      title="Upload new"
+                    >
+                      <Upload size={10} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCopyUrl(slotDef);
+                      }}
+                      className="p-1 rounded bg-white/10 hover:bg-white/20 text-white transition-colors"
+                      title="Copy URL"
+                    >
+                      {isCopied ? (
+                        <Check size={10} />
+                      ) : (
+                        <Copy size={10} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {uploadingSlot && (
+          <ImageUploader
+            slot={uploadingSlot.slot}
+            category={uploadingSlot.category}
+            slotLabel={uploadingSlot.label}
+            onSuccess={onRefresh}
+            onClose={() => setUploadingSlot(null)}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
     <>
@@ -164,21 +383,68 @@ export default function MediaSlotGrid({
           const isUndoing = undoing === slotDef.slot;
           const lastAudit = auditHistory[slotDef.slot];
           const hasHistory = !!lastAudit;
+          const isSelected = selectedSlots.has(slotDef.slot);
+          const isCopied = copiedSlot === slotDef.slot;
+          const isDragOver = dragTarget === slotDef.slot;
+          const isDragging = dragSource === slotDef.slot;
+          const dim = dimensions[slotDef.slot];
 
           return (
             <div
               key={slotDef.slot}
-              className="bg-neutral-800/50 border border-neutral-700/50 rounded-lg overflow-hidden"
+              className={`bg-neutral-800/50 border rounded-lg overflow-hidden transition-all ${
+                isSelected
+                  ? "border-primary-500 ring-2 ring-primary-500/30"
+                  : isDragOver
+                  ? "border-primary-400 ring-2 ring-primary-400/20"
+                  : "border-neutral-700/50"
+              } ${isDragging ? "opacity-50" : ""}`}
+              draggable={enableReorder}
+              onDragStart={
+                enableReorder
+                  ? (e) => handleDragStart(e, slotDef.slot)
+                  : undefined
+              }
+              onDragOver={
+                enableReorder
+                  ? (e) => handleDragOver(e, slotDef.slot)
+                  : undefined
+              }
+              onDragLeave={enableReorder ? handleDragLeave : undefined}
+              onDrop={
+                enableReorder
+                  ? (e) => handleDrop(e, slotDef.slot)
+                  : undefined
+              }
+              onDragEnd={enableReorder ? handleDragEnd : undefined}
             >
-              {/* Image preview */}
               <div className="relative aspect-[16/10] bg-neutral-950">
                 <img
                   src={imageSrc}
                   alt={record?.alt_text || slotDef.label}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  onLoad={(e) => handleImageLoad(slotDef.slot, e)}
                 />
-                {/* Status badge */}
+
+                <button
+                  type="button"
+                  onClick={() => onToggleSelect(slotDef.slot)}
+                  className={`absolute top-2 left-2 w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
+                    isSelected
+                      ? "bg-primary-500 border-primary-500"
+                      : "border-neutral-400/60 bg-black/40 hover:border-white"
+                  }`}
+                >
+                  {isSelected && <Check size={14} className="text-white" />}
+                </button>
+
+                {enableReorder && (
+                  <div className="absolute top-2 left-10 p-1 rounded bg-black/40 text-neutral-400 cursor-grab active:cursor-grabbing">
+                    <GripVertical size={14} />
+                  </div>
+                )}
+
                 <span
                   className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide ${
                     isCustom
@@ -188,20 +454,43 @@ export default function MediaSlotGrid({
                 >
                   {isCustom ? "Custom" : "Default"}
                 </span>
+
+                {isDragOver && (
+                  <div className="absolute inset-0 bg-primary-500/10 flex items-center justify-center">
+                    <span className="px-3 py-1.5 rounded-lg bg-primary-500/90 text-white text-xs font-medium">
+                      Drop to swap
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Info + Actions */}
               <div className="p-3">
                 <p className="text-sm font-medium text-neutral-200 truncate">
                   {slotDef.label}
                 </p>
-                {isCustom && (
-                  <p className="text-xs text-neutral-500 mt-0.5 truncate">
-                    {record.file_name}
-                  </p>
-                )}
 
-                {/* Last changed timestamp */}
+                <div className="flex items-center gap-2 mt-0.5 text-xs text-neutral-500 flex-wrap">
+                  {isCustom && record.file_name && (
+                    <span className="truncate max-w-[140px]">
+                      {record.file_name}
+                    </span>
+                  )}
+                  {isCustom && record.file_size != null && record.file_size > 0 && (
+                    <>
+                      <span className="text-neutral-700">|</span>
+                      <span>{formatFileSize(record.file_size)}</span>
+                    </>
+                  )}
+                  {dim && (
+                    <>
+                      <span className="text-neutral-700">|</span>
+                      <span>
+                        {dim.w} x {dim.h}
+                      </span>
+                    </>
+                  )}
+                </div>
+
                 {lastAudit && (
                   <p className="flex items-center gap-1 text-[10px] text-neutral-600 mt-1">
                     <Clock size={10} />
@@ -209,7 +498,6 @@ export default function MediaSlotGrid({
                   </p>
                 )}
 
-                {/* Action buttons */}
                 <div className="flex flex-wrap gap-2 mt-3">
                   <button
                     type="button"
@@ -220,7 +508,19 @@ export default function MediaSlotGrid({
                     Upload New
                   </button>
 
-                  {/* Undo — visible when there's history */}
+                  <button
+                    type="button"
+                    onClick={() => handleCopyUrl(slotDef)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                      isCopied
+                        ? "text-green-400 bg-green-500/10"
+                        : "text-neutral-400 hover:text-primary-400 hover:bg-primary-500/10"
+                    }`}
+                  >
+                    {isCopied ? <Check size={12} /> : <Copy size={12} />}
+                    {isCopied ? "Copied" : "Copy URL"}
+                  </button>
+
                   {hasHistory && (
                     <button
                       type="button"
@@ -250,7 +550,6 @@ export default function MediaSlotGrid({
                   )}
                 </div>
 
-                {/* Revert to Default — text link, only when custom override exists */}
                 {isCustom && (
                   <button
                     type="button"
@@ -272,7 +571,6 @@ export default function MediaSlotGrid({
         })}
       </div>
 
-      {/* Upload modal */}
       {uploadingSlot && (
         <ImageUploader
           slot={uploadingSlot.slot}
@@ -283,7 +581,6 @@ export default function MediaSlotGrid({
         />
       )}
 
-      {/* Alt text edit modal */}
       {editingAlt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
