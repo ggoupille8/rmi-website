@@ -13,6 +13,7 @@ interface Props {
   canonical?: string;
   keywords?: string;
   author?: string;
+  robots?: string;
 }
 
 const {
@@ -23,6 +24,7 @@ const {
   canonical = Astro.url.href,
   keywords = 'mechanical insulation contractor, Michigan, pipe insulation, duct insulation, industrial insulation, commercial insulation, pipe support fabrication, removable insulation blankets, Detroit, southeast Michigan, Local 25',
   author = companyName,
+  robots = 'index, follow',
 } = Astro.props;
 
 const fullTitle = title.includes(companyName) ? title : `${title} | ${companyName}`;
@@ -309,17 +311,17 @@ const breadcrumbSchema = JSON.stringify({
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="generator" content={Astro.generator} />
-    
+
     <!-- Primary Meta Tags -->
     <title>{fullTitle}</title>
     <meta name="title" content={fullTitle} />
     <meta name="description" content={description} />
     <meta name="keywords" content={keywords} />
     <meta name="author" content={author} />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content={robots} />
     <meta name="language" content="English" />
     <meta name="revisit-after" content="7 days" />
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonical} />
@@ -331,7 +333,7 @@ const breadcrumbSchema = JSON.stringify({
     <meta property="og:image:alt" content={fullTitle} />
     <meta property="og:site_name" content={companyName} />
     <meta property="og:locale" content="en_US" />
-    
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content={canonical} />
@@ -339,10 +341,10 @@ const breadcrumbSchema = JSON.stringify({
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
     <meta name="twitter:image:alt" content={fullTitle} />
-    
+
     <!-- Canonical URL -->
     <link rel="canonical" href={canonical} />
-    
+
     <!-- Preload LCP hero image (responsive) -->
     <link
       rel="preload"
@@ -360,7 +362,7 @@ const breadcrumbSchema = JSON.stringify({
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    
+
     <!-- Theme Color -->
     <meta name="theme-color" content="#171717" />
     <meta name="msapplication-TileColor" content="#171717" />
@@ -370,7 +372,7 @@ const breadcrumbSchema = JSON.stringify({
     <meta name="geo.placename" content="Romulus" />
     <meta name="geo.position" content="42.2223;-83.3630" />
     <meta name="ICBM" content="42.2223, -83.3630" />
-    
+
     <!-- Google Tag Manager preconnect -->
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
@@ -417,4 +419,3 @@ const breadcrumbSchema = JSON.stringify({
     <SpeedInsights />
   </body>
 </html>
-

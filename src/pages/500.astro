@@ -4,22 +4,22 @@ import Footer from '../components/landing/Footer';
 import { companyName } from '../content/site';
 ---
 
-<BaseLayout title={`Page Not Found | ${companyName}`} robots="noindex, nofollow">
+<BaseLayout title={`Server Error | ${companyName}`} robots="noindex, nofollow">
   <div class="relative min-h-[70vh] flex items-center justify-center px-4 bg-neutral-950">
-    <!-- Decorative "404" background text -->
+    <!-- Decorative "500" background text -->
     <span
       class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[12rem] sm:text-[16rem] lg:text-[20rem] font-bold text-white/5 select-none pointer-events-none leading-none"
       aria-hidden="true"
     >
-      404
+      500
     </span>
 
     <div class="relative z-10 text-center max-w-lg">
       <h1 class="text-4xl sm:text-5xl font-bold text-white mb-3">
-        Page Not Found
+        Something Went Wrong
       </h1>
       <p class="text-lg text-neutral-400 mb-8">
-        The page you're looking for doesn't exist or has been moved.
+        We're experiencing a temporary issue. Please try again in a moment.
       </p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center items-center mb-10">
         <a
@@ -32,7 +32,7 @@ import { companyName } from '../content/site';
           href="/#contact"
           class="text-sm font-medium text-accent-400 hover:text-accent-300 transition-colors underline underline-offset-2 min-h-[44px] flex items-center"
         >
-          Request a Quote
+          Contact Us
         </a>
       </div>
 
