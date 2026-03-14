@@ -175,13 +175,21 @@ const serviceCatalogSchema = JSON.stringify({
   }
 });
 
+const serviceAreaServed = [
+  { "@type": "State", "name": "Michigan" },
+  { "@type": "State", "name": "Ohio" },
+  { "@type": "State", "name": "Indiana" },
+  { "@type": "State", "name": "Illinois" },
+  { "@type": "State", "name": "Wisconsin" }
+];
+
 const serviceSchemas = JSON.stringify([
   {
     "@context": "https://schema.org",
     "@type": "Service",
     "serviceType": "Pipe Insulation",
     "provider": { "@type": "LocalBusiness", "name": companyNameFull },
-    "areaServed": { "@type": "State", "name": "Michigan" },
+    "areaServed": serviceAreaServed,
     "description": "Commercial and industrial pipe insulation services including plumbing, HVAC, process piping, steam/condensate, and cryogenic systems."
   },
   {
@@ -189,7 +197,7 @@ const serviceSchemas = JSON.stringify([
     "@type": "Service",
     "serviceType": "Duct Insulation",
     "provider": { "@type": "LocalBusiness", "name": companyNameFull },
-    "areaServed": { "@type": "State", "name": "Michigan" },
+    "areaServed": serviceAreaServed,
     "description": "Insulation for standard ductwork, grease duct, fume hood, generator exhaust, and boiler breeching."
   },
   {
@@ -197,7 +205,7 @@ const serviceSchemas = JSON.stringify([
     "@type": "Service",
     "serviceType": "Equipment Insulation",
     "provider": { "@type": "LocalBusiness", "name": companyNameFull },
-    "areaServed": { "@type": "State", "name": "Michigan" },
+    "areaServed": serviceAreaServed,
     "description": "Insulation for tanks, vessels, and equipment including removable insulation blankets and cans."
   },
   {
@@ -205,7 +213,7 @@ const serviceSchemas = JSON.stringify([
     "@type": "Service",
     "serviceType": "Field-Applied Jacketing",
     "provider": { "@type": "LocalBusiness", "name": companyNameFull },
-    "areaServed": { "@type": "State", "name": "Michigan" },
+    "areaServed": serviceAreaServed,
     "description": "Aluminum, stainless steel, and PVC jacketing and lagging for outdoor and industrial insulation systems."
   },
   {
@@ -213,7 +221,7 @@ const serviceSchemas = JSON.stringify([
     "@type": "Service",
     "serviceType": "Pipe Support Fabrication",
     "provider": { "@type": "LocalBusiness", "name": companyNameFull },
-    "areaServed": { "@type": "State", "name": "Michigan" },
+    "areaServed": serviceAreaServed,
     "description": "Custom pipe support fabrication and installation for industrial and commercial applications."
   },
   {
@@ -221,10 +229,78 @@ const serviceSchemas = JSON.stringify([
     "@type": "Service",
     "serviceType": "Emergency Insulation Response",
     "provider": { "@type": "LocalBusiness", "name": companyNameFull },
-    "areaServed": { "@type": "State", "name": "Michigan" },
+    "areaServed": serviceAreaServed,
     "description": "24/7 emergency insulation repair and replacement services for urgent facility needs."
   }
 ]);
+
+const faqSchema = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is mechanical insulation?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Mechanical insulation is the application of thermal, acoustic, and protective materials to piping, ductwork, tanks, vessels, and equipment in commercial and industrial facilities. It controls heat transfer, prevents condensation, protects personnel from hot or cold surfaces, and improves energy efficiency."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is your service area?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Resource Mechanical Insulation is based in Romulus, Michigan and serves commercial and industrial facilities throughout Michigan, Ohio, Indiana, Illinois, and Wisconsin. We maintain a strong presence in the Detroit metropolitan area and Southeast Michigan."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you offer 24/7 emergency insulation services?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. We provide round-the-clock emergency insulation repair and replacement services. Our rapid-response teams mobilize immediately for pipe failures, facility shutdowns, and production-critical issues to minimize downtime."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What types of insulation materials do you work with?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We work with a full range of insulation materials including fiberglass, mineral wool, flexible elastomeric foam, calcium silicate, cellular glass (FOAMGLAS), ceramic fiber, aerogel, and polyiso/phenolic foam. We also install PVC, aluminum, and stainless steel jacketing systems, removable insulation blankets, and fire-rated wrap systems."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What industries do you serve?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "We serve a wide range of industries including automotive manufacturing, healthcare, pharmaceutical, food and beverage, energy production, data centers, commercial buildings, and industrial processing facilities. Our clients include Ford Motor Company, General Motors, Toyota, Henry Ford Health, and many more."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do you provide custom pipe support fabrication?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. We design, fabricate, and deliver custom pipe supports and hangers from our in-house fabrication shop. Our fast turnaround times reduce lead times and keep your projects on schedule while meeting all structural and code requirements."
+      }
+    }
+  ]
+});
+
+const breadcrumbSchema = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": siteUrl
+    }
+  ]
+});
 ---
 
 <!doctype html>
@@ -321,6 +397,8 @@ const serviceSchemas = JSON.stringify([
     <script type="application/ld+json" set:html={localBusinessSchema} />
     <script type="application/ld+json" set:html={serviceCatalogSchema} />
     <script type="application/ld+json" set:html={serviceSchemas} />
+    <script type="application/ld+json" set:html={faqSchema} />
+    <script type="application/ld+json" set:html={breadcrumbSchema} />
   </head>
   <body class="min-h-full overflow-x-hidden">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-accent-600 focus:text-white focus:rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-neutral-900">
