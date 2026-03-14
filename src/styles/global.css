@@ -560,4 +560,121 @@
   .fin-print-area [class*="bg-red"] {
     background: white !important;
   }
+
+  /* ── WIP Dashboard print styles ──────────────────── */
+
+  /* Hide sidebar (aside), mobile toggle, overlay, admin header */
+  aside {
+    display: none !important;
+  }
+
+  /* Hide the mobile menu toggle button (fixed top-left) */
+  body > button[aria-label*="menu"] {
+    display: none !important;
+  }
+
+  /* Hide admin header bar */
+  .lg\:ml-60 > header {
+    display: none !important;
+  }
+
+  /* Remove sidebar offset */
+  .lg\:ml-60 {
+    margin-left: 0 !important;
+  }
+
+  .wip-no-print {
+    display: none !important;
+  }
+
+  .wip-print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid black;
+  }
+
+  .wip-print-header h1 {
+    color: black !important;
+    font-size: 18pt !important;
+    margin: 0 !important;
+  }
+
+  .wip-print-header p {
+    color: #333 !important;
+    font-size: 11pt !important;
+    margin: 4px 0 0 !important;
+  }
+
+  .wip-print-area {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .wip-print-area * {
+    box-shadow: none !important;
+  }
+
+  .wip-print-area table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 9pt !important;
+  }
+
+  .wip-print-area th,
+  .wip-print-area td {
+    border: 1px solid #ccc !important;
+    padding: 3px 6px !important;
+    color: black !important;
+    background: white !important;
+    white-space: nowrap !important;
+  }
+
+  .wip-print-area th {
+    background: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+
+  .wip-print-area tr {
+    break-inside: avoid;
+  }
+
+  /* KPI cards and PM cards — print-friendly */
+  .wip-print-area [class*="grid"] > * {
+    border: 1px solid #ccc !important;
+    padding: 6px !important;
+    background: white !important;
+    break-inside: avoid;
+  }
+
+  .wip-print-area [class*="grid"] > * * {
+    color: black !important;
+  }
+
+  .wip-print-area [class*="rounded"] {
+    border-radius: 0 !important;
+  }
+
+  .wip-print-area [class*="bg-neutral"],
+  .wip-print-area [class*="bg-emerald"],
+  .wip-print-area [class*="bg-red"],
+  .wip-print-area [class*="bg-blue"],
+  .wip-print-area [class*="bg-amber"],
+  .wip-print-area [class*="bg-purple"],
+  .wip-print-area [class*="bg-yellow"],
+  .wip-print-area [class*="bg-green"] {
+    background: white !important;
+  }
+
+  /* Progress bars — show as text only in print */
+  .wip-print-area [class*="h-1.5"] {
+    display: none !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: landscape;
+    margin: 0.5in;
+  }
 }

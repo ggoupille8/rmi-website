@@ -6,6 +6,7 @@ import {
   Eye,
   EyeOff,
   ChevronRight,
+  Download,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────
@@ -185,6 +186,49 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
     setExpandedRow((prev) => (prev === jobNumber ? null : jobNumber));
   }, []);
 
+  // ── CSV Export ─────────────────────────────────────────
+  const exportCsv = useCallback(() => {
+    const csvColumns: { key: keyof WipSnapshot; label: string }[] = [
+      { key: "job_number", label: "Job #" },
+      { key: "description", label: "Description" },
+      { key: "project_manager", label: "PM" },
+      { key: "pct_complete", label: "% Complete" },
+      { key: "revised_contract", label: "Revised Contract" },
+      { key: "earned_revenue", label: "Earned Revenue" },
+      { key: "backlog_revenue", label: "Backlog" },
+      { key: "gross_profit", label: "Gross Profit" },
+      { key: "gross_margin_pct", label: "Margin %" },
+      { key: "revenue_billing_excess", label: "Over/Under" },
+    ];
+
+    const header = csvColumns.map((c) => c.label).join(",");
+    const rows = sortedJobs.map((job) =>
+      csvColumns
+        .map((col) => {
+          const val = job[col.key];
+          if (val === null || val === undefined) return "";
+          if (col.key === "pct_complete" || col.key === "gross_margin_pct") {
+            return ((val as number) * 100).toFixed(1);
+          }
+          if (typeof val === "number") return val.toFixed(2);
+          const str = String(val);
+          return str.includes(",") || str.includes('"')
+            ? `"${str.replace(/"/g, '""')}"`
+            : str;
+        })
+        .join(",")
+    );
+
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `wip-jobs-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [sortedJobs]);
+
   // ── Row Styling ──────────────────────────────────────
   const getRowClass = (job: WipSnapshot, index: number): string => {
     if (job.gross_profit !== null && job.gross_profit < 0) {
@@ -314,7 +358,7 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
   return (
     <div className="space-y-3">
       {/* ── Toolbar ────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="wip-no-print flex flex-wrap items-center gap-3">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
@@ -363,10 +407,23 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
           {showHidden ? <Eye size={14} /> : <EyeOff size={14} />}
           Hidden
         </button>
+
+        {/* Export CSV */}
+        {mode === "admin" && (
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={sortedJobs.length === 0}
+            className="wip-no-print flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-750 hover:border-neutral-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Download size={14} />
+            Export CSV
+          </button>
+        )}
       </div>
 
       {/* ── Job Count ────────────────────────────────── */}
-      <div className="text-xs text-neutral-500">
+      <div className="wip-no-print text-xs text-neutral-500">
         Showing {sortedJobs.length} of {jobs.length} jobs
       </div>
 

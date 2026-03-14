@@ -12,6 +12,7 @@ import {
   AlertCircle,
   X,
   Scale,
+  Printer,
 } from "lucide-react";
 import WipJobTable, { type WipSnapshot } from "./WipJobTable";
 import { computeWipAlerts, alertDismissKey, isGliJob, type AlertFlag } from "@/lib/wip-alerts";
@@ -483,6 +484,10 @@ export default function WipDashboard() {
 
   const kpiTimeLabel = hasYtdData ? "YTD" : "Current Snapshot";
 
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
   // Margin % coloring: green >30%, yellow 20-30%, red <20%
   const marginColor = useMemo(() => {
     const pct = kpis.marginPct * 100;
@@ -514,9 +519,20 @@ export default function WipDashboard() {
   }
 
   return (
-    <div className="space-y-6 overflow-hidden">
+    <div className="wip-print-area space-y-6 overflow-hidden">
+      {/* ── Print Header (hidden on screen) ──────────────── */}
+      <div className="wip-print-header hidden">
+        <h1>RMI — WIP Report</h1>
+        <p>
+          {selectedMonth !== null && selectedYear !== null
+            ? `${MONTH_NAMES[selectedMonth - 1]} ${selectedYear}`
+            : ""}
+          {excludeGLI ? " (excl. GLI)" : ""}
+        </p>
+      </div>
+
       {/* ── Month Selector + Controls ────────────────────── */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="wip-no-print flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           {/* Month Selector */}
           <div className="relative">
@@ -585,16 +601,28 @@ export default function WipDashboard() {
           )}
         </div>
 
-        {loading && (
-          <div className="flex items-center gap-2 text-sm text-neutral-500">
-            <RefreshCw size={14} className="animate-spin" />
-            Loading…
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {loading && (
+            <div className="flex items-center gap-2 text-sm text-neutral-500">
+              <RefreshCw size={14} className="animate-spin" />
+              Loading…
+            </div>
+          )}
+          {activeTab === "wip" && !loading && jobs.length > 0 && (
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-750 hover:border-neutral-600 transition-colors"
+            >
+              <Printer size={14} />
+              Print Report
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Tab Selector ────────────────────────────────── */}
-      <div className="flex gap-1 border-b border-neutral-800">
+      <div className="wip-no-print flex gap-1 border-b border-neutral-800">
         <button
           type="button"
           onClick={() => setActiveTab("wip")}
@@ -794,7 +822,7 @@ export default function WipDashboard() {
 
       {/* ── Alert Flags ────────────────────────────────── */}
       {alerts.length > 0 && (
-        <div className="border border-neutral-800 rounded-lg overflow-hidden">
+        <div className="wip-no-print border border-neutral-800 rounded-lg overflow-hidden">
           {/* Collapsible header */}
           <button
             type="button"
