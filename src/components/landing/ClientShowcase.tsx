@@ -44,6 +44,9 @@ const STATIC_CLIENTS: StaticClient[] = [
   { name: "Mercedes-Benz", logo: "/images/clients/mercedes-benz.svg", scale: 1.0 },
   { name: "Audi", logo: "/images/clients/audi.svg", scale: 1.5 },
   { name: "Edward Jones", logo: "/images/clients/edward-jones.svg", scale: 1.2 },
+  // Row 6 — Michigan healthcare + energy
+  { name: "Henry Ford Health", logo: "/images/clients/henry-ford-health.svg", scale: 0.8 },
+  { name: "DTE Energy", logo: "/images/clients/dte-energy.svg", scale: 1.6 },
 ];
 
 // ── DB client shape from /api/clients?featured=1 ──
@@ -66,8 +69,8 @@ function dbToRenderClient(db: DBClient): StaticClient {
   };
 }
 
-/** Max stagger delay = 200ms heading lead + 29 logos * 60ms + 500ms duration */
-const ANIMATION_TOTAL_MS = 200 + 29 * 60 + 500;
+/** Max stagger delay = 200ms heading lead + 31 logos * 60ms + 500ms duration */
+const ANIMATION_TOTAL_MS = 200 + 31 * 60 + 500;
 
 export default function ClientShowcase() {
   const [isVisible, setIsVisible] = useState(false);
