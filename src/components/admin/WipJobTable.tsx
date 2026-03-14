@@ -111,7 +111,7 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const searchTimeout = useMemo(() => {
+  useMemo(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);

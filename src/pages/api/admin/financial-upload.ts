@@ -14,7 +14,7 @@ import type {
   IncomeStatementResult,
   ReportType,
 } from "../../../lib/financial-parsers";
-import { parseBorrowingBase, isBorrowingBase } from "../../../lib/pdf-parsers";
+import { parseBorrowingBase } from "../../../lib/pdf-parsers";
 import type { BorrowingBaseResult } from "../../../lib/pdf-parsers";
 
 export const prerender = false;

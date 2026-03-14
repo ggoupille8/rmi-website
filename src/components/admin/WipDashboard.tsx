@@ -138,7 +138,7 @@ export default function WipDashboard() {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [jobs, setJobs] = useState<WipSnapshot[]>([]);
-  const [totals, setTotals] = useState<WipApiResponse["totals"] | null>(null);
+  const [, setTotals] = useState<WipApiResponse["totals"] | null>(null);
   const [pmSummary, setPmSummary] = useState<PmSummary[]>([]);
   const [priorYearEndSnapshots, setPriorYearEndSnapshots] = useState<WipSnapshot[] | null>(null);
   const [loading, setLoading] = useState(true);

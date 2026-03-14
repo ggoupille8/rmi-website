@@ -594,9 +594,6 @@ export async function parseBalanceSheet(buffer: Buffer): Promise<BalanceSheetRes
     billingsInExcess: 0,
   };
 
-  // State: are we in "Assets" or "Liabilities and Equity"?
-  let inLiabilitiesSection = false;
-
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
@@ -615,7 +612,7 @@ export async function parseBalanceSheet(buffer: Buffer): Promise<BalanceSheetRes
     if (trimmed === 'Assets') continue;
     if (trimmed === 'Current Assets') { currentSection = 'current_assets'; continue; }
     if (trimmed === 'Long Term Assets') { currentSection = 'long_term_assets'; continue; }
-    if (trimmed === 'Liabilities and Equity') { inLiabilitiesSection = true; continue; }
+    if (trimmed === 'Liabilities and Equity') { continue; }
     if (trimmed === 'Current Liabilities') { currentSection = 'current_liabilities'; continue; }
     if (trimmed === 'Long Term Liabilities') { currentSection = 'long_term_liabilities'; continue; }
     if (trimmed === 'Equity') { currentSection = 'equity'; continue; }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { CheckCircle, AlertCircle, HelpCircle, Loader2, RefreshCw } from "lucide-react";
+import { CheckCircle, AlertCircle, HelpCircle, RefreshCw } from "lucide-react";
 
 interface TieOut {
   description: string;
