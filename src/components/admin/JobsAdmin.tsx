@@ -220,7 +220,11 @@ export default function JobsAdmin() {
     if (res.ok) fetchJobs();
   };
 
-  const SortIcon = ({ col }: { col: string }) => {
+  interface SortIconProps {
+    col: string;
+  }
+
+  const SortIcon = ({ col }: SortIconProps) => {
     if (sort !== col) return null;
     return order === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
   };
@@ -488,7 +492,13 @@ export default function JobsAdmin() {
 
 // ── Sub-components ─────────────────────────────────────
 
-function StatCard({ label, value, color }: { label: string; value: number; color?: string }) {
+interface StatCardProps {
+  label: string;
+  value: number;
+  color?: string;
+}
+
+function StatCard({ label, value, color }: StatCardProps) {
   return (
     <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2.5">
       <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">{label}</div>
@@ -497,7 +507,11 @@ function StatCard({ label, value, color }: { label: string; value: number; color
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+interface StatusBadgeProps {
+  status: string;
+}
+
+function StatusBadge({ status }: StatusBadgeProps) {
   const styles: Record<string, string> = {
     open: "bg-blue-500/15 text-blue-400",
     closed: "bg-red-500/15 text-red-400",
@@ -515,17 +529,19 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+interface JobRowProps {
+  job: Job;
+  expanded: boolean;
+  onToggle: () => void;
+  onResolveFlag: (id: number) => void;
+}
+
 function JobRow({
   job,
   expanded,
   onToggle,
   onResolveFlag,
-}: {
-  job: Job;
-  expanded: boolean;
-  onToggle: () => void;
-  onResolveFlag: (id: number) => void;
-}) {
+}: JobRowProps) {
   const hasFlags = job.flags.length > 0;
   return (
     <>
@@ -589,7 +605,12 @@ function JobRow({
   );
 }
 
-function Detail({ label, value }: { label: string; value: string | null }) {
+interface DetailProps {
+  label: string;
+  value: string | null;
+}
+
+function Detail({ label, value }: DetailProps) {
   return (
     <div>
       <div className="text-[10px] uppercase tracking-wider text-slate-600">{label}</div>

@@ -77,7 +77,12 @@ function ReconciliationSkeleton() {
 // Health Score Ring
 // ─────────────────────────────────────────────
 
-function HealthScoreRing({ matched, total }: { matched: number; total: number }) {
+interface HealthScoreRingProps {
+  matched: number;
+  total: number;
+}
+
+function HealthScoreRing({ matched, total }: HealthScoreRingProps) {
   const pct = total > 0 ? (matched / total) * 100 : 0;
   const radius = 28;
   const circumference = 2 * Math.PI * radius;
@@ -125,7 +130,11 @@ function HealthScoreRing({ matched, total }: { matched: number; total: number })
 // Main Component
 // ─────────────────────────────────────────────
 
-export default function ReconciliationMatrix({ reportDate }: { reportDate: string | null }) {
+interface ReconciliationMatrixProps {
+  reportDate: string | null;
+}
+
+export default function ReconciliationMatrix({ reportDate }: ReconciliationMatrixProps) {
   const [data, setData] = useState<ReconciliationData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -304,7 +313,13 @@ export default function ReconciliationMatrix({ reportDate }: { reportDate: strin
 // Sub-components
 // ─────────────────────────────────────────────
 
-function SourceBadge({ label, filename, color }: { label: string; filename: string; color: string }) {
+interface SourceBadgeProps {
+  label: string;
+  filename: string;
+  color: string;
+}
+
+function SourceBadge({ label, filename, color }: SourceBadgeProps) {
   const colors: Record<string, string> = {
     blue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
     emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",

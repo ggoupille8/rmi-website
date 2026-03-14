@@ -45,7 +45,11 @@ async function aiFillClient(companyName: string): Promise<AIFillResult> {
 }
 
 // ── Logo preview (white-on-dark) ───────────────────────
-function LogoPreview({ client }: { client: Client }) {
+interface LogoPreviewProps {
+  client: Client;
+}
+
+function LogoPreview({ client }: LogoPreviewProps) {
   if (!client.logo_url) {
     return (
       <div className="w-10 h-10 rounded bg-white/5 flex items-center justify-center text-[10px] text-slate-500">
@@ -78,15 +82,17 @@ function LogoPreview({ client }: { client: Client }) {
 }
 
 // ── Edit logo modal ────────────────────────────────────
+interface LogoEditorProps {
+  client: Client;
+  onSave: (updates: Partial<Client>) => void;
+  onClose: () => void;
+}
+
 function LogoEditor({
   client,
   onSave,
   onClose,
-}: {
-  client: Client;
-  onSave: (updates: Partial<Client>) => void;
-  onClose: () => void;
-}) {
+}: LogoEditorProps) {
   const [logoUrl, setLogoUrl] = useState(client.logo_url ?? "");
   const [logoType, setLogoType] = useState(client.logo_type ?? "svg");
   const [displayScale, setDisplayScale] = useState(client.display_scale ?? 1.0);

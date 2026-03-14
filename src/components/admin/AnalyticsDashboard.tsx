@@ -225,7 +225,11 @@ function SkeletonCard() {
   );
 }
 
-function SkeletonTable({ rows = 5 }: { rows?: number }) {
+interface SkeletonTableProps {
+  rows?: number;
+}
+
+function SkeletonTable({ rows = 5 }: SkeletonTableProps) {
   return (
     <div className="animate-pulse">
       {Array.from({ length: rows }, (_, i) => (
@@ -249,7 +253,11 @@ function SkeletonChart() {
 
 // --- Chart components ---
 
-function DailyTrendChart({ data }: { data: DailyPoint[] }) {
+interface DailyTrendChartProps {
+  data: DailyPoint[];
+}
+
+function DailyTrendChart({ data }: DailyTrendChartProps) {
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-neutral-500 text-sm">
@@ -323,7 +331,11 @@ function DailyTrendChart({ data }: { data: DailyPoint[] }) {
   );
 }
 
-function ConversionFunnel({ funnel }: { funnel: FunnelData }) {
+interface ConversionFunnelProps {
+  funnel: FunnelData;
+}
+
+function ConversionFunnel({ funnel }: ConversionFunnelProps) {
   const stages = [
     { label: "Page Views", value: funnel.pageViews, color: "#3b82f6" },
     { label: "Engaged Sessions", value: funnel.engagedSessions, color: "#f59e0b" },
@@ -385,7 +397,11 @@ function ConversionFunnel({ funnel }: { funnel: FunnelData }) {
   );
 }
 
-function HourlyChart({ data }: { data: HourlyRow[] }) {
+interface HourlyChartProps {
+  data: HourlyRow[];
+}
+
+function HourlyChart({ data }: HourlyChartProps) {
   // Fill in missing hours
   const hourMap = new Map(data.map((d) => [parseInt(d.hour, 10), d]));
   const allHours = Array.from({ length: 24 }, (_, i) => ({
@@ -454,7 +470,11 @@ function HourlyChart({ data }: { data: HourlyRow[] }) {
   );
 }
 
-function DayOfWeekRow({ data }: { data: DayOfWeekRow[] }) {
+interface DayOfWeekRowProps {
+  data: DayOfWeekRow[];
+}
+
+function DayOfWeekRow({ data }: DayOfWeekRowProps) {
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const dayMap = new Map(data.map((d) => [d.day, d]));
   const allDays = Array.from({ length: 7 }, (_, i) => ({
@@ -492,7 +512,11 @@ function DayOfWeekRow({ data }: { data: DayOfWeekRow[] }) {
   );
 }
 
-function DeviceChart({ data }: { data: Device[] }) {
+interface DeviceChartProps {
+  data: Device[];
+}
+
+function DeviceChart({ data }: DeviceChartProps) {
   const total = data.reduce((sum, d) => sum + (d.sessions ?? 0), 0) || 1;
   const deviceColors: Record<string, string> = {
     desktop: "#3b82f6",
@@ -565,7 +589,12 @@ function NotConfiguredCard() {
 
 // --- Error state ---
 
-function ErrorCard({ message, onRetry }: { message: string; onRetry: () => void }) {
+interface ErrorCardProps {
+  message: string;
+  onRetry: () => void;
+}
+
+function ErrorCard({ message, onRetry }: ErrorCardProps) {
   return (
     <div className="bg-red-950/30 border border-red-900/50 rounded-lg p-4">
       <div className="flex items-start gap-3">
@@ -589,7 +618,12 @@ function ErrorCard({ message, onRetry }: { message: string; onRetry: () => void 
 
 // --- Section wrapper ---
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+interface SectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+function Section({ title, children }: SectionProps) {
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
       <h3 className="text-sm font-medium text-neutral-300 mb-3">{title}</h3>
@@ -600,15 +634,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 // --- Table helper ---
 
+interface DataTableProps<T> {
+  columns: { label: string; align?: "left" | "right" }[];
+  data: T[];
+  renderRow: (item: T, index: number) => React.ReactNode;
+}
+
 function DataTable<T>({
   columns,
   data,
   renderRow,
-}: {
-  columns: { label: string; align?: "left" | "right" }[];
-  data: T[];
-  renderRow: (item: T, index: number) => React.ReactNode;
-}) {
+}: DataTableProps<T>) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">

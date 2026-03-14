@@ -13,7 +13,11 @@ interface UploadItem {
   error?: string;
 }
 
-export default function FinancialUpload({ onUploadComplete }: { onUploadComplete: () => void }) {
+interface FinancialUploadProps {
+  onUploadComplete: () => void;
+}
+
+export default function FinancialUpload({ onUploadComplete }: FinancialUploadProps) {
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);

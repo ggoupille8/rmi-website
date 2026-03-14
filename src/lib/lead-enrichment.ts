@@ -167,7 +167,7 @@ async function checkCompanyWebsite(
  */
 function classifyEmailFormat(
   localPart: string,
-  isFreeMail: boolean
+  _isFreeMail: boolean
 ): EnrichmentResult["emailFormat"] {
   // Known generic prefixes
   const genericPrefixes = [

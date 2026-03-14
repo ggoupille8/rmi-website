@@ -115,7 +115,6 @@ export function validateContactForm(data: unknown): ContactValidationResult {
   // Extract and sanitize fields
   const name = sanitizeString(formData.name);
   const email = sanitizeString(formData.email);
-  const phone = sanitizeString(formData.phone);
   const message = sanitizeString(formData.message);
   const website = sanitizeString(formData.website);
 

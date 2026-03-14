@@ -355,7 +355,12 @@ interface HistoryRow extends SnapshotRow {
   records: number | undefined;
 }
 
-function ImportHistory({ months, onReimport }: { months: MonthsData; onReimport: () => void }) {
+interface ImportHistoryProps {
+  months: MonthsData;
+  onReimport: () => void;
+}
+
+function ImportHistory({ months, onReimport }: ImportHistoryProps) {
   const [reimporting, setReimporting] = useState<number | null>(null);
 
   const rows: HistoryRow[] = [
@@ -496,7 +501,11 @@ function ImportHistory({ months, onReimport }: { months: MonthsData; onReimport:
 
 const reportCache = new Map<string, { ar: unknown; bs: unknown; is: unknown }>();
 
-function ReportsView({ reportDate }: { reportDate: string }) {
+interface ReportsViewProps {
+  reportDate: string;
+}
+
+function ReportsView({ reportDate }: ReportsViewProps) {
   const [arData, setArData] = useState<{ snapshot: ArSnapshot; entries: ArEntry[] } | null>(null);
   const [bsData, setBsData] = useState<{ snapshot: BsSnapshot; entries: BsEntry[] } | null>(null);
   const [isData, setIsData] = useState<{ snapshot: IsSnapshot; entries: IsEntry[] } | null>(null);
@@ -875,7 +884,11 @@ function BorrowingBaseView() {
 // Sub-components
 // ─────────────────────────────────────────────
 
-function EmptyReportState({ type }: { type: string }) {
+interface EmptyReportStateProps {
+  type: string;
+}
+
+function EmptyReportState({ type }: EmptyReportStateProps) {
   return (
     <div className="text-center py-12 bg-neutral-900/30 border border-neutral-800/50 rounded-lg">
       <FileText size={28} className="mx-auto mb-2 text-neutral-600" />
@@ -885,7 +898,13 @@ function EmptyReportState({ type }: { type: string }) {
   );
 }
 
-function KPI({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
+interface KPIProps {
+  label: string;
+  value: string;
+  warn?: boolean;
+}
+
+function KPI({ label, value, warn }: KPIProps) {
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
       <p className="text-xs text-neutral-500 uppercase tracking-wider mb-2">{label}</p>
@@ -896,15 +915,17 @@ function KPI({ label, value, warn }: { label: string; value: string; warn?: bool
   );
 }
 
+interface MonthSelectorProps {
+  dates: string[];
+  selected: string | null;
+  onSelect: (d: string) => void;
+}
+
 function MonthSelector({
   dates,
   selected,
   onSelect,
-}: {
-  dates: string[];
-  selected: string | null;
-  onSelect: (d: string) => void;
-}) {
+}: MonthSelectorProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -950,7 +971,11 @@ function MonthSelector({
 // Imported Time with Tooltip
 // ─────────────────────────────────────────────
 
-function ImportedTimeCell({ importedAt }: { importedAt: string }) {
+interface ImportedTimeCellProps {
+  importedAt: string;
+}
+
+function ImportedTimeCell({ importedAt }: ImportedTimeCellProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const fullDate = new Date(importedAt).toLocaleString("en-US", {
@@ -984,15 +1009,17 @@ function ImportedTimeCell({ importedAt }: { importedAt: string }) {
 // Animated Tab Bar
 // ─────────────────────────────────────────────
 
+interface TabBarProps {
+  tabs: { key: Tab; label: string; icon: typeof Upload }[];
+  activeTab: Tab;
+  onTabChange: (tab: Tab) => void;
+}
+
 function TabBar({
   tabs,
   activeTab,
   onTabChange,
-}: {
-  tabs: { key: Tab; label: string; icon: typeof Upload }[];
-  activeTab: Tab;
-  onTabChange: (tab: Tab) => void;
-}) {
+}: TabBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Map<Tab, HTMLButtonElement>>(new Map());
   const [indicator, setIndicator] = useState({ left: 0, width: 0 });

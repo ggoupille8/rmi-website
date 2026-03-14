@@ -155,7 +155,7 @@ export default function JobMaster() {
     pages: 0,
     hasMore: false,
   });
-  const [taxBreakdown, setTaxBreakdown] = useState<TaxBreakdown>({
+  const [, setTaxBreakdown] = useState<TaxBreakdown>({
     taxable: 0,
     exempt: 0,
     mixed: 0,
@@ -278,7 +278,12 @@ export default function JobMaster() {
   };
 
   // Sort indicator
-  const SortIcon = ({ col, sortable }: { col: string; sortable: boolean }) => {
+  interface SortIconProps {
+    col: string;
+    sortable: boolean;
+  }
+
+  const SortIcon = ({ col, sortable }: SortIconProps) => {
     if (!sortable) return null;
     if (sort === col) {
       return order === "asc" ? (
@@ -994,17 +999,19 @@ function formatExemptionType(type: string | null): string {
 
 // ── Sub-components ─────────────────────────────────────
 
+interface StatCardProps {
+  label: string;
+  value: number;
+  color?: string;
+  dotColor?: string;
+}
+
 function StatCard({
   label,
   value,
   color,
   dotColor,
-}: {
-  label: string;
-  value: number;
-  color?: string;
-  dotColor?: string;
-}) {
+}: StatCardProps) {
   return (
     <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2.5">
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-slate-500 mb-1">
@@ -1020,7 +1027,11 @@ function StatCard({
   );
 }
 
-function TaxBadge({ status }: { status: string }) {
+interface TaxBadgeProps {
+  status: string;
+}
+
+function TaxBadge({ status }: TaxBadgeProps) {
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
@@ -1033,19 +1044,21 @@ function TaxBadge({ status }: { status: string }) {
   );
 }
 
+interface BulkDropdownProps {
+  label: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  options: { value: string; label: string }[];
+  onSelect: (value: string, label: string) => void;
+}
+
 function BulkDropdown({
   label,
   isOpen,
   onToggle,
   options,
   onSelect,
-}: {
-  label: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  options: { value: string; label: string }[];
-  onSelect: (value: string, label: string) => void;
-}) {
+}: BulkDropdownProps) {
   return (
     <div className="relative">
       <button
@@ -1074,6 +1087,33 @@ function BulkDropdown({
   );
 }
 
+interface JobRowEditForm {
+  tax_status: string;
+  tax_exemption_type: string;
+  project_manager: string;
+  contract_type: string;
+}
+
+interface JobRowProps {
+  job: JobMasterRecord;
+  isEditing: boolean;
+  isSelected: boolean;
+  editForm: JobRowEditForm;
+  saving: boolean;
+  saveError: string | null;
+  onToggleSelect: () => void;
+  onStartEdit: () => void;
+  onCancelEdit: () => void;
+  onSaveEdit: () => void;
+  onEditFormChange: (form: JobRowEditForm) => void;
+  inlineEdit: InlineEditState | null;
+  inlineSaving: boolean;
+  onStartInlineEdit: (field: InlineField, currentValue: string) => void;
+  onInlineEditChange: (value: string) => void;
+  onSaveInlineEdit: () => void;
+  onCancelInlineEdit: () => void;
+}
+
 function JobRow({
   job,
   isEditing,
@@ -1092,35 +1132,7 @@ function JobRow({
   onInlineEditChange,
   onSaveInlineEdit,
   onCancelInlineEdit,
-}: {
-  job: JobMasterRecord;
-  isEditing: boolean;
-  isSelected: boolean;
-  editForm: {
-    tax_status: string;
-    tax_exemption_type: string;
-    project_manager: string;
-    contract_type: string;
-  };
-  saving: boolean;
-  saveError: string | null;
-  onToggleSelect: () => void;
-  onStartEdit: () => void;
-  onCancelEdit: () => void;
-  onSaveEdit: () => void;
-  onEditFormChange: (form: {
-    tax_status: string;
-    tax_exemption_type: string;
-    project_manager: string;
-    contract_type: string;
-  }) => void;
-  inlineEdit: InlineEditState | null;
-  inlineSaving: boolean;
-  onStartInlineEdit: (field: InlineField, currentValue: string) => void;
-  onInlineEditChange: (value: string) => void;
-  onSaveInlineEdit: () => void;
-  onCancelInlineEdit: () => void;
-}) {
+}: JobRowProps) {
   const hiddenClass = job.is_hidden ? "opacity-50" : "";
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

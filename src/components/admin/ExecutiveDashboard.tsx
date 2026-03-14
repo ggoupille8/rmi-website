@@ -144,7 +144,12 @@ function normalizeSnapshot(raw: WipSnapshot): WipSnapshot {
 
 // ── Skeleton Components ────────────────────────────────
 
-function SkeletonLine({ width = "w-full", height = "h-4" }: { width?: string; height?: string }) {
+interface SkeletonLineProps {
+  width?: string;
+  height?: string;
+}
+
+function SkeletonLine({ width = "w-full", height = "h-4" }: SkeletonLineProps) {
   return <div className={`${width} ${height} bg-neutral-700/50 rounded animate-pulse`} />;
 }
 
@@ -198,7 +203,11 @@ function statusBadge(status: string): string {
 
 // ── Activity Icon ──────────────────────────────────────
 
-function ActivityIcon({ type }: { type: string }) {
+interface ActivityIconProps {
+  type: string;
+}
+
+function ActivityIcon({ type }: ActivityIconProps) {
   switch (type) {
     case "lead":
       return (

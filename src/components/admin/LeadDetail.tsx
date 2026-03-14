@@ -198,7 +198,11 @@ function extractSignals(message: string): string[] {
   return signals;
 }
 
-function CopyButton({ text }: { text: string }) {
+interface CopyButtonProps {
+  text: string;
+}
+
+function CopyButton({ text }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -608,15 +612,17 @@ export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props
   );
 }
 
+interface QualityBadgeProps {
+  quality: string;
+  score?: number;
+  size?: "sm" | "md";
+}
+
 export function QualityBadge({
   quality,
   score,
   size = "md",
-}: {
-  quality: string;
-  score?: number;
-  size?: "sm" | "md";
-}) {
+}: QualityBadgeProps) {
   const config: Record<string, { dot: string; text: string; bg: string; label: string }> = {
     high: {
       dot: "bg-green-400",
@@ -674,7 +680,11 @@ export function QualityBadge({
   );
 }
 
-function VerificationSection({ enrichment }: { enrichment: EnrichmentData }) {
+interface VerificationSectionProps {
+  enrichment: EnrichmentData;
+}
+
+function VerificationSection({ enrichment }: VerificationSectionProps) {
   const checks: { label: string; pass: boolean | null; detail?: string }[] = [];
 
   if (enrichment.hasMxRecords != null) {
@@ -778,7 +788,11 @@ function VerificationSection({ enrichment }: { enrichment: EnrichmentData }) {
   );
 }
 
-function IntelligenceSection({ metadata }: { metadata: LeadMetadata }) {
+interface IntelligenceSectionProps {
+  metadata: LeadMetadata;
+}
+
+function IntelligenceSection({ metadata }: IntelligenceSectionProps) {
   const geo = metadata.geo;
   const hasGeo = geo && (geo.city || geo.state || geo.country);
   const hasDevice = metadata.userAgent;
