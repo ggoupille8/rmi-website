@@ -46,7 +46,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!ALLOWED_TYPES.has(file.type)) {
       return new Response(
         JSON.stringify({
-          error: `Invalid file type: ${file.type, code: "BAD_REQUEST"}. Allowed: JPEG, PNG, WebP.`,
+          error: `Invalid file type: ${file.type}. Allowed: JPEG, PNG, WebP.`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -56,7 +56,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (file.size > MAX_FILE_SIZE) {
       return new Response(
         JSON.stringify({
-          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1), code: "BAD_REQUEST"}MB. Maximum: 10MB.`,
+          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum: 10MB.`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );

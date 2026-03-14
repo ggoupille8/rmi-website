@@ -173,7 +173,7 @@ export const PATCH: APIRoute = async ({ request }) => {
     if (status !== undefined && !isValidStatus(status)) {
       return new Response(
         JSON.stringify({
-          error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", "), code: "BAD_REQUEST"}`,
+          error: `Invalid status. Must be one of: ${VALID_STATUSES.join(", ")}`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );

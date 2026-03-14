@@ -63,7 +63,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (file.size > MAX_FILE_SIZE) {
       return new Response(
         JSON.stringify({
-          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1), code: "BAD_REQUEST"}MB. Maximum: 50MB.`,
+          error: `File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB. Maximum: 50MB.`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );

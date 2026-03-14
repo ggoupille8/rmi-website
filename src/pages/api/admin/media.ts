@@ -116,7 +116,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!isValidCategory(category)) {
       return new Response(
         JSON.stringify({
-          error: `Invalid category. Must be one of: ${VALID_CATEGORIES.join(", "), code: "BAD_REQUEST"}`,
+          error: `Invalid category. Must be one of: ${VALID_CATEGORIES.join(", ")}`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );

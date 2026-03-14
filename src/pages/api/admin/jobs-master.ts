@@ -126,7 +126,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       if (!isValidTaxStatus(body.tax_status)) {
         return new Response(
           JSON.stringify({
-            error: `Invalid tax_status. Must be one of: ${VALID_TAX_STATUSES.join(", "), code: "BAD_REQUEST"}`,
+            error: `Invalid tax_status. Must be one of: ${VALID_TAX_STATUSES.join(", ")}`,
           }),
           { status: 400, headers: SECURITY_HEADERS }
         );
@@ -155,7 +155,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       } else {
         return new Response(
           JSON.stringify({
-            error: `Invalid tax_exemption_type. Must be one of: ${VALID_EXEMPTION_TYPES.join(", "), code: "BAD_REQUEST"}`,
+            error: `Invalid tax_exemption_type. Must be one of: ${VALID_EXEMPTION_TYPES.join(", ")}`,
           }),
           { status: 400, headers: SECURITY_HEADERS }
         );
@@ -321,7 +321,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!isValidTaxStatus(taxStatus)) {
       return new Response(
         JSON.stringify({
-          error: `Invalid taxStatus. Must be one of: ${VALID_TAX_STATUSES.join(", "), code: "BAD_REQUEST"}`,
+          error: `Invalid taxStatus. Must be one of: ${VALID_TAX_STATUSES.join(", ")}`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
@@ -349,7 +349,7 @@ export const POST: APIRoute = async ({ request }) => {
       if (!isValidExemptionType(taxExemptionType)) {
         return new Response(
           JSON.stringify({
-            error: `Invalid taxExemptionType. Must be one of: ${VALID_EXEMPTION_TYPES.join(", "), code: "BAD_REQUEST"}`,
+            error: `Invalid taxExemptionType. Must be one of: ${VALID_EXEMPTION_TYPES.join(", ")}`,
           }),
           { status: 400, headers: SECURITY_HEADERS }
         );

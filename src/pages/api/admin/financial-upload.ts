@@ -246,7 +246,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!reportType) {
       return new Response(
         JSON.stringify({
-          error: `Could not detect report type from filename "${filename, code: "BAD_REQUEST"}". Specify reportType parameter (ar_aging, balance_sheet, income_statement, borrowing_base).`,
+          error: `Could not detect report type from filename "${filename}". Specify reportType parameter (ar_aging, balance_sheet, income_statement, borrowing_base).`,
         }),
         { status: 400, headers: SECURITY_HEADERS }
       );
