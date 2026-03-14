@@ -88,7 +88,7 @@ function normalizeContractType(raw: string | null): string | null {
 
 function cellString(ws: pkg.WorkSheet, row: number, col: number): string | null {
   const cell = ws[XLSX.utils.encode_cell({ r: row, c: col })];
-  if (!cell) return null;
+  if (!cell || cell.v === undefined || cell.v === null) return null;
   const s = String(cell.v).trim();
   return s === "" ? null : s;
 }

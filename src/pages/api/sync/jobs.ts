@@ -158,6 +158,16 @@ function runQualityChecks(jobs: JobPayload[]): QualityFlag[] {
   return flags;
 }
 
+// ── Sanitize ────────────────────────────────────────────
+
+/** Convert undefined, empty string, or the literal "undefined" to null. */
+function sanitize(value: string | null | undefined): string | null {
+  if (value === undefined || value === null) return null;
+  const trimmed = value.trim();
+  if (trimmed === "" || trimmed === "undefined") return null;
+  return trimmed;
+}
+
 // ── POST handler ───────────────────────────────────────
 
 export const POST: APIRoute = async ({ request }) => {
@@ -231,10 +241,10 @@ export const POST: APIRoute = async ({ request }) => {
           synced_at = NOW()
         RETURNING (xmax = 0) AS is_insert`,
         [
-          job.job_number, job.year, job.description, job.customer_name,
-          job.job_type, job.section, job.contract_value, job.timing,
-          job.close_date, job.po_number, job.taxable, job.general_contractor,
-          job.project_manager, job.status, job.is_hidden, job.has_folder,
+          job.job_number, job.year, sanitize(job.description), sanitize(job.customer_name),
+          sanitize(job.job_type), sanitize(job.section), job.contract_value, sanitize(job.timing),
+          job.close_date, sanitize(job.po_number), sanitize(job.taxable), sanitize(job.general_contractor),
+          sanitize(job.project_manager), job.status, job.is_hidden, job.has_folder,
           job.folder_name, job.source_row, job.source_sheet,
         ]
       );
