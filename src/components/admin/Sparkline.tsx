@@ -31,12 +31,15 @@ export default function Sparkline({
 
   const min = Math.min(...data);
   const max = Math.max(...data);
-  const range = max - min || 1; // avoid division by zero
+  const range = max - min;
 
   // Map data points to SVG coordinates
+  // When all values are equal, draw a flat line at center height
   const points = data.map((val, i) => ({
     x: padding + (i / (data.length - 1)) * w,
-    y: padding + h - ((val - min) / range) * h,
+    y: range === 0
+      ? padding + h / 2
+      : padding + h - ((val - min) / range) * h,
   }));
 
   // Build SVG path

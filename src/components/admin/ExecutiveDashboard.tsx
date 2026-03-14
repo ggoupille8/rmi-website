@@ -12,6 +12,8 @@ import {
   Upload,
   ArrowRight,
   Minus,
+  Inbox,
+  Clock,
 } from "lucide-react";
 import { computeWipAlerts } from "@/lib/wip-alerts";
 import type { WipSnapshot } from "./WipJobTable";
@@ -457,89 +459,101 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
             </a>
           </div>
 
-          {/* Big number: Total */}
-          <div className="mb-5">
-            <div className="flex items-center justify-between">
-              <p className="text-3xl font-bold text-neutral-100 tabular-nums">
-                {leadStats.total}
+          {leadStats.total === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Inbox size={28} className="text-neutral-600 mb-3" />
+              <p className="text-sm text-neutral-400">No active leads</p>
+              <p className="text-xs text-neutral-600 mt-1">
+                New submissions will appear here
               </p>
-              {leadSparkData && (
-                <div className="flex flex-col items-end">
-                  <Sparkline data={leadSparkData} color="#60a5fa" width={72} height={28} />
-                  <span className="text-[9px] text-neutral-600 mt-0.5">6 mo</span>
+            </div>
+          ) : (
+            <>
+              {/* Big number: Total */}
+              <div className="mb-5">
+                <div className="flex items-center justify-between">
+                  <p className="text-3xl font-bold text-neutral-100 tabular-nums">
+                    {leadStats.total}
+                  </p>
+                  {leadSparkData && (
+                    <div className="flex flex-col items-end">
+                      <Sparkline data={leadSparkData} color="#60a5fa" width={72} height={28} />
+                      <span className="text-[9px] text-neutral-600 mt-0.5">6 mo</span>
+                    </div>
+                  )}
                 </div>
+                <p className="text-xs text-neutral-500 mt-1">Total Active Leads</p>
+              </div>
+
+              {/* Quick stats row */}
+              <div className="grid grid-cols-3 gap-3 mb-5">
+                <div>
+                  <p className="text-lg font-bold text-primary-400 tabular-nums">
+                    {leadStats.newCount}
+                  </p>
+                  <p className="text-[11px] text-neutral-500">New</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-green-400 tabular-nums">
+                    {leadStats.contactedCount}
+                  </p>
+                  <p className="text-[11px] text-neutral-500">Contacted</p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-neutral-400 tabular-nums">
+                    {leadStats.archivedCount}
+                  </p>
+                  <p className="text-[11px] text-neutral-500">Archived</p>
+                </div>
+              </div>
+
+              {/* Pipeline bar */}
+              <div className="mb-4">
+                <div className="flex h-1.5 rounded-full overflow-hidden bg-neutral-700/50">
+                  {pipelineTotal > 0 ? (
+                    <>
+                      <div style={{ width: `${newPct}%` }} className="bg-primary-500" />
+                      <div style={{ width: `${contactedPct}%` }} className="bg-green-500" />
+                      <div style={{ width: `${archivedPct}%` }} className="bg-neutral-600" />
+                    </>
+                  ) : (
+                    <div className="w-full bg-neutral-700" />
+                  )}
+                </div>
+              </div>
+
+              {/* Trend */}
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-neutral-500">This week:</span>
+                <span className="font-semibold text-neutral-200 tabular-nums">
+                  {leadStats.thisWeek}
+                </span>
+                {trendUp && (
+                  <span className="flex items-center gap-0.5 text-green-400 text-xs">
+                    <TrendingUp size={12} /> vs last
+                  </span>
+                )}
+                {trendDown && (
+                  <span className="flex items-center gap-0.5 text-red-400 text-xs">
+                    <TrendingDown size={12} /> vs last
+                  </span>
+                )}
+                {!trendUp && !trendDown && (
+                  <span className="text-neutral-500 text-xs">same as last</span>
+                )}
+              </div>
+
+              {/* Action required badge */}
+              {leadStats.newCount > 0 && (
+                <a
+                  href="/admin/leads?status=new"
+                  className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-primary-600/20 hover:bg-primary-600/30 border border-primary-700/30 text-primary-400 text-xs font-medium rounded-md transition-colors"
+                >
+                  <UserPlus size={12} />
+                  {leadStats.newCount} {leadStats.newCount === 1 ? "lead needs" : "leads need"} follow-up
+                </a>
               )}
-            </div>
-            <p className="text-xs text-neutral-500 mt-1">Total Active Leads</p>
-          </div>
-
-          {/* Quick stats row */}
-          <div className="grid grid-cols-3 gap-3 mb-5">
-            <div>
-              <p className="text-lg font-bold text-primary-400 tabular-nums">
-                {leadStats.newCount}
-              </p>
-              <p className="text-[11px] text-neutral-500">New</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-green-400 tabular-nums">
-                {leadStats.contactedCount}
-              </p>
-              <p className="text-[11px] text-neutral-500">Contacted</p>
-            </div>
-            <div>
-              <p className="text-lg font-bold text-neutral-400 tabular-nums">
-                {leadStats.archivedCount}
-              </p>
-              <p className="text-[11px] text-neutral-500">Archived</p>
-            </div>
-          </div>
-
-          {/* Pipeline bar */}
-          <div className="mb-4">
-            <div className="flex h-1.5 rounded-full overflow-hidden bg-neutral-700/50">
-              {pipelineTotal > 0 ? (
-                <>
-                  <div style={{ width: `${newPct}%` }} className="bg-primary-500" />
-                  <div style={{ width: `${contactedPct}%` }} className="bg-green-500" />
-                  <div style={{ width: `${archivedPct}%` }} className="bg-neutral-600" />
-                </>
-              ) : (
-                <div className="w-full bg-neutral-700" />
-              )}
-            </div>
-          </div>
-
-          {/* Trend */}
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-neutral-500">This week:</span>
-            <span className="font-semibold text-neutral-200 tabular-nums">
-              {leadStats.thisWeek}
-            </span>
-            {trendUp && (
-              <span className="flex items-center gap-0.5 text-green-400 text-xs">
-                <TrendingUp size={12} /> vs last
-              </span>
-            )}
-            {trendDown && (
-              <span className="flex items-center gap-0.5 text-red-400 text-xs">
-                <TrendingDown size={12} /> vs last
-              </span>
-            )}
-            {!trendUp && !trendDown && (
-              <span className="text-neutral-500 text-xs">same as last</span>
-            )}
-          </div>
-
-          {/* Action required badge */}
-          {leadStats.newCount > 0 && (
-            <a
-              href="/admin/leads?status=new"
-              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-primary-600/20 hover:bg-primary-600/30 border border-primary-700/30 text-primary-400 text-xs font-medium rounded-md transition-colors"
-            >
-              <UserPlus size={12} />
-              {leadStats.newCount} {leadStats.newCount === 1 ? "lead needs" : "leads need"} follow-up
-            </a>
+            </>
           )}
         </div>
 
@@ -776,20 +790,27 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
             <h3 className="text-sm font-semibold text-neutral-200 group-hover:text-white transition-colors">Jobs</h3>
             <ArrowRight size={14} className="ml-auto text-neutral-600 group-hover:text-neutral-400 transition-colors" />
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <p className="text-lg font-bold text-neutral-100">{jobStats?.totalJobs ?? 0}</p>
-              <p className="text-[11px] text-neutral-500">Total</p>
+          {(jobStats?.totalJobs ?? 0) === 0 ? (
+            <div className="flex items-center gap-3 py-1">
+              <Briefcase size={20} className="text-neutral-600" />
+              <p className="text-sm text-neutral-500">No jobs synced yet</p>
             </div>
-            <div>
-              <p className="text-lg font-bold text-neutral-100">{jobStats?.openJobs ?? 0}</p>
-              <p className="text-[11px] text-neutral-500">Open</p>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <p className="text-lg font-bold text-neutral-100">{jobStats?.totalJobs ?? 0}</p>
+                <p className="text-[11px] text-neutral-500">Total</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-neutral-100">{jobStats?.openJobs ?? 0}</p>
+                <p className="text-[11px] text-neutral-500">Open</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-amber-400">{jobStats?.needsTaxClassification ?? 0}</p>
+                <p className="text-[11px] text-neutral-500">Needs Tax Class.</p>
+              </div>
             </div>
-            <div>
-              <p className="text-lg font-bold text-amber-400">{jobStats?.needsTaxClassification ?? 0}</p>
-              <p className="text-[11px] text-neutral-500">Needs Tax Class.</p>
-            </div>
-          </div>
+          )}
         </a>
 
         {/* Invoices Card */}
@@ -802,20 +823,27 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
             <h3 className="text-sm font-semibold text-neutral-200 group-hover:text-white transition-colors">Invoices</h3>
             <ArrowRight size={14} className="ml-auto text-neutral-600 group-hover:text-neutral-400 transition-colors" />
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <p className="text-lg font-bold text-neutral-100">{invoiceStats?.totalInvoices ?? 0}</p>
-              <p className="text-[11px] text-neutral-500">Total Entered</p>
+          {(invoiceStats?.totalInvoices ?? 0) === 0 ? (
+            <div className="flex items-center gap-3 py-1">
+              <FileText size={20} className="text-neutral-600" />
+              <p className="text-sm text-neutral-500">No invoices entered yet</p>
             </div>
-            <div>
-              <p className="text-lg font-bold text-neutral-100">{fmtCompact(invoiceStats?.totalAmount ?? 0)}</p>
-              <p className="text-[11px] text-neutral-500">Total Amount</p>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <p className="text-lg font-bold text-neutral-100">{invoiceStats?.totalInvoices ?? 0}</p>
+                <p className="text-[11px] text-neutral-500">Total Entered</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-neutral-100">{fmtCompact(invoiceStats?.totalAmount ?? 0)}</p>
+                <p className="text-[11px] text-neutral-500">Total Amount</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-emerald-400">{invoiceStats?.thisMonthCount ?? 0}</p>
+                <p className="text-[11px] text-neutral-500">This Month</p>
+              </div>
             </div>
-            <div>
-              <p className="text-lg font-bold text-emerald-400">{invoiceStats?.thisMonthCount ?? 0}</p>
-              <p className="text-[11px] text-neutral-500">This Month</p>
-            </div>
-          </div>
+          )}
         </a>
       </div>
 
@@ -839,7 +867,13 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
               ))}
             </div>
           ) : !activity || activity.length === 0 ? (
-            <p className="text-sm text-neutral-500 py-4">No recent activity.</p>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Clock size={24} className="text-neutral-600 mb-2" />
+              <p className="text-sm text-neutral-500">No recent activity</p>
+              <p className="text-xs text-neutral-600 mt-1">
+                Actions like lead updates and imports will show here
+              </p>
+            </div>
           ) : (
             <div className="space-y-1">
               {activity.map((event, idx) => (
@@ -921,7 +955,13 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
               </table>
             </div>
           ) : (
-            <p className="text-sm text-neutral-500 py-4">No leads yet.</p>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Users size={24} className="text-neutral-600 mb-2" />
+              <p className="text-sm text-neutral-500">No leads yet</p>
+              <p className="text-xs text-neutral-600 mt-1">
+                Form submissions will appear here
+              </p>
+            </div>
           )}
         </div>
       </div>
