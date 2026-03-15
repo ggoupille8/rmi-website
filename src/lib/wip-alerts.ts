@@ -222,6 +222,7 @@ function checkUnderBilled(job: WipSnapshot, flags: AlertFlag[]): void {
 
 // ── Negative Margin Check ───────────────────────────────
 // Real losses on significant jobs.
+// Note: -02XX and -03XX job suffixes are typically T&M (time & material) jobs.
 
 function checkNegativeMargin(job: WipSnapshot, flags: AlertFlag[]): void {
   if (job.gross_profit === null || job.revised_contract === null) return;
@@ -234,19 +235,44 @@ function checkNegativeMargin(job: WipSnapshot, flags: AlertFlag[]): void {
   // Negative gross profit on small jobs (<=$5K) → SKIP (noise)
   if (job.gross_profit < 0 && job.revised_contract <= 5_000) return;
 
-  // Negative gross profit on jobs >$5K → RED (real loss)
+  // Negative gross profit on jobs >$5K
   if (job.gross_profit < 0 && job.revised_contract > 5_000) {
-    flags.push({
-      category: "negative-margin",
-      severity: "red",
-      job_number: job.job_number,
-      description: job.description,
-      project_manager: job.project_manager,
-      reason: `Negative margin (${margin.toFixed(1)}%) on $${fmtDollar(job.revised_contract)} job — cost overrun`,
-      metric: { key: "margin", value: margin, threshold: 0 },
-      metric_label: "Gross Profit",
-      metric_value: job.gross_profit,
-    });
+    // Tiny losses (>= -$2K) are noise — ORANGE, not RED
+    // Early-stage jobs (<25% complete) have front-loaded costs — ORANGE, not RED
+    // Only flag RED when loss > $2K AND (pct_complete >= 25% OR job is 100% complete)
+    const isSmallLoss = job.gross_profit >= -2_000;
+    const isEarlyStage =
+      job.pct_complete !== null &&
+      job.pct_complete < 0.25 &&
+      job.pct_complete < 1.0;
+
+    if (isSmallLoss || isEarlyStage) {
+      flags.push({
+        category: "negative-margin",
+        severity: "orange",
+        job_number: job.job_number,
+        description: job.description,
+        project_manager: job.project_manager,
+        reason: isEarlyStage
+          ? `Negative margin (${margin.toFixed(1)}%) at ${Math.round((job.pct_complete ?? 0) * 100)}% complete — early-stage, monitor costs`
+          : `Negative margin (${margin.toFixed(1)}%) but loss only $${fmtDollar(job.gross_profit)} — monitor`,
+        metric: { key: "margin", value: margin, threshold: 0 },
+        metric_label: "Gross Profit",
+        metric_value: job.gross_profit,
+      });
+    } else {
+      flags.push({
+        category: "negative-margin",
+        severity: "red",
+        job_number: job.job_number,
+        description: job.description,
+        project_manager: job.project_manager,
+        reason: `Negative margin (${margin.toFixed(1)}%) on $${fmtDollar(job.revised_contract)} job — cost overrun`,
+        metric: { key: "margin", value: margin, threshold: 0 },
+        metric_label: "Gross Profit",
+        metric_value: job.gross_profit,
+      });
+    }
     return;
   }
 
