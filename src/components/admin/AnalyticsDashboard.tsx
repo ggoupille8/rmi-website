@@ -10,6 +10,18 @@ import {
   Calendar,
   FileText,
   ArrowDown,
+  Eye,
+  MousePointerClick,
+  Repeat,
+  Building2,
+  Globe,
+  Monitor,
+  Smartphone,
+  Tablet,
+  Wifi,
+  ChevronDown,
+  ChevronRight,
+  Zap,
 } from "lucide-react";
 import {
   XAxis,
@@ -89,17 +101,21 @@ interface DayOfWeekRow {
 interface ReferrerRow {
   url: string;
   sessions: number;
+  engaged?: number;
 }
 
 interface Device {
   device: string;
   sessions: number;
+  engaged?: number;
+  avgDuration?: number;
 }
 
 interface DailyPoint {
   date: string;
   engaged: number;
   users: number;
+  newUsers?: number;
 }
 
 interface TopPageRow {
@@ -107,6 +123,7 @@ interface TopPageRow {
   views: number;
   engaged: number;
   avgDuration: number;
+  bounceRate?: number;
 }
 
 interface FunnelData {
@@ -115,17 +132,155 @@ interface FunnelData {
   formSubmissions: number;
 }
 
+// --- New interfaces for enhanced data ---
+
+interface VisitorSession {
+  id: string;
+  created_at: string;
+  session_id: string;
+  visitor_id: string | null;
+  visit_number: number;
+  ip_address: string | null;
+  page_path: string;
+  referrer_domain: string | null;
+  geo_city: string | null;
+  geo_region: string | null;
+  isp_org: string | null;
+  ip_type: string | null;
+  is_vpn: boolean;
+  is_datacenter: boolean;
+  is_bot: boolean;
+  device_type: string | null;
+  browser_name: string | null;
+  browser_version: string | null;
+  os_name: string | null;
+  language: string | null;
+  connection_type: string | null;
+  scroll_depth: number;
+  time_on_page_ms: number;
+  engaged: boolean;
+  interactions: number;
+  sections_viewed: string[] | null;
+  cta_clicks: number;
+  form_started: boolean;
+  exit_intent: boolean;
+  utm_source: string | null;
+  traffic_class: string;
+}
+
+interface ReturnVisitor {
+  visitor_id: string;
+  visit_count: number;
+  first_seen: string;
+  last_seen: string;
+  total_time_ms: number;
+  max_scroll: number;
+  geo_city: string | null;
+  geo_region: string | null;
+  ip_type: string | null;
+  isp_org: string | null;
+  device_type: string | null;
+  browser_name: string | null;
+  os_name: string | null;
+  form_started: boolean;
+}
+
+interface ISPEntry {
+  isp_org: string;
+  ip_type: string | null;
+  total: number;
+  engaged_count: number;
+  unique_visitors: number;
+  avg_time_ms: number;
+  form_starts: number;
+  cities: string;
+}
+
+interface VisitorSessionData {
+  recentSessions: VisitorSession[];
+  geoBreakdown: Array<{
+    geo_city: string;
+    geo_region: string;
+    ip_type: string | null;
+    traffic_class: string;
+    total: number;
+    engaged_count: number;
+    avg_time_ms: number;
+    avg_scroll: number;
+    unique_visitors: number;
+    form_starts: number;
+    isp_org: string | null;
+  }>;
+  stats: {
+    total_sessions: number;
+    unique_visitors: number;
+    engaged_sessions: number;
+    avg_time_ms: number;
+    avg_scroll: number;
+    total_interactions: number;
+    form_starts: number;
+    cta_clicks: number;
+    exit_intents: number;
+    returning_visitors: number;
+    bot_sessions: number;
+    prospect_sessions: number;
+  };
+  returnVisitors: ReturnVisitor[];
+  hourlyVisitors: Array<{ hour: number; total: number; engaged: number; prospects: number }>;
+  ispBreakdown: ISPEntry[];
+}
+
+interface NewVsReturningRow {
+  type: string;
+  users: number;
+  engaged: number;
+  avgDuration: number;
+  bounceRate: number;
+}
+
+interface LandingPageRow {
+  path: string;
+  sessions: number;
+  engaged: number;
+  avgDuration: number;
+  bounceRate: number;
+}
+
+interface CountryRow {
+  country: string;
+  users: number;
+  engaged: number;
+}
+
+interface ChannelRow {
+  channel: string;
+  sessions: number;
+  engaged: number;
+  avgDuration: number;
+  conversions: number;
+}
+
+interface CustomEventRow {
+  event: string;
+  count: number;
+  users: number;
+}
+
 interface AnalyticsResponse {
   configured: boolean;
   days?: number;
-  overview?: OverviewData;
+  overview?: OverviewData & {
+    bounceRate?: number;
+    totalEngagementDuration?: number;
+    sessionsPerUser?: number;
+  };
   trafficSummary?: TrafficSummary;
   prospectActivity?: CityRow[];
   engagedTimeline?: TimelineEntry[];
-  cities?: CityRow[];
+  cities?: (CityRow & { avgDuration?: number; bounceRate?: number })[];
   screenResolutions?: ScreenResRow[];
-  browserOS?: BrowserOSRow[];
-  sourceMedium?: SourceMediumRow[];
+  browserOS?: (BrowserOSRow & { engaged?: number })[];
+  sourceMedium?: (SourceMediumRow & { bounceRate?: number; conversions?: number })[];
   hourly?: HourlyRow[];
   dayOfWeek?: DayOfWeekRow[];
   referrers?: ReferrerRow[];
@@ -133,6 +288,13 @@ interface AnalyticsResponse {
   daily?: DailyPoint[];
   topPages?: TopPageRow[];
   funnel?: FunnelData;
+  // New data
+  newVsReturning?: NewVsReturningRow[];
+  landingPages?: LandingPageRow[];
+  countries?: CountryRow[];
+  channels?: ChannelRow[];
+  customEvents?: CustomEventRow[];
+  visitorSessions?: VisitorSessionData | null;
   error?: string;
 }
 
@@ -212,6 +374,42 @@ function classificationBadge(classification: string | undefined | null): string 
   if (classification === "suspicious") return "bg-yellow-600/15 text-yellow-400";
   if (classification === "bot") return "bg-red-600/15 text-red-400";
   return "bg-neutral-700 text-neutral-400";
+}
+
+function ipTypeBadge(ipType: string | null | undefined): string {
+  if (ipType === "residential") return "bg-green-600/20 text-green-400";
+  if (ipType === "business") return "bg-blue-600/20 text-blue-400";
+  if (ipType === "mobile") return "bg-amber-600/20 text-amber-400";
+  if (ipType === "datacenter") return "bg-red-600/15 text-red-400";
+  if (ipType === "vpn") return "bg-purple-600/20 text-purple-400";
+  if (ipType === "tor") return "bg-red-600/20 text-red-400";
+  return "bg-neutral-700 text-neutral-400";
+}
+
+function deviceIcon(deviceType: string | null | undefined) {
+  if (deviceType === "mobile") return <Smartphone size={12} className="text-green-400" />;
+  if (deviceType === "tablet") return <Tablet size={12} className="text-amber-400" />;
+  return <Monitor size={12} className="text-blue-400" />;
+}
+
+function formatTimeMs(ms: number): string {
+  const s = Math.round(ms / 1000);
+  const mins = Math.floor(s / 60);
+  const secs = s % 60;
+  return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+}
+
+function relativeTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffMin = Math.floor(diffMs / 60_000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `${diffH}h ago`;
+  const diffD = Math.floor(diffH / 24);
+  return `${diffD}d ago`;
 }
 
 // --- Skeleton components ---
@@ -1233,6 +1431,429 @@ export default function AnalyticsDashboard() {
           <DeviceChart data={data?.devices || []} />
         )}
       </Section>
+
+      {/* ═══════════════ ENHANCED SECTIONS ═══════════════ */}
+
+      {/* Server-Side Visitor Intelligence Stats */}
+      {data?.visitorSessions?.stats && (
+        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-neutral-300 mb-3 flex items-center gap-2">
+            <Zap size={14} className="text-amber-400" />
+            Server-Side Visitor Intelligence
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { label: "Tracked Sessions", value: data.visitorSessions.stats.total_sessions, color: "text-neutral-100" },
+              { label: "Unique Visitors", value: data.visitorSessions.stats.unique_visitors, color: "text-blue-400" },
+              { label: "Engaged", value: data.visitorSessions.stats.engaged_sessions, color: "text-green-400" },
+              { label: "Form Starts", value: data.visitorSessions.stats.form_starts, color: "text-amber-400" },
+              { label: "CTA Clicks", value: data.visitorSessions.stats.cta_clicks, color: "text-purple-400" },
+              { label: "Return Visitors", value: data.visitorSessions.stats.returning_visitors, color: "text-cyan-400" },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className={`text-lg font-bold ${stat.color}`}>{stat.value.toLocaleString()}</div>
+                <div className="text-[10px] text-neutral-500 uppercase tracking-wider">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-neutral-800">
+            <div className="text-center">
+              <div className="text-sm font-medium text-neutral-200">{formatTimeMs(data.visitorSessions.stats.avg_time_ms)}</div>
+              <div className="text-[10px] text-neutral-500">Avg Time</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-neutral-200">{data.visitorSessions.stats.avg_scroll}%</div>
+              <div className="text-[10px] text-neutral-500">Avg Scroll</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-red-400">{data.visitorSessions.stats.bot_sessions.toLocaleString()}</div>
+              <div className="text-[10px] text-neutral-500">Bots Filtered</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Visitor Intelligence Feed */}
+      {data?.visitorSessions?.recentSessions && data.visitorSessions.recentSessions.length > 0 && (
+        <VisitorFeed sessions={data.visitorSessions.recentSessions} />
+      )}
+
+      {/* Return Visitors */}
+      {data?.visitorSessions?.returnVisitors && data.visitorSessions.returnVisitors.length > 0 && (
+        <Section title="Return Visitor Intelligence">
+          <DataTable
+            columns={[
+              { label: "Visitor" },
+              { label: "Visits", align: "right" },
+              { label: "Location" },
+              { label: "Org" },
+              { label: "Device" },
+              { label: "Total Time", align: "right" },
+              { label: "Form" },
+            ]}
+            data={data.visitorSessions.returnVisitors}
+            renderRow={(rv, i) => (
+              <tr key={i} className={`border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors ${rv.form_started ? "bg-green-900/10" : ""}`}>
+                <td className="py-1.5 px-2 text-neutral-400 font-mono text-[10px]">
+                  {rv.visitor_id?.slice(0, 8)}...
+                  {rv.ip_type && (
+                    <span className={`ml-1 px-1 py-0.5 rounded text-[9px] ${ipTypeBadge(rv.ip_type)}`}>
+                      {rv.ip_type}
+                    </span>
+                  )}
+                </td>
+                <td className="py-1.5 px-2 text-right text-neutral-200 font-semibold tabular-nums">
+                  {rv.visit_count}
+                </td>
+                <td className={`py-1.5 px-2 text-xs ${isMichiganCity(rv.geo_region ?? "") ? "text-blue-400" : "text-neutral-300"}`}>
+                  {rv.geo_city}, {rv.geo_region?.substring(0, 2).toUpperCase()}
+                </td>
+                <td className="py-1.5 px-2 text-xs text-neutral-500 max-w-[120px] truncate" title={rv.isp_org ?? ""}>
+                  {rv.isp_org ?? "-"}
+                </td>
+                <td className="py-1.5 px-2 text-xs text-neutral-400">
+                  <span className="flex items-center gap-1">
+                    {deviceIcon(rv.device_type)}
+                    {rv.browser_name}
+                  </span>
+                </td>
+                <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums text-xs">
+                  {formatTimeMs(rv.total_time_ms)}
+                </td>
+                <td className="py-1.5 px-2">
+                  {rv.form_started && (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-green-600/20 text-green-400 font-medium">
+                      Started
+                    </span>
+                  )}
+                </td>
+              </tr>
+            )}
+          />
+        </Section>
+      )}
+
+      {/* ISP / Organization Intelligence */}
+      {data?.visitorSessions?.ispBreakdown && data.visitorSessions.ispBreakdown.length > 0 && (
+        <Section title="ISP / Organization Intelligence">
+          <DataTable
+            columns={[
+              { label: "Organization" },
+              { label: "Type" },
+              { label: "Sessions", align: "right" },
+              { label: "Engaged", align: "right" },
+              { label: "Avg Time", align: "right" },
+              { label: "Forms", align: "right" },
+              { label: "Cities" },
+            ]}
+            data={data.visitorSessions.ispBreakdown}
+            renderRow={(isp, i) => (
+              <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors">
+                <td className="py-1.5 px-2 text-neutral-300 text-xs max-w-[180px] truncate" title={isp.isp_org}>
+                  <span className="flex items-center gap-1">
+                    <Building2 size={12} className="text-neutral-500 shrink-0" />
+                    {isp.isp_org}
+                  </span>
+                </td>
+                <td className="py-1.5 px-2">
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${ipTypeBadge(isp.ip_type)}`}>
+                    {isp.ip_type ?? "unknown"}
+                  </span>
+                </td>
+                <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{isp.total}</td>
+                <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{isp.engaged_count}</td>
+                <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums text-xs">{formatTimeMs(isp.avg_time_ms)}</td>
+                <td className="py-1.5 px-2 text-right tabular-nums">
+                  {isp.form_starts > 0 ? (
+                    <span className="text-green-400 font-medium">{isp.form_starts}</span>
+                  ) : (
+                    <span className="text-neutral-600">0</span>
+                  )}
+                </td>
+                <td className="py-1.5 px-2 text-xs text-neutral-500 max-w-[150px] truncate" title={isp.cities}>
+                  {isp.cities}
+                </td>
+              </tr>
+            )}
+          />
+        </Section>
+      )}
+
+      {/* New vs Returning + Channels */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* New vs Returning */}
+        {data?.newVsReturning && data.newVsReturning.length > 0 && (
+          <Section title="New vs Returning Visitors">
+            <div className="space-y-3">
+              {data.newVsReturning.map((row) => {
+                const isNew = row.type === "new" || row.type === "New Visitor";
+                return (
+                  <div key={row.type} className="flex items-center gap-3">
+                    <div className={`w-2 h-8 rounded ${isNew ? "bg-blue-500" : "bg-green-500"}`} />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-neutral-200 font-medium capitalize">
+                          {isNew ? "New" : "Returning"}
+                        </span>
+                        <span className="text-sm text-neutral-300 font-semibold tabular-nums">
+                          {row.users.toLocaleString()} users
+                        </span>
+                      </div>
+                      <div className="flex gap-4 text-[10px] text-neutral-500">
+                        <span>{row.engaged} engaged</span>
+                        <span>{formatDuration(row.avgDuration)} avg</span>
+                        <span>{formatPercent(row.bounceRate)} bounce</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+        )}
+
+        {/* Channel Grouping */}
+        {data?.channels && data.channels.length > 0 && (
+          <Section title="Channel Grouping">
+            <DataTable
+              columns={[
+                { label: "Channel" },
+                { label: "Sessions", align: "right" },
+                { label: "Engaged", align: "right" },
+                { label: "Avg Duration", align: "right" },
+              ]}
+              data={data.channels}
+              renderRow={(ch, i) => (
+                <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors">
+                  <td className="py-1.5 px-2 text-neutral-300 text-xs">{ch.channel}</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{ch.sessions.toLocaleString()}</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{ch.engaged.toLocaleString()}</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums text-xs">{formatDuration(ch.avgDuration)}</td>
+                </tr>
+              )}
+            />
+          </Section>
+        )}
+      </div>
+
+      {/* Landing Pages + Countries */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Landing Pages */}
+        {data?.landingPages && data.landingPages.length > 0 && (
+          <Section title="Landing Pages">
+            <DataTable
+              columns={[
+                { label: "Page" },
+                { label: "Sessions", align: "right" },
+                { label: "Bounce", align: "right" },
+                { label: "Avg Duration", align: "right" },
+              ]}
+              data={data.landingPages}
+              renderRow={(lp, i) => (
+                <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors">
+                  <td className="py-1.5 px-2 text-neutral-300 font-mono text-xs max-w-[200px] truncate" title={lp.path}>
+                    {lp.path}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{lp.sessions.toLocaleString()}</td>
+                  <td className={`py-1.5 px-2 text-right tabular-nums text-xs ${(lp.bounceRate ?? 0) > 0.7 ? "text-red-400" : (lp.bounceRate ?? 0) > 0.4 ? "text-yellow-400" : "text-green-400"}`}>
+                    {formatPercent(lp.bounceRate)}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums text-xs">{formatDuration(lp.avgDuration)}</td>
+                </tr>
+              )}
+            />
+          </Section>
+        )}
+
+        {/* Countries */}
+        {data?.countries && data.countries.length > 0 && (
+          <Section title="Countries">
+            <DataTable
+              columns={[
+                { label: "Country" },
+                { label: "Users", align: "right" },
+                { label: "Engaged", align: "right" },
+              ]}
+              data={data.countries}
+              renderRow={(c, i) => (
+                <tr key={i} className="border-b border-neutral-800/50 hover:bg-neutral-800/60 transition-colors">
+                  <td className="py-1.5 px-2 text-neutral-300 text-xs flex items-center gap-1.5">
+                    <Globe size={12} className="text-neutral-500" />
+                    {c.country}
+                  </td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{c.users.toLocaleString()}</td>
+                  <td className="py-1.5 px-2 text-right text-neutral-400 tabular-nums">{c.engaged.toLocaleString()}</td>
+                </tr>
+              )}
+            />
+          </Section>
+        )}
+      </div>
+
+      {/* Engagement Events (Custom GA4 Events) */}
+      {data?.customEvents && data.customEvents.length > 0 && (
+        <Section title="Engagement Depth — Custom Events">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {data.customEvents.map((evt) => {
+              const label = evt.event.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+              const iconMap: Record<string, React.ReactNode> = {
+                scroll_depth: <ArrowDown size={14} className="text-blue-400" />,
+                time_on_page: <Clock size={14} className="text-green-400" />,
+                section_view: <Eye size={14} className="text-purple-400" />,
+                cta_click: <MousePointerClick size={14} className="text-amber-400" />,
+                form_start: <FileText size={14} className="text-green-400" />,
+                exit_intent: <ArrowDown size={14} className="text-red-400 rotate-180" />,
+                phone_click: <Wifi size={14} className="text-green-400" />,
+                email_click: <FileText size={14} className="text-blue-400" />,
+              };
+              return (
+                <div key={evt.event} className="bg-neutral-800/40 rounded-md p-3 text-center">
+                  <div className="flex items-center justify-center gap-1.5 mb-1">
+                    {iconMap[evt.event] ?? <Zap size={14} className="text-neutral-400" />}
+                    <span className="text-[10px] text-neutral-500 uppercase tracking-wider">{label}</span>
+                  </div>
+                  <div className="text-lg font-bold text-neutral-100">{evt.count.toLocaleString()}</div>
+                  <div className="text-[10px] text-neutral-500">{evt.users} users</div>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+      )}
+    </div>
+  );
+}
+
+// --- Visitor Intelligence Feed (expandable rows) ---
+
+function VisitorFeed({ sessions }: { sessions: VisitorSession[] }) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [showAll, setShowAll] = useState(false);
+
+  const displayed = showAll ? sessions : sessions.slice(0, 20);
+
+  return (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
+      <h3 className="text-sm font-semibold text-neutral-300 mb-3 flex items-center gap-2">
+        <Eye size={14} className="text-cyan-400" />
+        Live Visitor Intelligence Feed
+        <span className="text-[10px] text-neutral-500 font-normal ml-auto">{sessions.length} sessions</span>
+      </h3>
+      <div className="space-y-1">
+        {displayed.map((s) => {
+          const isExpanded = expanded.has(s.id);
+          const isMI = isMichiganCity(s.geo_region ?? "");
+          return (
+            <div key={s.id}>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = new Set(expanded);
+                  if (isExpanded) next.delete(s.id);
+                  else next.add(s.id);
+                  setExpanded(next);
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-left transition-colors hover:bg-neutral-800/60 ${
+                  isMI ? "border-l-2 border-l-accent-500 bg-accent-500/5" : "border-l-2 border-l-neutral-700 bg-neutral-800/20"
+                }`}
+              >
+                {isExpanded ? <ChevronDown size={12} className="text-neutral-500 shrink-0" /> : <ChevronRight size={12} className="text-neutral-500 shrink-0" />}
+                <span className="text-[10px] text-neutral-500 w-14 shrink-0">{relativeTime(s.created_at)}</span>
+                {deviceIcon(s.device_type)}
+                <span className={`text-xs font-medium ${isMI ? "text-accent-400" : "text-neutral-200"} w-28 truncate`}>
+                  {s.geo_city ?? "Unknown"}{s.geo_region ? `, ${s.geo_region.substring(0, 2).toUpperCase()}` : ""}
+                </span>
+                <span className={`px-1 py-0.5 rounded text-[9px] font-medium ${ipTypeBadge(s.ip_type)}`}>
+                  {s.ip_type ?? "?"}
+                </span>
+                <span className="text-[10px] text-neutral-500 truncate max-w-[100px]" title={s.isp_org ?? ""}>
+                  {s.isp_org ?? ""}
+                </span>
+                <span className="ml-auto flex items-center gap-2">
+                  {s.form_started && <span className="px-1 py-0.5 rounded text-[9px] bg-green-600/20 text-green-400">Form</span>}
+                  {s.cta_clicks > 0 && <span className="px-1 py-0.5 rounded text-[9px] bg-amber-600/20 text-amber-400">CTA</span>}
+                  {s.engaged && <span className="px-1 py-0.5 rounded text-[9px] bg-blue-600/20 text-blue-400">Engaged</span>}
+                  <span className="text-[10px] text-neutral-500 tabular-nums w-12 text-right">{formatTimeMs(s.time_on_page_ms)}</span>
+                </span>
+              </button>
+              {isExpanded && (
+                <div className="ml-8 mt-1 mb-2 p-3 bg-neutral-800/40 rounded-md text-xs space-y-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div>
+                      <span className="text-neutral-500">Browser:</span>{" "}
+                      <span className="text-neutral-300">{s.browser_name} {s.browser_version}</span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500">OS:</span>{" "}
+                      <span className="text-neutral-300">{s.os_name}</span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500">Language:</span>{" "}
+                      <span className="text-neutral-300">{s.language}</span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500">Connection:</span>{" "}
+                      <span className="text-neutral-300">{s.connection_type ?? "unknown"}</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div>
+                      <span className="text-neutral-500">Scroll:</span>{" "}
+                      <span className={s.scroll_depth > 50 ? "text-green-400" : s.scroll_depth > 25 ? "text-yellow-400" : "text-neutral-400"}>
+                        {s.scroll_depth}%
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500">Interactions:</span>{" "}
+                      <span className="text-neutral-300">{s.interactions}</span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500">Visit #:</span>{" "}
+                      <span className={s.visit_number > 1 ? "text-cyan-400 font-medium" : "text-neutral-300"}>
+                        {s.visit_number}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500">Referrer:</span>{" "}
+                      <span className="text-neutral-300">{s.referrer_domain || "direct"}</span>
+                    </div>
+                  </div>
+                  {s.sections_viewed && s.sections_viewed.length > 0 && (
+                    <div>
+                      <span className="text-neutral-500">Sections viewed:</span>{" "}
+                      {s.sections_viewed.map((sec) => (
+                        <span key={sec} className="inline-block px-1.5 py-0.5 mr-1 mt-1 rounded bg-neutral-700 text-neutral-300 text-[10px]">
+                          {sec}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {s.utm_source && (
+                    <div>
+                      <span className="text-neutral-500">UTM Source:</span>{" "}
+                      <span className="text-neutral-300">{s.utm_source}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1 text-[10px] text-neutral-600">
+                    <span>IP: {s.ip_address}</span>
+                    <span>• Session: {s.session_id?.slice(0, 12)}...</span>
+                    <span>• Class: <span className={`${classificationBadge(s.traffic_class)} px-1 rounded`}>{s.traffic_class}</span></span>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {sessions.length > 20 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(!showAll)}
+          className="mt-2 text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+        >
+          {showAll ? "Show less" : `Show all ${sessions.length} sessions`}
+        </button>
+      )}
     </div>
   );
 }
