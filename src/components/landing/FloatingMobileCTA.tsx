@@ -91,7 +91,7 @@ export default function FloatingMobileCTA() {
   return (
     <ErrorBoundary>
     <div
-      className={`fixed bottom-24 right-0 z-40 md:hidden pointer-events-none transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0 invisible"}`}
+      className={`fixed bottom-20 right-0 z-40 md:hidden pointer-events-none transition-opacity duration-300 ${isVisible ? "opacity-100" : "opacity-0 invisible"}`}
       style={{
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
         paddingRight: "env(safe-area-inset-right, 0px)",
@@ -101,17 +101,17 @@ export default function FloatingMobileCTA() {
     >
       <div className="flex flex-col items-end gap-3 p-4 pb-6">
         {isExpanded && (
-          <div className="flex flex-col gap-3 transition-all duration-200 ease-in-out">
+          <div className="flex flex-col gap-3 animate-[fadeIn_200ms_ease-out]">
             <a
               href={phoneTel}
-              className="pointer-events-auto flex items-center justify-center w-14 h-14 rounded-full bg-accent-600 text-white shadow-lg hover:bg-accent-500 hover:scale-110 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 min-w-[56px] min-h-[56px]"
+              className="pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full bg-accent-600 text-white shadow-lg hover:bg-accent-500 hover:scale-110 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 min-w-[48px] min-h-[48px]"
               aria-label={`Call ${companyName} at ${phoneDisplay}`}
             >
               <Phone className="w-6 h-6 transition-transform duration-300 ease-in-out hover:scale-110" aria-hidden="true" />
             </a>
             <a
               href={`mailto:${email}`}
-              className="pointer-events-auto flex items-center justify-center w-14 h-14 rounded-full bg-accent-600 text-white shadow-lg hover:bg-accent-500 hover:scale-110 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 min-w-[56px] min-h-[56px]"
+              className="pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full bg-accent-600 text-white shadow-lg hover:bg-accent-500 hover:scale-110 hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 min-w-[48px] min-h-[48px]"
               aria-label={`Email ${companyName} at ${email}`}
             >
               <Mail className="w-6 h-6 transition-transform duration-300 ease-in-out hover:scale-110" aria-hidden="true" />
@@ -121,7 +121,7 @@ export default function FloatingMobileCTA() {
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="pointer-events-auto flex items-center justify-center w-14 h-14 rounded-full bg-accent-600 text-white shadow-lg hover:bg-accent-700 hover:scale-110 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 min-w-[56px] min-h-[56px]"
+          className="pointer-events-auto relative flex items-center justify-center w-12 h-12 rounded-full bg-accent-600 text-white shadow-lg hover:bg-accent-700 hover:scale-110 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 min-w-[48px] min-h-[48px]"
           aria-label={isExpanded ? "Close contact menu" : "Open contact menu"}
           aria-expanded={isExpanded}
         >
@@ -130,10 +130,15 @@ export default function FloatingMobileCTA() {
           ) : (
             <Phone className="w-6 h-6" aria-hidden="true" />
           )}
+          {!isExpanded && (
+            <span
+              className="pointer-events-none absolute inset-0 rounded-full ring-2 ring-accent-400/30 animate-[cta-pulse_3s_ease-in-out_infinite]"
+              aria-hidden="true"
+            />
+          )}
         </button>
       </div>
     </div>
     </ErrorBoundary>
   );
 }
-
