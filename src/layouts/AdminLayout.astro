@@ -29,10 +29,10 @@ const currentPath = Astro.url.pathname;
   <body class="h-full bg-neutral-950 text-neutral-100">
     <AdminSidebar currentPath={currentPath} client:load />
 
-    <div class="lg:ml-60 min-h-full flex flex-col">
+    <div class="lg:ml-60 h-screen flex flex-col overflow-hidden">
       <AdminHeader title={title} subtitle={subtitle} client:load />
 
-      <main class="flex-1 p-4 lg:p-6">
+      <main class="flex-1 min-h-0 p-4 lg:p-6 overflow-y-auto">
         <slot />
       </main>
     </div>

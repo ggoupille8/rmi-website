@@ -466,9 +466,9 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
   // ── Render ────────────────────────────────────────────
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="flex flex-col gap-5 h-full max-w-7xl overflow-hidden">
       {/* ── Three-Column Grid ──────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="shrink-0 grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* ── LEFT: Lead Pipeline ─────────────────────── */}
         <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-800/50 hover:shadow-[0_8px_24px_-6px_rgba(59,130,246,0.15)]">
           <div className="flex items-center justify-between mb-5">
@@ -835,7 +835,7 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
       </div>
 
       {/* ── Jobs & Invoices Summary ──────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Jobs Card */}
         <a
           href="/admin/jobs"
@@ -907,58 +907,60 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
       </div>
 
       {/* ── Bottom Row: Recent Activity + Recent Leads ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4">
         {/* Activity Feed */}
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-5">
-          <h2 className="text-sm font-semibold text-neutral-300 uppercase tracking-wider mb-4">
+        <div className="flex-1 min-h-0 min-w-0 bg-neutral-800/50 border border-neutral-700 rounded-lg p-5 flex flex-col overflow-hidden">
+          <h2 className="shrink-0 text-sm font-semibold text-neutral-300 uppercase tracking-wider mb-4">
             Recent Activity
           </h2>
-          {activityLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <SkeletonLine width="w-8" height="h-8" />
-                  <div className="flex-1 space-y-1">
-                    <SkeletonLine width="w-3/4" height="h-3" />
-                    <SkeletonLine width="w-20" height="h-2" />
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {activityLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <SkeletonLine width="w-8" height="h-8" />
+                    <div className="flex-1 space-y-1">
+                      <SkeletonLine width="w-3/4" height="h-3" />
+                      <SkeletonLine width="w-20" height="h-2" />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : !activity || activity.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Clock size={24} className="text-neutral-600 mb-2" />
-              <p className="text-sm text-neutral-500">No recent activity</p>
-              <p className="text-xs text-neutral-600 mt-1">
-                Actions like lead updates and imports will show here
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {activity.map((event, idx) => (
-                <a
-                  key={idx}
-                  href={event.link}
-                  className="flex items-center gap-3 px-2 py-2 -mx-2 rounded-md hover:bg-neutral-700/30 transition-colors group"
-                >
-                  <ActivityIcon type={event.event_type} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-neutral-300 truncate group-hover:text-neutral-100 transition-colors">
-                      {event.description}
-                    </p>
-                  </div>
-                  <span className="text-[11px] text-neutral-600 whitespace-nowrap tabular-nums">
-                    {timeAgo(event.event_time)}
-                  </span>
-                </a>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            ) : !activity || activity.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Clock size={24} className="text-neutral-600 mb-2" />
+                <p className="text-sm text-neutral-500">No recent activity</p>
+                <p className="text-xs text-neutral-600 mt-1">
+                  Actions like lead updates and imports will show here
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {activity.map((event, idx) => (
+                  <a
+                    key={idx}
+                    href={event.link}
+                    className="flex items-center gap-3 px-2 py-2 -mx-2 rounded-md hover:bg-neutral-700/30 transition-colors group"
+                  >
+                    <ActivityIcon type={event.event_type} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-neutral-300 truncate group-hover:text-neutral-100 transition-colors">
+                        {event.description}
+                      </p>
+                    </div>
+                    <span className="text-[11px] text-neutral-600 whitespace-nowrap tabular-nums">
+                      {timeAgo(event.event_time)}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Recent Leads Mini-Table */}
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="flex-1 min-h-0 min-w-0 bg-neutral-800/50 border border-neutral-700 rounded-lg p-5 flex flex-col overflow-hidden">
+          <div className="shrink-0 flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-neutral-300 uppercase tracking-wider">
               Recent Leads
             </h2>
@@ -969,59 +971,61 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
               View all <ArrowRight size={12} />
             </a>
           </div>
-          {recentLeads.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-neutral-700/50">
-                    <th className="text-left text-[11px] font-medium text-neutral-500 uppercase tracking-wider pb-2">
-                      Name
-                    </th>
-                    <th className="text-left text-[11px] font-medium text-neutral-500 uppercase tracking-wider pb-2 hidden sm:table-cell">
-                      Email
-                    </th>
-                    <th className="text-left text-[11px] font-medium text-neutral-500 uppercase tracking-wider pb-2">
-                      Status
-                    </th>
-                    <th className="text-right text-[11px] font-medium text-neutral-500 uppercase tracking-wider pb-2">
-                      When
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentLeads.map((lead) => (
-                    <tr
-                      key={lead.id}
-                      className="border-b border-neutral-700/30 last:border-0"
-                    >
-                      <td className="py-2 text-sm text-neutral-200">{lead.name}</td>
-                      <td className="py-2 text-sm text-neutral-400 hidden sm:table-cell">
-                        {lead.email}
-                      </td>
-                      <td className="py-2">
-                        <span
-                          className={`inline-block px-2 py-0.5 text-[11px] font-medium rounded-full ${statusBadge(lead.status)}`}
-                        >
-                          {lead.status}
-                        </span>
-                      </td>
-                      <td className="py-2 text-sm text-neutral-500 text-right tabular-nums">
-                        {timeAgo(lead.created_at)}
-                      </td>
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {recentLeads.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-neutral-700/50">
+                      <th className="text-left text-[11px] font-medium text-neutral-500 uppercase tracking-wider pb-2">
+                        Name
+                      </th>
+                      <th className="text-left text-[11px] font-medium text-neutral-500 uppercase tracking-wider pb-2 hidden sm:table-cell">
+                        Email
+                      </th>
+                      <th className="text-left text-[11px] font-medium text-neutral-500 uppercase tracking-wider pb-2">
+                        Status
+                      </th>
+                      <th className="text-right text-[11px] font-medium text-neutral-500 uppercase tracking-wider pb-2">
+                        When
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Users size={24} className="text-neutral-600 mb-2" />
-              <p className="text-sm text-neutral-500">No leads yet</p>
-              <p className="text-xs text-neutral-600 mt-1">
-                Leads from the contact form will appear here
-              </p>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {recentLeads.map((lead) => (
+                      <tr
+                        key={lead.id}
+                        className="border-b border-neutral-700/30 last:border-0"
+                      >
+                        <td className="py-2 text-sm text-neutral-200">{lead.name}</td>
+                        <td className="py-2 text-sm text-neutral-400 hidden sm:table-cell">
+                          {lead.email}
+                        </td>
+                        <td className="py-2">
+                          <span
+                            className={`inline-block px-2 py-0.5 text-[11px] font-medium rounded-full ${statusBadge(lead.status)}`}
+                          >
+                            {lead.status}
+                          </span>
+                        </td>
+                        <td className="py-2 text-sm text-neutral-500 text-right tabular-nums">
+                          {timeAgo(lead.created_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Users size={24} className="text-neutral-600 mb-2" />
+                <p className="text-sm text-neutral-500">No leads yet</p>
+                <p className="text-xs text-neutral-600 mt-1">
+                  Leads from the contact form will appear here
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
