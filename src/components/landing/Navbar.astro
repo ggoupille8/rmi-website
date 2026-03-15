@@ -76,7 +76,7 @@ import { companyName } from '../../content/site';
       </a>
       <a
         href="#contact"
-        class="btn-primary px-5 py-2.5 text-sm min-h-[44px] transition-all duration-200 ease-in-out"
+        class="btn-primary animate-pulse-subtle px-5 py-2.5 text-sm min-h-[44px] transition-all duration-200 ease-in-out"
       >
         Request a Quote
       </a>
@@ -421,6 +421,7 @@ import { companyName } from '../../content/site';
   }
 
   if (sections.length > 0) {
+    const navHeight = navbar?.getBoundingClientRect().height || 56;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -429,8 +430,7 @@ import { companyName } from '../../content/site';
         updateActiveLink();
       },
       {
-        // Offset top by navbar height (h-14 = 56px)
-        rootMargin: '-56px 0px 0px 0px',
+        rootMargin: `-${navHeight}px 0px 0px 0px`,
         threshold: [0, 0.1, 0.2, 0.3, 0.5, 0.7, 1],
       }
     );
