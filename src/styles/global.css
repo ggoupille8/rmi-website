@@ -62,17 +62,6 @@
   animation: pulse-subtle 3s ease-in-out infinite;
 }
 
-@keyframes kenBurns {
-  from {
-    transform: scale(1);
-    filter: brightness(1);
-  }
-  to {
-    transform: scale(1.05);
-    filter: brightness(1.05);
-  }
-}
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
