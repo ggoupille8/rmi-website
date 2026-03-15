@@ -50,7 +50,7 @@ export default function CTABanner() {
     <section
       ref={sectionRef}
       id="cta-banner"
-      className="relative z-10 min-h-[350px] md:min-h-[400px] flex items-center justify-center overflow-hidden bg-neutral-900 border-t border-b border-accent-500/30"
+      className="relative z-10 min-h-[280px] sm:min-h-[350px] md:min-h-[400px] flex items-center justify-center overflow-hidden bg-neutral-900 border-t border-b border-accent-500/30"
       aria-labelledby="cta-heading"
     >
       {/* Parallax background wrapper */}
@@ -75,7 +75,7 @@ export default function CTABanner() {
       </div>
 
       {/* Content */}
-      <div className="container-custom relative py-20 px-6 text-center">
+      <div className="container-custom relative py-12 sm:py-20 px-4 sm:px-6 text-center">
         <h2
           id="cta-heading"
           className={`text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-wider uppercase transition-all duration-500 ease-out ${
@@ -98,11 +98,11 @@ export default function CTABanner() {
         >
           <a
             href="#contact"
-            className="btn-primary relative w-full sm:w-auto sm:min-w-[280px] px-10 py-3.5 text-lg font-bold shadow-lg shadow-accent-500/25 hover:shadow-[0_0_28px_rgba(59,130,246,0.4)] ring-1 ring-accent-400/20"
+            className="btn-primary relative w-full sm:w-auto sm:min-w-[280px] px-10 py-3.5 text-base sm:text-lg font-bold shadow-lg shadow-accent-500/25 hover:shadow-[0_0_28px_rgba(59,130,246,0.4)] ring-1 ring-accent-400/20"
           >
             {/* Subtle pulse ring */}
             <span
-              className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-accent-400/20 animate-[cta-pulse_3s_ease-in-out_infinite]"
+              className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-accent-400/30 animate-[cta-pulse_3s_ease-in-out_infinite]"
               aria-hidden="true"
             />
             {ctaBannerButton}

@@ -132,7 +132,7 @@ export default function AdminSidebar({ currentPath }: Props) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-3 px-2 overflow-y-auto">
+        <nav className="flex-1 py-3 px-2 overflow-y-auto overflow-x-hidden">
           {/* Dashboard — ungrouped */}
           <div className="space-y-0.5">
             <a

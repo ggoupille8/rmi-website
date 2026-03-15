@@ -421,7 +421,7 @@ export default function ContactForm({
       className="relative z-10 overflow-hidden"
       aria-labelledby="contact-heading"
     >
-      <div className="container-custom py-8 sm:py-10 lg:py-12">
+      <div className="container-custom py-6 sm:py-10 lg:py-12">
         <div className="max-w-2xl mx-auto">
           <h2
             id="contact-heading"
@@ -430,7 +430,7 @@ export default function ContactForm({
             Get a Quote
           </h2>
           <div className="w-12 h-0.5 bg-accent-500 mt-4 rounded-full mx-auto" />
-          <p className="mt-3 text-neutral-300 text-sm sm:text-base text-center">
+          <p className="mt-2 sm:mt-3 text-neutral-300 text-sm sm:text-base text-center">
             Tell us what you need.
           </p>
 
@@ -438,7 +438,7 @@ export default function ContactForm({
             ref={formRef}
             method="post"
             onSubmit={handleSubmit}
-            className="mt-6 space-y-4 border border-neutral-700/30 rounded-xl backdrop-blur-md bg-neutral-900/50 p-6 sm:p-8 shadow-inner shadow-black/10"
+            className="mt-6 space-y-3 sm:space-y-4 border border-neutral-700/30 rounded-xl backdrop-blur-md bg-neutral-900/50 p-4 sm:p-8 shadow-inner shadow-black/10"
             noValidate
             aria-busy={isSubmitting ? "true" : "false"}
           >
@@ -459,6 +459,7 @@ export default function ContactForm({
                   required
                   aria-required="true"
                   autoComplete="name"
+                  maxLength={FIELD_LIMITS.MAX_NAME_LENGTH}
                   value={formData.name}
                   onChange={(e) => { handleChange(e); handleFieldEdit(); }}
                   onBlur={handleBlur}
@@ -471,6 +472,15 @@ export default function ContactForm({
                 {fieldErrors.name && (
                   <div id="name-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
                     {fieldErrors.name}
+                  </div>
+                )}
+                {formData.name.length > 40 && (
+                  <div className={"mt-1 text-xs tabular-nums " + (
+                    formData.name.length > FIELD_LIMITS.MAX_NAME_LENGTH * 0.9
+                      ? "text-amber-400"
+                      : "text-neutral-500"
+                  )}>
+                    {formData.name.length}/{FIELD_LIMITS.MAX_NAME_LENGTH}
                   </div>
                 )}
               </div>

@@ -128,7 +128,7 @@ function AnimatedStat({
       <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight" style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)" }}>
         {finalDisplay}
       </div>
-      <div className="mt-1 text-[10px] sm:text-xs lg:text-sm text-neutral-200 uppercase tracking-normal sm:tracking-wider lg:tracking-widest leading-tight whitespace-nowrap" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
+      <div className="mt-1 text-[10px] sm:text-xs lg:text-sm text-neutral-200 uppercase tracking-normal sm:tracking-wider lg:tracking-widest leading-tight" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.7)" }}>
         {shortLabel ? (
           <>
             <span className="sm:hidden">{shortLabel}</span>
@@ -356,12 +356,12 @@ export default function HeroFullWidth({
           </div>
 
           {/* Animated Stats — Individual Cards */}
-          <div data-testid="hero-stats" className="mt-4 sm:mt-6 pb-2 sm:pb-3 grid grid-cols-3 gap-1 sm:flex sm:flex-wrap sm:justify-center sm:gap-8 lg:gap-16">
+          <div data-testid="hero-stats" className="mt-3 sm:mt-6 pb-1 sm:pb-3 grid grid-cols-3 gap-1 sm:flex sm:flex-wrap sm:justify-center sm:gap-8 lg:gap-16">
             {heroStats.map((stat, index) => (
               <div
                 key={stat.label}
                 data-testid="stat-card"
-                className="min-w-[100px] sm:min-w-[140px] px-2 sm:px-4 py-1.5"
+                className="min-w-0 sm:min-w-[140px] px-2 sm:px-4 py-1.5"
               >
                 <AnimatedStat
                   endValue={stat.endValue}

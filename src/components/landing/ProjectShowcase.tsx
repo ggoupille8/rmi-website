@@ -49,7 +49,7 @@ export default function ProjectShowcase() {
   return (
     <ErrorBoundary>
     <section
-      className="py-8 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-800"
+      className="py-6 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-800"
       aria-labelledby="projects-heading"
     >
       <div className="container-custom">
@@ -77,12 +77,12 @@ export default function ProjectShowcase() {
         </p>
 
         {/* Project Cards Grid */}
-        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 lg:gap-5">
           {projectHighlights.map((project, index) => (
             <div
               key={project.title}
               className={`group overflow-hidden rounded-xl bg-white/5 border border-neutral-700 hover:border-blue-500/50 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-[400ms] ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-              style={{ transitionDelay: isVisible ? undefined : `${index * 150}ms`, transitionDuration: isVisible ? undefined : "600ms" }}
+              style={{ transitionDelay: isVisible ? undefined : `${index * 100}ms` }}
             >
               <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl border-b-2 border-blue-500/0 group-hover:border-blue-500 transition-all duration-[400ms]">
                 <picture>
@@ -103,7 +103,7 @@ export default function ProjectShowcase() {
                 </picture>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-[400ms] group-hover:opacity-75" />
               </div>
-              <div className="px-5 py-4">
+              <div className="px-4 py-3 sm:px-5 sm:py-4">
                 <h3 className="text-lg font-semibold text-white transition-colors duration-200 group-hover:text-accent-400">
                   {project.title}
                 </h3>
