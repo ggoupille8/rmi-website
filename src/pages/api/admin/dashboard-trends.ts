@@ -83,11 +83,14 @@ export const GET: APIRoute = async ({ request }) => {
         netIncome: isMap.get(m) ?? null,
       }));
 
+    const niPriorYearSameMonth = await fetchPriorYearSameMonthNI();
+
     return new Response(
       JSON.stringify({
         leads: leadTrend,
         wip: wipTrend,
         financials,
+        niPriorYearSameMonth,
       }),
       { status: 200, headers: SECURITY_HEADERS }
     );
@@ -170,6 +173,7 @@ async function fetchIncomeTrend(): Promise<{ month: string; netIncome: number }[
         TO_CHAR(period_end_date, 'YYYY-MM') AS month,
         net_income::numeric AS net_income
       FROM income_statement_snapshots
+      WHERE EXTRACT(MONTH FROM period_end_date) != 12
       ORDER BY period_end_date DESC
       LIMIT 6
     `;
@@ -181,5 +185,41 @@ async function fetchIncomeTrend(): Promise<{ month: string; netIncome: number }[
       .reverse();
   } catch {
     return [];
+  }
+}
+
+/**
+ * Fetch same-month-prior-year net income for YoY comparison.
+ * Finds the latest non-December income statement month, then looks up
+ * the same calendar month one year earlier.
+ */
+async function fetchPriorYearSameMonthNI(): Promise<number | null> {
+  try {
+    const latestResult = await sql`
+      SELECT period_end_date
+      FROM income_statement_snapshots
+      WHERE EXTRACT(MONTH FROM period_end_date) != 12
+      ORDER BY period_end_date DESC
+      LIMIT 1
+    `;
+    if (latestResult.rows.length === 0) return null;
+
+    const latestDate = new Date(latestResult.rows[0].period_end_date as string);
+    const priorYear = latestDate.getFullYear() - 1;
+    const sameMonth = latestDate.getMonth() + 1; // 1-indexed for SQL
+
+    const result = await sql`
+      SELECT net_income::numeric AS net_income
+      FROM income_statement_snapshots
+      WHERE EXTRACT(YEAR FROM period_end_date) = ${priorYear}
+        AND EXTRACT(MONTH FROM period_end_date) = ${sameMonth}
+      ORDER BY period_end_date DESC
+      LIMIT 1
+    `;
+    if (result.rows.length === 0) return null;
+
+    return parseFloat(String(result.rows[0].net_income));
+  } catch {
+    return null;
   }
 }

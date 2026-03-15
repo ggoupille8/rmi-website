@@ -33,6 +33,7 @@ function dateLabel(dateStr: string): string {
   const dateOnly = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
   const d = new Date(dateOnly + "T00:00:00");
   if (isNaN(d.getTime())) return dateStr;
+  if (d.getMonth() === 11) return `FY ${d.getFullYear()}`;
   return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
 }
 
@@ -40,6 +41,7 @@ function dateLabelLong(dateStr: string): string {
   const dateOnly = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
   const d = new Date(dateOnly + "T00:00:00");
   if (isNaN(d.getTime())) return dateStr;
+  if (d.getMonth() === 11) return `FY ${d.getFullYear()}`;
   return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 

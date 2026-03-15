@@ -78,6 +78,7 @@ interface TrendData {
   leads: { month: string; count: number }[];
   wip: { month: string; backlog: number; earned: number }[];
   financials: { month: string; ar: number | null; netIncome: number | null }[];
+  niPriorYearSameMonth: number | null;
 }
 
 interface Props {
@@ -457,10 +458,10 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
   const niChange = useMemo(() => {
     if (!trends) return null;
     const pts = trends.financials.filter((f) => f.netIncome !== null).map((f) => f.netIncome as number);
-    if (pts.length < 2) return null;
-    const prev = pts[pts.length - 2];
+    if (pts.length === 0) return null;
     const curr = pts[pts.length - 1];
-    if (prev === 0) return null;
+    const prev = trends.niPriorYearSameMonth;
+    if (prev === null || prev === 0) return null;
     return ((curr - prev) / Math.abs(prev)) * 100;
   }, [trends]);
 
