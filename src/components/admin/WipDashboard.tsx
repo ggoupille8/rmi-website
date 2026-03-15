@@ -369,9 +369,11 @@ export default function WipDashboard() {
 
   const alertSeveritySummary = useMemo(() => {
     const red = visibleAlerts.filter((a) => a.severity === "red").length;
+    const orange = visibleAlerts.filter((a) => a.severity === "orange").length;
     const yellow = visibleAlerts.filter((a) => a.severity === "yellow").length;
     const parts: string[] = [];
     if (red > 0) parts.push(`${red} Red`);
+    if (orange > 0) parts.push(`${orange} Orange`);
     if (yellow > 0) parts.push(`${yellow} Yellow`);
     return parts.join(", ");
   }, [visibleAlerts]);
@@ -874,20 +876,21 @@ export default function WipDashboard() {
                         {ALERT_TYPE_LABELS[type] ?? type} ({groupAlerts.length})
                       </h4>
                       <div className="space-y-1.5">
-                        {groupAlerts.map((alert, i) => (
+                        {groupAlerts.map((alert, i) => {
+                          const sev =
+                            alert.severity === "red"
+                              ? { bg: "bg-red-950/20", border: "border-red-900/40", icon: "text-red-400", val: "text-red-400", badge: "bg-red-900/40 text-red-400", label: "RED" }
+                              : alert.severity === "orange"
+                                ? { bg: "bg-orange-950/20", border: "border-orange-900/40", icon: "text-orange-400", val: "text-orange-400", badge: "bg-orange-900/40 text-orange-400", label: "ORANGE" }
+                                : { bg: "bg-amber-950/15", border: "border-amber-900/30", icon: "text-amber-400", val: "text-amber-400", badge: "bg-amber-900/40 text-amber-400", label: "YELLOW" };
+                          return (
                           <div
                             key={`${alert.job_number}-${alert.type}-${i}`}
-                            className={`flex items-start gap-3 p-2.5 rounded-lg border ${
-                              alert.severity === "red"
-                                ? "bg-red-950/20 border-red-900/40"
-                                : "bg-amber-950/15 border-amber-900/30"
-                            }`}
+                            className={`flex items-start gap-3 p-2.5 rounded-lg border ${sev.bg} ${sev.border}`}
                           >
                             <AlertTriangle
                               size={14}
-                              className={`mt-0.5 shrink-0 ${
-                                alert.severity === "red" ? "text-red-400" : "text-amber-400"
-                              }`}
+                              className={`mt-0.5 shrink-0 ${sev.icon}`}
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 text-sm">
@@ -899,21 +902,36 @@ export default function WipDashboard() {
                                 <span className="text-neutral-500">·</span>
                                 <span className="text-neutral-500">{alert.project_manager}</span>
                               </div>
-                              <div className="text-xs mt-0.5">
-                                <span className="text-neutral-500">{alert.metric_label}: </span>
-                                <span className={alert.severity === "red" ? "text-red-400" : "text-amber-400"}>
-                                  {fmtCurrency(alert.metric_value)}
-                                </span>
-                              </div>
+                              {alert.type === "over-billed" && alert.contract_amount !== undefined ? (
+                                <div className="text-xs mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                                  <span>
+                                    <span className="text-neutral-500">Contract: </span>
+                                    <span className="text-neutral-300">{fmtCurrency(alert.contract_amount)}</span>
+                                  </span>
+                                  <span>
+                                    <span className="text-neutral-500">Earned: </span>
+                                    <span className="text-neutral-300">{fmtCurrency(alert.earned_amount ?? null)}</span>
+                                  </span>
+                                  <span>
+                                    <span className="text-neutral-500">Over: </span>
+                                    <span className={sev.val}>
+                                      {fmtCurrency(alert.metric_value)} ({alert.pct_over}%)
+                                    </span>
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="text-xs mt-0.5">
+                                  <span className="text-neutral-500">{alert.metric_label}: </span>
+                                  <span className={sev.val}>
+                                    {fmtCurrency(alert.metric_value)}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                             <span
-                              className={`shrink-0 text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded ${
-                                alert.severity === "red"
-                                  ? "bg-red-900/40 text-red-400"
-                                  : "bg-amber-900/40 text-amber-400"
-                              }`}
+                              className={`shrink-0 text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded ${sev.badge}`}
                             >
-                              {alert.severity === "red" ? "RED" : "YELLOW"}
+                              {sev.label}
                             </span>
                             <button
                               type="button"
@@ -924,7 +942,8 @@ export default function WipDashboard() {
                               <X size={14} />
                             </button>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -944,7 +963,7 @@ export default function WipDashboard() {
         <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-3">
           All Jobs
         </h3>
-        <WipJobTable jobs={effectiveJobs} mode="admin" />
+        <WipJobTable jobs={effectiveJobs} mode="admin" alerts={alerts} />
       </div>
 
       </>)}

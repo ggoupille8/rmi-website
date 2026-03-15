@@ -43,11 +43,19 @@ export interface WipSnapshot {
   billings_excess: number | null;
 }
 
+interface AlertFlag {
+  type: string;
+  severity: string;
+  job_number: string;
+  pct_over?: number;
+}
+
 interface WipJobTableProps {
   jobs: WipSnapshot[];
   mode: "admin" | "pm";
   currentPmCode?: string;
   onJobClick?: (job: WipSnapshot) => void;
+  alerts?: AlertFlag[];
 }
 
 type SortField = keyof WipSnapshot;
@@ -101,7 +109,19 @@ const COLUMNS: ColumnDef[] = [
 
 // ── Component ──────────────────────────────────────────
 
-export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: WipJobTableProps) {
+export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick, alerts }: WipJobTableProps) {
+  // Build a lookup of over-billed job numbers for badge display
+  const overBilledJobs = useMemo(() => {
+    if (!alerts) return new Map<string, AlertFlag>();
+    const map = new Map<string, AlertFlag>();
+    for (const a of alerts) {
+      if (a.type === "over-billed") {
+        map.set(a.job_number, a);
+      }
+    }
+    return map;
+  }, [alerts]);
+
   const [sortField, setSortField] = useState<SortField>("job_number");
   const [sortDir, setSortDir] = useState<SortDirection>("asc");
   const [searchQuery, setSearchQuery] = useState("");
@@ -490,6 +510,11 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick }: W
                             />
                           )}
                           {renderCell(job, col)}
+                          {col.key === "job_number" && overBilledJobs.has(job.job_number) && (
+                            <span className="ml-1 text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-orange-900/40 text-orange-400 whitespace-nowrap">
+                              Over-Billed {overBilledJobs.get(job.job_number)?.pct_over ?? ""}%
+                            </span>
+                          )}
                         </div>
                       </td>
                     ))}
