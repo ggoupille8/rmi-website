@@ -56,6 +56,11 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
+const SHORT_MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
 type DashboardTab = "wip" | "reconciliation";
 
 const PM_COLORS: Record<string, { bg: string; text: string; border: string }> = {
@@ -498,6 +503,25 @@ export default function WipDashboard() {
     return "text-red-400";
   }, [kpis.marginPct]);
 
+  // ── Computed: Period label + annualized projections ────
+  const periodLabel = useMemo(() => {
+    if (!hasYtdData || selectedMonth === null || selectedYear === null) return null;
+    if (selectedMonth === 1) return `Jan ${selectedYear}`;
+    return `Jan\u2013${SHORT_MONTHS[selectedMonth - 1]} ${selectedYear}`;
+  }, [hasYtdData, selectedMonth, selectedYear]);
+
+  const monthCount = hasYtdData && selectedMonth !== null ? selectedMonth : null;
+
+  const annualizedRevenue = useMemo(() => {
+    if (monthCount === null || monthCount === 0 || monthCount >= 12) return null;
+    return kpis.earnedRevenue * (12 / monthCount);
+  }, [kpis.earnedRevenue, monthCount]);
+
+  const annualizedProfit = useMemo(() => {
+    if (monthCount === null || monthCount === 0 || monthCount >= 12) return null;
+    return kpis.grossProfit * (12 / monthCount);
+  }, [kpis.grossProfit, monthCount]);
+
   // ── Computed: month string for reconciliation tab ─────
   const monthParam = useMemo(() => {
     if (selectedYear === null || selectedMonth === null) return "";
@@ -691,6 +715,8 @@ export default function WipDashboard() {
           accent="text-emerald-400"
           accentBg="bg-emerald-950/40"
           badge={kpiTimeLabel}
+          subBadge={periodLabel ?? undefined}
+          extraDetail={annualizedRevenue !== null ? `${fmtCompact(annualizedRevenue)} annualized` : undefined}
         />
         <KpiCard
           icon={<DollarSign size={18} />}
@@ -701,6 +727,8 @@ export default function WipDashboard() {
           accent={kpis.grossProfit >= 0 ? "text-emerald-400" : "text-red-400"}
           accentBg={kpis.grossProfit >= 0 ? "bg-emerald-950/40" : "bg-red-950/40"}
           badge={kpiTimeLabel}
+          subBadge={periodLabel ?? undefined}
+          extraDetail={annualizedProfit !== null ? `${fmtCompact(annualizedProfit)} annualized` : undefined}
         />
       </div>
 
@@ -983,6 +1011,8 @@ function KpiCard({
   accent,
   accentBg,
   badge,
+  subBadge,
+  extraDetail,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -992,6 +1022,8 @@ function KpiCard({
   accent: string;
   accentBg: string;
   badge?: string;
+  subBadge?: string;
+  extraDetail?: string;
 }) {
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
@@ -1001,13 +1033,19 @@ function KpiCard({
         </div>
         <span className="text-xs text-neutral-500 uppercase tracking-wider">{label}</span>
         {badge && (
-          <span className="ml-auto text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary-600/20 text-primary-400">
-            {badge}
-          </span>
+          <div className="ml-auto text-right">
+            <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary-600/20 text-primary-400">
+              {badge}
+            </span>
+            {subBadge && (
+              <div className="text-[10px] text-neutral-500 mt-0.5">{subBadge}</div>
+            )}
+          </div>
         )}
       </div>
       <div className={`text-2xl font-bold ${accent} tabular-nums`}>{value}</div>
       {detail && <div className={`text-xs mt-1 ${detailColor ?? "text-neutral-500"}`}>{detail}</div>}
+      {extraDetail && <div className="text-[10px] mt-0.5 text-neutral-600">{extraDetail}</div>}
     </div>
   );
 }
