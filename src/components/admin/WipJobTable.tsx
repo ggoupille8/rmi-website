@@ -44,7 +44,7 @@ export interface WipSnapshot {
 }
 
 interface AlertFlag {
-  type: string;
+  category: string;
   severity: string;
   job_number: string;
   pct_over?: number;
@@ -115,7 +115,7 @@ export default function WipJobTable({ jobs, mode, currentPmCode, onJobClick, ale
     if (!alerts) return new Map<string, AlertFlag>();
     const map = new Map<string, AlertFlag>();
     for (const a of alerts) {
-      if (a.type === "over-billed") {
+      if (a.category === "over-billed") {
         map.set(a.job_number, a);
       }
     }

@@ -360,7 +360,7 @@ export default function WipDashboard() {
   const alertGroups = useMemo(() => {
     const groups: Record<string, AlertFlag[]> = {};
     for (const a of visibleAlerts) {
-      const label = a.type;
+      const label = a.category;
       if (!groups[label]) groups[label] = [];
       groups[label].push(a);
     }
@@ -397,10 +397,10 @@ export default function WipDashboard() {
   }, [visibleAlerts, selectedYear, selectedMonth]);
 
   const ALERT_TYPE_LABELS: Record<string, string> = {
-    "negative-profit": "Negative Margin",
-    "over-run": "Over-Run",
-    "under-billed": "Under-Billed",
+    "negative-margin": "Negative Margin",
     "over-billed": "Over-Billed",
+    "under-billed": "Under-Billed",
+    "stale": "Stale Jobs",
   };
 
   // ── Computed: Enhanced PM Metrics ─────────────────────
@@ -885,7 +885,7 @@ export default function WipDashboard() {
                                 : { bg: "bg-amber-950/15", border: "border-amber-900/30", icon: "text-amber-400", val: "text-amber-400", badge: "bg-amber-900/40 text-amber-400", label: "YELLOW" };
                           return (
                           <div
-                            key={`${alert.job_number}-${alert.type}-${i}`}
+                            key={`${alert.job_number}-${alert.category}-${i}`}
                             className={`flex items-start gap-3 p-2.5 rounded-lg border ${sev.bg} ${sev.border}`}
                           >
                             <AlertTriangle
@@ -902,7 +902,7 @@ export default function WipDashboard() {
                                 <span className="text-neutral-500">·</span>
                                 <span className="text-neutral-500">{alert.project_manager}</span>
                               </div>
-                              {alert.type === "over-billed" && alert.contract_amount !== undefined ? (
+                              {alert.category === "over-billed" && alert.contract_amount !== undefined ? (
                                 <div className="text-xs mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
                                   <span>
                                     <span className="text-neutral-500">Contract: </span>
