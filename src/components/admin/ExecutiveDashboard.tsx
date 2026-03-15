@@ -186,6 +186,15 @@ function WipSkeleton() {
   );
 }
 
+function SparklineSkeleton({ width = 72, height = 28 }: { width?: number; height?: number }) {
+  return (
+    <div
+      className="bg-neutral-700/30 rounded animate-pulse"
+      style={{ width, height }}
+    />
+  );
+}
+
 function FinancialSkeleton() {
   return (
     <div className="space-y-5">
@@ -428,9 +437,9 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
     return "text-red-400";
   }, [financials]);
 
-  const leadSparkData = trends && trends.leads.length >= 2 ? trends.leads.map((l) => l.count) : null;
-  const wipBacklogData = trends && trends.wip.length >= 2 ? trends.wip.map((w) => w.backlog) : null;
-  const wipEarnedData = trends && trends.wip.length >= 2 ? trends.wip.map((w) => w.earned) : null;
+  const leadSparkData = trends && trends.leads.length >= 1 ? trends.leads.map((l) => l.count) : null;
+  const wipBacklogData = trends && trends.wip.length >= 1 ? trends.wip.map((w) => w.backlog) : null;
+  const wipEarnedData = trends && trends.wip.length >= 1 ? trends.wip.map((w) => w.earned) : null;
   const arSparkData = trends ? trends.financials.filter((f) => f.ar !== null).map((f) => f.ar as number) : null;
   const niSparkData = trends ? trends.financials.filter((f) => f.netIncome !== null).map((f) => f.netIncome as number) : null;
 
@@ -466,6 +475,14 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
               <p className="text-xs text-neutral-600 mt-1">
                 New submissions will appear here
               </p>
+              <a
+                href="/#contact"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 text-xs text-primary-400 hover:text-primary-300 transition-colors"
+              >
+                View contact form
+              </a>
             </div>
           ) : (
             <>
@@ -475,12 +492,14 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
                   <p className="text-3xl font-bold text-neutral-100 tabular-nums">
                     {leadStats.total}
                   </p>
-                  {leadSparkData && (
-                    <div className="flex flex-col items-end">
+                  <div className="flex flex-col items-end">
+                    {leadSparkData ? (
                       <Sparkline data={leadSparkData} color="#60a5fa" width={72} height={28} />
-                      <span className="text-[9px] text-neutral-600 mt-0.5">6 mo</span>
-                    </div>
-                  )}
+                    ) : !trends ? (
+                      <SparklineSkeleton />
+                    ) : null}
+                    {leadSparkData && <span className="text-[9px] text-neutral-600 mt-0.5">6 mo</span>}
+                  </div>
                 </div>
                 <p className="text-xs text-neutral-500 mt-1">Total Active Leads</p>
               </div>
@@ -609,7 +628,11 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
                     <p className="text-2xl font-bold text-amber-400 tabular-nums">
                       {fmtCompact(wip.totalBacklog)}
                     </p>
-                    {wipBacklogData && <Sparkline data={wipBacklogData} color="#fbbf24" width={48} height={20} />}
+                    {wipBacklogData ? (
+                      <Sparkline data={wipBacklogData} color="#fbbf24" width={48} height={20} />
+                    ) : !trends ? (
+                      <SparklineSkeleton width={48} height={20} />
+                    ) : null}
                   </div>
                   <p className="text-[11px] text-neutral-500 mt-0.5">Total Backlog</p>
                   <p className="text-[10px] text-neutral-600">{fmtCurrency(wip.totalBacklog)}</p>
@@ -621,7 +644,11 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
                     <p className="text-2xl font-bold text-emerald-400 tabular-nums">
                       {fmtCompact(wip.earnedRevenue)}
                     </p>
-                    {wipEarnedData && <Sparkline data={wipEarnedData} color="#34d399" width={48} height={20} />}
+                    {wipEarnedData ? (
+                      <Sparkline data={wipEarnedData} color="#34d399" width={48} height={20} />
+                    ) : !trends ? (
+                      <SparklineSkeleton width={48} height={20} />
+                    ) : null}
                   </div>
                   <p className="text-[11px] text-neutral-500 mt-0.5">Earned Revenue</p>
                   <p className="text-[10px] text-neutral-600">{fmtCurrency(wip.earnedRevenue)}</p>
@@ -704,9 +731,11 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
                   <p className="text-2xl font-bold text-blue-400 tabular-nums">
                     {fmtCompact(financials.arTotal)}
                   </p>
-                  {arSparkData && arSparkData.length >= 2 && (
+                  {arSparkData && arSparkData.length >= 1 ? (
                     <Sparkline data={arSparkData} color="#60a5fa" width={56} height={22} />
-                  )}
+                  ) : !trends ? (
+                    <SparklineSkeleton width={56} height={22} />
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <p className="text-[11px] text-neutral-500">Accounts Receivable</p>
@@ -733,14 +762,16 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
                   >
                     {fmtCompact(financials.netIncome)}
                   </p>
-                  {niSparkData && niSparkData.length >= 2 && (
+                  {niSparkData && niSparkData.length >= 1 ? (
                     <Sparkline
                       data={niSparkData}
                       color={financials.netIncome !== null && financials.netIncome >= 0 ? "#34d399" : "#f87171"}
                       width={56}
                       height={22}
                     />
-                  )}
+                  ) : !trends ? (
+                    <SparklineSkeleton width={56} height={22} />
+                  ) : null}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <p className="text-[11px] text-neutral-500">Net Income</p>
@@ -826,7 +857,10 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
           {(invoiceStats?.totalInvoices ?? 0) === 0 ? (
             <div className="flex items-center gap-3 py-1">
               <FileText size={20} className="text-neutral-600" />
-              <p className="text-sm text-neutral-500">No invoices entered yet</p>
+              <div>
+                <p className="text-sm text-neutral-500">No invoices entered yet</p>
+                <p className="text-[11px] text-neutral-600 mt-0.5">Import invoices to track billing</p>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-3">
@@ -959,7 +993,7 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
               <Users size={24} className="text-neutral-600 mb-2" />
               <p className="text-sm text-neutral-500">No leads yet</p>
               <p className="text-xs text-neutral-600 mt-1">
-                Form submissions will appear here
+                Leads from the contact form will appear here
               </p>
             </div>
           )}

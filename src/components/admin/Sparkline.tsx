@@ -23,22 +23,50 @@ export default function Sparkline({
   color = "#60a5fa",
   fill = true,
 }: SparklineProps) {
-  if (data.length < 2) return null;
+  // Filter out NaN/undefined values
+  const clean = data.filter((v) => Number.isFinite(v));
+  if (clean.length === 0) return null;
 
   const padding = 1;
   const w = width - padding * 2;
   const h = height - padding * 2;
+  const centerY = padding + h / 2;
 
-  const min = Math.min(...data);
-  const max = Math.max(...data);
+  // Single data point: render a flat line with an end dot
+  if (clean.length === 1) {
+    return (
+      <svg
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        className="inline-block align-middle"
+        aria-hidden="true"
+      >
+        <line
+          x1={padding}
+          y1={centerY}
+          x2={width - padding}
+          y2={centerY}
+          stroke={color}
+          strokeWidth={1.5}
+          strokeLinecap="round"
+          opacity={0.4}
+        />
+        <circle cx={width - padding} cy={centerY} r={2} fill={color} />
+      </svg>
+    );
+  }
+
+  const min = Math.min(...clean);
+  const max = Math.max(...clean);
   const range = max - min;
 
   // Map data points to SVG coordinates
   // When all values are equal, draw a flat line at center height
-  const points = data.map((val, i) => ({
-    x: padding + (i / (data.length - 1)) * w,
+  const points = clean.map((val, i) => ({
+    x: padding + (i / (clean.length - 1)) * w,
     y: range === 0
-      ? padding + h / 2
+      ? centerY
       : padding + h - ((val - min) / range) * h,
   }));
 
