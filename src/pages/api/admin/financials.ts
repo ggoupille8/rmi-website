@@ -25,6 +25,13 @@ function dbError(): Response {
   });
 }
 
+/** Convert a Postgres Date object or ISO string to YYYY-MM-DD */
+function toDateStr(d: unknown): string {
+  if (d instanceof Date) return d.toISOString().split("T")[0];
+  const s = String(d);
+  return s.includes("T") ? s.split("T")[0] : s;
+}
+
 export const GET: APIRoute = async ({ request, url }) => {
   if (!isAdminAuthorized(request)) return unauthorized();
   if (!getPostgresEnv()) return dbError();
@@ -547,7 +554,7 @@ async function handleOverview(): Promise<Response> {
   const netIncome = currentIS ? parseFloat(String(currentIS.net_income)) : 0;
   const costOfSales = currentIS ? parseFloat(String(currentIS.total_cost_of_sales)) : 0;
   const currentYear = currentIS
-    ? new Date(String(currentIS.period_end_date).split("T")[0] + "T00:00:00").getFullYear()
+    ? new Date(toDateStr(currentIS.period_end_date) + "T00:00:00").getFullYear()
     : new Date().getFullYear();
 
   const priorRevenue = priorIS ? parseFloat(String(priorIS.total_income)) : null;
@@ -607,7 +614,7 @@ async function handleOverview(): Promise<Response> {
   const reconRows = reconResult.rows;
   const reconMatches = reconRows.filter((r) => parseFloat(String(r.variance)) <= 5).length;
   const reconTotal = reconRows.length;
-  const reconLatest = reconRows.length > 0 ? String(reconRows[0].report_date) : null;
+  const reconLatest = reconRows.length > 0 ? toDateStr(reconRows[0].report_date) : null;
 
   const [latestIS, latestBS, latestAR, latestBBC, latestWIP] = await Promise.all([
     sql`SELECT MAX(period_end_date) AS d FROM income_statement_snapshots`.then((r) => r.rows[0]?.d ?? null),
@@ -619,8 +626,7 @@ async function handleOverview(): Promise<Response> {
 
   const monthLabel = (d: unknown) => {
     if (!d) return null;
-    const s = String(d);
-    const dateOnly = s.includes("T") ? s.split("T")[0] : s;
+    const dateOnly = toDateStr(d);
     const dt = new Date(dateOnly + "T00:00:00");
     if (isNaN(dt.getTime())) return s;
     return dt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
@@ -641,8 +647,8 @@ async function handleOverview(): Promise<Response> {
         priorYear: priorIS ? { revenue: priorRevenue, grossProfit: priorGrossProfit, netIncome: priorNetIncome } : null,
       } : null,
       ytd: ytdCurrent ? {
-        year: new Date(String(ytdCurrent.period_end_date).split("T")[0] + "T00:00:00").getFullYear(),
-        month: new Date(String(ytdCurrent.period_end_date).split("T")[0] + "T00:00:00").toLocaleDateString("en-US", { month: "long" }),
+        year: new Date(toDateStr(ytdCurrent.period_end_date) + "T00:00:00").getFullYear(),
+        month: new Date(toDateStr(ytdCurrent.period_end_date) + "T00:00:00").toLocaleDateString("en-US", { month: "long" }),
         revenue: parseFloat(String(ytdCurrent.total_income)),
         grossProfit: parseFloat(String(ytdCurrent.gross_margin)),
         netIncome: parseFloat(String(ytdCurrent.net_income)),
@@ -653,7 +659,7 @@ async function handleOverview(): Promise<Response> {
         } : null,
       } : null,
       arAging: arRow ? {
-        date: String(arRow.report_date),
+        date: toDateStr(arRow.report_date),
         totalAR: parseFloat(String(arRow.total_amount)),
         current: parseFloat(String(arRow.total_current)),
         days30: parseFloat(String(arRow.total_over_30)),
@@ -663,7 +669,7 @@ async function handleOverview(): Promise<Response> {
         retainage: parseFloat(String(arRow.total_retainage)),
       } : null,
       borrowingBase: bbcRow ? {
-        date: String(bbcRow.report_date),
+        date: toDateStr(bbcRow.report_date),
         eligibleAR: parseFloat(String(bbcRow.eligible_ar)),
         totalBase: parseFloat(String(bbcRow.total_borrowing_base)),
         advanceRate: parseFloat(String(bbcRow.ar_advance_rate)) * 100,
@@ -671,7 +677,7 @@ async function handleOverview(): Promise<Response> {
         excessAvailability: parseFloat(String(bbcRow.excess_availability ?? "0")),
       } : null,
       revenueTrend: trendResult.rows.map((r) => {
-        const d = String(r.period_end_date).split("T")[0];
+        const d = toDateStr(r.period_end_date);
         const dt = new Date(d + "T00:00:00");
         return {
           month: dt.toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
