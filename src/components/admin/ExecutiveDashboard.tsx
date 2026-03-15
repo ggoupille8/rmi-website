@@ -440,8 +440,28 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
   const leadSparkData = trends && trends.leads.length >= 1 ? trends.leads.map((l) => l.count) : null;
   const wipBacklogData = trends && trends.wip.length >= 1 ? trends.wip.map((w) => w.backlog) : null;
   const wipEarnedData = trends && trends.wip.length >= 1 ? trends.wip.map((w) => w.earned) : null;
-  const arSparkData = trends ? trends.financials.filter((f) => f.ar !== null).map((f) => f.ar as number) : null;
-  const niSparkData = trends ? trends.financials.filter((f) => f.netIncome !== null).map((f) => f.netIncome as number) : null;
+
+  // Financial trend: compute % change vs prior period instead of sparklines
+  // (too few data points make sparklines misleading for WIP-heavy contractors)
+  const arChange = useMemo(() => {
+    if (!trends) return null;
+    const pts = trends.financials.filter((f) => f.ar !== null).map((f) => f.ar as number);
+    if (pts.length < 2) return null;
+    const prev = pts[pts.length - 2];
+    const curr = pts[pts.length - 1];
+    if (prev === 0) return null;
+    return ((curr - prev) / Math.abs(prev)) * 100;
+  }, [trends]);
+
+  const niChange = useMemo(() => {
+    if (!trends) return null;
+    const pts = trends.financials.filter((f) => f.netIncome !== null).map((f) => f.netIncome as number);
+    if (pts.length < 2) return null;
+    const prev = pts[pts.length - 2];
+    const curr = pts[pts.length - 1];
+    if (prev === 0) return null;
+    return ((curr - prev) / Math.abs(prev)) * 100;
+  }, [trends]);
 
   // ── Render ────────────────────────────────────────────
 
@@ -731,10 +751,15 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
                   <p className="text-2xl font-bold text-blue-400 tabular-nums">
                     {fmtCompact(financials.arTotal)}
                   </p>
-                  {arSparkData && arSparkData.length >= 1 ? (
-                    <Sparkline data={arSparkData} color="#60a5fa" width={56} height={22} />
+                  {arChange !== null ? (
+                    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${
+                      arChange > 0 ? "text-amber-400" : arChange < 0 ? "text-emerald-400" : "text-neutral-500"
+                    }`}>
+                      {arChange > 0 ? <TrendingUp size={14} /> : arChange < 0 ? <TrendingDown size={14} /> : <Minus size={14} />}
+                      {Math.abs(arChange).toFixed(1)}%
+                    </span>
                   ) : !trends ? (
-                    <SparklineSkeleton width={56} height={22} />
+                    <SparklineSkeleton width={40} height={18} />
                   ) : null}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -762,15 +787,15 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
                   >
                     {fmtCompact(financials.netIncome)}
                   </p>
-                  {niSparkData && niSparkData.length >= 1 ? (
-                    <Sparkline
-                      data={niSparkData}
-                      color={financials.netIncome !== null && financials.netIncome >= 0 ? "#34d399" : "#f87171"}
-                      width={56}
-                      height={22}
-                    />
+                  {niChange !== null ? (
+                    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${
+                      niChange > 0 ? "text-emerald-400" : niChange < 0 ? "text-red-400" : "text-neutral-500"
+                    }`}>
+                      {niChange > 0 ? <TrendingUp size={14} /> : niChange < 0 ? <TrendingDown size={14} /> : <Minus size={14} />}
+                      {Math.abs(niChange).toFixed(1)}%
+                    </span>
                   ) : !trends ? (
-                    <SparklineSkeleton width={56} height={22} />
+                    <SparklineSkeleton width={40} height={18} />
                   ) : null}
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
