@@ -15,6 +15,7 @@ import {
 
 interface CardAccent {
   bar: string;
+  borderLeft: string;
   iconBg: string;
   iconText: string;
   hoverBorder: string;
@@ -36,6 +37,7 @@ const features: AboutFeature[] = [
     description: `Over ${formatLargeNumberProse(totalOshaManHours)} OSHA-tracked man-hours since ${oshaFirstYear} with zero lost-time incidents. Our EMR rating of 0.76 puts us 24% better than the industry average — a direct reflection of our commitment to planning, training, and accountability.`,
     accent: {
       bar: "from-blue-500/60 via-blue-400/40",
+      borderLeft: "border-l-blue-500",
       iconBg: "bg-blue-500/10 border-blue-500/30",
       iconText: "text-blue-400",
       hoverBorder: "hover:border-blue-500/40",
@@ -50,6 +52,7 @@ const features: AboutFeature[] = [
       "When a job calls for it, we scale — staffing dozens of insulators across dual 12-hour shifts, 7 days a week, with the capacity to run multiple outages simultaneously. Emergency repairs mobilized around the clock.",
     accent: {
       bar: "from-red-500/60 via-red-400/40",
+      borderLeft: "border-l-red-500",
       iconBg: "bg-red-500/10 border-red-500/30",
       iconText: "text-red-400",
       hoverBorder: "hover:border-red-500/40",
@@ -64,6 +67,7 @@ const features: AboutFeature[] = [
       "From a year-round presence at Henry Ford Hospital to Ford\u2019s new World Headquarters \u2014 our project list includes Michigan\u2019s most recognized names. Contractors and facility managers choose RMI because we deliver on schedule, by design, and on budget.",
     accent: {
       bar: "from-amber-500/60 via-amber-400/40",
+      borderLeft: "border-l-amber-500",
       iconBg: "bg-amber-500/10 border-amber-500/30",
       iconText: "text-amber-400",
       hoverBorder: "hover:border-amber-500/40",
@@ -78,6 +82,7 @@ const features: AboutFeature[] = [
       "Proud to employ Local 25 insulators — OSHA 10/30-hour certified, CPR and first aid trained, and backed by years of hands-on field experience in commercial and industrial environments. Every crew member brings the skill and professionalism that comes from rigorous union apprenticeship training.",
     accent: {
       bar: "from-emerald-500/60 via-emerald-400/40",
+      borderLeft: "border-l-emerald-500",
       iconBg: "bg-emerald-500/10 border-emerald-500/30",
       iconText: "text-emerald-400",
       hoverBorder: "hover:border-emerald-500/40",
@@ -183,7 +188,7 @@ export default function About() {
             return (
               <div
                 key={feature.title}
-                className={`group relative overflow-hidden rounded-lg bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 hover:from-neutral-800/60 hover:to-neutral-800/40 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 ${accent.hoverBorder} hover:shadow-lg ${accent.hoverShadow} hover:-translate-y-1 transition-all ${entranceDone ? "duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]" : "duration-500 ease-out"} h-full flex flex-col ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+                className={`group relative overflow-hidden rounded-lg bg-gradient-to-b from-neutral-800/50 to-neutral-800/30 hover:from-neutral-800/60 hover:to-neutral-800/40 backdrop-blur-sm p-3 sm:p-4 lg:px-5 lg:pt-5 lg:pb-6 border border-neutral-700/40 border-l-2 ${accent.borderLeft} ${accent.hoverBorder} hover:shadow-lg ${accent.hoverShadow} hover:-translate-y-1 transition-all ${entranceDone ? "duration-300 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]" : "duration-500 ease-out"} h-full flex flex-col ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
                 style={{ transitionDelay: entranceDone ? undefined : `${index * 100}ms` }}
               >
                 {/* Accent bar */}
