@@ -22,6 +22,7 @@ interface Contact {
   status: string;
   notes: string | null;
   updated_at: string | null;
+  forwarded_at: string | null;
   metadata?: ContactMetadata | null;
 }
 

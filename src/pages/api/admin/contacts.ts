@@ -100,7 +100,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     // Query
     const queryText = `
-      SELECT id, created_at, name, email, phone, message, source, metadata, status, notes, updated_at
+      SELECT id, created_at, name, email, phone, message, source, metadata, status, notes, updated_at, forwarded_at
       FROM contacts
       ${whereClause}
       ORDER BY created_at DESC

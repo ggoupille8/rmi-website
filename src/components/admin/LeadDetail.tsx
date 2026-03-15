@@ -68,6 +68,7 @@ interface Contact {
   status: string;
   notes: string | null;
   updated_at: string | null;
+  forwarded_at: string | null;
   metadata?: LeadMetadata | null;
 }
 
@@ -228,7 +229,7 @@ export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [forwarding, setForwarding] = useState(false);
-  const [forwarded, setForwarded] = useState(false);
+  const [forwarded, setForwarded] = useState(!!contact.forwarded_at);
   const [forwardError, setForwardError] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -404,6 +405,14 @@ export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props
                   Created {formatDate(contact.created_at)}
                 </span>
               </div>
+              {contact.forwarded_at && (
+                <div className="flex items-center gap-2">
+                  <Send size={12} className="text-accent-500 shrink-0" />
+                  <span className="text-xs text-accent-400">
+                    Forwarded to sales {formatDate(contact.forwarded_at)}
+                  </span>
+                </div>
+              )}
               {contact.updated_at && contact.updated_at !== contact.created_at && (
                 <div className="flex items-center gap-2">
                   <Clock size={12} className="text-neutral-600 shrink-0" />

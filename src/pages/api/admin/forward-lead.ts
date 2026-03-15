@@ -311,7 +311,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     await sql`
       UPDATE contacts
-      SET status = 'forwarded', notes = ${existingNotes}, updated_at = NOW()
+      SET status = 'forwarded', notes = ${existingNotes}, forwarded_at = NOW(), updated_at = NOW()
       WHERE id = ${contactId}
     `;
 
