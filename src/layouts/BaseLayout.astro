@@ -310,6 +310,7 @@ const breadcrumbSchema = JSON.stringify({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="format-detection" content="telephone=no" />
     <meta name="generator" content={Astro.generator} />
 
     <!-- Primary Meta Tags -->
@@ -320,7 +321,7 @@ const breadcrumbSchema = JSON.stringify({
     <meta name="author" content={author} />
     <meta name="robots" content={robots} />
     <meta name="language" content="English" />
-    <meta name="revisit-after" content="7 days" />
+
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={ogType} />
@@ -377,6 +378,7 @@ const breadcrumbSchema = JSON.stringify({
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
     <link rel="preconnect" href="https://www.google-analytics.com" />
+    <link rel="preconnect" href="https://heq5gfjb0pxgjrv7.public.blob.vercel-storage.com" />
 
     <!-- Google Search Console (loads only when PUBLIC_GOOGLE_SITE_VERIFICATION is set) -->
     {import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION && (

@@ -334,9 +334,9 @@
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent-600 px-6 py-3 text-lg font-semibold text-white shadow-md transition-all duration-300 ease-in-out;
     line-height: 1.5;
-    @apply hover:bg-accent-500 hover:shadow-lg hover:scale-105 hover:-translate-y-1;
+    @apply hover:bg-accent-500 hover:shadow-lg hover:scale-[1.03] hover:-translate-y-0.5;
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900;
-    @apply active:bg-accent-700 active:shadow-md active:scale-105;
+    @apply active:bg-accent-700 active:shadow-md active:scale-[0.98] active:translate-y-0;
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent-600 disabled:hover:shadow-md disabled:hover:scale-100 disabled:hover:translate-y-0;
     /* Strong contrast: white on accent-600 (blue) meets WCAG AAA */
   }

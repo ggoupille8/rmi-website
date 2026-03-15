@@ -2,6 +2,53 @@
 
 ## Current
 
+### Polish Round 3 — Button Feel, Preconnect, Error Pages, FAB Pulse (Mar 15, 2026)
+Branch: `feat/polish-round3` (committed, NOT merged)
+
+Spec: `SPEC-POLISH-R3.md` — Five polish tasks across five independent files.
+
+**Task 1 — btn-primary Hover/Active Refinement (COMPLETE):**
+File: `src/styles/global.css`
+- `hover:scale-105` → `hover:scale-[1.03]` (subtler, more premium)
+- `hover:-translate-y-1` → `hover:-translate-y-0.5` (less disconnected on mobile)
+- `active:scale-105` → `active:scale-[0.98]` (press-in feedback)
+- Added `active:translate-y-0` (reset lift on press)
+
+**Task 2 — BaseLayout Preconnect & Meta Cleanup (COMPLETE):**
+File: `src/layouts/BaseLayout.astro`
+- Added Vercel Blob preconnect (`heq5gfjb0pxgjrv7.public.blob.vercel-storage.com`)
+- Removed `<meta name="revisit-after" content="7 days" />` (no modern engine uses it)
+- Added `<meta name="format-detection" content="telephone=no" />` (prevents iOS auto-linking stats)
+
+**Task 3 — 404 Page Animated Gradient & Branding (COMPLETE):**
+File: `src/pages/404.astro`
+- Added `overflow-hidden` to outer container
+- Added animated gradient background layer (`gradient-pan` 12s)
+- Added RMI logo (white, drop-shadow) above heading
+- Decorative "404" text: `text-white/5` → `text-white/[0.03]`
+
+**Task 4 — 500 Page Match 404 Treatment (COMPLETE):**
+File: `src/pages/500.astro`
+- Identical visual treatment as Task 3 (gradient, logo, subtler decorative text)
+- Kept distinct heading ("Something Went Wrong") and subtitle
+
+**Task 5 — FloatingMobileCTA Pulse Ring & Fade-In (COMPLETE):**
+File: `src/components/landing/FloatingMobileCTA.tsx`
+- Added pulse ring (`cta-pulse` animation) to main FAB when collapsed
+- Pulse ring disappears when expanded
+- Sub-buttons fade in with `fadeIn_200ms_ease-out`
+- Main FAB: `w-14 h-14` → `w-12 h-12` / `min-w-[48px]` (still above 44px WCAG minimum)
+
+**Verification:**
+- [x] `npm run build` — zero errors, zero warnings
+- [x] btn-primary has press-in feedback (`active:scale-[0.98]`)
+- [x] Vercel Blob preconnect added, revisit-after removed, format-detection added
+- [x] 404 page has animated gradient + RMI logo
+- [x] 500 page matches 404 visual treatment
+- [x] FloatingMobileCTA has pulse ring and fade-in sub-buttons
+
+---
+
 ### Dashboard Viewport Fix + Empty States + Lead Categorization (Mar 15, 2026)
 Branch: `feat/test-leads-dashboard` (committed, NOT merged)
 
