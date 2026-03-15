@@ -4,12 +4,18 @@ import type { WipSnapshot } from "@components/admin/WipJobTable";
 
 export interface AlertFlag {
   type: "negative-profit" | "over-run" | "under-billed" | "over-billed";
-  severity: "red" | "yellow";
+  severity: "red" | "orange" | "yellow";
   job_number: string;
   description: string | null;
   project_manager: string | null;
   metric_label: string;
   metric_value: number;
+  /** Over-billed only: revised contract amount */
+  contract_amount?: number;
+  /** Over-billed only: earned revenue amount */
+  earned_amount?: number;
+  /** Over-billed only: percentage over contract (e.g. 67 means 67% over) */
+  pct_over?: number;
 }
 
 // ── GLI Detection ────────────────────────────────────────
@@ -81,31 +87,36 @@ export function computeWipAlerts(jobs: WipSnapshot[]): AlertFlag[] {
       });
     }
 
-    // Over-billed: exceeds 5% of revised contract AND dollar amount > $5K
+    // Over-billed: earned revenue exceeds revised contract by >10%
     if (
       job.revenue_excess !== null &&
       job.revenue_excess > 5_000 &&
       job.revised_contract !== null &&
       job.revised_contract > 0 &&
-      job.revenue_excess / job.revised_contract > 0.05
+      job.revenue_excess / job.revised_contract > 0.10
     ) {
+      const pctOver = (job.revenue_excess / job.revised_contract) * 100;
       flags.push({
         type: "over-billed",
-        severity: job.revenue_excess > 20_000 ? "red" : "yellow",
+        severity: pctOver >= 50 ? "red" : "orange",
         job_number: job.job_number,
         description: job.description,
         project_manager: job.project_manager,
         metric_label: "Revenue Excess",
         metric_value: job.revenue_excess,
+        contract_amount: job.revised_contract,
+        earned_amount: job.earned_revenue ?? undefined,
+        pct_over: Math.round(pctOver),
       });
     }
   }
 
-  // Sort: RED first, then by absolute dollar amount descending
+  // Sort: RED first, then orange, then yellow — within severity by absolute dollar amount descending
+  const severityOrder: Record<string, number> = { red: 0, orange: 1, yellow: 2 };
   flags.sort((a, b) => {
-    if (a.severity !== b.severity) {
-      return a.severity === "red" ? -1 : 1;
-    }
+    const aOrder = severityOrder[a.severity] ?? 9;
+    const bOrder = severityOrder[b.severity] ?? 9;
+    if (aOrder !== bOrder) return aOrder - bOrder;
     return Math.abs(b.metric_value) - Math.abs(a.metric_value);
   });
 
