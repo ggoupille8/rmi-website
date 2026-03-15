@@ -9,6 +9,7 @@ import ReconciliationMatrix from "./ReconciliationMatrix";
 import ProfitLossReport from "./financials/ProfitLossReport";
 import BalanceSheetReport from "./financials/BalanceSheetReport";
 import BorrowingBaseTrend from "./financials/BorrowingBaseTrend";
+import DataCoverage from "./financials/DataCoverage";
 
 type Tab = "upload" | "reports" | "reconciliation" | "borrowing_base";
 type ReportSubTab = "ar_aging" | "balance_sheet" | "income_statement";
@@ -297,6 +298,8 @@ export default function FinancialDashboard() {
           {!loading && months && (months.arAging.length > 0 || months.balanceSheet.length > 0 || months.incomeStatement.length > 0 || (months.borrowingBase || []).length > 0) && (
             <ImportHistory months={months} onReimport={fetchMonths} />
           )}
+
+          {!loading && <DataCoverage />}
         </div>
       )}
 

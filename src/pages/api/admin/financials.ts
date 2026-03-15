@@ -48,6 +48,10 @@ export const GET: APIRoute = async ({ request, url }) => {
       return handleBorrowingBase();
     }
 
+    if (action === "coverage") {
+      return handleCoverage();
+    }
+
     if (action === "pl_summary") {
       const limit = parseInt(url.searchParams.get("months") ?? "6", 10);
       const cap = Math.min(Math.max(limit, 1), 24);
@@ -384,6 +388,64 @@ async function handleReconciliation(url: URL): Promise<Response> {
         incomeStatement: is_ ? { date: is_.period_end_date, filename: is_.source_filename } : null,
         wip: wip ? { year, month } : null,
       },
+    }),
+    { status: 200, headers: SECURITY_HEADERS }
+  );
+}
+
+async function handleCoverage(): Promise<Response> {
+  const [isResult, bsResult, arResult, bbcResult, wipResult] = await Promise.all([
+    sql`SELECT to_char(period_end_date, 'YYYY-MM') AS month FROM income_statement_snapshots GROUP BY 1 ORDER BY 1`,
+    sql`SELECT to_char(report_date, 'YYYY-MM') AS month FROM balance_sheet_snapshots GROUP BY 1 ORDER BY 1`,
+    sql`SELECT to_char(report_date, 'YYYY-MM') AS month FROM ar_aging_snapshots GROUP BY 1 ORDER BY 1`,
+    sql`SELECT to_char(report_date, 'YYYY-MM') AS month FROM borrowing_base GROUP BY 1 ORDER BY 1`.catch(() => ({ rows: [] as Record<string, unknown>[], rowCount: 0 })),
+    sql`SELECT snapshot_year || '-' || lpad(snapshot_month::text, 2, '0') AS month FROM wip_snapshot_totals GROUP BY 1 ORDER BY 1`.catch(() => ({ rows: [] as Record<string, unknown>[], rowCount: 0 })),
+  ]);
+
+  const [isCount, bsCount, arCount, bbcCount, wipCount] = await Promise.all([
+    sql`SELECT count(*) AS cnt FROM income_statement_snapshots`,
+    sql`SELECT count(*) AS cnt FROM balance_sheet_snapshots`,
+    sql`SELECT count(*) AS cnt FROM ar_aging_snapshots`,
+    sql`SELECT count(*) AS cnt FROM borrowing_base`.catch(() => ({ rows: [{ cnt: 0 }] })),
+    sql`SELECT count(*) AS cnt FROM wip_snapshot_totals`.catch(() => ({ rows: [{ cnt: 0 }] })),
+  ]);
+
+  const toMonths = (rows: Record<string, unknown>[]) => rows.map((r) => r.month as string);
+
+  const isMonths = toMonths(isResult.rows);
+  const bsMonths = toMonths(bsResult.rows);
+  const arMonths = toMonths(arResult.rows);
+  const bbcMonths = toMonths(bbcResult.rows);
+  const wipMonths = toMonths(wipResult.rows);
+
+  const allMonths = [...new Set([...isMonths, ...bsMonths, ...arMonths, ...bbcMonths, ...wipMonths])].sort();
+
+  const coverage: Record<string, Record<string, boolean>> = {};
+  let completeMonths = 0;
+  for (const m of allMonths) {
+    const c = {
+      IS: isMonths.includes(m),
+      BS: bsMonths.includes(m),
+      AR: arMonths.includes(m),
+      BBC: bbcMonths.includes(m),
+      WIP: wipMonths.includes(m),
+    };
+    coverage[m] = c;
+    if (c.IS && c.BS && c.AR && c.BBC && c.WIP) completeMonths++;
+  }
+
+  return new Response(
+    JSON.stringify({
+      months: allMonths,
+      coverage,
+      totals: {
+        IS: Number(isCount.rows[0].cnt),
+        BS: Number(bsCount.rows[0].cnt),
+        AR: Number(arCount.rows[0].cnt),
+        BBC: Number(bbcCount.rows[0].cnt),
+        WIP: Number(wipCount.rows[0].cnt),
+      },
+      completeMonths,
     }),
     { status: 200, headers: SECURITY_HEADERS }
   );
