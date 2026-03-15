@@ -85,6 +85,7 @@ interface Props {
   recentLeads: RecentLead[];
   jobStats?: JobStats;
   invoiceStats?: InvoiceStats;
+  excludedNonLeads?: number;
 }
 
 // ── Formatters ─────────────────────────────────────────
@@ -256,7 +257,7 @@ function ActivityIcon({ type }: ActivityIconProps) {
 
 // ── Main Component ─────────────────────────────────────
 
-export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, invoiceStats }: Props) {
+export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, invoiceStats, excludedNonLeads = 0 }: Props) {
   const [wip, setWip] = useState<WipSummary | null>(null);
   const [financials, setFinancials] = useState<FinancialSummary | null>(null);
   const [activity, setActivity] = useState<ActivityEvent[] | null>(null);
@@ -522,6 +523,11 @@ export default function ExecutiveDashboard({ leadStats, recentLeads, jobStats, i
                   </div>
                 </div>
                 <p className="text-xs text-neutral-500 mt-1">Total Active Leads</p>
+                {excludedNonLeads > 0 && (
+                  <p className="text-[10px] text-neutral-600 mt-0.5">
+                    (excluding {excludedNonLeads} non-lead{excludedNonLeads !== 1 ? "s" : ""})
+                  </p>
+                )}
               </div>
 
               {/* Quick stats row */}

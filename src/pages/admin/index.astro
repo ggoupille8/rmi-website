@@ -16,6 +16,7 @@ let leadStats = {
   lastWeek: 0,
 };
 let recentLeads: Array<{ id: string; name: string; email: string; status: string; created_at: string }> = [];
+let excludedNonLeads = 0;
 
 let jobStats = {
   totalJobs: 0,
@@ -33,14 +34,15 @@ const { url: postgresUrl } = getPostgresEnv();
 
 if (postgresUrl) {
   try {
-    const [totalRes, newRes, contactedRes, archivedRes, thisWeekRes, lastWeekRes, recentRes] = await Promise.all([
+    const [totalRes, newRes, contactedRes, archivedRes, thisWeekRes, lastWeekRes, recentRes, excludedRes] = await Promise.all([
       sql`SELECT COUNT(*) as count FROM contacts WHERE deleted_at IS NULL AND (category IS NULL OR category = 'lead')`,
       sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'new' AND deleted_at IS NULL AND (category IS NULL OR category = 'lead')`,
       sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'contacted' AND deleted_at IS NULL AND (category IS NULL OR category = 'lead')`,
       sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'archived' AND deleted_at IS NULL AND (category IS NULL OR category = 'lead')`,
       sql`SELECT COUNT(*) as count FROM contacts WHERE created_at >= date_trunc('week', CURRENT_DATE) AND deleted_at IS NULL AND (category IS NULL OR category = 'lead')`,
       sql`SELECT COUNT(*) as count FROM contacts WHERE created_at >= date_trunc('week', CURRENT_DATE) - interval '7 days' AND created_at < date_trunc('week', CURRENT_DATE) AND deleted_at IS NULL AND (category IS NULL OR category = 'lead')`,
-      sql`SELECT id, name, email, status, created_at FROM contacts WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 5`,
+      sql`SELECT id, name, email, status, created_at FROM contacts WHERE deleted_at IS NULL AND (category IS NULL OR category = 'lead') ORDER BY created_at DESC LIMIT 5`,
+      sql`SELECT COUNT(*) as count FROM contacts WHERE deleted_at IS NULL AND category IS NOT NULL AND category != 'lead'`,
     ]);
     leadStats = {
       total: parseInt(totalRes.rows[0]?.count || '0', 10),
@@ -51,6 +53,7 @@ if (postgresUrl) {
       lastWeek: parseInt(lastWeekRes.rows[0]?.count || '0', 10),
     };
     recentLeads = recentRes.rows as typeof recentLeads;
+    excludedNonLeads = parseInt(excludedRes.rows[0]?.count || '0', 10);
   } catch (error) {
     console.error('Failed to fetch admin stats:', error instanceof Error ? error.message : 'Unknown error');
   }
@@ -95,6 +98,7 @@ if (postgresUrl) {
     recentLeads={recentLeads}
     jobStats={jobStats}
     invoiceStats={invoiceStats}
+    excludedNonLeads={excludedNonLeads}
     client:load
   />
 </AdminLayout>
