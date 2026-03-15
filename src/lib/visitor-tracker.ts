@@ -15,107 +15,139 @@
  * Persistent visitor ID uses localStorage (first-party, no cross-site).
  */
 
-(function () {
+// ── Exported utility functions (testable) ────────────────────────────
+
+export function generateId(): string {
+  const arr = new Uint8Array(16);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export function getVisitorId(): { id: string; visitNumber: number } {
+  try {
+    const stored = localStorage.getItem("rmi_vid");
+    if (stored) {
+      const parsed = JSON.parse(stored) as { id: string; visits: number };
+      const visits = (parsed.visits || 0) + 1;
+      localStorage.setItem("rmi_vid", JSON.stringify({ id: parsed.id, visits }));
+      return { id: parsed.id, visitNumber: visits };
+    }
+  } catch {
+    // Ignore
+  }
+  const id = generateId();
+  try {
+    localStorage.setItem("rmi_vid", JSON.stringify({ id, visits: 1 }));
+  } catch {
+    // Ignore
+  }
+  return { id, visitNumber: 1 };
+}
+
+export function getUTMParams(search: string): Record<string, string> {
+  const params = new URLSearchParams(search);
+  const utm: Record<string, string> = {};
+  for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
+    const val = params.get(key);
+    if (val) utm[key] = val;
+  }
+  return utm;
+}
+
+export function getDeviceType(ua: string): string {
+  if (/tablet|ipad/i.test(ua)) return "tablet";
+  if (/mobile|iphone|android/i.test(ua) && !/tablet/i.test(ua)) return "mobile";
+  return "desktop";
+}
+
+export function getBrowserInfo(ua: string): { name: string; version: string } {
+  if (/Edg\/(\d+)/.test(ua)) return { name: "Edge", version: RegExp.$1 };
+  if (/Chrome\/(\d+)/.test(ua) && !/Edg/.test(ua)) return { name: "Chrome", version: RegExp.$1 };
+  if (/Firefox\/(\d+)/.test(ua)) return { name: "Firefox", version: RegExp.$1 };
+  if (/Safari\/(\d+)/.test(ua) && !/Chrome/.test(ua)) {
+    const m = ua.match(/Version\/(\d+)/);
+    return { name: "Safari", version: m ? m[1] : RegExp.$1 };
+  }
+  return { name: "Unknown", version: "" };
+}
+
+export function getOSInfo(ua: string): { name: string; version: string } {
+  if (/Windows NT (\d+\.\d+)/.test(ua)) return { name: "Windows", version: RegExp.$1 };
+  if (/Mac OS X (\d+[._]\d+)/.test(ua)) return { name: "macOS", version: RegExp.$1.replace(/_/g, ".") };
+  if (/Android (\d+\.?\d*)/.test(ua)) return { name: "Android", version: RegExp.$1 };
+  if (/iPhone|iPad/.test(ua)) {
+    const m = ua.match(/OS (\d+_\d+)/);
+    return { name: "iOS", version: m ? m[1].replace(/_/g, ".") : "" };
+  }
+  if (/Linux/.test(ua)) return { name: "Linux", version: "" };
+  if (/CrOS/.test(ua)) return { name: "ChromeOS", version: "" };
+  return { name: "Unknown", version: "" };
+}
+
+export function getConnectionType(): string {
+  const nav = navigator as Record<string, unknown>;
+  const conn = nav.connection as Record<string, unknown> | undefined;
+  return (conn?.effectiveType as string) || "unknown";
+}
+
+export function sendGA4Event(name: string, params: Record<string, unknown>): void {
+  try {
+    const w = window as Record<string, unknown>;
+    if (typeof w.gtag === "function") {
+      (w.gtag as (...args: unknown[]) => void)("event", name, params);
+    }
+  } catch {
+    // Ignore
+  }
+}
+
+export const SCROLL_MILESTONES = [10, 25, 50, 75, 90, 100];
+export const TIME_MILESTONES = [10, 30, 60, 120, 300]; // seconds
+
+export function calculateScrollPercent(
+  scrollTop: number,
+  viewportHeight: number,
+  docHeight: number,
+): number {
+  if (docHeight <= 0) return 0;
+  return Math.min(Math.round(((scrollTop + viewportHeight) / docHeight) * 100), 100);
+}
+
+export function classifyClick(
+  href: string,
+  textContent: string,
+  classList: DOMTokenList | { contains: (cls: string) => boolean },
+  hasDataCta: boolean,
+): "phone" | "email" | "cta" | null {
+  if (href.startsWith("tel:")) return "phone";
+  if (href.startsWith("mailto:")) return "email";
+  const text = textContent.trim().toLowerCase();
+  const isCTA =
+    text.includes("quote") ||
+    text.includes("contact") ||
+    text.includes("get started") ||
+    text.includes("call") ||
+    text.includes("schedule") ||
+    classList.contains("cta") ||
+    hasDataCta;
+  return isCTA ? "cta" : null;
+}
+
+// ── IIFE initialization (auto-runs in browser) ──────────────────────
+
+export function initTracker(): (() => void) | undefined {
   // Prevent double-init
-  if ((window as Record<string, unknown>).__rmiTrackerInit) return;
+  if (typeof window === "undefined") return undefined;
+  if ((window as Record<string, unknown>).__rmiTrackerInit) return undefined;
   (window as Record<string, unknown>).__rmiTrackerInit = true;
 
-  // ── Helpers ──────────────────────────────────────────────────────────
-  function generateId(): string {
-    const arr = new Uint8Array(16);
-    crypto.getRandomValues(arr);
-    return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
-  }
-
-  function getVisitorId(): { id: string; visitNumber: number } {
-    try {
-      const stored = localStorage.getItem("rmi_vid");
-      if (stored) {
-        const parsed = JSON.parse(stored) as { id: string; visits: number };
-        const visits = (parsed.visits || 0) + 1;
-        localStorage.setItem("rmi_vid", JSON.stringify({ id: parsed.id, visits }));
-        return { id: parsed.id, visitNumber: visits };
-      }
-    } catch {
-      // Ignore
-    }
-    const id = generateId();
-    try {
-      localStorage.setItem("rmi_vid", JSON.stringify({ id, visits: 1 }));
-    } catch {
-      // Ignore
-    }
-    return { id, visitNumber: 1 };
-  }
-
-  function getUTMParams(): Record<string, string> {
-    const params = new URLSearchParams(window.location.search);
-    const utm: Record<string, string> = {};
-    for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
-      const val = params.get(key);
-      if (val) utm[key] = val;
-    }
-    return utm;
-  }
-
-  function getDeviceType(): string {
-    const ua = navigator.userAgent;
-    if (/tablet|ipad/i.test(ua)) return "tablet";
-    if (/mobile|iphone|android/i.test(ua) && !/tablet/i.test(ua)) return "mobile";
-    return "desktop";
-  }
-
-  function getBrowserInfo(): { name: string; version: string } {
-    const ua = navigator.userAgent;
-    if (/Edg\/(\d+)/.test(ua)) return { name: "Edge", version: RegExp.$1 };
-    if (/Chrome\/(\d+)/.test(ua) && !/Edg/.test(ua)) return { name: "Chrome", version: RegExp.$1 };
-    if (/Firefox\/(\d+)/.test(ua)) return { name: "Firefox", version: RegExp.$1 };
-    if (/Safari\/(\d+)/.test(ua) && !/Chrome/.test(ua)) {
-      const m = ua.match(/Version\/(\d+)/);
-      return { name: "Safari", version: m ? m[1] : RegExp.$1 };
-    }
-    return { name: "Unknown", version: "" };
-  }
-
-  function getOSInfo(): { name: string; version: string } {
-    const ua = navigator.userAgent;
-    if (/Windows NT (\d+\.\d+)/.test(ua)) return { name: "Windows", version: RegExp.$1 };
-    if (/Mac OS X (\d+[._]\d+)/.test(ua)) return { name: "macOS", version: RegExp.$1.replace(/_/g, ".") };
-    if (/Android (\d+\.?\d*)/.test(ua)) return { name: "Android", version: RegExp.$1 };
-    if (/iPhone|iPad/.test(ua)) {
-      const m = ua.match(/OS (\d+_\d+)/);
-      return { name: "iOS", version: m ? m[1].replace(/_/g, ".") : "" };
-    }
-    if (/Linux/.test(ua)) return { name: "Linux", version: "" };
-    if (/CrOS/.test(ua)) return { name: "ChromeOS", version: "" };
-    return { name: "Unknown", version: "" };
-  }
-
-  function getConnectionType(): string {
-    const nav = navigator as Record<string, unknown>;
-    const conn = nav.connection as Record<string, unknown> | undefined;
-    return (conn?.effectiveType as string) || "unknown";
-  }
-
-  // Safe gtag wrapper
-  function sendGA4Event(name: string, params: Record<string, unknown>): void {
-    try {
-      const w = window as Record<string, unknown>;
-      if (typeof w.gtag === "function") {
-        (w.gtag as (...args: unknown[]) => void)("event", name, params);
-      }
-    } catch {
-      // Ignore
-    }
-  }
-
-  // ── State ────────────────────────────────────────────────────────────
+  // ── State ──────────────────────────────────────────────────────────
   const sessionId = generateId();
   const visitor = getVisitorId();
-  const utmParams = getUTMParams();
+  const utmParams = getUTMParams(window.location.search);
   const startTime = Date.now();
-  const browser = getBrowserInfo();
-  const os = getOSInfo();
+  const browser = getBrowserInfo(navigator.userAgent);
+  const os = getOSInfo(navigator.userAgent);
 
   let maxScrollDepth = 0;
   let interactions = 0;
@@ -126,7 +158,7 @@
   const scrollMilestonesFired = new Set<number>();
   const timeMilestonesFired = new Set<number>();
 
-  // ── Beacon sender ────────────────────────────────────────────────────
+  // ── Beacon sender ──────────────────────────────────────────────────
   function sendBeacon(type: "pageview" | "update" | "exit"): void {
     const payload = {
       type,
@@ -139,7 +171,7 @@
       screenHeight: screen.height,
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
-      deviceType: getDeviceType(),
+      deviceType: getDeviceType(navigator.userAgent),
       browserName: browser.name,
       browserVersion: browser.version,
       osName: os.name,
@@ -184,9 +216,7 @@
     }
   }
 
-  // ── Scroll depth tracking ────────────────────────────────────────────
-  const SCROLL_MILESTONES = [10, 25, 50, 75, 90, 100];
-
+  // ── Scroll depth tracking ──────────────────────────────────────────
   function updateScrollDepth(): void {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const docHeight = Math.max(
@@ -194,10 +224,7 @@
       document.documentElement.scrollHeight,
     );
     const viewportHeight = window.innerHeight;
-    const scrollPercent = Math.min(
-      Math.round(((scrollTop + viewportHeight) / docHeight) * 100),
-      100,
-    );
+    const scrollPercent = calculateScrollPercent(scrollTop, viewportHeight, docHeight);
 
     if (scrollPercent > maxScrollDepth) {
       maxScrollDepth = scrollPercent;
@@ -215,9 +242,7 @@
     }
   }
 
-  // ── Time on page milestones ──────────────────────────────────────────
-  const TIME_MILESTONES = [10, 30, 60, 120, 300]; // seconds
-
+  // ── Time on page milestones ────────────────────────────────────────
   function checkTimeMilestones(): void {
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
     for (const ms of TIME_MILESTONES) {
@@ -231,7 +256,7 @@
     }
   }
 
-  // ── Section visibility tracking ──────────────────────────────────────
+  // ── Section visibility tracking ────────────────────────────────────
   function setupSectionObserver(): void {
     if (!("IntersectionObserver" in window)) return;
 
@@ -264,7 +289,7 @@
     sections.forEach((s) => observer.observe(s));
   }
 
-  // ── CTA click tracking ───────────────────────────────────────────────
+  // ── CTA click tracking ─────────────────────────────────────────────
   function setupCTATracking(): void {
     document.addEventListener("click", (e) => {
       interactions++;
@@ -314,7 +339,7 @@
     });
   }
 
-  // ── Form interaction tracking ────────────────────────────────────────
+  // ── Form interaction tracking ──────────────────────────────────────
   function setupFormTracking(): void {
     document.addEventListener(
       "focus",
@@ -340,7 +365,7 @@
     );
   }
 
-  // ── Exit intent detection ────────────────────────────────────────────
+  // ── Exit intent detection ──────────────────────────────────────────
   function setupExitIntent(): void {
     document.addEventListener("mouseout", (e) => {
       if (exitIntentDetected) return;
@@ -356,14 +381,14 @@
     });
   }
 
-  // ── Interaction counting ─────────────────────────────────────────────
+  // ── Interaction counting ───────────────────────────────────────────
   function setupInteractionTracking(): void {
     document.addEventListener("keydown", () => {
       interactions++;
     }, { passive: true });
   }
 
-  // ── Initialize ───────────────────────────────────────────────────────
+  // ── Initialize ─────────────────────────────────────────────────────
 
   // Send initial pageview beacon
   sendBeacon("pageview");
@@ -420,4 +445,16 @@
       sendBeacon("update");
     }
   });
-})();
+
+  // Return cleanup function for testing
+  return () => {
+    clearInterval(timeInterval);
+    clearInterval(updateInterval);
+    delete (window as Record<string, unknown>).__rmiTrackerInit;
+  };
+}
+
+// Auto-initialize in browser environment (IIFE behavior)
+if (typeof window !== "undefined" && typeof document !== "undefined") {
+  initTracker();
+}
