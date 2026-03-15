@@ -91,6 +91,7 @@ export default function ClientShowcase() {
   // Fetch featured clients from DB — fall back to hardcoded on failure
   useEffect(() => {
     const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
     fetch("/api/clients?featured=1", { signal: controller.signal })
       .then((r) => {
         if (!r.ok) throw new Error("API error");
@@ -103,10 +104,15 @@ export default function ClientShowcase() {
         }
         // Otherwise keep hardcoded fallback — never show a worse grid
       })
-      .catch(() => {
-        // Network/API failure — keep hardcoded grid, no blank state ever
-      });
-    return () => controller.abort();
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        console.warn("ClientShowcase: failed to fetch featured clients", err);
+      })
+      .finally(() => clearTimeout(timeout));
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, []);
 
   // Observe section entering viewport
