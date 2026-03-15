@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
 import {
   Upload, BarChart3, GitCompare, ChevronDown, Loader2,
-  AlertCircle, RefreshCw, FileText, Calendar, CheckCircle, AlertTriangle,
+  AlertCircle, RefreshCw, FileText, Calendar, CheckCircle,
   XCircle, RotateCcw, Landmark,
 } from "lucide-react";
 import FinancialUpload from "./FinancialUpload";
@@ -401,8 +401,8 @@ function ImportHistory({ months, onReimport }: ImportHistoryProps) {
     }
     if (row.records && row.records > 0) {
       return (
-        <span title="Data imported — not validated" className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10">
-          <AlertTriangle size={14} className="text-amber-400" />
+        <span title="Data imported" className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10">
+          <CheckCircle size={14} className="text-emerald-400" />
         </span>
       );
     }
