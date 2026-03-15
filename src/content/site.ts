@@ -218,7 +218,7 @@ export const services: ServiceData[] = [
     tier: "specialty",
     description:
       "Weekly plan & specification bidding and estimation services for commercial and industrial insulation projects. We review customer bid lists weekly, quoting most jobs and working to quote every opportunity we can. Our estimating and technical coordination streamline your project planning and ensure seamless execution from bid to completion.",
-    images: [],
+    images: [], // TODO: no project photos yet — modal renders without image panel
   },
   {
     title: "Material Sales",
@@ -239,7 +239,7 @@ export const services: ServiceData[] = [
     tier: "additional",
     description:
       "Around-the-clock emergency insulation repair and outage support. We mobilize crews immediately for pipe failures, emergency breaks, facility shutdowns, and production-critical issues. Our rapid-response teams minimize downtime and keep your operations running with professional emergency insulation services available 7 days a week.",
-    images: [],
+    images: [], // TODO: no project photos yet — modal renders without image panel
   },
 ];
 
