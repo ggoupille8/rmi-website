@@ -142,6 +142,8 @@ export function initTracker(): (() => void) | undefined {
   (window as Record<string, unknown>).__rmiTrackerInit = true;
 
   // ── State ──────────────────────────────────────────────────────────
+  const ac = new AbortController();
+  const signal = ac.signal;
   const sessionId = generateId();
   const visitor = getVisitorId();
   const utmParams = getUTMParams(window.location.search);
@@ -258,7 +260,7 @@ export function initTracker(): (() => void) | undefined {
 
   // ── Section visibility tracking ────────────────────────────────────
   function setupSectionObserver(): void {
-    if (!("IntersectionObserver" in window)) return;
+    if (typeof IntersectionObserver === "undefined") return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -336,7 +338,7 @@ export function initTracker(): (() => void) | undefined {
         });
         ctaClicks++;
       }
-    });
+    }, { signal });
   }
 
   // ── Form interaction tracking ──────────────────────────────────────
@@ -361,7 +363,7 @@ export function initTracker(): (() => void) | undefined {
           }
         }
       },
-      true,
+      { capture: true, signal },
     );
   }
 
@@ -378,14 +380,14 @@ export function initTracker(): (() => void) | undefined {
           sections_viewed: Array.from(sectionsViewed).join(","),
         });
       }
-    });
+    }, { signal });
   }
 
   // ── Interaction counting ───────────────────────────────────────────
   function setupInteractionTracking(): void {
     document.addEventListener("keydown", () => {
       interactions++;
-    }, { passive: true });
+    }, { passive: true, signal });
   }
 
   // ── Initialize ─────────────────────────────────────────────────────
@@ -404,7 +406,7 @@ export function initTracker(): (() => void) | undefined {
         scrollTimer = null;
       }, 200);
     },
-    { passive: true },
+    { passive: true, signal },
   );
 
   // Time milestone check every 5 seconds
@@ -423,7 +425,7 @@ export function initTracker(): (() => void) | undefined {
       setupFormTracking();
       setupExitIntent();
       setupInteractionTracking();
-    });
+    }, { signal });
   } else {
     setupSectionObserver();
     setupCTATracking();
@@ -437,24 +439,32 @@ export function initTracker(): (() => void) | undefined {
     clearInterval(timeInterval);
     clearInterval(updateInterval);
     sendBeacon("exit");
-  });
+  }, { signal });
 
   // Visibility change — send update when tab hidden
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
       sendBeacon("update");
     }
-  });
+  }, { signal });
 
   // Return cleanup function for testing
   return () => {
     clearInterval(timeInterval);
     clearInterval(updateInterval);
+    ac.abort();
     delete (window as Record<string, unknown>).__rmiTrackerInit;
   };
 }
 
-// Auto-initialize in browser environment (IIFE behavior)
-if (typeof window !== "undefined" && typeof document !== "undefined") {
+// Auto-initialize in browser environment (IIFE behavior).
+// Skip during test runs — tests call initTracker() explicitly.
+const _isTestEnv =
+  typeof process !== "undefined" &&
+  typeof (process as Record<string, unknown>).env === "object" &&
+  (process as Record<string, unknown>).env !== null &&
+  ((process as Record<string, unknown>).env as Record<string, unknown>).VITEST === "true";
+
+if (typeof window !== "undefined" && typeof document !== "undefined" && !_isTestEnv) {
   initTracker();
 }
