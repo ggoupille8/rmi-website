@@ -1,59 +1,101 @@
 import { useState, useEffect } from "react";
-import { Loader2, AlertCircle, TrendingUp, TrendingDown, FileText } from "lucide-react";
-import ProfitLossReport from "./ProfitLossReport";
-import BalanceSheetReport from "./BalanceSheetReport";
+import {
+  Loader2, AlertCircle, TrendingUp, TrendingDown,
+  CheckCircle, Clock, Database, ArrowRight,
+} from "lucide-react";
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer,
+} from "recharts";
 
-interface AnnualIS {
-  period_end_date: string;
-  total_income: string;
-  total_cost_of_sales: string;
-  gross_margin: string;
-  total_expenses: string;
-  net_income: string;
+// ─────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────
+
+interface AnnualData {
+  year: number;
+  revenue: number;
+  costOfSales: number;
+  grossProfit: number;
+  grossMargin: number;
+  netIncome: number;
+  netMargin: number;
+  priorYear: { revenue: number | null; grossProfit: number | null; netIncome: number | null } | null;
 }
 
-interface AnnualBS {
-  report_date: string;
-  total_assets: string;
-  total_liabilities: string;
-  total_equity: string;
-  net_income: string;
-  ar_balance: string;
-  ar_retainage: string;
-  costs_in_excess: string;
-  billings_in_excess: string;
+interface YtdData {
+  year: number;
+  month: string;
+  revenue: number;
+  grossProfit: number;
+  netIncome: number;
+  priorYearSameMonth: { revenue: number; grossProfit: number; netIncome: number } | null;
 }
 
-interface BsEntry {
-  account_number: string | null;
-  account_name: string;
-  amount: string;
-  section: string;
-  is_subtotal: boolean;
+interface ArAgingData {
+  date: string;
+  totalAR: number;
+  current: number;
+  days30: number;
+  days60: number;
+  days90: number;
+  days90Plus: number;
+  retainage: number;
 }
 
-interface OverviewData {
-  currentYear: AnnualIS | null;
-  priorYear: AnnualIS | null;
-  balanceSheet: AnnualBS | null;
-  balanceSheetEntries: BsEntry[];
+interface BorrowingBaseData {
+  date: string;
+  eligibleAR: number;
+  totalBase: number;
+  advanceRate: number;
+  amountBorrowed: number;
+  excessAvailability: number;
 }
 
-function num(val: string | number | null | undefined): number {
-  if (val === null || val === undefined) return 0;
-  return typeof val === "number" ? val : parseFloat(val) || 0;
+interface TrendPoint {
+  month: string;
+  revenue: number;
+  netIncome: number;
 }
 
-function fmtLarge(val: number): string {
+interface ReconciliationData {
+  matches: number;
+  total: number;
+  latestDate: string | null;
+}
+
+interface DataFreshness {
+  latestIS: string | null;
+  latestBS: string | null;
+  latestAR: string | null;
+  latestBBC: string | null;
+  latestWIP: string | null;
+}
+
+interface OverviewResponse {
+  annual: AnnualData | null;
+  ytd: YtdData | null;
+  arAging: ArAgingData | null;
+  borrowingBase: BorrowingBaseData | null;
+  revenueTrend: TrendPoint[];
+  reconciliation: ReconciliationData;
+  dataFreshness: DataFreshness;
+}
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+
+function fmtCompact(val: number): string {
   const abs = Math.abs(val);
   if (abs >= 1_000_000) {
-    const millions = Math.abs(val / 1_000_000);
-    const str = "$" + millions.toFixed(1) + "M";
+    const m = Math.abs(val / 1_000_000);
+    const str = "$" + m.toFixed(1) + "M";
     return val < 0 ? `(${str})` : str;
   }
   if (abs >= 1_000) {
-    const thousands = Math.abs(val / 1_000);
-    const str = "$" + thousands.toFixed(0) + "K";
+    const k = Math.abs(val / 1_000);
+    const str = "$" + k.toFixed(0) + "K";
     return val < 0 ? `(${str})` : str;
   }
   const formatted = "$" + abs.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -66,18 +108,60 @@ function fmtFull(val: number): string {
   return val < 0 ? `(${formatted})` : formatted;
 }
 
+function pctChange(current: number, prior: number | null): { pct: string; positive: boolean } | null {
+  if (prior === null || prior === 0) return null;
+  const change = ((current - prior) / Math.abs(prior)) * 100;
+  return { pct: `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`, positive: change >= 0 };
+}
+
+function dateLabel(dateStr: string): string {
+  const dateOnly = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+  const d = new Date(dateOnly + "T00:00:00");
+  if (isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
+// ─────────────────────────────────────────────
+// Custom Tooltip
+// ─────────────────────────────────────────────
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{ value: number; name: string; color: string; dataKey: string }>;
+  label?: string;
+}
+
+function ChartTooltip({ active, payload, label }: CustomTooltipProps) {
+  if (!active || !payload || payload.length === 0) return null;
+  return (
+    <div className="bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 shadow-xl text-sm">
+      <p className="text-neutral-400 text-xs mb-1">{label}</p>
+      {payload.map((entry, i) => (
+        <p key={i} className="text-neutral-200 font-medium tabular-nums">
+          <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: entry.color }} />
+          {entry.name}: {fmtFull(entry.value)}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────
+
 export default function FinancialOverview() {
-  const [data, setData] = useState<OverviewData | null>(null);
+  const [data, setData] = useState<OverviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/admin/financials?action=annual_overview")
+    fetch("/api/admin/financials?action=overview")
       .then((r) => {
         if (!r.ok) throw new Error(`Server error: ${r.status}`);
         return r.json();
       })
-      .then((d: OverviewData) => setData(d))
+      .then((d: OverviewResponse) => setData(d))
       .catch((e: unknown) => setError(e instanceof Error ? e.message : "Failed to load overview"))
       .finally(() => setLoading(false));
   }, []);
@@ -93,126 +177,329 @@ export default function FinancialOverview() {
     );
   }
 
-  const hasAnnualData = !!data?.currentYear;
-  const revenue = hasAnnualData ? num(data.currentYear!.total_income) : 0;
-  const grossProfit = hasAnnualData ? num(data.currentYear!.gross_margin) : 0;
-  const netIncome = hasAnnualData ? num(data.currentYear!.net_income) : 0;
+  if (!data) return null;
 
-  const prevRevenue = data?.priorYear ? num(data.priorYear.total_income) : null;
-  const prevGrossProfit = data?.priorYear ? num(data.priorYear.gross_margin) : null;
-  const prevNetIncome = data?.priorYear ? num(data.priorYear.net_income) : null;
-
-  const currentYear = hasAnnualData
-    ? new Date(data.currentYear!.period_end_date.split("T")[0] + "T00:00:00").getFullYear()
-    : new Date().getFullYear();
-  const priorYear = data?.priorYear
-    ? new Date(data.priorYear.period_end_date.split("T")[0] + "T00:00:00").getFullYear()
-    : currentYear - 1;
-
-  function yoyChange(current: number, prior: number | null): { pct: string; positive: boolean } | null {
-    if (prior === null || prior === 0) return null;
-    const change = ((current - prior) / Math.abs(prior)) * 100;
-    return { pct: `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`, positive: change >= 0 };
-  }
+  const { annual, ytd, arAging, borrowingBase, revenueTrend, reconciliation, dataFreshness } = data;
 
   return (
     <div className="space-y-8">
-      {/* Annual Hero KPIs */}
-      {hasAnnualData ? (
+      {/* Annual KPI Cards */}
+      {annual ? (
         <div>
           <h2 className="text-sm font-medium text-neutral-500 uppercase tracking-wider mb-4">
-            FY {currentYear} Annual Performance
+            FY {annual.year} Annual Performance
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <HeroKPI
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <KPICard
               label="Annual Revenue"
-              value={fmtLarge(revenue)}
-              fullValue={fmtFull(revenue)}
-              change={yoyChange(revenue, prevRevenue)}
-              priorYear={priorYear}
+              value={fmtCompact(annual.revenue)}
+              fullValue={fmtFull(annual.revenue)}
+              change={pctChange(annual.revenue, annual.priorYear?.revenue ?? null)}
               accent="blue"
             />
-            <HeroKPI
+            <KPICard
               label="Gross Profit"
-              value={fmtLarge(grossProfit)}
-              fullValue={fmtFull(grossProfit)}
-              change={yoyChange(grossProfit, prevGrossProfit)}
-              priorYear={priorYear}
+              value={fmtCompact(annual.grossProfit)}
+              fullValue={fmtFull(annual.grossProfit)}
+              change={pctChange(annual.grossProfit, annual.priorYear?.grossProfit ?? null)}
               accent="emerald"
-              subValue={revenue > 0 ? `${((grossProfit / revenue) * 100).toFixed(1)}% margin` : undefined}
+              subValue={`${annual.grossMargin.toFixed(1)}% margin`}
             />
-            <HeroKPI
+            <KPICard
               label="Net Income"
-              value={fmtLarge(netIncome)}
-              fullValue={fmtFull(netIncome)}
-              change={yoyChange(netIncome, prevNetIncome)}
-              priorYear={priorYear}
-              accent={netIncome >= 0 ? "emerald" : "red"}
-              subValue={revenue > 0 ? `${((netIncome / revenue) * 100).toFixed(1)}% net margin` : undefined}
+              value={fmtCompact(annual.netIncome)}
+              fullValue={fmtFull(annual.netIncome)}
+              change={pctChange(annual.netIncome, annual.priorYear?.netIncome ?? null)}
+              accent={annual.netIncome >= 0 ? "emerald" : "red"}
+              subValue={`${annual.netMargin.toFixed(1)}% net margin`}
             />
+            {ytd ? (
+              <YTDCard ytd={ytd} />
+            ) : (
+              <KPICard
+                label="YTD"
+                value="--"
+                fullValue="No YTD data"
+                accent="neutral"
+                subValue="Awaiting January data"
+              />
+            )}
           </div>
         </div>
       ) : (
         <div className="text-center py-10 bg-neutral-900/30 border border-neutral-800/50 rounded-lg">
-          <FileText size={28} className="mx-auto mb-2 text-neutral-600" />
+          <Database size={28} className="mx-auto mb-2 text-neutral-600" />
           <p className="text-neutral-400 text-sm">No year-end financial data available</p>
-          <p className="text-neutral-600 text-xs mt-1">Upload December Income Statement &amp; Balance Sheet PDFs</p>
+          <p className="text-neutral-600 text-xs mt-1">Upload December Income Statement PDFs</p>
         </div>
       )}
 
-      {/* P&L Summary (self-fetching, includes revenue trend chart) */}
-      <ProfitLossReport />
+      {/* Cash & Receivables Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* AR Aging Breakdown */}
+        {arAging ? (
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider">AR Aging Breakdown</h3>
+              <span className="text-xs text-neutral-600">{dateLabel(arAging.date)}</span>
+            </div>
+            <p className="text-2xl font-bold text-neutral-50 tabular-nums mb-4">{fmtFull(arAging.totalAR)}</p>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    { bucket: "Current", amount: arAging.current, fill: "#22c55e" },
+                    { bucket: "30 Day", amount: arAging.days30, fill: "#eab308" },
+                    { bucket: "60 Day", amount: arAging.days60, fill: "#f97316" },
+                    { bucket: "90+ Day", amount: arAging.days90Plus, fill: "#ef4444" },
+                    { bucket: "Retainage", amount: Math.abs(arAging.retainage), fill: "#8b5cf6" },
+                  ]}
+                  margin={{ top: 5, right: 5, bottom: 5, left: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis dataKey="bucket" tick={{ fill: "#737373", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tick={{ fill: "#737373", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v: number) => fmtCompact(v)}
+                  />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Bar dataKey="amount" name="Amount" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        ) : (
+          <EmptyCard title="AR Aging" message="No AR aging data available" />
+        )}
 
-      {/* Balance Sheet */}
-      {data?.balanceSheet && data.balanceSheetEntries.length > 0 && (
-        <BalanceSheetReport
-          snapshot={data.balanceSheet}
-          entries={data.balanceSheetEntries}
-        />
+        {/* Borrowing Base */}
+        {borrowingBase ? (
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider">Borrowing Base</h3>
+              <span className="text-xs text-neutral-600">{dateLabel(borrowingBase.date)}</span>
+            </div>
+            <p className="text-2xl font-bold text-neutral-50 tabular-nums mb-1">{fmtFull(borrowingBase.totalBase)}</p>
+            <p className="text-xs text-neutral-500 mb-5">Total Borrowing Base</p>
+
+            {/* Capacity bar */}
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-xs text-neutral-500 mb-1">
+                  <span>Utilized</span>
+                  <span>{borrowingBase.totalBase > 0
+                    ? `${((borrowingBase.amountBorrowed / borrowingBase.totalBase) * 100).toFixed(0)}%`
+                    : "0%"}
+                  </span>
+                </div>
+                <div className="w-full h-3 bg-neutral-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-500 rounded-full transition-all"
+                    style={{
+                      width: `${borrowingBase.totalBase > 0
+                        ? Math.min((borrowingBase.amountBorrowed / borrowingBase.totalBase) * 100, 100)
+                        : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div>
+                  <p className="text-xs text-neutral-500">Eligible AR</p>
+                  <p className="text-sm font-medium text-neutral-200 tabular-nums">{fmtFull(borrowingBase.eligibleAR)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500">Advance Rate</p>
+                  <p className="text-sm font-medium text-neutral-200 tabular-nums">{borrowingBase.advanceRate.toFixed(0)}%</p>
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500">Amount Borrowed</p>
+                  <p className="text-sm font-medium text-neutral-200 tabular-nums">{fmtFull(borrowingBase.amountBorrowed)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-neutral-500">Excess Availability</p>
+                  <p className="text-sm font-medium text-emerald-400 tabular-nums">{fmtFull(borrowingBase.excessAvailability)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <EmptyCard title="Borrowing Base" message="No borrowing base data available" />
+        )}
+      </div>
+
+      {/* Trend Charts Row */}
+      {revenueTrend.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Revenue Trend */}
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
+            <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-4">Revenue Trend</h3>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueTrend} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                  <defs>
+                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis dataKey="month" tick={{ fill: "#737373", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tick={{ fill: "#737373", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v: number) => fmtCompact(v)}
+                  />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    name="Revenue"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    fill="url(#revGrad)"
+                    dot={{ r: 4, fill: "#3b82f6", stroke: "#1e1e1e", strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Profitability Trend */}
+          <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
+            <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider mb-4">Profitability Trend</h3>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueTrend} margin={{ top: 5, right: 5, bottom: 5, left: 5 }}>
+                  <defs>
+                    <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                  <XAxis dataKey="month" tick={{ fill: "#737373", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tick={{ fill: "#737373", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v: number) => fmtCompact(v)}
+                  />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="netIncome"
+                    name="Net Income"
+                    stroke="#22c55e"
+                    strokeWidth={2}
+                    fill="url(#profitGrad)"
+                    dot={{ r: 4, fill: "#22c55e", stroke: "#1e1e1e", strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
       )}
+
+      {/* Status Cards Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Reconciliation Status */}
+        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+          <div className="flex items-center gap-3">
+            {reconciliation.total > 0 && reconciliation.matches === reconciliation.total ? (
+              <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <CheckCircle size={20} className="text-emerald-400" />
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+                <AlertCircle size={20} className="text-amber-400" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-neutral-200">Reconciliation Status</p>
+              {reconciliation.total > 0 ? (
+                <p className={`text-sm ${reconciliation.matches === reconciliation.total ? "text-emerald-400" : "text-amber-400"}`}>
+                  {reconciliation.matches}/{reconciliation.total} Matches
+                </p>
+              ) : (
+                <p className="text-sm text-neutral-500">No reconciliation data</p>
+              )}
+              {reconciliation.latestDate && (
+                <p className="text-xs text-neutral-600 mt-0.5">Latest: {dateLabel(reconciliation.latestDate)}</p>
+              )}
+            </div>
+            <ArrowRight size={16} className="text-neutral-600 shrink-0" />
+          </div>
+        </div>
+
+        {/* Data Freshness */}
+        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+              <Clock size={20} className="text-blue-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-neutral-200">Data Freshness</p>
+              <p className="text-xs text-neutral-500">Latest imported data</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+            {[
+              { label: "Income Statement", val: dataFreshness.latestIS },
+              { label: "Balance Sheet", val: dataFreshness.latestBS },
+              { label: "AR Aging", val: dataFreshness.latestAR },
+              { label: "Borrowing Base", val: dataFreshness.latestBBC },
+              { label: "WIP", val: dataFreshness.latestWIP },
+            ].map(({ label, val }) => (
+              <div key={label} className="flex justify-between py-1">
+                <span className="text-neutral-500">{label}</span>
+                <span className={val ? "text-neutral-300" : "text-neutral-700"}>{val ?? "None"}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────
-// Hero KPI Card
+// KPI Card
 // ─────────────────────────────────────────────
 
-type Accent = "blue" | "emerald" | "red";
+type Accent = "blue" | "emerald" | "red" | "neutral";
 
-interface HeroKPIProps {
+interface KPICardProps {
   label: string;
   value: string;
   fullValue: string;
-  change: { pct: string; positive: boolean } | null;
-  priorYear: number;
+  change?: { pct: string; positive: boolean } | null;
   accent: Accent;
   subValue?: string;
 }
 
-function HeroKPI({ label, value, fullValue, change, priorYear, accent, subValue }: HeroKPIProps) {
+function KPICard({ label, value, fullValue, change, accent, subValue }: KPICardProps) {
   const borderColor: Record<Accent, string> = {
     blue: "border-l-blue-500",
     emerald: "border-l-emerald-500",
     red: "border-l-red-500",
+    neutral: "border-l-neutral-600",
   };
 
   return (
-    <div
-      className={`bg-neutral-900 border border-neutral-800 ${borderColor[accent]} border-l-2 rounded-xl p-6`}
-    >
+    <div className={`bg-neutral-900 border border-neutral-800 ${borderColor[accent]} border-l-2 rounded-xl p-5`}>
       <p className="text-xs text-neutral-500 uppercase tracking-wider font-medium">{label}</p>
-      <p
-        className="text-3xl font-bold text-neutral-50 tabular-nums tracking-tight mt-2"
-        title={fullValue}
-      >
+      <p className="text-2xl font-bold text-neutral-50 tabular-nums tracking-tight mt-1.5" title={fullValue}>
         {value}
       </p>
-      {subValue && (
-        <p className="text-sm text-neutral-400 mt-1">{subValue}</p>
-      )}
+      {subValue && <p className="text-sm text-neutral-400 mt-1">{subValue}</p>}
       {change && (
-        <div className="flex items-center gap-1.5 mt-3">
+        <div className="flex items-center gap-1.5 mt-2">
           {change.positive ? (
             <TrendingUp size={14} className="text-emerald-400" />
           ) : (
@@ -221,9 +508,66 @@ function HeroKPI({ label, value, fullValue, change, priorYear, accent, subValue 
           <span className={`text-sm font-medium ${change.positive ? "text-emerald-400" : "text-red-400"}`}>
             {change.pct}
           </span>
-          <span className="text-xs text-neutral-600">vs {priorYear}</span>
+          <span className="text-xs text-neutral-600">vs prior year</span>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// YTD Card
+// ─────────────────────────────────────────────
+
+interface YTDCardProps {
+  ytd: YtdData;
+}
+
+function YTDCard({ ytd }: YTDCardProps) {
+  const revenueChange = ytd.priorYearSameMonth
+    ? pctChange(ytd.revenue, ytd.priorYearSameMonth.revenue)
+    : null;
+
+  return (
+    <div className="bg-neutral-900 border border-neutral-800 border-l-2 border-l-amber-500 rounded-xl p-5">
+      <p className="text-xs text-neutral-500 uppercase tracking-wider font-medium">
+        YTD {ytd.year} ({ytd.month})
+      </p>
+      <p className="text-2xl font-bold text-neutral-50 tabular-nums tracking-tight mt-1.5">
+        {fmtCompact(ytd.revenue)}
+      </p>
+      <p className="text-sm text-neutral-400 mt-1">
+        Net: {fmtCompact(ytd.netIncome)}
+      </p>
+      {revenueChange && (
+        <div className="flex items-center gap-1.5 mt-2">
+          {revenueChange.positive ? (
+            <TrendingUp size={14} className="text-emerald-400" />
+          ) : (
+            <TrendingDown size={14} className="text-red-400" />
+          )}
+          <span className={`text-sm font-medium ${revenueChange.positive ? "text-emerald-400" : "text-red-400"}`}>
+            {revenueChange.pct}
+          </span>
+          <span className="text-xs text-neutral-600">vs {ytd.month} {ytd.year - 1}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Empty Card
+// ─────────────────────────────────────────────
+
+function EmptyCard({ title, message }: { title: string; message: string }) {
+  return (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 flex items-center justify-center">
+      <div className="text-center">
+        <Database size={24} className="mx-auto mb-2 text-neutral-600" />
+        <p className="text-sm text-neutral-400">{title}</p>
+        <p className="text-xs text-neutral-600 mt-1">{message}</p>
+      </div>
     </div>
   );
 }
@@ -237,17 +581,25 @@ function OverviewSkeleton() {
     <div className="space-y-8">
       <div>
         <div className="h-4 w-48 bg-neutral-800 rounded animate-pulse mb-4" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-3">
               <div className="h-3 w-24 bg-neutral-800 rounded animate-pulse" />
-              <div className="h-8 w-32 bg-neutral-800 rounded animate-pulse" />
+              <div className="h-7 w-28 bg-neutral-800 rounded animate-pulse" />
               <div className="h-4 w-20 bg-neutral-800 rounded animate-pulse" />
             </div>
           ))}
         </div>
       </div>
-      <div className="flex items-center justify-center py-16">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {[0, 1].map((i) => (
+          <div key={i} className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
+            <div className="h-4 w-32 bg-neutral-800 rounded animate-pulse mb-4" />
+            <div className="h-48 bg-neutral-800/50 rounded animate-pulse" />
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-center py-8">
         <Loader2 size={24} className="animate-spin text-neutral-500" />
       </div>
     </div>

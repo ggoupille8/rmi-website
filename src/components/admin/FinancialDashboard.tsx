@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react
 import {
   Upload, BarChart3, GitCompare, ChevronDown, Loader2,
   AlertCircle, RefreshCw, FileText, Calendar, CheckCircle,
-  XCircle, RotateCcw, Landmark,
+  XCircle, RotateCcw, Landmark, LayoutDashboard,
 } from "lucide-react";
 import FinancialUpload from "./FinancialUpload";
 import ReconciliationMatrix from "./ReconciliationMatrix";
@@ -12,7 +12,7 @@ import BorrowingBaseTrend from "./financials/BorrowingBaseTrend";
 import DataCoverage from "./financials/DataCoverage";
 import FinancialOverview from "./financials/FinancialOverview";
 
-type Tab = "upload" | "reports" | "reconciliation" | "borrowing_base";
+type Tab = "overview" | "upload" | "reports" | "reconciliation" | "borrowing_base";
 type ReportSubTab = "ar_aging" | "balance_sheet" | "income_statement";
 
 interface SnapshotRow {
@@ -209,7 +209,7 @@ function HistorySkeleton() {
 // ─────────────────────────────────────────────
 
 export default function FinancialDashboard() {
-  const [tab, setTab] = useState<Tab>("reports");
+  const [tab, setTab] = useState<Tab>("overview");
   const [months, setMonths] = useState<MonthsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -262,6 +262,7 @@ export default function FinancialDashboard() {
   const uniqueDates = [...new Set(allDates)].sort().reverse();
 
   const tabs: { key: Tab; label: string; icon: typeof Upload }[] = [
+    { key: "overview", label: "Overview", icon: LayoutDashboard },
     { key: "reports", label: "Reports", icon: BarChart3 },
     { key: "borrowing_base", label: "Borrowing Base", icon: Landmark },
     { key: "reconciliation", label: "Reconciliation", icon: GitCompare },
@@ -274,7 +275,7 @@ export default function FinancialDashboard() {
       <TabBar tabs={tabs} activeTab={tab} onTabChange={setTab} />
 
       {/* Month selector (for reconciliation tab) */}
-      {tab === "reconciliation" && uniqueDates.length > 0 && (
+      {(tab === "reports" || tab === "reconciliation") && uniqueDates.length > 0 && (
         <MonthSelector
           dates={uniqueDates}
           selected={selectedDate}
@@ -318,9 +319,14 @@ export default function FinancialDashboard() {
         </div>
       )}
 
-      {/* Reports tab */}
-      {tab === "reports" && (
+      {/* Overview tab */}
+      {tab === "overview" && (
         <FinancialOverview />
+      )}
+
+      {/* Reports tab */}
+      {tab === "reports" && selectedDate && (
+        <ReportsView reportDate={selectedDate} />
       )}
 
       {/* Borrowing Base tab */}

@@ -56,6 +56,10 @@ export const GET: APIRoute = async ({ request, url }) => {
       return handleAnnualOverview();
     }
 
+    if (action === "overview") {
+      return handleOverview();
+    }
+
     if (action === "pl_summary") {
       const limit = parseInt(url.searchParams.get("months") ?? "6", 10);
       const cap = Math.min(Math.max(limit, 1), 24);
@@ -518,6 +522,169 @@ async function handleAnnualOverview(): Promise<Response> {
       priorYear: isResult.rows.length > 1 ? isResult.rows[1] : null,
       balanceSheet: bsResponse,
       balanceSheetEntries: bsEntries,
+    }),
+    { status: 200, headers: SECURITY_HEADERS }
+  );
+}
+
+async function handleOverview(): Promise<Response> {
+  const isYearEnd = await sql`
+    SELECT period_end_date, total_income, total_cost_of_sales,
+           gross_margin, total_expenses, net_income
+    FROM income_statement_snapshots
+    WHERE variant = 'standard'
+      AND EXTRACT(MONTH FROM period_end_date) = 12
+    ORDER BY period_end_date DESC
+    LIMIT 2
+  `;
+
+  const currentIS = isYearEnd.rows[0] ?? null;
+  const priorIS = isYearEnd.rows.length > 1 ? isYearEnd.rows[1] : null;
+
+  const revenue = currentIS ? parseFloat(String(currentIS.total_income)) : 0;
+  const grossProfit = currentIS ? parseFloat(String(currentIS.gross_margin)) : 0;
+  const netIncome = currentIS ? parseFloat(String(currentIS.net_income)) : 0;
+  const costOfSales = currentIS ? parseFloat(String(currentIS.total_cost_of_sales)) : 0;
+  const currentYear = currentIS
+    ? new Date(String(currentIS.period_end_date).split("T")[0] + "T00:00:00").getFullYear()
+    : new Date().getFullYear();
+
+  const priorRevenue = priorIS ? parseFloat(String(priorIS.total_income)) : null;
+  const priorGrossProfit = priorIS ? parseFloat(String(priorIS.gross_margin)) : null;
+  const priorNetIncome = priorIS ? parseFloat(String(priorIS.net_income)) : null;
+
+  const isJanResult = await sql`
+    SELECT period_end_date, total_income, total_cost_of_sales,
+           gross_margin, total_expenses, net_income
+    FROM income_statement_snapshots
+    WHERE variant = 'standard'
+      AND EXTRACT(MONTH FROM period_end_date) = 1
+    ORDER BY period_end_date DESC
+    LIMIT 2
+  `;
+  const ytdCurrent = isJanResult.rows[0] ?? null;
+  const ytdPrior = isJanResult.rows.length > 1 ? isJanResult.rows[1] : null;
+
+  const arResult = await sql`
+    SELECT report_date, total_amount, total_current, total_over_30,
+           total_over_60, total_over_90, total_over_120, total_retainage
+    FROM ar_aging_snapshots
+    ORDER BY report_date DESC
+    LIMIT 1
+  `;
+  const arRow = arResult.rows[0] ?? null;
+
+  let bbcRow: Record<string, unknown> | null = null;
+  try {
+    const bbcResult = await sql`
+      SELECT report_date, eligible_ar, total_borrowing_base,
+             ar_advance_rate, amount_borrowed, excess_availability
+      FROM borrowing_base
+      ORDER BY report_date DESC
+      LIMIT 1
+    `;
+    bbcRow = bbcResult.rows[0] ?? null;
+  } catch {
+    // Table may not exist yet
+  }
+
+  const trendResult = await sql`
+    SELECT period_end_date, total_income, net_income
+    FROM income_statement_snapshots
+    WHERE variant = 'standard'
+    ORDER BY period_end_date ASC
+  `;
+
+  const reconResult = await sql`
+    SELECT a.report_date,
+           ABS(CAST(a.total_amount AS NUMERIC) - CAST(b.ar_balance AS NUMERIC)) AS variance
+    FROM ar_aging_snapshots a
+    JOIN balance_sheet_snapshots b ON a.report_date = b.report_date
+    ORDER BY a.report_date DESC
+  `;
+  const reconRows = reconResult.rows;
+  const reconMatches = reconRows.filter((r) => parseFloat(String(r.variance)) <= 5).length;
+  const reconTotal = reconRows.length;
+  const reconLatest = reconRows.length > 0 ? String(reconRows[0].report_date) : null;
+
+  const [latestIS, latestBS, latestAR, latestBBC, latestWIP] = await Promise.all([
+    sql`SELECT MAX(period_end_date) AS d FROM income_statement_snapshots`.then((r) => r.rows[0]?.d ?? null),
+    sql`SELECT MAX(report_date) AS d FROM balance_sheet_snapshots`.then((r) => r.rows[0]?.d ?? null),
+    sql`SELECT MAX(report_date) AS d FROM ar_aging_snapshots`.then((r) => r.rows[0]?.d ?? null),
+    sql`SELECT MAX(report_date) AS d FROM borrowing_base`.then((r) => r.rows[0]?.d ?? null).catch(() => null),
+    sql`SELECT MAX(snapshot_year || '-' || lpad(snapshot_month::text, 2, '0')) AS d FROM wip_snapshot_totals`.then((r) => r.rows[0]?.d ?? null).catch(() => null),
+  ]);
+
+  const monthLabel = (d: unknown) => {
+    if (!d) return null;
+    const s = String(d);
+    const dateOnly = s.includes("T") ? s.split("T")[0] : s;
+    const dt = new Date(dateOnly + "T00:00:00");
+    if (isNaN(dt.getTime())) return s;
+    return dt.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  };
+
+  void costOfSales;
+
+  return new Response(
+    JSON.stringify({
+      annual: currentIS ? {
+        year: currentYear,
+        revenue,
+        costOfSales,
+        grossProfit,
+        grossMargin: revenue > 0 ? (grossProfit / revenue) * 100 : 0,
+        netIncome,
+        netMargin: revenue > 0 ? (netIncome / revenue) * 100 : 0,
+        priorYear: priorIS ? { revenue: priorRevenue, grossProfit: priorGrossProfit, netIncome: priorNetIncome } : null,
+      } : null,
+      ytd: ytdCurrent ? {
+        year: new Date(String(ytdCurrent.period_end_date).split("T")[0] + "T00:00:00").getFullYear(),
+        month: new Date(String(ytdCurrent.period_end_date).split("T")[0] + "T00:00:00").toLocaleDateString("en-US", { month: "long" }),
+        revenue: parseFloat(String(ytdCurrent.total_income)),
+        grossProfit: parseFloat(String(ytdCurrent.gross_margin)),
+        netIncome: parseFloat(String(ytdCurrent.net_income)),
+        priorYearSameMonth: ytdPrior ? {
+          revenue: parseFloat(String(ytdPrior.total_income)),
+          grossProfit: parseFloat(String(ytdPrior.gross_margin)),
+          netIncome: parseFloat(String(ytdPrior.net_income)),
+        } : null,
+      } : null,
+      arAging: arRow ? {
+        date: String(arRow.report_date),
+        totalAR: parseFloat(String(arRow.total_amount)),
+        current: parseFloat(String(arRow.total_current)),
+        days30: parseFloat(String(arRow.total_over_30)),
+        days60: parseFloat(String(arRow.total_over_60)),
+        days90: parseFloat(String(arRow.total_over_90)),
+        days90Plus: parseFloat(String(arRow.total_over_90)) + parseFloat(String(arRow.total_over_120)),
+        retainage: parseFloat(String(arRow.total_retainage)),
+      } : null,
+      borrowingBase: bbcRow ? {
+        date: String(bbcRow.report_date),
+        eligibleAR: parseFloat(String(bbcRow.eligible_ar)),
+        totalBase: parseFloat(String(bbcRow.total_borrowing_base)),
+        advanceRate: parseFloat(String(bbcRow.ar_advance_rate)) * 100,
+        amountBorrowed: parseFloat(String(bbcRow.amount_borrowed ?? "0")),
+        excessAvailability: parseFloat(String(bbcRow.excess_availability ?? "0")),
+      } : null,
+      revenueTrend: trendResult.rows.map((r) => {
+        const d = String(r.period_end_date).split("T")[0];
+        const dt = new Date(d + "T00:00:00");
+        return {
+          month: dt.toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
+          revenue: parseFloat(String(r.total_income)),
+          netIncome: parseFloat(String(r.net_income)),
+        };
+      }),
+      reconciliation: { matches: reconMatches, total: reconTotal, latestDate: reconLatest },
+      dataFreshness: {
+        latestIS: monthLabel(latestIS),
+        latestBS: monthLabel(latestBS),
+        latestAR: monthLabel(latestAR),
+        latestBBC: monthLabel(latestBBC),
+        latestWIP: monthLabel(latestWIP),
+      },
     }),
     { status: 200, headers: SECURITY_HEADERS }
   );
