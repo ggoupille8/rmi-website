@@ -78,10 +78,10 @@ export default function DataCoverage() {
 
   const summaryParts: string[] = [];
   if (data.completeMonths > 0) {
-    summaryParts.push();
+    summaryParts.push(`${data.completeMonths} complete`);
   }
   for (const t of REPORT_TYPES) {
-    if (data.totals[t] > 0) summaryParts.push();
+    if (data.totals[t] > 0) summaryParts.push(`${t}: ${data.totals[t]}`);
   }
 
   return (
@@ -101,7 +101,7 @@ export default function DataCoverage() {
           </span>
           <ChevronDown
             size={14}
-            className={}
+            className={`transition-transform ${collapsed ? "-rotate-90" : ""}`}
           />
         </div>
       </button>
@@ -157,7 +157,7 @@ function YearGroup({ year, months, coverage }: YearGroupProps) {
           <div className="flex items-center gap-2">
             <ChevronDown
               size={12}
-              className={}
+              className={`transition-transform ${expanded ? "" : "-rotate-90"}`}
             />
             <span className="text-xs font-bold text-neutral-300 uppercase tracking-wider">
               {year}
@@ -182,19 +182,19 @@ function YearGroup({ year, months, coverage }: YearGroupProps) {
         return (
           <tr
             key={m}
-            className={}
+            className={`hover:bg-neutral-800/30 transition-colors ${isComplete ? "bg-emerald-500/5" : ""}`}
           >
             <td className="px-3 py-1.5">
-              <span className={}>
+              <span className={isComplete ? "text-emerald-300" : "text-neutral-300"}>
                 {monthLabel(m)}
               </span>
             </td>
             {REPORT_TYPES.map((t) => (
               <td key={t} className="px-3 py-1.5 text-center">
                 {c[t] ? (
-                  <span className="text-emerald-400 text-sm" title={}>&#9679;</span>
+                  <span className="text-emerald-400 text-sm" title={`${t} data present`}>&#9679;</span>
                 ) : (
-                  <span className="text-neutral-700 text-sm" title={}>&#9675;</span>
+                  <span className="text-neutral-700 text-sm" title={`${t} data missing`}>&#9675;</span>
                 )}
               </td>
             ))}
