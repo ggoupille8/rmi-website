@@ -53,8 +53,8 @@ export default function Footer() {
         </span>
       </div>
 
-      <div className="container-custom pt-6 sm:pt-8 pb-3 sm:pb-4 relative">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
+      <div className="container-custom pt-4 sm:pt-8 pb-3 sm:pb-4 relative">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-8">
           {/* Company Info */}
           <div className="text-center md:text-left">
             <h3 className="text-lg font-bold text-white mb-2 sm:mb-3">
@@ -174,7 +174,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-3 pt-3 border-t border-neutral-700/30">
-          <div className="flex justify-end mb-1">
+          <div className="flex justify-center sm:justify-end mb-1">
             <a
               href="#"
               className="text-xs text-neutral-400 hover:text-accent-400 transition-colors duration-200 inline-flex items-center gap-1 min-h-[44px] sm:min-h-0 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"

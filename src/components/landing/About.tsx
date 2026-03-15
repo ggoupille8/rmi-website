@@ -175,7 +175,7 @@ export default function About() {
 
 
         {/* Feature Cards Grid — 1 col mobile, 2 col tablet, 4 col desktop */}
-        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+        <div ref={gridRef} className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 lg:gap-5">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             const { accent } = feature;
@@ -190,7 +190,7 @@ export default function About() {
                 <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${accent.bar} to-transparent`} />
 
                 {/* Icon + Title row */}
-                <div className="flex items-center gap-3 mb-3 min-h-[48px]">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-3 mb-3 min-h-[48px]">
                   <div className={`flex items-center justify-center w-10 h-10 rounded-lg border ${accent.iconBg} ${accent.hoverIconBg} transition-colors duration-300 flex-shrink-0`}>
                     <IconComponent
                       className={`w-5 h-5 ${accent.iconText}`}
@@ -198,13 +198,13 @@ export default function About() {
                       aria-hidden="true"
                     />
                   </div>
-                  <h3 className="text-sm sm:text-base font-bold text-white uppercase tracking-wide">
+                  <h3 className="text-xs sm:text-base font-bold text-white uppercase tracking-wide">
                     {feature.title}
                   </h3>
                 </div>
 
                 {/* Description */}
-                <p className="text-xs sm:text-sm lg:text-base text-neutral-300 leading-relaxed flex-grow">
+                <p className="text-xs sm:text-sm lg:text-base text-neutral-300 leading-relaxed flex-grow line-clamp-3 sm:line-clamp-none">
                   {feature.description}
                 </p>
               </div>
