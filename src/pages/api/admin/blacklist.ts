@@ -1,12 +1,30 @@
 import type { APIRoute } from "astro";
 import { sql } from "@vercel/postgres";
+import { isAdminAuthorized } from "../../../lib/admin-auth";
 
 export const prerender = false;
+
+const SECURITY_HEADERS = {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store",
+  "X-Content-Type-Options": "nosniff",
+};
+
+function unauthorizedResponse(): Response {
+  return new Response(JSON.stringify({ error: "Unauthorized", code: "UNAUTHORIZED" }), {
+    status: 401,
+    headers: {
+      ...SECURITY_HEADERS,
+      "WWW-Authenticate": 'Bearer realm="admin"',
+    },
+  });
+}
 
 /**
  * GET /api/admin/blacklist — list all blocked IPs
  */
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
+  if (!isAdminAuthorized(request)) return unauthorizedResponse();
   try {
     const result = await sql`
       SELECT id, ip_address, reason, blocked_at, expires_at,
@@ -37,7 +55,7 @@ export const GET: APIRoute = async () => {
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: SECURITY_HEADERS,
       }
     );
   } catch (error) {
@@ -47,7 +65,7 @@ export const GET: APIRoute = async () => {
     );
     return new Response(
       JSON.stringify({ error: "Failed to fetch blacklist", code: "INTERNAL_ERROR" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: SECURITY_HEADERS }
     );
   }
 };
@@ -57,6 +75,8 @@ export const GET: APIRoute = async () => {
  * Body: { ip: string, reason: string, expiresAt?: string }
  */
 export const POST: APIRoute = async ({ request }) => {
+  if (!isAdminAuthorized(request)) return unauthorizedResponse();
+
   try {
     const body = (await request.json()) as Record<string, unknown>;
     const ip = typeof body.ip === "string" ? body.ip.trim() : "";
@@ -67,7 +87,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!ip || !reason) {
       return new Response(
         JSON.stringify({ error: "IP and reason are required", code: "BAD_REQUEST" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
@@ -75,7 +95,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (!/^[\d.:a-fA-F]+$/.test(ip)) {
       return new Response(
         JSON.stringify({ error: "Invalid IP address format", code: "BAD_REQUEST" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
@@ -91,7 +111,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: SECURITY_HEADERS,
     });
   } catch (error) {
     console.error(
@@ -100,7 +120,7 @@ export const POST: APIRoute = async ({ request }) => {
     );
     return new Response(
       JSON.stringify({ error: "Failed to block IP", code: "INTERNAL_ERROR" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: SECURITY_HEADERS }
     );
   }
 };
@@ -108,13 +128,15 @@ export const POST: APIRoute = async ({ request }) => {
 /**
  * DELETE /api/admin/blacklist?ip={ip} — unblock an IP
  */
-export const DELETE: APIRoute = async ({ url }) => {
+export const DELETE: APIRoute = async ({ request, url }) => {
+  if (!isAdminAuthorized(request)) return unauthorizedResponse();
+
   try {
     const ip = url.searchParams.get("ip");
     if (!ip) {
       return new Response(
         JSON.stringify({ error: "IP parameter required", code: "BAD_REQUEST" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: SECURITY_HEADERS }
       );
     }
 
@@ -122,7 +144,7 @@ export const DELETE: APIRoute = async ({ url }) => {
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: SECURITY_HEADERS,
     });
   } catch (error) {
     console.error(
@@ -131,7 +153,7 @@ export const DELETE: APIRoute = async ({ url }) => {
     );
     return new Response(
       JSON.stringify({ error: "Failed to unblock IP", code: "INTERNAL_ERROR" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: SECURITY_HEADERS }
     );
   }
 };
