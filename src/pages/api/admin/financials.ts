@@ -67,6 +67,7 @@ export const GET: APIRoute = async ({ request, url }) => {
         SELECT period_end_date, total_income, total_cost_of_sales,
                gross_margin, total_expenses, net_income
         FROM income_statement_snapshots
+        WHERE EXTRACT(MONTH FROM period_end_date) != 12
         ORDER BY period_end_date DESC
         LIMIT ${cap}
       `;
@@ -592,6 +593,7 @@ async function handleOverview(): Promise<Response> {
     SELECT period_end_date, total_income, net_income
     FROM income_statement_snapshots
     WHERE variant = 'standard'
+      AND EXTRACT(MONTH FROM period_end_date) != 12
     ORDER BY period_end_date ASC
   `;
 
