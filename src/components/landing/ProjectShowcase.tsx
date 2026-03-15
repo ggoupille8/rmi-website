@@ -82,7 +82,7 @@ export default function ProjectShowcase() {
             <div
               key={project.title}
               className={`group overflow-hidden rounded-xl bg-white/5 border border-neutral-700 hover:border-blue-500/50 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-[400ms] ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
-              style={{ transitionDelay: isVisible ? undefined : `${index * 150}ms`, transitionDuration: isVisible ? undefined : "600ms" }}
+              style={{ transitionDelay: isVisible ? undefined : `${index * 100}ms` }}
             >
               <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl border-b-2 border-blue-500/0 group-hover:border-blue-500 transition-all duration-[400ms]">
                 <picture>

@@ -146,7 +146,9 @@ export default function Footer() {
         </div>
 
         {/* Social Links */}
-        <nav aria-label="Social media links" className="mt-3 pt-3 border-t border-neutral-700/30 bg-neutral-800/20 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 flex justify-center gap-5">
+        <nav aria-label="Social media links" className="mt-4 pt-4 border-t border-neutral-700/30 flex flex-col items-center gap-2">
+          <p className="text-xs text-neutral-600 uppercase tracking-wider">Follow Us</p>
+          <div className="flex justify-center gap-6">
           <a
             href="https://www.linkedin.com/company/resource-mechanical-insulation"
             target="_blank"
@@ -170,6 +172,7 @@ export default function Footer() {
             </svg>
           </a>
           {/* Google Business icon — add back when GBP is claimed and verified */}
+          </div>
         </nav>
 
         {/* Bottom Bar */}
