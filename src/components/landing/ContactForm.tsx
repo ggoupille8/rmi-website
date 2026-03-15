@@ -324,12 +324,16 @@ export default function ContactForm({
       // Silent failure — intelligence is non-critical
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10_000);
+
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        signal: controller.signal,
         body: JSON.stringify({
           name: formData.name.trim(),
           company: formData.company.trim(),
@@ -374,6 +378,7 @@ export default function ContactForm({
     } catch {
       setSubmitStatus("error");
     } finally {
+      clearTimeout(timeoutId);
       setIsSubmitting(false);
     }
   };
