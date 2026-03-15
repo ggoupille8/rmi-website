@@ -102,7 +102,13 @@ async function handleMonths(): Promise<Response> {
   let bbcDates = { rows: [] as Record<string, unknown>[] };
   try {
     bbcDates = await sql`
-      SELECT report_date, total_borrowing_base, excess_availability, imported_at, source_file as source_filename
+      SELECT report_date, total_borrowing_base, excess_availability,
+        imported_at, source_file AS source_filename,
+        CASE WHEN report_date IS NOT NULL
+          AND total_borrowing_base IS NOT NULL
+          AND eligible_ar IS NOT NULL
+          AND excess_availability IS NOT NULL
+        THEN true ELSE false END AS validation_passed
       FROM borrowing_base ORDER BY report_date DESC
     `;
   } catch {
