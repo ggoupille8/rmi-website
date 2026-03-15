@@ -616,7 +616,7 @@ export default function ContactForm({
                 required
                 aria-required="true"
                 autoComplete="off"
-                rows={3}
+                rows={4}
                 maxLength={FIELD_LIMITS.MAX_MESSAGE_LENGTH}
                 value={formData.message}
                 onChange={(e) => { handleChange(e); handleFieldEdit(); }}
@@ -629,7 +629,7 @@ export default function ContactForm({
                   textarea.style.height = `${textarea.scrollHeight}px`;
                 }}
                 placeholder="Describe your project, timeline, and requirements..."
-                className={`${fieldErrors.message ? inputError : inputNormal} resize-y min-h-[120px]`}
+                className={`${fieldErrors.message ? inputError : inputNormal} resize-y min-h-[100px] max-h-[300px]`}
                 aria-invalid={fieldErrors.message ? "true" : "false"}
                 aria-describedby={"message-counter" + (fieldErrors.message ? " message-error" : "")}
               />
