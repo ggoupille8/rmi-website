@@ -102,7 +102,7 @@ export default function CTABanner() {
           >
             {/* Subtle pulse ring */}
             <span
-              className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-accent-400/20 animate-[cta-pulse_3s_ease-in-out_infinite]"
+              className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-accent-400/30 animate-[cta-pulse_3s_ease-in-out_infinite]"
               aria-hidden="true"
             />
             {ctaBannerButton}
