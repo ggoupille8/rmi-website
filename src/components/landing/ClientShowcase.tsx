@@ -235,7 +235,7 @@ export default function ClientShowcase() {
                 width={130}
                 height={40}
               />
-              <span className="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-neutral-800 px-2 py-0.5 text-xs text-neutral-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg border border-neutral-700 z-10">
+              <span className={`pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-neutral-800 px-2 py-0.5 text-xs text-neutral-200 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg border border-neutral-700 z-10 ${index >= displayClients.length - 6 ? "-top-7" : "-bottom-7"}`}>
                 {client.name}
               </span>
             </div>
