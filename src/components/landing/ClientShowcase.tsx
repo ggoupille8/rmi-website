@@ -10,15 +10,15 @@ interface StaticClient {
 
 const STATIC_CLIENTS: StaticClient[] = [
   // Row 1 — Automotive heavyweights + tech giants
-  { name: "Ford Motor Company", logo: "/images/clients/ford.svg", scale: 2.4 },
+  { name: "Ford Motor Company", logo: "/images/clients/ford.svg", scale: 2.0 },
   { name: "General Motors", logo: "/images/clients/generalmotors.svg", scale: 1.4 },
   { name: "Toyota", logo: "/images/clients/toyota.svg", scale: 1.68 },
   { name: "Stellantis", logo: "/images/clients/stellantis.svg", needsInvert: true },
   { name: "Apple", logo: "/images/clients/apple.svg", scale: 1.44 },
   { name: "Amazon", logo: "/images/clients/amazon.svg", needsInvert: true, scale: 0.8 },
   // Row 2 — Logistics, auto, industrial, telecom
-  { name: "FedEx", logo: "/images/clients/fedex.svg", scale: 3.2 },
-  { name: "Delta Air Lines", logo: "/images/clients/delta.svg", scale: 3 },
+  { name: "FedEx", logo: "/images/clients/fedex.svg", scale: 2.0 },
+  { name: "Delta Air Lines", logo: "/images/clients/delta.svg", scale: 2.0 },
   { name: "BMW", logo: "/images/clients/bmw.svg", scale: 1.76 },
   { name: "BASF", logo: "/images/clients/basf.svg", needsInvert: true, scale: 0.8 },
   { name: "Flagstar Bank", logo: "/images/clients/flagstar.svg", needsInvert: true, scale: 0.8 },
@@ -32,7 +32,7 @@ const STATIC_CLIENTS: StaticClient[] = [
   { name: "Nissan", logo: "/images/clients/nissan.svg", scale: 2 },
   // Row 4 — Consumer/regional
   { name: "Target", logo: "/images/clients/target.svg", needsInvert: true, scale: 0.8 },
-  { name: "Cadillac", logo: "/images/clients/cadillac.svg", scale: 3 },
+  { name: "Cadillac", logo: "/images/clients/cadillac.svg", scale: 2.0 },
   { name: "Starbucks", logo: "/images/clients/starbucks.svg", scale: 1.6 },
   { name: "Consumers Energy", logo: "/images/clients/consumers-energy.svg", scale: 0.8 },
   { name: "Shake Shack", logo: "/images/clients/shake-shack.svg", needsInvert: true, scale: 1.2 },
@@ -214,11 +214,11 @@ export default function ClientShowcase() {
         </div>
 
         {/* Logo grid — responsive: 3 cols mobile, 6 cols desktop */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-x-2 sm:gap-x-3 lg:gap-x-4 gap-y-3 sm:gap-y-4 lg:gap-y-5 items-center justify-items-center">
+        <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 gap-x-1 sm:gap-x-3 lg:gap-x-4 gap-y-2 sm:gap-y-4 lg:gap-y-5 items-center justify-items-center">
           {displayClients.map((client, index) => (
             <div
               key={client.name}
-              className="group relative flex items-center justify-center h-12 sm:h-14 lg:h-16 w-full px-2 overflow-visible opacity-[0.65] grayscale hover:opacity-100 hover:grayscale-0 hover:scale-105 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
+              className="group relative flex items-center justify-center h-10 sm:h-14 lg:h-16 w-full px-2 overflow-visible opacity-[0.65] grayscale hover:opacity-100 hover:grayscale-0 hover:scale-105 hover:drop-shadow-[0_0_8px_rgba(96,165,250,0.3)] transition-all duration-300 ease-out"
               style={skipAnimation ? undefined : {
                 transitionDelay: `${200 + index * 60}ms`,
                 opacity: isVisible ? undefined : 0,
@@ -228,7 +228,7 @@ export default function ClientShowcase() {
               <img
                 src={client.logo}
                 alt={client.name}
-                className={`object-contain h-8 sm:h-9 lg:h-10 max-w-[100px] sm:max-w-[120px] lg:max-w-[130px] w-auto${client.needsInvert ? " brightness-0 invert" : ""}`}
+                className={`object-contain h-8 sm:h-9 lg:h-10 max-w-[80px] sm:max-w-[120px] lg:max-w-[130px] w-auto${client.needsInvert ? " brightness-0 invert" : ""}`}
                 style={client.scale && client.scale !== 1 ? { transform: `scale(${client.scale})` } : undefined}
                 loading="lazy"
                 decoding="async"

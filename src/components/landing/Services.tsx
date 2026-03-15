@@ -181,8 +181,8 @@ export default function Services() {
         </p>
 
         {/* Services Icon Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
-          {services.map((service) => {
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 lg:gap-5">
+          {services.map((service, index) => {
             const IconComponent = iconMap[service.anchorId] || Droplets;
             return (
               <button
@@ -192,14 +192,14 @@ export default function Services() {
                 aria-haspopup="dialog"
                 aria-expanded={activeService === service.anchorId}
                 onClick={(e) => openModal(service.anchorId, e.currentTarget)}
-                className={`group cursor-pointer flex items-center justify-start gap-4 px-4 py-4 sm:p-4 min-h-[56px] ${cardStyle.bg} backdrop-blur-sm border border-neutral-700/50 ${cardStyle.border} transition-all duration-300 ease-out hover:bg-neutral-800/70 active:bg-neutral-700/50 hover:border-accent-500/50 hover:-translate-y-0.5 ${cardStyle.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900`}
+                className={`group cursor-pointer flex items-center justify-start gap-3 sm:gap-4 px-3 py-3 sm:p-4 min-h-[56px] ${index === services.length - 1 ? 'col-span-2 sm:col-span-1' : ''} ${cardStyle.bg} backdrop-blur-sm border border-neutral-700/50 ${cardStyle.border} transition-all duration-300 ease-out hover:bg-neutral-800/70 active:bg-neutral-700/50 hover:border-accent-500/50 hover:-translate-y-0.5 ${cardStyle.glowColor} text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900`}
               >
                 <IconComponent
-                  className={`w-7 h-7 ${cardStyle.iconColor} ${cardStyle.hoverIcon} flex-shrink-0 transition-colors duration-300`}
+                  className={`w-5 h-5 sm:w-7 sm:h-7 ${cardStyle.iconColor} ${cardStyle.hoverIcon} flex-shrink-0 transition-colors duration-300`}
                   strokeWidth={1.5}
                   aria-hidden="true"
                 />
-                <span className="text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
+                <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-normal sm:tracking-wide">
                   {service.title}
                 </span>
                 <ChevronRight

@@ -15,7 +15,7 @@ export default function MaterialsMarquee() {
 
   return (
     <section
-      className="relative py-8 sm:py-10 lg:py-12 overflow-hidden bg-gradient-to-b from-neutral-800 via-neutral-900/50 to-neutral-800 border-t border-b border-neutral-700/30"
+      className="relative py-6 sm:py-10 lg:py-12 overflow-hidden bg-gradient-to-b from-neutral-800 via-neutral-900/50 to-neutral-800 border-t border-b border-neutral-700/30"
       role="region"
       aria-label="Materials and products we install"
     >
@@ -31,12 +31,12 @@ export default function MaterialsMarquee() {
       />
 
       {/* Header */}
-      <div className="container-custom mb-4">
+      <div className="container-custom mb-3 sm:mb-4">
         <h2 className="text-xl sm:text-2xl lg:text-3xl text-white uppercase tracking-wider font-bold text-center">
           Materials We Work With
         </h2>
         <div className="w-12 h-0.5 bg-accent-500 mx-auto mt-4 rounded-full" />
-        <p className="text-base sm:text-lg text-neutral-300 text-center mt-3 tracking-wide">
+        <p className="text-sm sm:text-lg text-neutral-300 text-center mt-3 tracking-wide">
           Insulation, jacketing, accessories, and pipe supports
         </p>
       </div>

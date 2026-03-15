@@ -49,7 +49,7 @@ export default function ProjectShowcase() {
   return (
     <ErrorBoundary>
     <section
-      className="py-8 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-800"
+      className="py-6 sm:py-10 lg:py-12 bg-neutral-900 border-t border-neutral-800"
       aria-labelledby="projects-heading"
     >
       <div className="container-custom">
@@ -77,7 +77,7 @@ export default function ProjectShowcase() {
         </p>
 
         {/* Project Cards Grid */}
-        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 lg:gap-5">
           {projectHighlights.map((project, index) => (
             <div
               key={project.title}
@@ -103,7 +103,7 @@ export default function ProjectShowcase() {
                 </picture>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-[400ms] group-hover:opacity-75" />
               </div>
-              <div className="px-5 py-4">
+              <div className="px-4 py-3 sm:px-5 sm:py-4">
                 <h3 className="text-lg font-semibold text-white transition-colors duration-200 group-hover:text-accent-400">
                   {project.title}
                 </h3>

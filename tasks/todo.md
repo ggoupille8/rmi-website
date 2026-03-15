@@ -2,6 +2,124 @@
 
 ## Current
 
+### Mobile Polish & Build-Out (Mar 15, 2026)
+Branch: `feat/mobile-polish-march15` (committed, NOT merged)
+
+Spec: `SPEC-MOBILE-POLISH.md` — 10 layout/spacing changes across 10 landing page components to improve mobile UX at 375px-414px. No text/content changes.
+
+**Task 1 — Service Cards 2-Column Grid (COMPLETE):**
+- `Services.tsx`: Grid changed from `grid-cols-1` to `grid-cols-2` on mobile
+- 9th card spans full width (`col-span-2 sm:col-span-1`)
+- Reduced mobile padding (`px-3 py-3`), icon size (`w-5 h-5`), text size (`text-xs`), gap (`gap-2`)
+
+**Task 2 — Client Showcase Tighter Grid (COMPLETE):**
+- `ClientShowcase.tsx`: Grid changed from `grid-cols-3` to `grid-cols-4` on mobile (8 rows instead of 11)
+- Capped oversized logo scales: FedEx 3.2→2.0, Delta 3.0→2.0, Cadillac 3.0→2.0, Ford 2.4→2.0
+- Reduced cell height (`h-10`), image max-width (`max-w-[80px]`), gaps (`gap-x-1`, `gap-y-2`)
+
+**Task 3 — Footer Back to Top Centering (COMPLETE):**
+- `Footer.tsx`: "Back to Top" container changed to `justify-center sm:justify-end`
+- Reduced padding (`pt-4`) and gap (`gap-3`) on mobile
+
+**Task 4 — CTA Banner Compact Mobile (COMPLETE):**
+- `CTABanner.tsx`: Reduced min-height to `min-h-[280px]` on mobile
+- Tighter content padding (`py-12 px-4` on mobile)
+- Button text: `text-base sm:text-lg`
+
+**Task 5 — Hero Stats Overflow Prevention (COMPLETE):**
+- `HeroFullWidth.tsx`: Changed stat `min-w-[100px]` to `min-w-0` on mobile
+- Removed `whitespace-nowrap` from stat labels
+- Tightened stats area: `mt-3 pb-1` on mobile
+
+**Task 6 — About Cards 2-Column Grid (COMPLETE):**
+- `About.tsx`: Grid changed from `grid-cols-1` to `grid-cols-2` on mobile
+- Icon+title stacked vertically on mobile (`flex-col sm:flex-row`)
+- Title size reduced (`text-xs`), descriptions truncated (`line-clamp-3 sm:line-clamp-none`)
+- Reduced gap (`gap-2`)
+
+**Task 7 — Project Cards Tighter Spacing (COMPLETE):**
+- `ProjectShowcase.tsx`: Section padding `py-6`, gap `gap-2.5`, card text `px-4 py-3` on mobile
+
+**Task 8 — Materials Marquee Compact (COMPLETE):**
+- `MaterialsMarquee.tsx`: Section padding `py-6`, header margin `mb-3`, subtitle `text-sm` on mobile
+
+**Task 9 — Contact Form Tighter Spacing (COMPLETE):**
+- `ContactForm.tsx`: Container padding `py-6`, form padding `p-4`, spacing `space-y-3`, subtitle `mt-2` on mobile
+
+**Task 10 — Navbar Safe Area Padding (COMPLETE):**
+- `Navbar.astro`: Added `env(safe-area-inset-left/right)` to header style
+- Added `env(safe-area-inset-bottom)` to mobile menu panel nav
+
+**Task 11 — SKIPPED** (per spec: dividers are fine as-is)
+
+**Files Modified (10):**
+- `src/components/landing/Services.tsx`
+- `src/components/landing/ClientShowcase.tsx`
+- `src/components/landing/Footer.tsx`
+- `src/components/landing/CTABanner.tsx`
+- `src/components/landing/HeroFullWidth.tsx`
+- `src/components/landing/About.tsx`
+- `src/components/landing/ProjectShowcase.tsx`
+- `src/components/landing/MaterialsMarquee.tsx`
+- `src/components/landing/ContactForm.tsx`
+- `src/components/landing/Navbar.astro`
+
+**Verification:**
+- [x] `npm run build` — zero errors
+- [x] All 10 component files modified per spec
+- [x] No content/text changes — only layout, spacing, and responsive classes
+
+---
+
+### Financial Command Center Overview Tab (Mar 15, 2026)
+Branch: `main` (committed fee43ad, pushed)
+
+Spec: `SPEC-02-FINANCIALS-OVERVIEW.md` — The Financials page previously opened to the Upload tab. Now it opens to a comprehensive financial command center showing $14M revenue at a glance.
+
+**Task 1 — Overview API Endpoint (COMPLETE):**
+- Added `action=overview` to `src/pages/api/admin/financials.ts`
+- `handleOverview()` queries 5 DB tables in parallel:
+  - Income Statement snapshots (Dec year-end + Jan YTD, standard variant)
+  - AR Aging (latest snapshot with bucket breakdown)
+  - Borrowing Base (latest record with utilization)
+  - Revenue/profitability trend (all IS snapshots)
+  - Reconciliation status (AR vs BS tie-outs)
+  - Data freshness (MAX dates from all 5 tables)
+
+**Task 2 — FinancialOverview Component (COMPLETE):**
+- Complete rewrite of `src/components/admin/financials/FinancialOverview.tsx` (256 -> 500+ lines)
+- **Top Row — 4 KPI Cards:** Annual Revenue ($14.2M), Gross Profit (with margin %), Net Income ($2.3M with net margin %), YTD 2026 (January with prior year comparison)
+- **Second Row — Cash & Receivables:** AR Aging stacked bar chart (Recharts BarChart, green/yellow/orange/red color ramp), Borrowing Base capacity card with utilization bar
+- **Third Row — Trend Charts:** Revenue Trend (Recharts AreaChart, blue gradient), Profitability Trend (AreaChart, green gradient)
+- **Bottom Row — Status Cards:** Reconciliation Status (5/5 matches in green), Data Freshness (latest imported dates per report type)
+- Loading skeleton, error handling, empty states for missing data
+
+**Task 3 — Tab Order & Default (COMPLETE):**
+- Added `LayoutDashboard` import to `FinancialDashboard.tsx`
+- Changed Tab type to include `"overview"`
+- Default tab: `"overview"` (was `"reports"`)
+- Tab order: Overview | Reports | Borrowing Base | Reconciliation | Upload
+- Reports tab now uses `ReportsView` with month selector
+- Month selector shows for both Reports and Reconciliation tabs
+
+**Files Modified:**
+- `src/pages/api/admin/financials.ts` — Added `overview` action route + `handleOverview()` function
+- `src/components/admin/financials/FinancialOverview.tsx` — Complete rewrite with charts, KPIs, status cards
+- `src/components/admin/FinancialDashboard.tsx` — Overview tab first, default tab, tab rendering changes
+
+**Verification:**
+- [x] `npm run build` — zero errors (server 5.81s, client 13.49s, 2421 modules)
+- [x] Financials page opens to Overview tab by default
+- [x] 4 KPI cards render (Revenue, Gross Profit, Net Income, YTD)
+- [x] AR Aging BarChart and Borrowing Base capacity bar render
+- [x] Revenue and Profitability AreaCharts render
+- [x] Reconciliation status and data freshness cards display
+- [x] Tab order: Overview | Reports | Borrowing Base | Reconciliation | Upload
+- [x] All existing tabs still work (Reports now uses ReportsView with date selector)
+- [x] Pushed to main (fee43ad)
+
+---
+
 ### Dashboard Viewport Fix + Empty States + Lead Categorization (Mar 15, 2026)
 Branch: `feat/test-leads-dashboard` (committed, NOT merged)
 
