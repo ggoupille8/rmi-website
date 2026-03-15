@@ -1,3 +1,52 @@
+## Build Size Audit
+
+**Date:** 2026-03-15
+**Build:** 2421 modules | Server 11.49s | Client 15.65s | Prerender 0.80s | Total 52.24s
+
+### Top 10 Largest JS Bundles (client)
+
+| # | File | Size | Gzip |
+|---|------|------|------|
+| 1 | AreaChart.nsOASf4Q.js (Recharts) | 347.24 KB | 104.68 KB |
+| 2 | index.BfaYYWan.js (React runtime) | 134.65 KB | 43.22 KB |
+| 3 | FinancialDashboard.CEs-k4AI.js | 114.31 KB | 27.08 KB |
+| 4 | WipDashboard.SkPqhDdx.js | 54.29 KB | 13.00 KB |
+| 5 | AnalyticsDashboard.DnaavLxx.js | 45.02 KB | 10.13 KB |
+| 6 | MediaManager.BVmQF0CC.js | 33.60 KB | 8.80 KB |
+| 7 | InvoiceEntry.DjTkEwis.js | 32.03 KB | 7.94 KB |
+| 8 | LeadsTable.CgJYN9PB.js | 31.17 KB | 8.49 KB |
+| 9 | PmDashboard.DmFqjGlU.js | 29.34 KB | 6.93 KB |
+| 10 | ExecutiveDashboard.L--J1l-L.js | 26.17 KB | 6.12 KB |
+
+### Bundles Over 100 KB (3 files)
+
+- **AreaChart.nsOASf4Q.js** — 347.24 KB (104.68 KB gzip) — Recharts library chunk. Shared across admin dashboards only; not loaded on the public landing page. Acceptable for an admin-only charting dependency.
+- **index.BfaYYWan.js** — 134.65 KB (43.22 KB gzip) — React + ReactDOM runtime. Standard size for React 18; unavoidable.
+- **FinancialDashboard.CEs-k4AI.js** — 114.31 KB (27.08 KB gzip) — Financial dashboard component with extensive charting logic. Admin-only; code-split from landing page.
+
+### CSS Output
+
+Tailwind CSS is processed by Astro at build time and inlined into page HTML (no separate `.css` bundle files emitted). This is optimal — zero extra CSS network requests.
+
+### Landing Page Bundle Impact
+
+Public-facing landing page components are well-optimized:
+- HeroFullWidth: 8.73 KB (3.09 KB gzip)
+- Services: 15.55 KB (5.24 KB gzip)
+- ContactForm: 24.46 KB (8.30 KB gzip)
+- Footer: 10.44 KB (2.89 KB gzip)
+- ClientShowcase: 6.28 KB (2.33 KB gzip)
+- About: 6.93 KB (2.86 KB gzip)
+- site content: 15.68 KB (4.40 KB gzip)
+
+No landing page bundle exceeds 25 KB (gzip). All 100 KB+ bundles are admin-only (Recharts, React runtime, FinancialDashboard) and code-split behind authentication.
+
+### Verdict
+
+Build output is healthy. No action needed.
+
+---
+
 # Desktop Polish Round 2 — Summary
 
 ## Current
