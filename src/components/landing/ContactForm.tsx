@@ -570,7 +570,7 @@ export default function ContactForm({
                   onPaste={handlePaste}
                   className={fieldErrors.phone || contactError ? inputError : inputNormal}
                   aria-invalid={fieldErrors.phone || contactError ? "true" : "false"}
-                  aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
+                  aria-describedby={fieldErrors.phone ? "phone-error" : contactError ? "contact-error" : undefined}
                 />
                 {fieldErrors.phone && (
                   <div id="phone-error" className="mt-1 text-xs text-red-400" role="alert" aria-live="polite">
