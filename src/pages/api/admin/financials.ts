@@ -52,6 +52,10 @@ export const GET: APIRoute = async ({ request, url }) => {
       return handleCoverage();
     }
 
+    if (action === "annual_overview") {
+      return handleAnnualOverview();
+    }
+
     if (action === "pl_summary") {
       const limit = parseInt(url.searchParams.get("months") ?? "6", 10);
       const cap = Math.min(Math.max(limit, 1), 24);
@@ -446,6 +450,66 @@ async function handleCoverage(): Promise<Response> {
         WIP: Number(wipCount.rows[0].cnt),
       },
       completeMonths,
+    }),
+    { status: 200, headers: SECURITY_HEADERS }
+  );
+}
+
+async function handleAnnualOverview(): Promise<Response> {
+  // Year-end income statement snapshots (standard variant) for YoY comparison
+  const isResult = await sql`
+    SELECT period_end_date, total_income, total_cost_of_sales,
+           gross_margin, total_expenses, net_income
+    FROM income_statement_snapshots
+    WHERE variant = 'standard'
+      AND EXTRACT(MONTH FROM period_end_date) = 12
+    ORDER BY period_end_date DESC
+    LIMIT 2
+  `;
+
+  // Year-end balance sheet snapshot (standard variant) with detail entries
+  const bsResult = await sql`
+    SELECT id, report_date, total_assets, total_liabilities, total_equity, net_income,
+           ar_balance, ar_retainage, costs_in_excess, billings_in_excess
+    FROM balance_sheet_snapshots
+    WHERE variant = 'standard'
+      AND EXTRACT(MONTH FROM report_date) = 12
+    ORDER BY report_date DESC
+    LIMIT 1
+  `;
+
+  let bsEntries: Record<string, unknown>[] = [];
+  if (bsResult.rows.length > 0) {
+    const entriesResult = await sql`
+      SELECT account_number, account_name, amount, section, is_subtotal, line_order
+      FROM balance_sheet_entries
+      WHERE snapshot_id = ${bsResult.rows[0].id}
+      ORDER BY line_order
+    `;
+    bsEntries = entriesResult.rows;
+  }
+
+  const bsRow = bsResult.rows[0];
+  const bsResponse = bsRow
+    ? {
+        report_date: bsRow.report_date,
+        total_assets: bsRow.total_assets,
+        total_liabilities: bsRow.total_liabilities,
+        total_equity: bsRow.total_equity,
+        net_income: bsRow.net_income,
+        ar_balance: bsRow.ar_balance,
+        ar_retainage: bsRow.ar_retainage,
+        costs_in_excess: bsRow.costs_in_excess,
+        billings_in_excess: bsRow.billings_in_excess,
+      }
+    : null;
+
+  return new Response(
+    JSON.stringify({
+      currentYear: isResult.rows[0] ?? null,
+      priorYear: isResult.rows.length > 1 ? isResult.rows[1] : null,
+      balanceSheet: bsResponse,
+      balanceSheetEntries: bsEntries,
     }),
     { status: 200, headers: SECURITY_HEADERS }
   );

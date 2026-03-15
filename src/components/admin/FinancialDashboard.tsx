@@ -10,6 +10,7 @@ import ProfitLossReport from "./financials/ProfitLossReport";
 import BalanceSheetReport from "./financials/BalanceSheetReport";
 import BorrowingBaseTrend from "./financials/BorrowingBaseTrend";
 import DataCoverage from "./financials/DataCoverage";
+import FinancialOverview from "./financials/FinancialOverview";
 
 type Tab = "upload" | "reports" | "reconciliation" | "borrowing_base";
 type ReportSubTab = "ar_aging" | "balance_sheet" | "income_statement";
@@ -208,7 +209,7 @@ function HistorySkeleton() {
 // ─────────────────────────────────────────────
 
 export default function FinancialDashboard() {
-  const [tab, setTab] = useState<Tab>("upload");
+  const [tab, setTab] = useState<Tab>("reports");
   const [months, setMonths] = useState<MonthsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -261,10 +262,10 @@ export default function FinancialDashboard() {
   const uniqueDates = [...new Set(allDates)].sort().reverse();
 
   const tabs: { key: Tab; label: string; icon: typeof Upload }[] = [
-    { key: "upload", label: "Upload", icon: Upload },
     { key: "reports", label: "Reports", icon: BarChart3 },
     { key: "borrowing_base", label: "Borrowing Base", icon: Landmark },
     { key: "reconciliation", label: "Reconciliation", icon: GitCompare },
+    { key: "upload", label: "Upload", icon: Upload },
   ];
 
   return (
@@ -272,8 +273,8 @@ export default function FinancialDashboard() {
       {/* Tab bar */}
       <TabBar tabs={tabs} activeTab={tab} onTabChange={setTab} />
 
-      {/* Month selector (for reports and reconciliation tabs) */}
-      {tab !== "upload" && tab !== "borrowing_base" && uniqueDates.length > 0 && (
+      {/* Month selector (for reconciliation tab) */}
+      {tab === "reconciliation" && uniqueDates.length > 0 && (
         <MonthSelector
           dates={uniqueDates}
           selected={selectedDate}
@@ -318,16 +319,8 @@ export default function FinancialDashboard() {
       )}
 
       {/* Reports tab */}
-      {tab === "reports" && loading && <ReportSkeleton />}
-      {tab === "reports" && !loading && selectedDate && (
-        <ReportsView reportDate={selectedDate} />
-      )}
-      {tab === "reports" && !loading && !selectedDate && (
-        <div className="text-center py-12">
-          <FileText size={32} className="mx-auto mb-3 text-neutral-600" />
-          <p className="text-neutral-400">No financial reports imported yet.</p>
-          <p className="text-sm text-neutral-500 mt-1">Upload PDFs on the Upload tab to get started.</p>
-        </div>
+      {tab === "reports" && (
+        <FinancialOverview />
       )}
 
       {/* Borrowing Base tab */}
