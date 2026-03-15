@@ -42,6 +42,10 @@ ALTER TABLE contacts ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NUL
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS deleted_by TEXT DEFAULT NULL;
 CREATE INDEX IF NOT EXISTS idx_contacts_deleted_at ON contacts (deleted_at) WHERE deleted_at IS NULL;
 
+-- Lead category classification (migration 013)
+ALTER TABLE contacts ADD COLUMN IF NOT EXISTS category VARCHAR(30) DEFAULT 'lead';
+CREATE INDEX IF NOT EXISTS idx_contacts_category ON contacts(category);
+
 -- Media table (image overrides for landing page slots)
 CREATE TABLE IF NOT EXISTS media (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -33,11 +33,11 @@ export const GET: APIRoute = async ({ request }) => {
   try {
     const [totalRes, newRes, contactedRes, archivedRes, monthRes, lastRes] =
       await Promise.all([
-        sql`SELECT COUNT(*) as count FROM contacts`,
-        sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'new'`,
-        sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'contacted'`,
-        sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'archived'`,
-        sql`SELECT COUNT(*) as count FROM contacts WHERE created_at >= date_trunc('month', CURRENT_DATE)`,
+        sql`SELECT COUNT(*) as count FROM contacts WHERE (category IS NULL OR category = 'lead')`,
+        sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'new' AND (category IS NULL OR category = 'lead')`,
+        sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'contacted' AND (category IS NULL OR category = 'lead')`,
+        sql`SELECT COUNT(*) as count FROM contacts WHERE status = 'archived' AND (category IS NULL OR category = 'lead')`,
+        sql`SELECT COUNT(*) as count FROM contacts WHERE created_at >= date_trunc('month', CURRENT_DATE) AND (category IS NULL OR category = 'lead')`,
         sql`SELECT created_at FROM contacts ORDER BY created_at DESC LIMIT 1`,
       ]);
 

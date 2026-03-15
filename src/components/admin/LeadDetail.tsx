@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, ChevronUp, Mail, Save, Send, Clock } from "lucide-react";
+import { X, ChevronUp, Mail, Save, Send, Clock, Tag } from "lucide-react";
 import { showToast } from "./Toast";
 
 interface GeoData {
@@ -70,12 +70,13 @@ interface Contact {
   updated_at: string | null;
   forwarded_at: string | null;
   metadata?: LeadMetadata | null;
+  category?: string | null;
 }
 
 interface Props {
   contact: Contact;
   onClose: () => void;
-  onUpdate: (id: string, status: string, notes: string | null) => void;
+  onUpdate: (id: string, status: string, notes: string | null, category?: string) => void;
   inline?: boolean;
 }
 
@@ -84,6 +85,14 @@ const STATUS_OPTIONS = [
   { value: "contacted", label: "Contacted", color: "bg-green-500" },
   { value: "forwarded", label: "Forwarded", color: "bg-accent-500" },
   { value: "archived", label: "Archived", color: "bg-neutral-600" },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "lead", label: "Lead", color: "bg-primary-500" },
+  { value: "employment_verification", label: "Emp. Verification", color: "bg-purple-500" },
+  { value: "vendor", label: "Vendor", color: "bg-cyan-500" },
+  { value: "spam", label: "Spam", color: "bg-neutral-500" },
+  { value: "other", label: "Other", color: "bg-yellow-500" },
 ];
 
 function parseUserAgent(ua: string): string {
@@ -225,6 +234,7 @@ function CopyButton({ text }: CopyButtonProps) {
 
 export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props) {
   const [status, setStatus] = useState(contact.status);
+  const [category, setCategory] = useState(contact.category || "lead");
   const [notes, setNotes] = useState(contact.notes || "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -242,9 +252,10 @@ export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props
     };
   }, []);
 
-  const handleSave = async (newStatus?: string, newNotes?: string) => {
+  const handleSave = async (newStatus?: string, newNotes?: string, newCategory?: string) => {
     const s = newStatus ?? status;
     const n = newNotes ?? notes;
+    const cat = newCategory ?? category;
     setSaving(true);
     setSaved(false);
     try {
@@ -255,10 +266,11 @@ export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props
           id: contact.id,
           status: s,
           notes: n || null,
+          category: cat,
         }),
       });
       if (res.ok) {
-        onUpdate(contact.id, s, n || null);
+        onUpdate(contact.id, s, n || null, cat);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       }
@@ -272,6 +284,11 @@ export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props
   const handleStatusChange = (newStatus: string) => {
     setStatus(newStatus);
     handleSave(newStatus, notes);
+  };
+
+  const handleCategoryChange = (newCategory: string) => {
+    setCategory(newCategory);
+    handleSave(status, notes, newCategory);
   };
 
   const handleNotesChange = (value: string) => {
@@ -473,8 +490,8 @@ export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props
         )}
       </div>
 
-      {/* Status + Notes + Actions — grid on desktop for inline */}
-      <div className={inline ? "grid grid-cols-1 lg:grid-cols-3 gap-4" : "space-y-5"}>
+      {/* Status + Category + Notes + Actions — grid on desktop for inline */}
+      <div className={inline ? "grid grid-cols-1 lg:grid-cols-4 gap-4" : "space-y-5"}>
         {/* Status */}
         <div>
           <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1.5">
@@ -495,6 +512,31 @@ export default function LeadDetail({ contact, onClose, onUpdate, inline }: Props
                 <span
                   className={`w-2 h-2 rounded-full ${opt.color}`}
                 />
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Category */}
+        <div>
+          <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1.5">
+            <Tag size={11} className="inline mr-1 -mt-0.5" />
+            Category
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {CATEGORY_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => handleCategoryChange(opt.value)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                  category === opt.value
+                    ? "bg-neutral-800 text-neutral-100 ring-1 ring-neutral-600"
+                    : "text-neutral-500 hover:bg-neutral-800 hover:text-neutral-300"
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${opt.color}`} />
                 {opt.label}
               </button>
             ))}

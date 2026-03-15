@@ -3,6 +3,7 @@ import { sql } from "@vercel/postgres";
 import { getPostgresEnv } from "../../../lib/db-env";
 import { isAdminAuthorized } from "../../../lib/admin-auth";
 import { ensureContactsSoftDelete } from "../../../lib/ensure-contacts-soft-delete";
+import { ensureContactsCategory } from "../../../lib/ensure-contacts-category";
 import { logActivity } from "../../../lib/activity-log";
 
 export const prerender = false;
@@ -18,6 +19,13 @@ type LeadStatus = (typeof VALID_STATUSES)[number];
 
 function isValidStatus(s: unknown): s is LeadStatus {
   return typeof s === "string" && VALID_STATUSES.includes(s as LeadStatus);
+}
+
+const VALID_CATEGORIES = ["lead", "employment_verification", "vendor", "spam", "other"] as const;
+type LeadCategory = (typeof VALID_CATEGORIES)[number];
+
+function isValidCategory(c: unknown): c is LeadCategory {
+  return typeof c === "string" && VALID_CATEGORIES.includes(c as LeadCategory);
 }
 
 function unauthorizedResponse(): Response {
@@ -45,6 +53,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   try {
     await ensureContactsSoftDelete();
+    await ensureContactsCategory();
     const url = new URL(request.url);
 
     // Parse pagination
@@ -61,6 +70,7 @@ export const GET: APIRoute = async ({ request }) => {
     const statusParam = url.searchParams.get("status");
     const qualityParam = url.searchParams.get("quality");
     const searchParam = url.searchParams.get("search");
+    const categoryParam = url.searchParams.get("category");
 
     const VALID_QUALITIES = ["high", "medium", "low", "spam"] as const;
 
@@ -86,6 +96,12 @@ export const GET: APIRoute = async ({ request }) => {
       paramIndex++;
     }
 
+    if (categoryParam && isValidCategory(categoryParam)) {
+      conditions.push(`category = $${paramIndex}`);
+      values.push(categoryParam);
+      paramIndex++;
+    }
+
     if (searchParam && searchParam.trim().length > 0) {
       const searchTerm = `%${searchParam.trim().toLowerCase()}%`;
       conditions.push(
@@ -100,7 +116,7 @@ export const GET: APIRoute = async ({ request }) => {
 
     // Query
     const queryText = `
-      SELECT id, created_at, name, email, phone, message, source, metadata, status, notes, updated_at, forwarded_at
+      SELECT id, created_at, name, email, phone, message, source, metadata, status, notes, updated_at, forwarded_at, category
       FROM contacts
       ${whereClause}
       ORDER BY created_at DESC
@@ -145,11 +161,13 @@ export const PATCH: APIRoute = async ({ request }) => {
 
   try {
     await ensureContactsSoftDelete();
+    await ensureContactsCategory();
     const body = await request.json();
-    const { id, status, notes } = body as {
+    const { id, status, notes, category } = body as {
       id?: unknown;
       status?: unknown;
       notes?: unknown;
+      category?: unknown;
     };
 
     if (!id || typeof id !== "string") {
@@ -187,6 +205,16 @@ export const PATCH: APIRoute = async ({ request }) => {
       );
     }
 
+    if (category !== undefined && !isValidCategory(category)) {
+      return new Response(
+        JSON.stringify({
+          error: `Invalid category. Must be one of: ${VALID_CATEGORIES.join(", ")}`,
+          code: "BAD_REQUEST",
+        }),
+        { status: 400, headers: SECURITY_HEADERS }
+      );
+    }
+
     // Build dynamic update
     const setClauses: string[] = ["updated_at = NOW()"];
     const updateValues: unknown[] = [];
@@ -204,6 +232,12 @@ export const PATCH: APIRoute = async ({ request }) => {
       idx++;
     }
 
+    if (category !== undefined) {
+      setClauses.push(`category = $${idx}`);
+      updateValues.push(category);
+      idx++;
+    }
+
     if (setClauses.length === 1) {
       return new Response(
         JSON.stringify({ error: "No fields to update", code: "BAD_REQUEST" }),
@@ -216,7 +250,7 @@ export const PATCH: APIRoute = async ({ request }) => {
       UPDATE contacts
       SET ${setClauses.join(", ")}
       WHERE id = $${idx} AND deleted_at IS NULL
-      RETURNING id, status, notes, updated_at
+      RETURNING id, status, notes, updated_at, category
     `;
 
     const result = await sql.query(updateQuery, updateValues);

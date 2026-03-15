@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, ChevronDown, RefreshCw, Trash2 } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, ChevronDown, RefreshCw, Trash2, Tag } from "lucide-react";
 import LeadDetail from "./LeadDetail";
 import { showToast } from "./Toast";
 
@@ -24,6 +24,7 @@ interface Contact {
   updated_at: string | null;
   forwarded_at: string | null;
   metadata?: ContactMetadata | null;
+  category?: string | null;
 }
 
 interface PaginationInfo {
@@ -40,6 +41,31 @@ const STATUS_FILTERS = [
   { value: "forwarded", label: "Forwarded" },
   { value: "archived", label: "Archived" },
 ];
+
+const CATEGORY_FILTERS = [
+  { value: "", label: "All Categories" },
+  { value: "lead", label: "Leads" },
+  { value: "employment_verification", label: "Employment Verification" },
+  { value: "vendor", label: "Vendor" },
+  { value: "spam", label: "Spam" },
+  { value: "other", label: "Other" },
+];
+
+const CATEGORY_BADGE: Record<string, string> = {
+  lead: "bg-primary-600/20 text-primary-400 border-primary-600/30",
+  employment_verification: "bg-purple-600/20 text-purple-400 border-purple-600/30",
+  vendor: "bg-cyan-600/20 text-cyan-400 border-cyan-600/30",
+  spam: "bg-neutral-700/50 text-neutral-500 border-neutral-700",
+  other: "bg-yellow-600/20 text-yellow-400 border-yellow-600/30",
+};
+
+const CATEGORY_LABEL: Record<string, string> = {
+  lead: "Lead",
+  employment_verification: "Emp. Verify",
+  vendor: "Vendor",
+  spam: "Spam",
+  other: "Other",
+};
 
 const STATUS_BADGE: Record<string, string> = {
   new: "bg-primary-600/20 text-primary-400 border-primary-600/30",
@@ -95,6 +121,7 @@ export default function LeadsTable({ initialStatus }: Props) {
     hasMore: false,
   });
   const [statusFilter, setStatusFilter] = useState(initialStatus || "");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(true);
@@ -108,6 +135,7 @@ export default function LeadsTable({ initialStatus }: Props) {
       params.set("limit", String(PAGE_SIZE));
       params.set("offset", String(page * PAGE_SIZE));
       if (statusFilter) params.set("status", statusFilter);
+      if (categoryFilter) params.set("category", categoryFilter);
       if (search) params.set("search", search);
 
       const res = await fetch(`/api/admin/contacts?${params}`);
@@ -121,7 +149,7 @@ export default function LeadsTable({ initialStatus }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter, search]);
+  }, [page, statusFilter, categoryFilter, search]);
 
   useEffect(() => {
     fetchContacts();
@@ -141,10 +169,10 @@ export default function LeadsTable({ initialStatus }: Props) {
     setPage(0);
   };
 
-  const handleUpdate = (id: string, newStatus: string, newNotes: string | null) => {
+  const handleUpdate = (id: string, newStatus: string, newNotes: string | null, newCategory?: string) => {
     setContacts((prev) =>
       prev.map((c) =>
-        c.id === id ? { ...c, status: newStatus, notes: newNotes } : c
+        c.id === id ? { ...c, status: newStatus, notes: newNotes, ...(newCategory !== undefined ? { category: newCategory } : {}) } : c
       )
     );
   };
@@ -253,6 +281,20 @@ export default function LeadsTable({ initialStatus }: Props) {
           />
         </div>
 
+        {/* Category filter */}
+        <div className="relative">
+          <Tag size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-600 pointer-events-none" />
+          <select
+            value={categoryFilter}
+            onChange={(e) => { setCategoryFilter(e.target.value); setPage(0); }}
+            className="pl-8 pr-3 py-2 bg-neutral-900 border border-neutral-800 rounded-md text-sm text-neutral-300 focus:outline-none focus:ring-1 focus:ring-primary-500 appearance-none cursor-pointer"
+          >
+            {CATEGORY_FILTERS.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+        </div>
+
         {/* Refresh */}
         <button
           type="button"
@@ -272,7 +314,7 @@ export default function LeadsTable({ initialStatus }: Props) {
         </div>
       ) : contacts.length === 0 ? (
         <div className="text-center py-12 text-neutral-500 text-sm">
-          No leads found{statusFilter || search ? " matching your filters" : ""}.
+          No leads found{statusFilter || categoryFilter || search ? " matching your filters" : ""}.
         </div>
       ) : (
         <>
@@ -344,14 +386,21 @@ export default function LeadsTable({ initialStatus }: Props) {
                                 {contact.phone || "-"}
                               </td>
                               <td className="px-4 py-3">
-                                <button
-                                  type="button"
-                                  onClick={(e) => cycleStatus(contact, e)}
-                                  title={`Click to change to "${STATUS_CYCLE[contact.status] || "new"}"`}
-                                  className={`inline-block px-2 py-0.5 text-xs font-medium rounded border cursor-pointer hover:opacity-80 transition-opacity ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
-                                >
-                                  {contact.status}
-                                </button>
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => cycleStatus(contact, e)}
+                                    title={`Click to change to "${STATUS_CYCLE[contact.status] || "new"}"`}
+                                    className={`inline-block px-2 py-0.5 text-xs font-medium rounded border cursor-pointer hover:opacity-80 transition-opacity ${STATUS_BADGE[contact.status] || STATUS_BADGE.new}`}
+                                  >
+                                    {contact.status}
+                                  </button>
+                                  {contact.category && contact.category !== "lead" && (
+                                    <span className={`inline-block px-1.5 py-0.5 text-[10px] font-medium rounded border ${CATEGORY_BADGE[contact.category] || CATEGORY_BADGE.other}`}>
+                                      {CATEGORY_LABEL[contact.category] || contact.category}
+                                    </span>
+                                  )}
+                                </div>
                               </td>
                               <td className="px-2 py-3">
                                 <button
@@ -425,6 +474,11 @@ export default function LeadsTable({ initialStatus }: Props) {
                         >
                           {contact.status}
                         </button>
+                        {contact.category && contact.category !== "lead" && (
+                          <span className={`inline-block px-1.5 py-0.5 text-[10px] font-medium rounded border ${CATEGORY_BADGE[contact.category] || CATEGORY_BADGE.other}`}>
+                            {CATEGORY_LABEL[contact.category] || contact.category}
+                          </span>
+                        )}
                         <button
                           type="button"
                           onClick={(e) => deleteContact(contact, e)}
